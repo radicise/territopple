@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body {
+				background-color: #ffffff;
+			}
+			.container {
+				width: 200px;
+				height: 200px;
+				display: grid;
+				grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+				grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+			}
+			.container > div {
+				font-size: 32px;
+				text-align: center;
+				vertical-align: middle;
+				aspect-ratio: 1;
+				color: #000000;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Territory Topple</h1>
+		<div id="gameboard" class="container"></div>
+		<h2 id="status">Connecting to server . . .</h2>
+		<p id="info">Not yet connected to server</p>
+		<script src="territopple.js?rev=16"></script>
+	</body>
+</html>
