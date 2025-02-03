@@ -2,6 +2,9 @@ const dbg = 1;
 let gameamnt = 4;
 let playeramnt = 3;// Includes player zero (i. e. the neutral team)
 
+const { updateboard } = require("./serverhelpers.js");
+const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
+
 /**
  * @typedef Game
  * @type {{rows:number,cols:number,board:number[],teamboard:number[],started:boolean,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number}}
@@ -152,6 +155,8 @@ wserv.on("connection", wsock => {
 				game.turn = nxpl;
 				// distrMess("turn" + game.turn.toString() + "_" + game.move.toString(), game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
+                const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
+                console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
 				break;
 			default:
 				removePlayer(game, pln);
@@ -201,54 +206,6 @@ function distrMess(mmsg, game) {
 		}
 		game.players[i].send(mmsg);// TODO Does this block?
 	}
-}
-/**
- * @param {number} rorig
- * @param {number} corig
- * @param {number} team
- * @param {Game} game
- * @returns {boolean}
- */
-function updateboard(rorig, corig, team, game) {
-	const rows = game.rows;
-	const cols = game.cols;
-	const tiles = rows * cols;
-	const adds = [corig, rorig];
-	while (adds.length) {
-		const row = adds.pop();
-		const col = adds.pop();
-		let nv = ++(game.board[(row * cols) + col]);
-		let nm = 5;
-		if ((col == 0) || (col == (cols - 1))) {
-			nm--;
-		}
-		if ((row == 0) || (row == (rows - 1))) {
-			nm--;
-		}
-		if (nv >= nm) {
-			game.board[(row * cols) + col] -= (nm - 1);
-			if (col != 0) {
-				adds.push(col - 1, row);
-			}
-			if (col != (cols - 1)) {
-				adds.push(col + 1, row);
-			}
-			if (row != 0) {
-				adds.push(col, row - 1);
-			}
-			if (row != (rows - 1)) {
-				adds.push(col, row + 1);
-			}
-		}
-		if (game.teamboard[(row * cols) + col] != team) {
-			game.owned[game.teamboard[(row * cols) + col]]--;
-			game.teamboard[(row * cols) + col] = team;
-			if ((++game.owned[team]) == tiles) {
-				return true;
-			}
-		}
-	}
-	return false;
 }
 /**
  * @param {number} rows
