@@ -13,9 +13,11 @@ let gameserver = null;
 function shutdown(which) {
     if (((which ?? 3) & 1) && webserver) {
         webserver.kill("SIGINT");
+        webserver = null;
     }
     if (((which ?? 3) & 2) && gameserver) {
         gameserver.kill("SIGINT");
+        gameserver = null;
     }
 }
 
