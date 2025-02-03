@@ -96,8 +96,8 @@ wserv.on("connection", wsock => {
 					console.log("Player attempt to move");
 				}
 				
-				if (!(game["started"])) return;
-				if (game["turn"] != pln) return;
+				if (!game.started) return;
+				if (game.turn != pln) return;
 				
 				if (dbg) {
 					console.log("Player move");
@@ -123,15 +123,15 @@ wserv.on("connection", wsock => {
 				if (game.teamboard[spt] && (game.teamboard[spt] != pln)) break;
 				
 				if (updateboard(row, col, pln, game)) {
-					distrMess("wnnr" + pln.toString() + "_0", game);
+					// distrMess("wnnr" + pln.toString() + "_0", game);
+					distrMess(`wnnr${pln}_0`, game);
 					distrMess("disc4", game);// "GAME ENDED"
 					killGame(game);
 					return;
 				}
 				game.move = spt;
 				// let mmsg = "pcmtr" + (row.toString()) + "c" + (col.toString()) + "_" + (pln.toString());
-				const mmsg = `pcmtr${row}c${col}_${pln}`;
-				distrMess(mmsg, game);
+				distrMess(`pcmtr${row}c${col}_${pln}`, game);
 				let nxpl = -1;
 				for (let i = pln + 1; i < playeramnt; i++) {
 					if (!game.players[i]) continue;
