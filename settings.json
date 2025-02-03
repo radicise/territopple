@@ -1,0 +1,5 @@
+{
+    "GAMEPORT":8301,
+    "WEBPORT":9615,
+    "WEBCONTENT_DIR":"www"
+}
