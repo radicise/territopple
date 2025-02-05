@@ -1,27 +1,27 @@
 const dbg = 1;
-let gameamnt = 4;
-let playeramnt = 3;// Includes player zero (i. e. the neutral team)
+let gameamnt = 4;// Public
+let gamestotal = 8;// Both public and private
+let playeramnt = 3;
 
 const { updateboard } = require("./serverhelpers.js");
 const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 
 /**
  * @typedef Game
- * @type {{rows:number,cols:number,board:number[],teamboard:number[],started:boolean,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number}}
+ * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number}}
  */
 
 /**@type {Game[]} */
-const games = new Array(gameamnt);
-// don't need all this
-// for (let i = games.length; i >= 0; i--) {
-// 	games[i] = null;
-// }
+const games = new Array(gamestotal);
+// don't need all this?
+for (let i = games.length; i >= 0; i--) {
+	games[i] = null;
+}
 console.log("Starting server . . .");
 const ws = require("ws");
 const fs = require("fs");
 const _path = require("path");
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
-// const wserv = new ws.Server({"port":8301});
 const wserv = new ws.Server({"port":settings.GAMEPORT});
 /*
  * Properties of a game:
@@ -30,7 +30,7 @@ const wserv = new ws.Server({"port":settings.GAMEPORT});
  * "cols" - Amount of columns on the game board
  * "board" - Array of amount of pieces on the tiles of the board
  * "teamboard" - Array of teams occupying tiles on the board
- * "started" - 0 if the game has not started, 1 if the game has started
+ * "state" - 0 if the game has not started, 1 if the game has started and it still ongoing, and 2 if the game has ended
  * "index" - Index of the game in the game array
  * "players" - Array of wsocks defining the players' connections, in player order, 1-indexed (element at index 0 is null)
  * "owned" - Array listing how many tiles each player possesses, in player order
@@ -39,14 +39,27 @@ const wserv = new ws.Server({"port":settings.GAMEPORT});
  * "move" - Index of board tile on which the last move was played, -1 if no move has yet been played
  *
  */
-wserv.on("connection", wsock => {
+wserv.on("connection", (wsock, req) => {
+	let cty = null;
+	try {
+		(new URL(`http://localhost${req.url}`)).searchParams.get(t);
+	} catch (et) {
+		cty = null;
+	}
+	if (cty == null) {
+		cty = "0";
+	}
+	cty = parseInt(cty);
+	if (isNaN(cty)) {
+		cty = 0;
+	}
 	if (dbg) {
 		console.log("Connection");
 	}
 	let gmn = -1;
 	for (let i = 0; i < gameamnt; i++) {
 		if (!games[i]) continue;
-		if (games[i].started) continue;
+		if (games[i].state != 0) continue;
 		gmn = i;
 		break;
 	}
@@ -67,41 +80,51 @@ wserv.on("connection", wsock => {
 		games[gmn].index = gmn;
 	}
 	const game = games[gmn];
-	const pln = game.players.length;
-	game.players.push(wsock);
+	let plnmb = 0;
+	for (let i = 1; i < game.players.length; i++) {
+		if (game.players[i] === null) {
+			plnmb = i;
+			break;
+		}
+	}
+	if (!plnmb) {
+		plnmb = game.players.length;
+		game.players.push(wsock);
+	}
 	if (dbg) {
 		console.log("Player assignment to game " + gmn.toString());
 	}
-	// wsock.send("room" + gmn.toString() + "_" + pln.toString());
+	const pln = plnmb;
 	wsock.send(`room${gmn}_${pln}`);
-	if (game.players.length >= playeramnt) {
-		game.started = true;
+	if (pln == playeramnt) {
+		game.state = 1;
 		game.turn = 1;
 		game.move = -1;
-		// distrMess("turn" + game.turn.toString() + "_" + game.move.toString(), game);
-		// more readable
 		distrMess(`turn${game.turn}_${game.move}`, game);
+	} else {
+		let ct = 0;
+		for (let i = 1; i < game.players.length; i++) {
+			if (!(game.players[i])) {
+				continue;
+			}
+			ct++;
+		}
+		distrMess(`plyw${ct}_${playeramnt}`, game);
 	}
-	else {
-		// distrMess("plyw" + (game["players"].length - 1).toString() + "_" + (playeramnt - 1).toString(), game);
-		distrMess(`plyw${game.players.length - 1}_${playeramnt - 1}`, game);
-	}
-	const cols = game.cols;
-	const rows = game.rows;
-	// let teamboard = game["teamboard"]
-	wsock.on("message", data => {
+	wsock.on("message", (data, bin) => {
+		if (game === null) {
+			return;
+		}
 		const whole = data.toString("utf8");
 		const type = whole.substring(0, 4);
 		let mess = whole.substring(4);
 		switch (type) {
 			case ("move"):
+				if (game.state != 1) return;
 				if (dbg) {
 					console.log("Player attempt to move");
 				}
-				
-				if (!game.started) return;
 				if (game.turn != pln) return;
-				
 				if (dbg) {
 					console.log("Player move");
 				}
@@ -113,65 +136,90 @@ wserv.on("connection", wsock => {
 				const row = parseInt(mess[0]);
 				const col = parseInt(mess[1]);
 				
-				if ((isNaN(col) || ((col < 0) || (col >= cols))) || (isNaN(row) || ((row < 0) || (row >= rows)))) {
-					wsock.send("disc1");// "INVALID INPUT"
+				if ((isNaN(col) || ((col < 0) || (col >= game.cols))) || (isNaN(row) || ((row < 0) || (row >= game.rows)))) {
 					removePlayer(game, pln);
+					game = null;
+					wsock.send("disc1");// "INVALID INPUT"
 					wsock.close();
 					wsock.terminate();
 					break;
 				}
 				
-				const spt = (row * cols) + col;
-				
+				const spt = (row * game.cols) + col;
 				if (game.teamboard[spt] && (game.teamboard[spt] != pln)) break;
-				
-				if (updateboard(row, col, pln, game)) {
-					// distrMess("wnnr" + pln.toString() + "_0", game);
-					distrMess(`wnnr${pln}_0`, game);
-					distrMess("disc4", game);// "GAME ENDED"
-					killGame(game);
-					return;
-				}
+				let wnr = updateboard(row, col, pln, game);
 				game.move = spt;
-				// let mmsg = "pcmtr" + (row.toString()) + "c" + (col.toString()) + "_" + (pln.toString());
-				distrMess(`pcmtr${row}c${col}_${pln}`, game);
 				let nxpl = -1;
-				for (let i = pln + 1; i < playeramnt; i++) {
-					if (!game.players[i]) continue;
+				let ntz = game.owned[0] == 0;
+				for (let i = pln + 1; i <= playeramnt; i++) {
+					if (!(game.players[i])) {
+						continue;
+					}
+					if (ntz && (game.owned[i] == 0)) {
+						continue;
+					}
 					nxpl = i;
 					break;
 				}
 				if (nxpl === -1) {
 					for (let i = 0; i < (pln + 1); i++) {
-						if (!game.players[i]) continue;
+						if (!(game.players[i])) {
+							continue;
+						}
+						if (ntz && (game.owned[i] == 0)) {
+							continue;
+						}
 						nxpl = i;
 						break;
 					}
 				}
-				if (nxpl === -1) {// The game ended?????
-					games[gmn] = null;
+				if (nxpl === -1) {// This should not be possible . . . the game ended?????
+					killGame(game);
 					return;
 				}
 				game.turn = nxpl;
-				// distrMess("turn" + game.turn.toString() + "_" + game.move.toString(), game);
+				if (wnr) {
+					distrMess(`wnnr${pln}_${game.move}`, game);
+					killGame(game);// "GAME ENDED"
+					return;
+				}
+				distrMess(`pcmtr${row}c${col}_${pln}`, game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
-                const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
-                console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
+				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
+				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
 				break;
 			default:
 				removePlayer(game, pln);
+				game = null;
 				wsock.send("disc2");// "INVALID DATA"
 				wsock.close();
 				wsock.terminate();
 		}
+		return;
 	});
 	if (dbg) {
 		console.log("Client data handler establishment");
 	}
-	wsock.on("error", _ => {
-		removePlayer(game, pln);
+	wsock.on("error", (er) => {
+		if (game === null) {
+			return;
+		}
+		if (dbg) {
+			console.log("Client socket error");
+		}
+		removePlayer(game, pln);// TODO Should the client be given its disconnect sequence and for it have close() invoked?
+		game = null;
 		wsock.terminate();
 	});
+	wsock.on("close", (cod, reas) => {
+		if (game === null) {
+			return;
+		}
+		removePlayer(game, pln);
+		game = null;
+		wsock.terminate();
+	});
+
 });
 /**
  * @param {any} mmsg
@@ -213,36 +261,15 @@ function distrMess(mmsg, game) {
  * @returns {Game}
  */
 function genGame(rows, cols) {
-	// let board = new Array(cols * rows);
-	// let teamboard = new Array(cols * rows);
-	// for (let i = (cols * rows) - 1; i >= 0; i--) {
-	// 	board[i] = 1;
-	// 	teamboard[i] = 0;
-	// }
-	// this is much more concise
-	// let game = {
 	return {
 		rows:rows,
 		cols:cols,
 		board:new Array(rows * cols).fill(1),
-		// board:board,
 		teamboard:new Array(rows * cols).fill(0),
-		// teamboard:teamboard,
-		started:false,
+		state:0,
 		players:[null],
-		owned:[].fill(0, 0, playeramnt)
+		owned:new Array(playeramnt + 1).fill(rows * cols, 0, 1).fill(0, 1, playeramnt + 1)
 	};
-	// game["rows"] = rows;
-	// game["cols"] = cols;
-	// game["board"] = board;
-	// game["teamboard"] = teamboard;
-	// game["started"] = 0;
-	// game["players"] = [null];
-	// game["owned"] = new Array(playeramnt);
-	// for (let i = playeramnt; i >= 0; i--) {
-	// 	game["owned"][i] = 0;
-	// }
-	// return game;
 }
 /**
  * @param {Game} game
@@ -250,35 +277,53 @@ function genGame(rows, cols) {
  */
 function removePlayer(game, pln) {
 	game.players[pln] = null;
+	if (game.state == 0) {
+		return;
+	}
+	if (game.turn != pln) {
+		return;
+	}
 	let nxpl = -1;
-	for (let i = pln + 1; i < playeramnt; i++) {
-		if (!game.players[i]) continue;
+	let ntz = (game.owned[0] == 0) && (game.state == 1);
+	for (let i = pln + 1; i <= playeramnt; i++) {
+		if (!(game.players[i])) {
+			continue;
+		}
+		if (ntz && (game.owned[i] == 0)) {
+			continue;
+		}
 		nxpl = i;
 		break;
 	}
 	if (nxpl === -1) {
 		for (let i = 0; i < (pln + 1); i++) {
-			if (!game.players[i]) continue;
+			if (!(game.players[i])) {
+				continue;
+			}
+			if (ntz && (game.owned[i] == 0)) {
+				continue;
+			}
 			nxpl = i;
 			break;
 		}
 	}
-	if (nxpl === -1) {// This should not be possible . . . the game ended?????
-		games[game.index] = null;
+	if (game.state == 1) {
+		if (nxpl == (-1)) {
+			killGame(game);
+			return;
+		}
+		game.turn = nxpl;
+		distrMess(`turn${game.turn}_${game.move}`, game);
 		return;
 	}
 	game.turn = nxpl;
-	// distrMess("turn" + game["turn"].toString() + "_" + game["move"].toString(), game);
-	distrMess(`turn${game.turn}_${game.move}`, game);
+	return;
 }
 /**
  * @param {Game} game
  */
 function killGame(game) {
-	for (let i = 0; i < game.players.length; i++) {
-		if (!game.players[i]) continue;
-		game.players[i].close();// TODO Does this block?
-		game.players[i].terminate();//TODO Does this block?
-	}
 	games[game.index] = null;
+	game.state = 2;
+	return;
 }

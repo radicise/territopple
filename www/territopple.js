@@ -12,7 +12,7 @@ if (cols == null) {
 	cols = "5";
 }
 if (serv == null) {
-	serv = "ws://127.0.0.1:8080/";
+	serv = "ws://127.0.0.1:8301/?t=1";
 }
 rows = parseInt(rows);
 cols = parseInt(cols);
@@ -147,7 +147,11 @@ conn.addEventListener("open", function(event) {
 						}
 						break;
 					case ("wnnr"):
-						updScr("status", "Player " + mesr.toString() + " won the game");
+						{
+							let rmo = Math.floor(mess / cols);
+							mess = mess % cols;
+							updScr("status", "Player " + mesr.toString() + " won the game with move " + mess.toString() + "x" + mesr.toString());
+						}
 						break;
 					default:// This should be impossible
 						recvInval("10");
