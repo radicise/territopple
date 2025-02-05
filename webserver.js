@@ -13,9 +13,25 @@ const contentDir = settings.WEBCONTENT_DIR;
 // const port = 9615;
 const port = settings.WEBPORT;
 
+const urlmap = settings.URL_MAP;
+const urlmapgroups = settings.URL_MAP_GROUPS;
+
+/**
+ * @param {string} urlpath
+ * @returns {string}
+ */
+function getFilePath(urlpath) {
+    const raw = contentDir+path.normalize(urlpath);
+    for (const matchstr in urlmap) {
+        if (urlpath === matchstr) {
+            //
+        }
+    }
+}
+
 http.createServer((request, response) => {
     try {
-        const fileStream = fs.createReadStream(contentDir+path.normalize(url.parse(request.url).pathname));
+        const fileStream = fs.createReadStream(getFilePath(url.parse(request.url).pathname));
         fileStream.pipe(response);
         fileStream.on('open', function() {
             response.writeHead(200);
