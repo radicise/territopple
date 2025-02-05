@@ -27,6 +27,7 @@ function getFilePath(urlpath) {
             //
         }
     }
+    return raw;
 }
 
 http.createServer((request, response) => {
