@@ -1,5 +1,23 @@
 {
   "dependencies": {
     "ws": "^8.18.0"
-  }
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "territopple",
+  "version": "1.0.0",
+  "description": "...",
+  "main": "main.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/radicise/territopple.git"
+  },
+  "author": "...",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/radicise/territopple/issues"
+  },
+  "homepage": "https://github.com/radicise/territopple#readme"
 }

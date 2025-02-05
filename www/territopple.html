@@ -11,6 +11,7 @@
 				display: grid;
 				grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 				grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+                user-select: none;
 			}
 			.container > div {
 				font-size: 32px;
@@ -19,6 +20,12 @@
 				aspect-ratio: 1;
 				color: #000000;
 			}
+            .container:hover {
+                cursor: pointer;
+            }
+            .container > div:hover {
+                background: #0002
+            }
 		</style>
 	</head>
 	<body>
