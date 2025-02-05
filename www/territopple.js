@@ -135,7 +135,7 @@ conn.addEventListener("open", function(event) {
 						updScr("info", "Room " + mesr.toString() + ", Player " + mess.toString());
 						break;
 					case ("plyw"):
-						updScr("status", mesr.toString() + " of " + mess.toString() + " players have joined");
+						updScr("status", mesr.toString() + " player(s) present in room, " + mess.toString() + " needed to start");
 						break;
 					case ("turn"):
 						if (mess < 0) {
