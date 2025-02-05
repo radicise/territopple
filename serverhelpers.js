@@ -2,7 +2,7 @@
  * @param {number} rorig
  * @param {number} corig
  * @param {number} team
- * @param {Game} game
+ * @param {import("./server").Game} game
  * @returns {boolean}
  */
 function updateboard(rorig, corig, team, game) {
