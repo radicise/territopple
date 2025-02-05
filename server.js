@@ -1,10 +1,10 @@
 const dbg = 1;
 let gameamnt = 4;// Public
 let gamestotal = 8;// Both public and private
-let playeramnt = 3;
+let playeramnt = 2;
 
 const { updateboard } = require("./serverhelpers.js");
-const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
+//const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 
 /**
  * @typedef Game
@@ -79,7 +79,7 @@ wserv.on("connection", (wsock, req) => {
 		games[gmn] = genGame(5, 5);
 		games[gmn].index = gmn;
 	}
-	const game = games[gmn];
+	let game = games[gmn];
 	let plnmb = 0;
 	for (let i = 1; i < game.players.length; i++) {
 		if (game.players[i] === null) {
@@ -94,7 +94,7 @@ wserv.on("connection", (wsock, req) => {
 	if (dbg) {
 		console.log("Player assignment to game " + gmn.toString());
 	}
-	const pln = plnmb;
+	let pln = plnmb;
 	wsock.send(`room${gmn}_${pln}`);
 	if (pln == playeramnt) {
 		game.state = 1;
@@ -115,8 +115,8 @@ wserv.on("connection", (wsock, req) => {
 		if (game === null) {
 			return;
 		}
-		const whole = data.toString("utf8");
-		const type = whole.substring(0, 4);
+		let whole = data.toString("utf8");
+		let type = whole.substring(0, 4);
 		let mess = whole.substring(4);
 		switch (type) {
 			case ("move"):
@@ -133,8 +133,8 @@ wserv.on("connection", (wsock, req) => {
 				
 				if (mess.length != 2) break;
 				
-				const row = parseInt(mess[0]);
-				const col = parseInt(mess[1]);
+				let row = parseInt(mess[0]);
+				let col = parseInt(mess[1]);
 				
 				if ((isNaN(col) || ((col < 0) || (col >= game.cols))) || (isNaN(row) || ((row < 0) || (row >= game.rows)))) {
 					removePlayer(game, pln);
@@ -145,7 +145,7 @@ wserv.on("connection", (wsock, req) => {
 					break;
 				}
 				
-				const spt = (row * game.cols) + col;
+				let spt = (row * game.cols) + col;
 				if (game.teamboard[spt] && (game.teamboard[spt] != pln)) break;
 				let wnr = updateboard(row, col, pln, game);
 				game.move = spt;
@@ -185,8 +185,8 @@ wserv.on("connection", (wsock, req) => {
 				}
 				distrMess(`pcmtr${row}c${col}_${pln}`, game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
-				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
-				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
+//				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
+//				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
 				break;
 			default:
 				removePlayer(game, pln);

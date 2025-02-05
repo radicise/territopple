@@ -1,25 +1,26 @@
 var dbg = 1;
-let symbs = ["!", "-", "+", "W", "#"];
-let teamcols = ["#000000", "#ff0000", "#0000ff", "#ff00ff"];
+let symbs = ["!", "-", "+", "W", "&block;"];
+let teamcols = ["#000000", "#ff0000", "#0000ff", "#7f007f", "#007f7f", "#7f7f00"];
 let queries = new URLSearchParams(window.location.search);
-let rows = queries.get("h");
-let cols = queries.get("w");
-let serv = queries.get("s");
-if (rows === null) {
-	rows = "5";
-}
-if (cols == null) {
-	cols = "5";
-}
-if (serv == null) {
-	serv = "ws://127.0.0.1:8301/?t=1";
-}
+let rows = queries.get("h") ?? "5";
+let cols = queries.get("w") ?? "5";
+let port = queries.get("p") ?? "8301";
+let host = document.location.hostname;
+
 rows = parseInt(rows);
 cols = parseInt(cols);
+port = parseInt(port);
 if ((isNaN(rows) || isNaN(cols)) || (((rows < 1) || (rows >= 37)) || ((cols < 1) || (cols >= 37)))) {
 	rows = 5;
 	cols = 5;
 }
+
+if (isNaN(port)) {
+	port = 8301;
+}
+
+let serv = `ws://${host}:${port}/?t=1`;
+
 let board = "";
 for (let i = 0; i < rows; i++) {
 	for (let j = 0; j < cols; j++) {
