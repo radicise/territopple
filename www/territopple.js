@@ -1,6 +1,6 @@
 var dbg = 1;
-let symbs = ["!", "-", "+", "W", "#"];
-let teamcols = ["#000000", "#ff0000", "#0000ff", "#ff00ff"];
+let symbs = ["!", "-", "+", "W", "&block;"];
+let teamcols = ["#000000", "#ff0000", "#0000ff", "#7f007f", "#007f7f", "#7f7f00"];
 let queries = new URLSearchParams(window.location.search);
 let rows = queries.get("h") ?? "5";
 let cols = queries.get("w") ?? "5";

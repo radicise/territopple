@@ -1,10 +1,10 @@
 const dbg = 1;
 let gameamnt = 4;// Public
 let gamestotal = 8;// Both public and private
-let playeramnt = 3;
+let playeramnt = 2;
 
 const { updateboard } = require("./serverhelpers.js");
-const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
+//const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 
 /**
  * @typedef Game
@@ -185,8 +185,8 @@ wserv.on("connection", (wsock, req) => {
 				}
 				distrMess(`pcmtr${row}c${col}_${pln}`, game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
-				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
-				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
+//				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
+//				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
 				break;
 			default:
 				removePlayer(game, pln);
