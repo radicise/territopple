@@ -1,7 +1,6 @@
 const dbg = 1;
 let gameamnt = 4;// Public
 let gamestotal = 8;// Both public and private
-let playeramnt = 2;
 
 const { updateboard } = require("./serverhelpers.js");
 const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
@@ -22,6 +21,7 @@ const ws = require("ws");
 const fs = require("fs");
 const _path = require("path");
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
+let playeramnt = settings.PLAYERAMOUNT;
 const wserv = new ws.Server({"port":settings.GAMEPORT});
 /*
  * Properties of a game:
@@ -76,7 +76,7 @@ wserv.on("connection", (wsock, req) => {
 			wsock.terminate();
 			return;
 		}
-		games[gmn] = genGame(5, 5);
+		games[gmn] = genGame();
 		games[gmn].index = gmn;
 	}
 	let game = games[gmn];
@@ -262,15 +262,15 @@ function distrMess(mmsg, game) {
  * @param {number} cols
  * @returns {Game}
  */
-function genGame(rows, cols) {
+function genGame() {
 	return {
-		rows:rows,
-		cols:cols,
-		board:new Array(rows * cols).fill(1),
-		teamboard:new Array(rows * cols).fill(0),
+		rows:settings.HEIGHT,
+		cols:settings.WIDTH,
+		board:new Array(settings.HEIGHT * settings.WIDTH).fill(1),
+		teamboard:new Array(settings.HEIGHT * settings.WIDTH).fill(0),
 		state:0,
 		players:[null],
-		owned:new Array(playeramnt + 1).fill(rows * cols, 0, 1).fill(0, 1, playeramnt + 1)
+		owned:new Array(playeramnt + 1).fill(settings.HEIGHT * settings.WIDTH, 0, 1).fill(0, 1, playeramnt + 1)
 	};
 }
 /**

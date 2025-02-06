@@ -1,6 +1,6 @@
 {
     "GAMEPORT":8301,
-    "WEBPORT":9615,
+    "WEBPORT":8300,
     "WEBCONTENT_DIR":"www",
     "URL_MAP": {
         "/": "/index.html",
@@ -8,5 +8,8 @@
     },
     "URL_MAP_GROUPS": {
         "FAVICONS": ["favicon.ico","favicon-96x96.png","favicon.svg","apple-touch-icon.png","site.webmanifest","web-app-manifest-192x192.png","web-app-manifest-512x512.png"]
-    }
+    },
+    "PLAYERAMOUNT":2,
+    "WIDTH": 6,
+    "HEIGHT": 6
 }

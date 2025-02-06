@@ -1,6 +1,6 @@
 var dbg = 1;
 let symbs = ["!", "-", "+", "W", "&block;"];
-let teamcols = ["#000000", "#ff0000", "#0000ff", "#7f007f", "#007f7f", "#7f7f00"];
+let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 let queries = new URLSearchParams(window.location.search);
 let rows = queries.get("h") ?? "5";
 let cols = queries.get("w") ?? "5";
@@ -34,6 +34,9 @@ let boardold = new Array(cols * rows);
 let teamboard = new Array(cols * rows);
 let teamboardold = new Array(cols * rows);
 let ifmt = {};
+ifmt.pln = 0;
+ifmt.room = 0;
+ifmt.turn = 0;
 for (let i = (cols * rows) - 1; i >= 0; i--) {
 	board[i] = 1;
 	boardold[i] = 1;
@@ -131,14 +134,15 @@ conn.addEventListener("open", function(event) {
 				mess = sanint(mess[1]);
 				switch (type) {
 					case ("room"):
-						ifmt["room"] = mesr;
-						ifmt["pln"] = mess;
+						ifmt.room = mesr;
+						ifmt.pln = mess;
 						updScr("info", "Room " + mesr.toString() + ", Player " + mess.toString());
 						break;
 					case ("plyw"):
 						updScr("status", mesr.toString() + " player(s) present in room, " + mess.toString() + " needed to start");
 						break;
 					case ("turn"):
+						ifmt.turn = mesr;
 						if (mess < 0) {
 							updScr("status", "Player " + mesr.toString() + "\'s turn");
 						}
@@ -149,10 +153,11 @@ conn.addEventListener("open", function(event) {
 						}
 						break;
 					case ("wnnr"):
+						ifmt.turn = 0;
 						{
 							let rmo = Math.floor(mess / cols);
 							mess = mess % cols;
-							updScr("status", "Player " + mesr.toString() + " won the game with move " + mess.toString() + "x" + mesr.toString());
+							updScr("status", "Player " + mesr.toString() + " won the game with move " + mess.toString() + "x" + rmo.toString());
 						}
 						break;
 					default:// This should be impossible
@@ -170,12 +175,32 @@ conn.addEventListener("open", function(event) {
 		if (dbg) {
 			console.log("Click on board");
 		}
+		if (!(ifmt.turn)) {
+			return;
+		}
+		if (ifmt.turn != ifmt.pln) {
+			return;
+		}
 		let d = event.target.id;
 		if (d.substring(0, 1) != "r") {
 			return;
 		}
 		if (dbg) {
 			console.log("Click on space on board");
+		}
+		let mes = d.substring(1);
+		mes = mes.split("c");
+		if (mes.length != 2) {
+			return;
+		}
+		let meg = parseInt(mes[1]);
+		mes = parseInt(mes[0]);
+		if (isNaN(mes) || isNaN(meg)) {
+			return;
+		}
+		mes = (mes * cols) + meg;
+		if ((teamboard[mes]) && (teamboard[mes] != ifmt.pln)) {
+			return;
 		}
 		conn.send("move" + d);
 		return;
