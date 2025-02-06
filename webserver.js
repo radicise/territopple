@@ -15,16 +15,39 @@ const port = settings.WEBPORT;
 
 const urlmap = settings.URL_MAP;
 const urlmapgroups = settings.URL_MAP_GROUPS;
+const devopts = settings.DEVOPTS;
 
 /**
  * @param {string} urlpath
  * @returns {string}
  */
 function getFilePath(urlpath) {
-    const raw = contentDir+path.normalize(urlpath);
+    const raw = path.normalize(urlpath);
     for (const matchstr in urlmap) {
-        if (urlpath === matchstr) {
-            //
+        if (matchstr.includes("?")) { // has a map group
+            let parts = matchstr.split("?"); // every other element is a map group
+            for (let i = 1; i < parts.length; i += 2) {
+                /**@type {string[]} */
+                const group = urlmapgroups[parts[i]];
+                parts[i] = "("+group.map(v => v.replaceAll(".", "\\.")).join("|")+")";
+            }
+            let regex = parts.join("");
+            const pat = new RegExp(regex);
+            const results = pat.exec(raw);
+            if (devopts.expr_webpath) console.log(results);
+            if (results?.length) {
+                /**@type {string[]} */
+                let mparts = urlmap[matchstr].split("?");
+                for (let i = 1; i < mparts.length; i += 2) {
+                    mparts[i] = results[mparts[i]];
+                }
+                return mparts.join("");
+            }
+            // console.log(regex, pat.test(raw));
+            // return raw;
+        }
+        if (urlpath === matchstr) { // simple replace
+            return urlmap[matchstr];
         }
     }
     return raw;
@@ -32,8 +55,13 @@ function getFilePath(urlpath) {
 
 http.createServer((request, response) => {
     try {
+        const reqpath = url.parse(request.url).pathname;
+        // const fpath = contentDir+(devopts.expr_webpath ? getFilePath(reqpath) : path.normalize((url.parse(request.url).pathname)));
+        const fpath = contentDir+getFilePath(reqpath);
+        if (devopts.expr_webpath) console.log(`${reqpath} resolved as ${fpath}`);
         // const fileStream = fs.createReadStream(getFilePath(url.parse(request.url).pathname));
-        const fileStream = fs.createReadStream(contentDir+path.normalize((url.parse(request.url).pathname)));
+        // const fileStream = fs.createReadStream(contentDir+path.normalize((url.parse(request.url).pathname)));
+        const fileStream = fs.createReadStream(fpath);
         fileStream.pipe(response);
         fileStream.on('open', function() {
             response.writeHead(200);
