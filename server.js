@@ -84,6 +84,7 @@ wserv.on("connection", (wsock, req) => {
 	for (let i = 1; i < game.players.length; i++) {
 		if (game.players[i] === null) {
 			plnmb = i;
+			game.players[plnmb] = wsock;
 			break;
 		}
 	}
@@ -254,6 +255,7 @@ function distrMess(mmsg, game) {
 		}
 		game.players[i].send(mmsg);// TODO Does this block?
 	}
+	return;
 }
 /**
  * @param {number} rows
@@ -278,6 +280,17 @@ function genGame(rows, cols) {
 function removePlayer(game, pln) {
 	game.players[pln] = null;
 	if (game.state == 0) {
+		let ps = 0;
+		for (let i = 1; i <= playeramnt; i++) {
+			if (game.players[i]) {
+				ps++;
+			}
+		}
+		if (!ps) {
+			killGame(game);
+			return;
+		}
+		distrMess(`plyw${ps}_${playeramnt}`, game);
 		return;
 	}
 	if (game.turn != pln) {
