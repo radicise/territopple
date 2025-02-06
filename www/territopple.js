@@ -14,6 +14,7 @@ if ((isNaN(rows) || isNaN(cols)) || (((rows < 1) || (rows >= 37)) || ((cols < 1)
 	rows = 5;
 	cols = 5;
 }
+document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
 
 if (isNaN(port)) {
 	port = 8301;

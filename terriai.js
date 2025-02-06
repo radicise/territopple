@@ -116,15 +116,18 @@ const DumbAI = (game) => {
 /**@type {TerriAI} */
 const SimpleAI = (game) => {
     const moves = getValidMoves(game);
-    let mosti = 0, mostv = calcTerritory(game, moves[0]);
+    let best = [0];
+    let mostv = calcTerritory(game, moves[0]);
     for (let i = 1; i < moves.length; i ++) {
         let nterri = calcTerritory(game, moves[i]);
         if (nterri > mostv) {
-            mosti = i;
-            mostv = v;
+            best = [i];
+            mostv = nterri;
+        } else if (nterri === mostv) {
+            best.push(i);
         }
     }
-    return moves[mosti];
+    return moves[choice(best)];
 };
 
 exports.RandomAI = RandomAI;
