@@ -3,6 +3,7 @@
     "WEBPORT":8300,
     "WEBCONTENT_DIR":"www",
     "URL_MAP": {
+        "": "/index.html",
         "/": "/index.html",
         "/?FAVICONS?": "/favicon/?1?"
     },
@@ -11,5 +12,8 @@
     },
     "PLAYERAMOUNT":2,
     "WIDTH": 6,
-    "HEIGHT": 6
+    "HEIGHT": 6,
+    "DEVOPTS": {
+        "expr_webpath": false
+    }
 }
