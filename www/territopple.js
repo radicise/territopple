@@ -7,6 +7,14 @@ let cols = queries.get("w") ?? "5";
 let port = queries.get("p") ?? "8301";
 let host = document.location.hostname;
 
+const render3d = document.getElementById("feature-3d")?.nodeName === "META";
+if (render3d) {
+    const s = document.createElement("script");
+    s.src = "render3.js";
+    s.type = "module";
+    document.body.appendChild(s);
+}
+
 rows = parseInt(rows);
 cols = parseInt(cols);
 port = parseInt(port);
@@ -259,20 +267,24 @@ function updateboard(rorig, corig, team) {
 		}
 		teamboard[(row * cols) + col] = team;
 	}
-	let ct = (cols * rows) - 1;
-	for (let row = rows - 1; row >= 0; row--) {
-		for (let col = cols - 1; col >= 0; col--) {
-			if ((boardold[ct] != board[ct]) || (teamboardold[ct] != teamboard[ct])) {
-				let dat = document.getElementById("r" + row.toString() + "c" + col.toString());
-				if (dbg) {
-					console.log("Change of state of tile at r" + row.toString() + "c" + col.toString());
-				}
-				dat.style.color = teamcols[team];
-				dat.innerHTML = symbs[board[ct]];
-			}
-			ct--;
-		}
-	}
+    if (render3d) {
+        window.dispatchEvent(new Customevent("board-update", {board,teamboard,boardold,teamboardold}));
+    } else {
+        let ct = (cols * rows) - 1;
+        for (let row = rows - 1; row >= 0; row--) {
+            for (let col = cols - 1; col >= 0; col--) {
+                if ((boardold[ct] != board[ct]) || (teamboardold[ct] != teamboard[ct])) {
+                    let dat = document.getElementById("r" + row.toString() + "c" + col.toString());
+                    if (dbg) {
+                        console.log("Change of state of tile at r" + row.toString() + "c" + col.toString());
+                    }
+                    dat.style.color = teamcols[team];
+                    dat.innerHTML = symbs[board[ct]];
+                }
+                ct--;
+            }
+        }
+    }
 	for (let i = (cols * rows) - 1; i >= 0; i--) {
 		boardold[i] = board[i];
 		teamboardold[i] = teamboard[i];
