@@ -7,8 +7,51 @@
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
+        <script src="index.js"></script>
     </head>
     <body>
-        <a href="territopple.html?p=8301&w=6&h=6">TERRITOPPLE GAME</a><br>
+      <div>
+        <h1>Join a public room</h1>
+        <em id="fetchingMessage">Fetching rooms...</em>
+        <table id="roomTable" hidden="true">
+          <thead>
+            <th scope="col">Room</th>
+            <th scope="col">Board Size</th>
+            <th scope="col">Status</th>
+            <th scope="col">Players</th>
+            <th scope="col">Capacity</th>
+          </thead>
+          <tbody id="roomRows">
+            
+          </tbody>
+        </table>
+      </div>
+      <form action="territopple.html" method="get">
+        <h1>Join a private room</h1>
+        <input type="hidden" name="port" value="8301">
+        <input type="hidden" name="t" value="0">
+        <label for="g">Room number:</label>
+        <input name="g" type="number">
+        <input type="submit" value="Join">
+      </form>
+      <form action="territopple.html" method="get">
+        <h1>Create a new room</h1>
+        <input type="hidden" name="port" value="8301">
+        <label for="t">Room type: </label>
+        <select name="t">
+          <option value="1">Public</option>
+          <option value="2">Private</option>
+        </select>
+        <br>
+        <label for="w">Width:</label>
+        <input type="number" name="w" value="5" min="1" max="36">
+        <label for="h">Height:</label>
+        <input type="number" name="h" value="5" min="1" max="36">
+        <br>
+        <label for="p">Players:</label>
+        <input type="number" name="p" value="2" min="2" max="10">
+        <br>
+        <input type="submit" value="Create new room">
+      </form>
     </body>
 </html>
