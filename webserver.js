@@ -29,7 +29,7 @@ function getFilePath(urlpath) {
             for (let i = 1; i < parts.length; i += 2) {
                 /**@type {string[]} */
                 const group = urlmapgroups[parts[i]];
-                parts[i] = "("+group.map(v => v.replaceAll(".", "\\.")).join("|")+")";
+                parts[i] = "("+group.map(v => v.replaceAll(".", "\\.").replaceAll("`", ".")).join("|")+")";
             }
             let regex = parts.join("");
             const pat = new RegExp(regex);
@@ -61,6 +61,9 @@ http.createServer((request, response) => {
         if (devopts.expr_webpath) console.log(`${reqpath} resolved as ${fpath}`);
         // const fileStream = fs.createReadStream(getFilePath(url.parse(request.url).pathname));
         // const fileStream = fs.createReadStream(contentDir+path.normalize((url.parse(request.url).pathname)));
+        if (fpath.endsWith(".js")) {
+            response.setHeader("Content-Type", "text/javascript");
+        }
         const fileStream = fs.createReadStream(fpath);
         fileStream.pipe(response);
         fileStream.on('open', function() {

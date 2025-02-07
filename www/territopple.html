@@ -6,6 +6,7 @@
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <!-- <meta id="feature-3d" /> -->
 		<style>
 			body {
 				background-color: #ffffff;
@@ -40,6 +41,15 @@
 		<div id="gameboard" class="container"></div>
 		<h2 id="status">Connecting to server . . .</h2>
 		<p id="info">Not yet connected to server</p>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "/three/build/three.module.js",
+                    "three/addons/": "/three/examples/jsm/"
+                }
+            }
+        </script>
+        <script type="module" src="render3.js"></script>
 		<script src="territopple.js?rev=22"></script>
 	</body>
 </html>

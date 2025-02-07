@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "three": "^0.173.0",
     "ws": "^8.18.0"
   },
   "scripts": {
