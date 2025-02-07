@@ -1,0 +1,3 @@
+Game listing protocol:
+- Client sends a POST request to http://host:8302/serverlist
+- Server sends a single string response of the form of repeated "[room identifier string]_[width]_[height]_[0 for waiting on players, 1 for in progress]_[amount of players in room]_[amount of players playing in room]_[amount of players that the server requires / required to start the game];"
