@@ -7,10 +7,78 @@
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
+        <title>Territopple</title>
+        <style>
+          body {
+              margin: 0px;
+          }
+          .game-title {
+              margin: 10px;
+          }
+          .action-box {
+              border: 2px solid #000000;
+              padding: 3px;
+              margin: 5px;
+          }
+          .action-title {
+              padding: 0px;
+              margin: 3px;
+          }
+          .form-row {
+              margin: 2px;
+          }
+          table {
+              border-collapse: collapse;
+              border: 1px solid #888888;
+          }
+          th, tr, td {
+              border: 1px solid #888888;
+              padding: 5px;
+          }
+        </style>
     </head>
     <body>
-      <div>
-        <h1>Join a Public Room</h1>
+      <h1 class="game-title">Territopple, the Territory Toppling Game</h1>
+      <div class="action-box">
+        <form action="territopple.html" method="get">
+          <h2 class="action-title">Create a new room</h2>
+          <input type="hidden" name="port" value="8301">
+          <div class="form-row">
+            <label for="t">Room type: </label>
+            <select name="t">
+              <option value="1">Public</option>
+              <option value="2">Private</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="w">Width:</label>
+            <input type="number" name="w" value="5" min="1" max="36">
+            <label for="h">Height:</label>
+            <input type="number" name="h" value="5" min="1" max="36">
+          </div>
+          <div class="form-row">
+            <label for="p">Players:</label>
+            <input type="number" name="p" value="2" min="2" max="10">
+          </div>
+          <div class="form-row">
+            <input type="submit" value="Create a New Room">
+          </div>
+        </form>
+      </div>
+      <div class="action-box">
+        <form action="territopple.html" method="get">
+          <h2 class="action-title">Join a Private Room</h2>
+          <input type="hidden" name="port" value="8301">
+          <input type="hidden" name="t" value="0">
+          <div class="form-row">
+            <label for="g">Room ID:</label>
+            <input name="g">
+            <input type="submit" value="Join">
+          </div>
+        </form>
+      </div>
+      <div class="action-box">
+        <h2 class="action-title">Join a Public Room</h2>
         <em id="fetchingMessage">Fetching rooms...</em>
         <table id="roomTable" hidden="true">
           <thead>
@@ -25,33 +93,6 @@
           </tbody>
         </table>
       </div>
-      <form action="territopple.html" method="get">
-        <h1>Join a Private Room</h1>
-        <input type="hidden" name="port" value="8301">
-        <input type="hidden" name="t" value="0">
-        <label for="g">Room ID:</label>
-        <input name="g">
-        <input type="submit" value="Join">
-      </form>
-      <form action="territopple.html" method="get">
-        <h1>Create a new room</h1>
-        <input type="hidden" name="port" value="8301">
-        <label for="t">Room type: </label>
-        <select name="t">
-          <option value="1">Public</option>
-          <option value="2">Private</option>
-        </select>
-        <br>
-        <label for="w">Width:</label>
-        <input type="number" name="w" value="5" min="1" max="36">
-        <label for="h">Height:</label>
-        <input type="number" name="h" value="5" min="1" max="36">
-        <br>
-        <label for="p">Players:</label>
-        <input type="number" name="p" value="2" min="2" max="10">
-        <br>
-        <input type="submit" value="Create a New Room">
-      </form>
       <script src="index.js?rev=6"></script>
     </body>
 </html>
