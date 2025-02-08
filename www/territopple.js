@@ -181,7 +181,9 @@ conn.addEventListener("open", function(event) {
 								baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\">-</div>");
 							}
 						}
-						document.getElementById("gameboard").innerHTML = baroa;
+						if (!render3d) {
+							document.getElementById("gameboard").innerHTML = baroa;
+						}
 						board = new Array(cols * rows);
 						boardold = new Array(cols * rows);
 						teamboard = new Array(cols * rows);

@@ -65,9 +65,10 @@ http.createServer((request, response) => {
             response.setHeader("Content-Type", "text/javascript");
         }
         const fileStream = fs.createReadStream(fpath);
-        fileStream.pipe(response);
-        fileStream.on('open', function() {
+        fileStream.pipe(response, {end:false});
+        fileStream.on('end', function() {
             response.writeHead(200);
+            response.end();
         });
         fileStream.on('error',function(e) {
             response.writeHead(404);
