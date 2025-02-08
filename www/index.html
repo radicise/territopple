@@ -10,11 +10,11 @@
     </head>
     <body>
       <div>
-        <h1>Join a public room</h1>
+        <h1>Join a Public Room</h1>
         <em id="fetchingMessage">Fetching rooms...</em>
         <table id="roomTable" hidden="true">
           <thead>
-            <th scope="col">Room</th>
+            <th scope="col">Room ID</th>
             <th scope="col">Board Size</th>
             <th scope="col">Status</th>
             <th scope="col">Players</th>
@@ -26,10 +26,10 @@
         </table>
       </div>
       <form action="territopple.html" method="get">
-        <h1>Join a private room</h1>
+        <h1>Join a Private Room</h1>
         <input type="hidden" name="port" value="8301">
         <input type="hidden" name="t" value="0">
-        <label for="g">Room number:</label>
+        <label for="g">Room ID:</label>
         <input name="g">
         <input type="submit" value="Join">
       </form>
@@ -50,8 +50,8 @@
         <label for="p">Players:</label>
         <input type="number" name="p" value="2" min="2" max="10">
         <br>
-        <input type="submit" value="Create new room">
+        <input type="submit" value="Create a New Room">
       </form>
-      <script src="index.js?rev=4"></script>
+      <script src="index.js?rev=6"></script>
     </body>
 </html>

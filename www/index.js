@@ -40,7 +40,7 @@ fetch(`http://${host}:8302/serverlist`,
 		    row.appendChild(sizeEntry);
 		    
 		    const statusEntry = document.createElement("td");
-		    statusEntry.appendChild(document.createTextNode(status == "1" ? "Waiting for players" : "In progress"));
+		    statusEntry.appendChild(document.createTextNode(status ? "In progress" : "Waiting for players"));
 		    row.appendChild(statusEntry);
 		    
 		    const playerEntry = document.createElement("td");

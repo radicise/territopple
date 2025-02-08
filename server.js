@@ -4,7 +4,7 @@ let maxGameAmount = 4;
 const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 
 const { updateboard } = require("./serverhelpers.js");
-const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
+// const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 
 /**
  * @typedef Game
@@ -29,7 +29,7 @@ const hserv = http.createServer((requ, resp) => {// TODO Check request target
 	for (const id in games) {
 		const game = games[id];
 		if (game.pub) {
-			liststr += `${id}_${game.cols}_${game.rows}_${game.state}_${game.players.length - 1}_${game.players.length - 1}_${game.playerAmount};`;// TODO Use correct values for amounts of players in room and playing in room
+			liststr += `${id}_${game.cols}_${game.rows}_${game.state}_${game.connectedAmount}_${game.inGameAmount}_${game.playerAmount};`;// TODO Use correct values for amounts of players in room and playing in room
 		}
 	}
 	resp.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
@@ -89,7 +89,7 @@ wserv.on("connection", (wsock, req) => {
 				return;
 			}// TODO Should the socket be closed and terminated immediately?
 			if (games[gameID].state != 0) {
-				wsock.send("disc5");// "GAME HAS ALREADY STARTED"
+				wsock.send("disc5");// "GAME HAS ALREADY STARTED" // TODO Allow spectation
 				wsock.close();
 				wsock.terminate();
 				return;
@@ -107,10 +107,13 @@ wserv.on("connection", (wsock, req) => {
 				playerNum = game.players.length;
 				game.players.push(wsock);
 			}
+			game.connectedAmount++;
+			game.inGame[playerNum] = 1;
+			game.inGameAmount++;
 			if (dbg) {
 				console.log("Player assignment to game " + gameID);
 			}
-			wsock.send(`room0_${playerNum}`);// TODO Send the game ID to the client
+			wsock.send(`room${gameID}_${playerNum}`);
 			wsock.send(`dims${game.rows}_${game.cols}`);
 			if (playerNum == game.playerAmount) {
 				game.state = 1;
@@ -118,14 +121,7 @@ wserv.on("connection", (wsock, req) => {
 				game.move = -1;
 				distrMess(`turn${game.turn}_${game.move}`, game);
 			} else {
-				let count = 0;
-				for (let i = 1; i < game.players.length; i++) {
-					if (!(game.players[i])) {
-						continue;
-					}
-					count++;
-				}
-				distrMess(`plyw${count}_${game.playerAmount}`, game);
+				distrMess(`plyw${game.inGameAmount}_${game.playerAmount}`, game);
 			}
 			break;
 		case (1):// create new public game
@@ -134,13 +130,16 @@ wserv.on("connection", (wsock, req) => {
 			let pub = playerNum;
 			playerNum = 1;
 			gameID = genCode();
-			games[gameID] = genGame(requeWidth, requeHeight, requePlayers, pub);
-			game = games[gameID];
+			game = genGame(requeWidth, requeHeight, requePlayers, pub);
+			game.inGame[1] = 1;
+			game.inGameAmount = 1;
+			game.connectedAmount = 1;
+			games[gameID] = game;
 			game.ident = gameID;
 			game.players.push(wsock);
-			wsock.send("room0_1");// Send the game ID to the client
+			wsock.send(`room${gameID}_1`);
 			wsock.send(`dims${game.rows}_${game.cols}`);
-			distrMess(`plyw1_${game.playerAmount}`, game);// TODO rename `playerAmount' property
+			distrMess(`plyw${game.inGameAmount}_${game.playerAmount}`, game);// TODO rename `playerAmount' property
 			break;
 		default:
 			wsock.send("disc6");
@@ -187,23 +186,16 @@ wserv.on("connection", (wsock, req) => {
 				let winner = updateboard(row, col, playerNum, game);
 				game.move = tile_index;
 				let next_player = -1;
-				let boardFull = game.owned[0] == 0;
 				for (let i = playerNum + 1; i <= game.playerAmount; i++) {
-					if (!(game.players[i])) {
-						continue;
-					}
-					if (boardFull && (game.owned[i] == 0)) {
+					if (!(game.inGame[i])) {
 						continue;
 					}
 					next_player = i;
 					break;
 				}
 				if (next_player === -1) {
-					for (let i = 0; i < (playerNum + 1); i++) {
-						if (!(game.players[i])) {
-							continue;
-						}
-						if (boardFull && (game.owned[i] == 0)) {
+					for (let i = 1; i < (playerNum + 1); i++) {
+						if (!(game.inGame[i])) {
 							continue;
 						}
 						next_player = i;
@@ -211,6 +203,7 @@ wserv.on("connection", (wsock, req) => {
 					}
 				}
 				if (next_player === -1) {// This should not be possible . . . the game ended?????
+					console.log("UNEXPECTED: Lack of next player");
 					killGame(game);
 					return;
 				}
@@ -222,8 +215,8 @@ wserv.on("connection", (wsock, req) => {
 				}
 				distrMess(`pcmtr${row}c${col}_${playerNum}`, game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
-				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
-				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
+//				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
+//				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
 				break;
 			default:
 				removePlayer(game, playerNum);
@@ -306,7 +299,10 @@ function genGame(width, height, pamnt, publ) {
 		teamboard:new Array(height * width).fill(0),
 		state:0,
 		players:[null],
-		owned:new Array(pamnt + 1).fill(height * width, 0, 1).fill(0, 1, pamnt + 1),
+		owned:(new Array(pamnt + 1)).fill(height * width, 0, 1).fill(0, 1, pamnt + 1),
+		inGame:(new Array(pamnt + 1)).fill(0, 0, pamnt + 1),
+		inGameAmount: 0,
+		connectedAmount: 0,
 		playerAmount: pamnt,
 		pub: publ
 	};
@@ -317,41 +313,37 @@ function genGame(width, height, pamnt, publ) {
  */
 function removePlayer(game, playerNum) {
 	game.players[playerNum] = null;
+	game.connectedAmount--;
 	if (game.state == 0) {
-		let ps = 0;
-		for (let i = 1; i <= game.playerAmount; i++) {
-			if (game.players[i]) {
-				ps++;
-			}
-		}
-		if (!ps) {
+		game.inGame[playerNum] = 0;
+		game.inGameAmount--;
+		if (!(game.inGameAmount)) {
 			killGame(game);
 			return;
 		}
-		distrMess(`plyw${ps}_${game.playerAmount}`, game);
+		distrMess(`plyw${game.inGameAmount}_${game.playerAmount}`, game);
 		return;
 	}
 	if (game.turn != playerNum) {
 		return;
 	}
+	game.inGame[playerNum] = 0;
+	game.inGameAmount--;
+	if ((!(game.inGameAmount)) && (game.state == 1)) {
+		killGame(game);
+		return;
+	}
 	let next_player = -1;
-	let ntz = (game.owned[0] == 0) && (game.state == 1);
 	for (let i = playerNum + 1; i <= game.playerAmount; i++) {
-		if (!(game.players[i])) {
-			continue;
-		}
-		if (ntz && (game.owned[i] == 0)) {
+		if (!(game.inGame[i])) {
 			continue;
 		}
 		next_player = i;
 		break;
 	}
 	if (next_player === -1) {
-		for (let i = 0; i < (playerNum + 1); i++) {
-			if (!(game.players[i])) {
-				continue;
-			}
-			if (ntz && (game.owned[i] == 0)) {
+		for (let i = 1; i < (playerNum + 1); i++) {
+			if (!(game.inGame[i])) {
 				continue;
 			}
 			next_player = i;
@@ -360,12 +352,16 @@ function removePlayer(game, playerNum) {
 	}
 	if (game.state == 1) {
 		if (next_player == (-1)) {
+			console.log("UNEXPECTED: Game running out of players while claiming it had players");
 			killGame(game);
 			return;
 		}
 		game.turn = next_player;
 		distrMess(`turn${game.turn}_${game.move}`, game);
 		return;
+	}
+	if (next_player == (-1)) {
+		console.log("UNEXPECTED: Game running out of players while claiming it had players");
 	}
 	game.turn = next_player;
 	return;
@@ -376,6 +372,13 @@ function removePlayer(game, playerNum) {
 function killGame(game) {
 	delete games[game.ident];
 	game.state = 2;
+	game.inGameAmount = 0;
+	for (let i = Math.min(game.playerAmount, game.players.length - 1); i; i--) {
+		if (game.players[i]) {
+			game.inGameAmount++;
+			game.inGame[i] = 1;
+		}
+	}
 	return;
 }
 function getParamInt(paramstr, lbincl, ubexcl, defau, params) {

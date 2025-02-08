@@ -37,7 +37,22 @@ function updateboard(rorig, corig, team, game) {
 			}
 		}
 		if (game.teamboard[(row * cols) + col] != team) {
-			game.owned[game.teamboard[(row * cols) + col]]--;
+			let lt = game.teamboard[(row * cols) + col];
+			game.owned[lt]--;
+			if ((game.owned[lt] == 0) && (game.owned[0] == 0)) {
+				if (lt) {
+					game.inGame[lt] = 0;
+					game.inGameAmount--;
+				}
+				else {
+					for (let i = 1; i < game.owned.length; i++) {
+						if (!(game.owned[i])) {
+							game.inGame[i] = 0;
+							game.inGameAmount--;
+						}
+					}
+				}
+			}
 			game.teamboard[(row * cols) + col] = team;
 			if ((++game.owned[team]) == tiles) {
 				return true;

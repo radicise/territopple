@@ -132,7 +132,7 @@ conn.addEventListener("open", function(event) {
 				}
 				updateboard(row, col, tmu);
 				break;
-			case ("room"):// ex. gr. room3_2
+			case ("room"):// ex. gr. roomAWNW8W9D_2
 			case ("plyw"):// ex. gr. plyw2_3
 			case ("turn"):// ex. gr. turn2_23
 			case ("wnnr"):// ex. gr. wnnr2_0
@@ -141,13 +141,27 @@ conn.addEventListener("open", function(event) {
 				if (mess.length != 2) {
 					recvInval(9);
 				}
-				let mesr = sanint(mess[0]);
+				let mesr = mess[0];
+				if (type == "room") {
+					let mea = mesr.split("");
+					if (mea.length != 8) {
+						recvInval(11);
+					}
+					for (let i = 0; i < 8; i++) {
+						let j = mea[i].charCodeAt(0);
+						if ((j < 52) || (j >= 91) || ((j >= 58) && (j < 65))) {
+							recvInval(12);
+						}
+					}
+				} else {
+					mesr = sanint(mesr);
+				}
 				mess = sanint(mess[1]);
 				switch (type) {
 					case ("room"):
 						ifmt.room = mesr;
 						ifmt.pln = mess;
-						updScr("info", "Room " + mesr.toString() + ", Player " + mess.toString());
+						updScr("info", "Room " + mesr + ", Player " + mess.toString());
 						break;
 					case ("plyw"):
 						updScr("status", mesr.toString() + " player(s) present in room, " + mess.toString() + " needed to start");
