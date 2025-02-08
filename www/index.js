@@ -10,9 +10,9 @@ fetch(`http://${host}:8302/serverlist`,
 		return;
 	}
 	response.text().then((text) => {
-		text.split(";").forEach((game) => {
+	    for (const game of text.split(";")) {
 		    if (game === "") {
-			return;
+			continue;
 		    }
 		    const properties = game.split("_");
 
@@ -27,8 +27,12 @@ fetch(`http://${host}:8302/serverlist`,
 		    const row = document.createElement("tr");
 		    row.scope = "row";
 
+                    const link = document.createElement("a");
+                    link.appendChild(document.createTextNode(identifier));
+                    link.href = `http://${document.location.host}/territopple.html?t=0&g=${identifier}&w=${width}&h=${height}&p=${capacity}`;
+
 		    const roomEntry = document.createElement("td");
-		    roomEntry.appendChild(document.createTextNode(identifier));
+		    roomEntry.appendChild(link);
 		    row.appendChild(roomEntry);
 
 		    const sizeEntry = document.createElement("td");
@@ -48,11 +52,15 @@ fetch(`http://${host}:8302/serverlist`,
 		    row.appendChild(capacityEntry);
 
 		    table.appendChild(row);
-		});
+	    }
+            if (roomRows.children.length) {
+                document.getElementById("fetchingMessage").hidden = true;
+                document.getElementById("roomTable").removeAttribute("hidden");
+            } else {
+                document.getElementById("fetchingMessage").innerText = "No public rooms";
+            }
+
+            console.log("Public rooms fetched");
+
 	});
-
-        document.getElementById("fetchingMessage").hidden = true;
-        document.getElementById("roomTable").removeAttribute("hidden");
-
-        console.log("Public rooms fetched");
     });

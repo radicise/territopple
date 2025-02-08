@@ -374,7 +374,7 @@ function removePlayer(game, playerNum) {
  * @param {Game} game
  */
 function killGame(game) {
-	games[game.ident] = null;
+	delete games[game.ident];
 	game.state = 2;
 	return;
 }
