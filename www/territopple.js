@@ -4,10 +4,13 @@ let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"
 let queries = new URLSearchParams(window.location.search);
 
 let t = parseInt(queries.get("t") ?? "0") || 0;
-let rows = parseInt(queries.get("h") ?? "5") || 5;
-let cols = parseInt(queries.get("w") ?? "5") || 5;
+let rows = parseInt(queries.get("h") ?? "6") || 6;
+let cols = parseInt(queries.get("w") ?? "6") || 6;
 let players = parseInt(queries.get("p") ?? "2") || 2;
-let port = parseInt(queries.get("port") ?? "8301") || 8301;
+let port = parseInt(queries.get("port") ?? "8301");
+if (isNaN(port)) {
+	port = 8301;
+}
 let host = document.location.hostname;
 
 const render3d = document.getElementById("feature-3d")?.nodeName === "META";
@@ -22,27 +25,21 @@ if (rows < 1 || rows >= 37 || cols < 1 || cols >= 37) {
 	rows = 5;
 	cols = 5;
 }
-document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
 
 if (players < 2 || players > 10) {
 	players = 2;
 }
 
 let serv = null;
+let gameid = "--------";
 if (t) {
-    serv = `ws://${host}:${port}/?t=${t}&h=${h}&w=${w}&p=${p}`;
+    serv = `ws://${host}:${port}/?t=${t}&h=${rows}&w=${cols}&p=${players}`;
 } else {
-    serv = `ws://${host}:${port}/?t=0`;
+    let gameid = queries.get("g") ?? "g";
+    serv = `ws://${host}:${port}/?t=0&g=${gameid}`;
 }
 
-let board = "";
-for (let i = 0; i < rows; i++) {
-	for (let j = 0; j < cols; j++) {
-		board = board.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\">-</div>");
-	}
-}
-document.getElementById("gameboard").innerHTML = board;
-board = new Array(cols * rows);
+let board = new Array(cols * rows);
 let boardold = new Array(cols * rows);
 let teamboard = new Array(cols * rows);
 let teamboardold = new Array(cols * rows);
@@ -139,6 +136,7 @@ conn.addEventListener("open", function(event) {
 			case ("plyw"):// ex. gr. plyw2_3
 			case ("turn"):// ex. gr. turn2_23
 			case ("wnnr"):// ex. gr. wnnr2_0
+			case ("dims"):// ex. gr. dims6_8
 				mess = mess.split("_");
 				if (mess.length != 2) {
 					recvInval(9);
@@ -171,6 +169,29 @@ conn.addEventListener("open", function(event) {
 							let rmo = Math.floor(mess / cols);
 							mess = mess % cols;
 							updScr("status", "Player " + mesr.toString() + " won the game with move " + mess.toString() + "x" + rmo.toString());
+						}
+						break;
+					case ("dims"):
+						rows = mesr;
+						cols = mess;
+						document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
+						let baroa = "";
+						for (let i = 0; i < rows; i++) {
+							for (let j = 0; j < cols; j++) {
+								baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\">-</div>");
+							}
+						}
+						document.getElementById("gameboard").innerHTML = baroa;
+						board = new Array(cols * rows);
+						boardold = new Array(cols * rows);
+						teamboard = new Array(cols * rows);
+						teamboardold = new Array(cols * rows);
+						ifmt.turn = 0;
+						for (let i = (cols * rows) - 1; i >= 0; i--) {
+							board[i] = 1;
+							boardold[i] = 1;
+							teamboard[i] = 0;
+							teamboardold[i] = 0;
 						}
 						break;
 					default:// This should be impossible

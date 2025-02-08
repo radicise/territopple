@@ -1,6 +1,7 @@
 const dbg = 1;
-let gameAmount = 4;// Public
-let gamesTotal = 8;// Both public and private
+let maxGameAmount = 4;
+
+const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 
 const { updateboard } = require("./serverhelpers.js");
 const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
@@ -11,18 +12,31 @@ const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
  */
 
 /**@type {Game[]} */
-const games = new Array(gamesTotal);
-// don't need all this?
-for (let i = games.length; i >= 0; i--) {
-	games[i] = null;
-}
+const games = {};
 console.log("Starting server . . .");
 const ws = require("ws");
 const fs = require("fs");
 const _path = require("path");
+const http = require("node:http");
+const crypto = require("node:crypto");
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
-let playerAmount = settings.PLAYERAMOUNT;
 const wserv = new ws.Server({"port":settings.GAMEPORT});
+const hserv = http.createServer((requ, resp) => {// TODO Check request target
+	if (dbg) {
+		console.log("fetching of the room list");
+	}
+	let liststr = "";
+	for (const id in games) {
+		const game = games[id];
+		if (game.pub) {
+			liststr += `${id}_${game.cols}_${game.rows}_${game.state}_${game.players.length - 1}_${game.players.length - 1}_${game.playerAmount};`;// TODO Use correct values for amounts of players in room and playing in room
+		}
+	}
+	resp.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
+	resp.end(liststr);
+	return;
+});
+hserv.listen(settings.LISTPORT);
 /*
  * Properties of a game:
  *
@@ -31,7 +45,7 @@ const wserv = new ws.Server({"port":settings.GAMEPORT});
  * "board" - Array of amount of pieces on the tiles of the board
  * "teamboard" - Array of teams occupying tiles on the board
  * "state" - 0 if the game has not started, 1 if the game has started and it still ongoing, and 2 if the game has ended
- * "index" - Index of the game in the game array
+ * "ident" - key of the game in the game-holding object
  * "players" - Array of wsocks defining the players' connections, in player order, 1-indexed (element at index 0 is null)
  * "owned" - Array listing how many tiles each player possesses, in player order
  * The following are only present after the game has been started:
@@ -40,76 +54,99 @@ const wserv = new ws.Server({"port":settings.GAMEPORT});
  *
  */
 wserv.on("connection", (wsock, req) => {
-	let connType = null;
+	let params = null;
 	try {
-		(new URL(`http://localhost${req.url}`)).searchParams.get(t);
+		params = (new URL(`http://localhost${req.url}`)).searchParams;
 	} catch (et) {
-		connType = null;
+		if(dbg) {
+			console.log("URL object creation exception");
+		}
+		return;
 	}
-	if (connType == null) {
-		connType = "0";
-	}
-	connType = parseInt(connType);
-	if (isNaN(connType)) {
-		connType = 0;
-	}
+	let connType = getParamInt("t", 0, 3, 0, params);
+	let requeWidth = getParamInt("w", 1, 37, 6, params);
+	let requeHeight = getParamInt("h", 1, 37, 6, params);
+	let requePlayers = getParamInt("p", 2, 10, 2, params);
 	if (dbg) {
 		console.log("Connection");
 	}
-	let gameNum = -1;
-	for (let i = 0; i < gameAmount; i++) {
-		if (!games[i]) continue;
-		if (games[i].state != 0) continue;
-		gameNum = i;
-		break;
-	}
-	if (gameNum === -1) {
-		for (let i = 0; i < gameAmount; i++) {
-			if (!games[i]) {
-				gameNum = i;
-				break;
+	let gameID = "--------";
+	let game = null;
+	let playerNum = 0;
+	switch (connType) {
+		case (0):// join game
+			gameID = params.get("g");
+			if (gameID === null) {
+				wsock.send("disc3");// "GAME IDENTIFIER PARAMETER NOT PRESENT"
+				wsock.close();
+				wsock.terminate();
+				return;
 			}
-		}
-		if (gameNum === -1) {
-			wsock.send("disc3");// "NO GAME ROOMS ARE READY TO BE JOINED"
+			if (!(gameID in games)) {
+				wsock.send("disc4");// "GAME DOES NOT EXIST"
+				wsock.close();
+				wsock.terminate();
+				return;
+			}// TODO Should the socket be closed and terminated immediately?
+			if (games[gameID].state != 0) {
+				wsock.send("disc5");// "GAME HAS ALREADY STARTED"
+				wsock.close();
+				wsock.terminate();
+				return;
+			}// TODO Should the socket be closed and terminated immediately?
+			game = games[gameID];
+			playerNum = 0;
+			for (let i = 1; i < game.players.length; i++) {
+				if (game.players[i] === null) {
+					playerNum = i;
+					game.players[playerNum] = wsock;
+					break;
+				}
+			}
+			if (!playerNum) {
+				playerNum = game.players.length;
+				game.players.push(wsock);
+			}
+			if (dbg) {
+				console.log("Player assignment to game " + gameID);
+			}
+			wsock.send(`room0_${playerNum}`);// TODO Send the game ID to the client
+			wsock.send(`dims${game.rows}_${game.cols}`);
+			if (playerNum == game.playerAmount) {
+				game.state = 1;
+				game.turn = 1;
+				game.move = -1;
+				distrMess(`turn${game.turn}_${game.move}`, game);
+			} else {
+				let count = 0;
+				for (let i = 1; i < game.players.length; i++) {
+					if (!(game.players[i])) {
+						continue;
+					}
+					count++;
+				}
+				distrMess(`plyw${count}_${game.playerAmount}`, game);
+			}
+			break;
+		case (1):// create new public game
+			playerNum = 1;
+		case (2):// create new private game
+			let pub = playerNum;
+			playerNum = 1;
+			gameID = genCode();
+			games[gameID] = genGame(requeWidth, requeHeight, requePlayers, pub);
+			game = games[gameID];
+			game.ident = gameID;
+			game.players.push(wsock);
+			wsock.send("room0_1");// Send the game ID to the client
+			wsock.send(`dims${game.rows}_${game.cols}`);
+			distrMess(`plyw1_${game.playerAmount}`, game);// TODO rename `playerAmount' property
+			break;
+		default:
+			wsock.send("disc6");
 			wsock.close();
 			wsock.terminate();
 			return;
-		}
-		games[gameNum] = genGame();
-		games[gameNum].index = gameNum;
-	}
-	let game = games[gameNum];
-	let playerNum = 0;
-	for (let i = 1; i < game.players.length; i++) {
-		if (game.players[i] === null) {
-			playerNum = i;
-			game.players[playerNum] = wsock;
-			break;
-		}
-	}
-	if (!playerNum) {
-		playerNum = game.players.length;
-		game.players.push(wsock);
-	}
-	if (dbg) {
-		console.log("Player assignment to game " + gameNum.toString());
-	}
-	wsock.send(`room${gameNum}_${playerNum}`);
-	if (playerNum == playerAmount) {
-		game.state = 1;
-		game.turn = 1;
-		game.move = -1;
-		distrMess(`turn${game.turn}_${game.move}`, game);
-	} else {
-		let current_turn = 0;
-		for (let i = 1; i < game.players.length; i++) {
-			if (!(game.players[i])) {
-				continue;
-			}
-			current_turn++;
-		}
-		distrMess(`plyw${current_turn}_${playerAmount}`, game);
 	}
 	wsock.on("message", (data, bin) => {
 		if (game === null) {
@@ -151,7 +188,7 @@ wserv.on("connection", (wsock, req) => {
 				game.move = tile_index;
 				let next_player = -1;
 				let boardFull = game.owned[0] == 0;
-				for (let i = playerNum + 1; i <= playerAmount; i++) {
+				for (let i = playerNum + 1; i <= game.playerAmount; i++) {
 					if (!(game.players[i])) {
 						continue;
 					}
@@ -261,15 +298,17 @@ function distrMess(mmsg, game) {
  * @param {number} cols
  * @returns {Game}
  */
-function genGame() {
+function genGame(width, height, pamnt, publ) {
 	return {
-		rows:settings.HEIGHT,
-		cols:settings.WIDTH,
-		board:new Array(settings.HEIGHT * settings.WIDTH).fill(1),
-		teamboard:new Array(settings.HEIGHT * settings.WIDTH).fill(0),
+		rows:height,
+		cols:width,
+		board:new Array(height * width).fill(1),
+		teamboard:new Array(height * width).fill(0),
 		state:0,
 		players:[null],
-		owned:new Array(playerAmount + 1).fill(settings.HEIGHT * settings.WIDTH, 0, 1).fill(0, 1, playerAmount + 1)
+		owned:new Array(pamnt + 1).fill(height * width, 0, 1).fill(0, 1, pamnt + 1),
+		playerAmount: pamnt,
+		pub: publ
 	};
 }
 /**
@@ -280,7 +319,7 @@ function removePlayer(game, playerNum) {
 	game.players[playerNum] = null;
 	if (game.state == 0) {
 		let ps = 0;
-		for (let i = 1; i <= playerAmount; i++) {
+		for (let i = 1; i <= game.playerAmount; i++) {
 			if (game.players[i]) {
 				ps++;
 			}
@@ -289,7 +328,7 @@ function removePlayer(game, playerNum) {
 			killGame(game);
 			return;
 		}
-		distrMess(`plyw${ps}_${playerAmount}`, game);
+		distrMess(`plyw${ps}_${game.playerAmount}`, game);
 		return;
 	}
 	if (game.turn != playerNum) {
@@ -297,7 +336,7 @@ function removePlayer(game, playerNum) {
 	}
 	let next_player = -1;
 	let ntz = (game.owned[0] == 0) && (game.state == 1);
-	for (let i = playerNum + 1; i <= playerAmount; i++) {
+	for (let i = playerNum + 1; i <= game.playerAmount; i++) {
 		if (!(game.players[i])) {
 			continue;
 		}
@@ -335,7 +374,47 @@ function removePlayer(game, playerNum) {
  * @param {Game} game
  */
 function killGame(game) {
-	games[game.index] = null;
+	games[game.ident] = null;
 	game.state = 2;
 	return;
+}
+function getParamInt(paramstr, lbincl, ubexcl, defau, params) {
+	let num = params.get(paramstr);
+	if (num == null) {
+		if (dbg) {
+			console.log("sanitation of invalid parameter");
+		}
+		return defau;
+	}
+	num = parseInt(num);
+	if (isNaN(num)) {
+		if (dbg) {
+			console.log("sanitation of invalid parameter");
+		}
+		return defau;
+	}
+	if ((num < lbincl) || (num >= ubexcl)) {
+		if (dbg) {
+			console.log("sanitation of invalid parameter");
+		}
+		return defau;
+	}
+	return num;
+}
+function genCode() {
+	const len = 8;
+	const arr = new Uint16Array(len);
+	let code = "";
+	while (1) {
+		crypto.getRandomValues(arr);
+		for (let i = len; i; i--) {
+			code += codeChars[arr.at(i - 1) % codeChars.length];
+		}
+		if (code in games) {
+			code = "";
+			continue;
+		}
+		break;
+	}
+	return code;
 }
