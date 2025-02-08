@@ -36,7 +36,7 @@ for (let i = 0; i < rows; i++) {
 		board = board.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\">-</div>");
 	}
 }
-document.getElementById("gameboard").innerHTML = board;
+if (!render3d)document.getElementById("gameboard").innerHTML = board;
 board = new Array(cols * rows);
 let boardold = new Array(cols * rows);
 let teamboard = new Array(cols * rows);
