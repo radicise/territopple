@@ -2,9 +2,12 @@ var dbg = 1;
 let symbs = ["!", "-", "+", "W", "&block;"];
 let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 let queries = new URLSearchParams(window.location.search);
-let rows = queries.get("h") ?? "5";
-let cols = queries.get("w") ?? "5";
-let port = queries.get("p") ?? "8301";
+
+let t = parseInt(queries.get("t") ?? "0") || 0;
+let rows = parseInt(queries.get("h") ?? "5") || 5;
+let cols = parseInt(queries.get("w") ?? "5") || 5;
+let players = parseInt(queries.get("p") ?? "2") || 2;
+let port = parseInt(queries.get("port") ?? "8301") || 8301;
 let host = document.location.hostname;
 
 const render3d = document.getElementById("feature-3d")?.nodeName === "META";
@@ -15,20 +18,22 @@ if (render3d) {
     document.body.appendChild(s);
 }
 
-rows = parseInt(rows);
-cols = parseInt(cols);
-port = parseInt(port);
-if ((isNaN(rows) || isNaN(cols)) || (((rows < 1) || (rows >= 37)) || ((cols < 1) || (cols >= 37)))) {
+if (rows < 1 || rows >= 37 || cols < 1 || cols >= 37) {
 	rows = 5;
 	cols = 5;
 }
 document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
 
-if (isNaN(port)) {
-	port = 8301;
+if (players < 2 || players > 10) {
+	players = 2;
 }
 
-let serv = `ws://${host}:${port}/?t=1`;
+let serv = null;
+if (t) {
+    serv = `ws://${host}:${port}/?t=${t}&h=${h}&w=${w}&p=${p}`;
+} else {
+    serv = `ws://${host}:${port}/?t=0`;
+}
 
 let board = "";
 for (let i = 0; i < rows; i++) {
