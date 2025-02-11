@@ -17,7 +17,22 @@ const { updateboard } = require("./serverhelpers.js");
  * @returns {import("./server").Game}
  */
 function gameCopy(game) {
-    return {teamboard:Array.from(game.teamboard),board:Array.from(game.board),rows:game.rows,cols:game.cols,turn:game.turn,owned:Array.from(game.owned)};
+    let copy = {};
+    for (const key in game) {
+        if (key !== "players") {
+            switch (typeof game[key]) {
+                case "number":
+                    copy[key] = game[key];break;
+                case "object":
+                    if (Array.isArray(game[key])) {
+                        copy[key] = Array.from(game[key]);
+                    }
+                    break;
+            }
+        }
+    }
+    return copy;
+    // return {teamboard:Array.from(game.teamboard),board:Array.from(game.board),rows:game.rows,cols:game.cols,turn:game.turn,owned:Array.from(game.owned)};
 }
 
 /**

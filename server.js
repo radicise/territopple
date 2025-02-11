@@ -4,7 +4,7 @@ let maxGameAmount = 4;
 const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 
 const { updateboard } = require("./serverhelpers.js");
-// const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
+const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 
 /**
  * @typedef Game
@@ -17,8 +17,8 @@ console.log("Starting server . . .");
 const ws = require("ws");
 const fs = require("fs");
 const _path = require("path");
-const http = require("node:http");
-const crypto = require("node:crypto");
+const http = require("http");
+const crypto = require("crypto");
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
 const wserv = new ws.Server({"port":settings.GAMEPORT});
 const hserv = http.createServer((requ, resp) => {// TODO Check request target
@@ -125,12 +125,10 @@ wserv.on("connection", (wsock, req) => {
 			}
 			break;
 		case (1):// create new public game
-			playerNum = 1;
 		case (2):// create new private game
-			let pub = playerNum;
 			playerNum = 1;
 			gameID = genCode();
-			game = genGame(requeWidth, requeHeight, requePlayers, pub);
+			game = genGame(requeWidth, requeHeight, requePlayers, connType === 1 ? 1 : 0);
 			game.inGame[1] = 1;
 			game.inGameAmount = 1;
 			game.connectedAmount = 1;
@@ -215,8 +213,8 @@ wserv.on("connection", (wsock, req) => {
 				}
 				distrMess(`pcmtr${row}c${col}_${playerNum}`, game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
-//				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
-//				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
+				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
+				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
 				break;
 			default:
 				removePlayer(game, playerNum);
@@ -287,11 +285,13 @@ function distrMess(mmsg, game) {
 	return;
 }
 /**
- * @param {number} rows
- * @param {number} cols
+ * @param {number} width
+ * @param {number} height
+ * @param {number} player_amount
+ * @param {boolean} public
  * @returns {Game}
  */
-function genGame(width, height, pamnt, publ) {
+function genGame(width, height, player_amount, public) {
 	return {
 		rows:height,
 		cols:width,
@@ -299,12 +299,12 @@ function genGame(width, height, pamnt, publ) {
 		teamboard:new Array(height * width).fill(0),
 		state:0,
 		players:[null],
-		owned:(new Array(pamnt + 1)).fill(height * width, 0, 1).fill(0, 1, pamnt + 1),
-		inGame:(new Array(pamnt + 1)).fill(0, 0, pamnt + 1),
+		owned:(new Array(player_amount + 1)).fill(height * width, 0, 1).fill(0, 1, player_amount + 1),
+		inGame:(new Array(player_amount + 1)).fill(0, 0, player_amount + 1),
 		inGameAmount: 0,
 		connectedAmount: 0,
-		playerAmount: pamnt,
-		pub: publ
+		playerAmount: player_amount,
+		pub: public
 	};
 }
 /**

@@ -59,21 +59,37 @@ http.createServer((request, response) => {
         // const fpath = contentDir+(devopts.expr_webpath ? getFilePath(reqpath) : path.normalize((url.parse(request.url).pathname)));
         const fpath = contentDir+getFilePath(reqpath);
         if (devopts.expr_webpath) console.log(`${reqpath} resolved as ${fpath}`);
+        fs.access(fpath, fs.constants.F_OK, (err) => {
+            if (err) {
+                response.writeHead(404);
+                response.end();
+            } else {
+                if (fpath.endsWith(".js")) {
+                    response.setHeader("Content-Type", "text/javascript");
+                }
+                const fileStream = fs.createReadStream(fpath);
+                fileStream.pipe(response);
+                // fileStream.on('open', function() {
+                //     response.writeHead(200);
+                //     response.end();
+                // });
+            }
+        });
         // const fileStream = fs.createReadStream(getFilePath(url.parse(request.url).pathname));
         // const fileStream = fs.createReadStream(contentDir+path.normalize((url.parse(request.url).pathname)));
-        if (fpath.endsWith(".js")) {
-            response.setHeader("Content-Type", "text/javascript");
-        }
-        const fileStream = fs.createReadStream(fpath);
-        fileStream.pipe(response, {end:false});
-        fileStream.on('end', function() {
-            response.writeHead(200);
-            response.end();
-        });
-        fileStream.on('error',function(e) {
-            response.writeHead(404);
-            response.end();
-        });
+        // if (fpath.endsWith(".js")) {
+        //     response.setHeader("Content-Type", "text/javascript");
+        // }
+        // const fileStream = fs.createReadStream(fpath);
+        // fileStream.on('open', function() {
+        //     response.writeHead(200);
+        //     fileStream.pipe(response, {end:false});
+        //     // response.end();
+        // });
+        // fileStream.on('error',function(e) {
+        //     response.writeHead(404);
+        //     response.end();
+        // });
     } catch(e) {
         response.writeHead(500);
         response.end();
