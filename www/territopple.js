@@ -3,6 +3,10 @@ let symbs = ["!", "-", "+", "W", "&block;"];
 let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 let queries = new URLSearchParams(window.location.search);
 
+const displaySettings = {
+    "highlightLastMove": true
+};
+
 let t = parseInt(queries.get("t") ?? "0") || 0;
 let rows = parseInt(queries.get("h") ?? "6") || 6;
 let cols = parseInt(queries.get("w") ?? "6") || 6;
@@ -131,6 +135,10 @@ conn.addEventListener("open", function(event) {
 					break;
 				}
 				updateboard(row, col, tmu);
+                if (displaySettings.highlightLastMove) {
+                    document.querySelector(".last-move")?.classList.remove("last-move");
+                    document.getElementById(`r${row}c${col}`).classList.add("last-move");
+                }
 				break;
 			case ("room"):// ex. gr. roomAWNW8W9D_2
 			case ("plyw"):// ex. gr. plyw2_3
@@ -192,7 +200,7 @@ conn.addEventListener("open", function(event) {
 						let baroa = "";
 						for (let i = 0; i < rows; i++) {
 							for (let j = 0; j < cols; j++) {
-								baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\">-</div>");
+								baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\"><div>-</div></div>");
 							}
 						}
 						if (!render3d) {
@@ -321,7 +329,7 @@ function updateboard(rorig, corig, team) {
                         console.log("Change of state of tile at r" + row.toString() + "c" + col.toString());
                     }
                     dat.style.color = teamcols[team];
-                    dat.innerHTML = symbs[board[ct]];
+                    dat.firstElementChild.innerHTML = symbs[board[ct]];
                 }
                 ct--;
             }
