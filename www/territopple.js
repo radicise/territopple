@@ -3,9 +3,28 @@ let symbs = ["!", "-", "+", "W", "&block;"];
 let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 let queries = new URLSearchParams(window.location.search);
 
+let lastMoveId = null;
+
 const displaySettings = {
     "highlightLastMove": true
 };
+const displaySettingMonitors = {
+    "highlightLastMove": (o, n) => {
+        if (o === n) return; // no change, don't do anything
+        if (n) {
+            document.getElementById(lastMoveId)?.classList.add("last-move");
+        } else {
+            document.querySelector(".last-move")?.classList.remove("last-move");
+        }
+    },
+};
+// replaces the settings with properties that have specified getter/setter functions
+for (const name in displaySettings) {
+    const newname = "_"+name; // backing property name
+    Object.defineProperty(displaySettings, newname, {writable:true,enumerable:false,value:displaySettings[name]}); // new name should not show up in enumeration
+    delete displaySettings[name]; // delete old name
+    Object.defineProperty(displaySettings, name, {get:()=>displaySettings[newname],set:(v)=>{displaySettingMonitors[name]?.call(displaySettingMonitors[name], displaySettings[newname], v);displaySettings[newname]=v;},enumerable:true}); // redefine old name
+}
 
 let t = parseInt(queries.get("t") ?? "0") || 0;
 let rows = parseInt(queries.get("h") ?? "6") || 6;
@@ -135,9 +154,10 @@ conn.addEventListener("open", function(event) {
 					break;
 				}
 				updateboard(row, col, tmu);
+                lastMoveId = `r${row}c${col}`;
                 if (displaySettings.highlightLastMove) {
                     document.querySelector(".last-move")?.classList.remove("last-move");
-                    document.getElementById(`r${row}c${col}`).classList.add("last-move");
+                    document.getElementById(lastMoveId).classList.add("last-move");
                 }
 				break;
 			case ("room"):// ex. gr. roomAWNW8W9D_2
