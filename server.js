@@ -8,7 +8,7 @@ const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 
 /**
  * @typedef Game
- * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number}}
+ * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number,inGame:number[],inGameAmount:number,connectedAmount:number,playerAmount:number,pub:boolean}}
  */
 
 /**@type {Game[]} */
@@ -19,22 +19,31 @@ const fs = require("fs");
 const _path = require("path");
 const http = require("http");
 const crypto = require("crypto");
+const url = require("url");
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
 const wserv = new ws.Server({"port":settings.GAMEPORT});
 const hserv = http.createServer((requ, resp) => {// TODO Check request target
-	if (dbg) {
-		console.log("fetching of the room list");
-	}
-	let liststr = "";
-	for (const id in games) {
-		const game = games[id];
-		if (game.pub) {
-			liststr += `${id}_${game.cols}_${game.rows}_${game.state}_${game.connectedAmount}_${game.inGameAmount}_${game.playerAmount};`;// TODO Use correct values for amounts of players in room and playing in room
-		}
-	}
-	resp.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
-	resp.end(liststr);
-	return;
+    const reqpath = url.parse(requ.url).pathname;
+    switch (reqpath) {
+        case "/serverlist":
+            if (dbg) {
+                console.log("fetching of the room list");
+            }
+            let liststr = "";
+            for (const id in games) {
+                const game = games[id];
+                if (game.pub) {
+                    liststr += `${id}_${game.cols}_${game.rows}_${game.state}_${game.connectedAmount}_${game.inGameAmount}_${game.playerAmount};`;// TODO Use correct values for amounts of players in room and playing in room
+                }
+            }
+            resp.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
+            resp.end(liststr);
+            return;
+        default:
+            resp.writeHead(400);
+            resp.end();
+            return;
+    }
 });
 hserv.listen(settings.LISTPORT);
 /*

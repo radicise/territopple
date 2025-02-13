@@ -93,6 +93,7 @@ conn.addEventListener("open", function(event) {
 				display("Disconnected by server for reason number " + mess.toString());
 				break;
 			case ("updt"):// ex. gr. updtr0c0_1_1;r0c1_1_2;
+                throw new Error("unresolved security issue");
 				let lst = 0;
 				while (1) {
 					let nxt = mess.indexof(";", lst + 1);
@@ -249,7 +250,10 @@ conn.addEventListener("open", function(event) {
 		}
 		return;
 	});
-	document.getElementById("gameboard").addEventListener("mousedown", function(event) {
+	document.getElementById("gameboard").addEventListener("mouseup", function(event) {
+        if (document.getElementById("gameboard").style.getPropertyValue("--disabled") === "1") {
+            return;
+        }
 		if (dbg) {
 			console.log("Click on board");
 		}
@@ -294,8 +298,9 @@ function sanint(valstr) {
 	let n = parseInt(valstr);
 	if (isNaN(n)) {
 		recvInval("7");
-		while (1) {
-		}// TODO Actually crash, maybe redirect to a page?
+        throw new Error("// TODO Actually crash, maybe redirect to a page?");
+		// while (1) {
+		// }// TODO Actually crash, maybe redirect to a page?
 	}
 	return n;
 }

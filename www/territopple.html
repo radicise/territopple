@@ -10,16 +10,49 @@
 		<style>
 			body {
 				background-color: #ffffff;
+                --blink-light: #fff;
+                --blink-dark: #ddd;
+                /* animation: blink 0.5s linear 4 alternate; */
 			}
+            #container-container {
+                width: 300px;
+                height: 300px;
+                border: solid black 2px;
+                overflow: hidden;
+            }
 			.container {
-				width: 300px;
-				height: 300px;
+                width: 300px;
+                height: 300px;
+				/* width: calc(32px * var(--ncols)); */
+				/* height: calc(32px *); */
 			    display: grid;
 				grid-template-columns: repeat(var(--ncols), 1fr);
 				grid-template-rows: repeat(var(--nrows), 1fr);
 				font-family: monospace, monospace;
 				user-select: none;
 			}
+            .container.m1 {
+                position: relative;
+                left: max(0px, calc(150px - calc(300px * var(--ncols) / var(--nrows))/2));
+                top: max(0px, calc(150px - calc(300px * var(--nrows) / var(--ncols))/2));
+                width: calc(60px * var(--ncols));
+                transform-origin: 0 0;
+                transform: scale(min(calc(5 / var(--nrows)), calc(5 / var(--ncols))));
+            }
+            .container.m2 {
+                position: relative;
+                /* left: calc(var(--dx, 0px) * 1px);
+                top: calc(var(--dy, 0px) * 1px); */
+                left: calc(var(--dx, 0px) * var(--scale-factor) * 1px);
+                top: calc(var(--dy, 0px) * var(--scale-factor) * 1px);
+                /* cant be less than one */
+                --scale-factor: calc(1 / max(1, var(--sf, 1)));
+                transform: scale(var(--scale-factor));
+                /* overflow: hidden; */
+            }
+            .container.m2 > div {
+                width: 60px;
+            }
 			.container > div {
 				font-size: 32px;
 				/* text-align: center; */
@@ -46,12 +79,21 @@
                 width: 100%;
                 height: 100%;
             }
+            @keyframes blink {
+                0%, 49% {background: var(--blink-light);}
+                50%, 100% {background: var(--blink-dark);}
+            }
 		</style>
 	</head>
 	<body>
 		<title>Territopple</title>
 		<h1>Territopple, the Territory Toppling Game</h1>
-		<div id="gameboard" class="container"></div>
+		<div id="container-container"><div id="gameboard" class="container"></div></div>
+        <input type="range" id="board-zoom" min="1" max="15" step="2" value="1" hidden>
+        <input type="button" id="m0" value="m0">
+        <input type="button" id="m1" value="m1">
+        <input type="button" id="m2" value="m2">
+		<!-- <div id="gameboard" class="container m1"></div> -->
 		<h2 id="status">Connecting to server . . .</h2>
 		<p id="info">Not yet connected to server</p>
         <a href="/index.html">home</a>
@@ -65,5 +107,6 @@
         </script>
         <!-- <script type="module" src="render3.js"></script> -->
 		<script src="territopple.js?rev=25"></script>
+        <script src="soldemo.js"></script>
 	</body>
 </html>
