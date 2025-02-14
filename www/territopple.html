@@ -11,8 +11,6 @@
 			body {
 				background-color: #ffffff;
                 --blink-light: #fff;
-                --blink-dark: #ddd;
-                /* animation: blink 0.5s linear 4 alternate; */
 			}
             #container-container {
                 width: 300px;
@@ -83,16 +81,27 @@
                 0%, 49% {background: var(--blink-light);}
                 50%, 100% {background: var(--blink-dark);}
             }
+            @keyframes blink2 {
+                0%, 49% {background: var(--blink-dark);}
+                50%, 100% {background: var(--blink-light);}
+            }
+            .blink {
+                animation: blink var(--blink-dur, 0.5s) linear var(--blink-count, 3) alternate;
+            }
+            .blink2 {
+                animation: blink var(--blink-dur, 0.5s) linear var(--blink-count, 3) forwards;
+            }
 		</style>
 	</head>
 	<body>
 		<title>Territopple</title>
 		<h1>Territopple, the Territory Toppling Game</h1>
-		<div id="container-container"><div id="gameboard" class="container"></div></div>
+		<div id="container-container"><div id="gameboard" class="container" style="--blink-dark:#ddd"></div></div>
         <input type="range" id="board-zoom" min="1" max="15" step="2" value="1" hidden>
         <input type="button" id="m0" value="m0">
         <input type="button" id="m1" value="m1">
         <input type="button" id="m2" value="m2">
+        <input type="button" id="pingbutton" value="ping">
 		<!-- <div id="gameboard" class="container m1"></div> -->
 		<h2 id="status">Connecting to server . . .</h2>
 		<p id="info">Not yet connected to server</p>

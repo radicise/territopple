@@ -1,2 +1,12 @@
 make 3d renderer
 holes?
+
+add chat of quick phrases (via picker wheel?) (potentially with soundbites)
+-- "that was not the move"
+-- "guys, it'll be fiiiiiiine"
+-- "uh oh"
+-- "(he/she/they) miscounted"
+-- "I miscounted"
+-- "oh! oh! oh!"
+
+make error message banners

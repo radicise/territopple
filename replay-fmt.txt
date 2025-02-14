@@ -1,0 +1,9 @@
+this document describes the format of the ".topl" territopple replay file
+
+BYTE - version
+BYTE[8] - name of game
+...BYTE[2|4] - actions
+
+actions take the following form
+BYTE[2] - 0xf0,PLAYERNUMBER - player disconnect, eliminated from game, etc
+BYTE[4] - duo 16bit int, move coordinates, row then column

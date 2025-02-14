@@ -93,6 +93,12 @@
           </tbody>
         </table>
       </div>
+      <script>
+        if (new URL(location.href).searchParams.get("dev")) {
+            document.querySelector("input[name=\"w\"]").value = 2;
+            document.querySelector("input[name=\"h\"]").value = 2;
+        }
+      </script>
       <script src="index.js?rev=6"></script>
     </body>
 </html>

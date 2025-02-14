@@ -26,6 +26,48 @@ for (const name in displaySettings) {
     Object.defineProperty(displaySettings, name, {get:()=>displaySettings[newname],set:(v)=>{displaySettingMonitors[name]?.call(displaySettingMonitors[name], displaySettings[newname], v);displaySettings[newname]=v;},enumerable:true}); // redefine old name
 }
 
+const queueAnimation = (()=>{
+    const queues = {};
+    function deque(elem){
+        if (queues[elem].length === 0) {
+            delete queues[elem];
+            return;
+        }
+        const className = queues[elem][0][0];
+        const props = queues[elem][0][1];
+        const tempProps = queues[elem][0][2] || [];
+        queues[elem].splice(0, 1);
+        for (const prop in props) {
+            elem.style.setProperty(prop, props[prop]);
+        }
+        elem.onanimationend = () => {
+            elem.onanimationend = null;
+            elem.classList.remove(className);
+            for (const prop of tempProps) {
+                elem.style.removeProperty(prop);
+            }
+            setTimeout(()=>{deque(elem);}, 0);
+        };
+        elem.classList.add(className);
+    };
+    return (
+    /**
+     * @param {HTMLElement} elem
+     * @param {string} className
+     * @param {object} props
+     * @param {string[]} tempProps
+     */
+    (elem, className, props, tempProps) => {
+        if (!(elem in queues)) {
+            queues[elem] = [];
+        }
+        queues[elem].push([className, props, tempProps]);
+        if (!elem.onanimationend) {
+            deque(elem);
+        }
+    }
+)})();
+
 let t = parseInt(queries.get("t") ?? "0") || 0;
 let rows = parseInt(queries.get("h") ?? "6") || 6;
 let cols = parseInt(queries.get("w") ?? "6") || 6;
@@ -82,11 +124,25 @@ if (dbg) {
 }
 let conn = new WebSocket(serv);
 conn.addEventListener("open", function(event) {
+    document.getElementById("pingbutton").addEventListener("click", () => {
+        conn.send(`ping`);
+    });
 	display("Connected");
 	conn.addEventListener("message", function(event) {
 		var type = event.data.substring(0,4);
 		var mess = event.data.substring(4);
 		switch (type) {
+            case "ping":
+                const orig = mess.split(",")[0];
+                const kind = mess.split(",")[1].replace("default", "flash");
+                switch (kind) {
+                    case "flash":
+                        if (ifmt.turn) {
+                            queueAnimation(container, "blink", {"--blink-dark":"#ddd","--blink-dur":"0.25s"}, ["--blink-dur"]);
+                        }
+                        break;
+                }
+                break;
 			case ("disc"):// ex. gr. disc
 				conn.close();
 				mess = sanint(mess);
@@ -212,6 +268,9 @@ conn.addEventListener("open", function(event) {
 							let rmo = Math.floor(mess / cols);
 							mess = mess % cols;
 							updScr("status", "Player " + mesr.toString() + " won the game with move " + mess.toString() + "x" + rmo.toString());
+                            displaySettings.highlightLastMove = false;
+                            container.parentElement.style.setProperty("--blink-dark", teamcols[mesr]+"88");
+                            container.parentElement.classList.add("blink2");
 						}
 						break;
 					case ("dims"):

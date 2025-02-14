@@ -94,7 +94,7 @@ function calcTerritory(game, i) {
     const c = i % game.cols;
     const r = (i - c) / game.cols;
     let g = gameCopy(game);
-    updateboard(r, c, game.turn, g);
+    updateboard(r, c, game.turn, g, true);
     return g.owned[game.turn];
 }
 

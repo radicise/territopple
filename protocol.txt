@@ -1,3 +1,14 @@
 Game listing protocol:
 - Client sends a POST request to http://host:8302/serverlist
 - Server sends a single string response of the form of repeated "[room identifier string]_[width]_[height]_[0 for waiting on players, 1 for in progress]_[total amount of players and spectators in room]_[amount of players in the room still in the game]_[amount of players that the server requires / required to start the game];"
+
+Game running protocol:
+Ping:
+clients can ping each other, they can choose to ping a specific player, the generic 'active' player, or all players
+pings can come in multiple types, these are currently: default, flash
+default can be resolved to any valid type either by the server or the client
+clients may substitute ping types in the case that the requested type is disabled or unavailable
+the active player is always the player who's turn is currently ongoing
+
+- client sends "ping[{target}][,{type}]" when type is omitted, it is 'default', when target is omitted, it is 'active'
+- server sends "ping{origin},{type}" to the target, or sends a distrMess in the case of target 'all'

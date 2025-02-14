@@ -8,7 +8,7 @@ const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 
 /**
  * @typedef Game
- * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number,inGame:number[],inGameAmount:number,connectedAmount:number,playerAmount:number,pub:boolean}}
+ * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number,inGame:number[],inGameAmount:number,connectedAmount:number,playerAmount:number,pub:boolean,ident:string,buffer:number[]}}
  */
 
 /**@type {Game[]} */
@@ -16,6 +16,9 @@ const games = {};
 console.log("Starting server . . .");
 const ws = require("ws");
 const fs = require("fs");
+if (!fs.existsSync("replays")) {
+    fs.mkdirSync("replays");
+}
 const _path = require("path");
 const http = require("http");
 const crypto = require("crypto");
@@ -46,6 +49,8 @@ const hserv = http.createServer((requ, resp) => {// TODO Check request target
     }
 });
 hserv.listen(settings.LISTPORT);
+const minDim = 1;
+const maxDim = 37;
 /*
  * Properties of a game:
  *
@@ -73,13 +78,14 @@ wserv.on("connection", (wsock, req) => {
 		return;
 	}
 	let connType = getParamInt("t", 0, 3, 0, params);
-	let requeWidth = getParamInt("w", 1, 37, 6, params);
-	let requeHeight = getParamInt("h", 1, 37, 6, params);
+	let requeWidth = getParamInt("w", minDim, maxDim, 6, params);
+	let requeHeight = getParamInt("h", minDim, maxDim, 6, params);
 	let requePlayers = getParamInt("p", 2, 10, 2, params);
 	if (dbg) {
 		console.log("Connection");
 	}
 	let gameID = "--------";
+    /**@type {Game} */
 	let game = null;
 	let playerNum = 0;
 	switch (connType) {
@@ -138,6 +144,7 @@ wserv.on("connection", (wsock, req) => {
 			playerNum = 1;
 			gameID = genCode();
 			game = genGame(requeWidth, requeHeight, requePlayers, connType === 1 ? 1 : 0);
+            game.buffer.push(...gameID.split('').map(v => codeChars.indexOf(v)));
 			game.inGame[1] = 1;
 			game.inGameAmount = 1;
 			game.connectedAmount = 1;
@@ -162,6 +169,18 @@ wserv.on("connection", (wsock, req) => {
 		let type = whole.substring(0, 4);
 		let message = whole.substring(4);
 		switch (type) {
+            case"ping":
+                const pingtype = message.split(",")[1] || "default";
+                const pingdest = message.split(",")[0] || "active";
+                const validtypes = ["default", "flash", "audio"];
+                if (!validtypes.includes(pingtype)) return;
+                const payload = `ping${playerNum},${pingtype}`;
+                if (pingdest === "all") {
+                    distrMess(payload, game);
+                } else {
+                    game.players[pingdest === "active" ? game.turn : pingdest].send(payload);
+                }
+                return;
 			case ("move"):
 				if (game.state != 1) return;
 				if (dbg) {
@@ -313,7 +332,8 @@ function genGame(width, height, player_amount, public) {
 		inGameAmount: 0,
 		connectedAmount: 0,
 		playerAmount: player_amount,
-		pub: public
+		pub: public,
+        buffer: [0]
 	};
 }
 /**
@@ -379,6 +399,8 @@ function removePlayer(game, playerNum) {
  * @param {Game} game
  */
 function killGame(game) {
+    // console.log(game.buffer);
+    if (settings.WRITE_REPLAYS)fs.writeFileSync("replays/"+game.ident+".topl", Buffer.from(game.buffer));
 	delete games[game.ident];
 	game.state = 2;
 	game.inGameAmount = 0;

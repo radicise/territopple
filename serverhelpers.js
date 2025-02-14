@@ -1,3 +1,8 @@
+function toBytes(n) {
+    return [(n>>8)&0xff,n&0xff];
+    // return [(n>>24)&0xff,(n>>16)&0xff,(n>>8)&0xff,n&0xff];
+}
+
 /**
  * @param {number} rorig
  * @param {number} corig
@@ -5,7 +10,8 @@
  * @param {import("./server").Game} game
  * @returns {boolean}
  */
-function updateboard(rorig, corig, team, game) {
+function updateboard(rorig, corig, team, game, dummy) {
+    if (!dummy) game.buffer.push(...toBytes(rorig), ...toBytes(corig));
 	const rows = game.rows;
 	const cols = game.cols;
 	const tiles = rows * cols;
@@ -41,12 +47,14 @@ function updateboard(rorig, corig, team, game) {
 			game.owned[lt]--;
 			if ((game.owned[lt] == 0) && (game.owned[0] == 0)) {
 				if (lt) {
+                    if (!dummy) game.buffer.push(0xf0,lt);
 					game.inGame[lt] = 0;
 					game.inGameAmount--;
 				}
 				else {
 					for (let i = 1; i < game.owned.length; i++) {
 						if (!(game.owned[i])) {
+                            if (!dummy) game.buffer.push(0xf0,i);
 							game.inGame[i] = 0;
 							game.inGameAmount--;
 						}
