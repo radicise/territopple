@@ -24,6 +24,12 @@ const http = require("http");
 const crypto = require("crypto");
 const url = require("url");
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
+{
+    const prefs = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
+    for (const pref in prefs) {
+        settings[pref] = prefs[pref];
+    }
+}
 const wserv = new ws.Server({"port":settings.GAMEPORT});
 const hserv = http.createServer((requ, resp) => {// TODO Check request target
     const reqpath = url.parse(requ.url).pathname;

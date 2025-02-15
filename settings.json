@@ -17,5 +17,6 @@
     },
     "DEVOPTS": {
         "expr_webpath": false
-    }
+    },
+    "WRITE_REPLAYS": false
 }

@@ -2,3 +2,5 @@
 /package-lock.json
 /secrets.json
 .DS_store
+/replays
+/prefs.json

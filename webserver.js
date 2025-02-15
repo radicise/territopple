@@ -7,6 +7,12 @@ const path = require('path');
 // const { pipeline } = require("stream/promises");
 
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
+{
+    const prefs = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
+    for (const pref in prefs) {
+        settings[pref] = prefs[pref];
+    }
+}
 
 // const contentDir = __dirname+"/www";
 const contentDir = settings.WEBCONTENT_DIR;
