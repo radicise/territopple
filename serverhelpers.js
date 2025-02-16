@@ -2,6 +2,14 @@ function toBytes(n) {
     return [(n>>8)&0xff,n&0xff];
     // return [(n>>24)&0xff,(n>>16)&0xff,(n>>8)&0xff,n&0xff];
 }
+/**
+ * @param {number} n
+ * @param {number} c
+ * @returns {number[]}
+ */
+function nbytes(n, c) {
+	return [n&0xff,(n>>8)&0xff,(n>>16)&0xff,(n>>24)&0xff,(n>>32)&0xff,(n>>40)&0xff,(n>>48)&0xff,(n>>56)&0xff].slice(0, c).reverse()
+}
 
 /**
  * @param {number} rorig
@@ -11,7 +19,22 @@ function toBytes(n) {
  * @returns {boolean}
  */
 function updateboard(rorig, corig, team, game, dummy) {
-    if (!dummy) game.buffer.push(...toBytes(rorig), ...toBytes(corig));
+    // if (!dummy) game.buffer.push(...toBytes(rorig), ...toBytes(corig));
+    if (!dummy) {
+		if (game.buffer[2][0] & (1<<7)) {
+			const ntime = Date.now();
+			const dtime = ntime - game.timestamp;
+			game.timestamp = ntime;
+			if (dtime > 65535) {
+				game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 1, 0, 0));
+			} else {
+				game.buffer.push(Buffer.of(1, ...toBytes(dtime)));
+			}
+		} else {
+			game.buffer.push(Buffer.of(1));
+		}
+		game.buffer.push(Buffer.of(rorig&0xff, corig&0xff));
+	}
 	const rows = game.rows;
 	const cols = game.cols;
 	const tiles = rows * cols;
@@ -54,7 +77,7 @@ function updateboard(rorig, corig, team, game, dummy) {
 				else {
 					for (let i = 1; i < game.owned.length; i++) {
 						if (!(game.owned[i])) {
-                            if (!dummy) game.buffer.push(0xf0,i);
+                            if (!dummy) game.buffer.push(Buffer.of(0,0,0,i));
 							game.inGame[i] = 0;
 							game.inGameAmount--;
 						}
@@ -71,3 +94,4 @@ function updateboard(rorig, corig, team, game, dummy) {
 }
 
 exports.updateboard = updateboard;
+exports.nbytes = nbytes;

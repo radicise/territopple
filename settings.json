@@ -18,5 +18,9 @@
     "DEVOPTS": {
         "expr_webpath": false
     },
-    "WRITE_REPLAYS": false
+    "REPLAYS": {
+        "ENABLED": false,
+        "TIMESTAMP": true,
+        "COLLATE": false
+    }
 }
