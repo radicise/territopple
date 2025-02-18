@@ -16,14 +16,17 @@ BYTE - flags <a-f> where a is MSB
 - a (TIMESTAMP) - includes timestamps // timestamps can get big, best to give option of disabling them
 - b+c (SIZE) - combine as a 2bit selector, 00 (tiny) is 36x36 max, 01 (medium) is 256x256 max, 10 (large) is 4096x4096 max, 11 (huge) is 2^16x2^16 max // allows further space savings
 BYTE[8] - game start timestamp (ms since Jan 1, 1970 UTC) // this is nice and only adds constant cost
+BYTE[2] - width
+BYTE[2] - height
+BYTE - player count
 -- garbage data between the timestamp and start of game is to be ignored, and does not make a topl invalid --
 BYTE[2] - 0xf0,0x0f - start of game data
 ...EVENT
 BYTE[4] - 0xff,0xf0,0x0f,0xff - end of replay // allows multiple replays to be put into one file
 
 EVENT:
-IF (TIMESTAMP) set:
 BYTE (TYPE) - type of event
+IF (TIMESTAMP) set:
 BYTE[2] - delta since previous timestamp (EXCEPTING if this is a TIMESTAMP event)
 SWITCH (TYPE):
 0 -> PLAYER ELIM: - player eliminated from turn order, reason not important

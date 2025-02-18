@@ -3,12 +3,14 @@ function toBytes(n) {
     // return [(n>>24)&0xff,(n>>16)&0xff,(n>>8)&0xff,n&0xff];
 }
 /**
- * @param {number} n
+ * @param {BigInt} n
  * @param {number} c
  * @returns {number[]}
  */
 function nbytes(n, c) {
-	return [n&0xff,(n>>8)&0xff,(n>>16)&0xff,(n>>24)&0xff,(n>>32)&0xff,(n>>40)&0xff,(n>>48)&0xff,(n>>56)&0xff].slice(0, c).reverse()
+    n = BigInt(n);
+    console.log(n, c);
+	return [n&0xffn,(n>>8n)&0xffn,(n>>16n)&0xffn,(n>>24n)&0xffn,(n>>32n)&0xffn,(n>>40n)&0xffn,(n>>48n)&0xffn,(n>>56n)&0xffn].map(v => Number(v)).slice(0, c).reverse();
 }
 
 /**

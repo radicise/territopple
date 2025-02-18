@@ -154,7 +154,7 @@ wserv.on("connection", (wsock, req) => {
 			if (playerNum == game.playerAmount) {
 				game.timestamp = Date.now();
 				console.log(game.timestamp);
-				game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), 0xf0, 0x0f));
+				game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.cols, 2), ...nbytes(game.rows, 2), game.players.length-1, 0xf0, 0x0f));
 				game.state = 1;
 				game.turn = 1;
 				game.move = -1;

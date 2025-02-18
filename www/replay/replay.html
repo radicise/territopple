@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Territopple Replay</title>
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+        <link rel="manifest" href="/favicon/site.webmanifest" />
+        <link rel="stylesheet" type="text/css" href="../territopple.css" />
+    </head>
+    <body>
+        <h1>Territopple, the Territory Toppling Game (REPLAY)</h1>
+        <div id="replay-area" hidden>
+            <div id="container-container"><div id="gameboard" class="container" style="--blink-dark:#ddd"></div></div>
+            <input type="range" id="board-zoom" min="1" max="15" step="2" value="1" hidden>
+            <input type="button" id="m0" value="m0">
+            <input type="button" id="m1" value="m1">
+            <input type="button" id="m2" value="m2">
+            <br>
+            <input type="button" value="step" onclick="replay_step()">
+            <p id="time">DATA NOT LOADED</p>
+            <p id="turn">DATA NOT LOADED</p>
+            <h2 id="status">DATA NOT LOADED</h2>
+		    <p id="info">DATA NOT LOADED</p>
+        </div>
+        <input type="file" id="replay-upload"><input type="button" value="upload" onclick="load_replay()">
+        <script src="/replay/replay.js"></script>
+        <script src="/soldemo.js"></script>
+    </body>
+</html>

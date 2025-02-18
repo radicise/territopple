@@ -8,10 +8,24 @@ const path = require('path');
 
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
 {
+    const extend = (e, o) => {
+        for (const key in o) {
+            if (typeof o[key] === 'object') {
+                if (key in e) {
+                    extend(e[key], o[key]);
+                } else {
+                    extend(e, o[key]);
+                }
+            } else {
+                e[key] = o[key];
+            }
+        }
+    };
     const prefs = JSON.parse(fs.readFileSync(path.join(__dirname, "prefs.json"), {encoding:"utf-8"}));
-    for (const pref in prefs) {
-        settings[pref] = prefs[pref];
-    }
+    extend(settings, prefs);
+    // for (const pref in prefs) {
+    //     settings[pref] = prefs[pref];
+    // }
 }
 
 // const contentDir = __dirname+"/www";
