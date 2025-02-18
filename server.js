@@ -5,6 +5,7 @@ const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "
 
 const { updateboard, nbytes } = require("./serverhelpers.js");
 const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
+const { onGameCreated, onGameStarted, onRecordReplay, onPlayerRemoved, onMove } = require("./replayHooks.js");
 
 /**
  * @typedef Game
@@ -152,9 +153,9 @@ wserv.on("connection", (wsock, req) => {
 			wsock.send(`room${gameID}_${playerNum}`);
 			wsock.send(`dims${game.rows}_${game.cols}`);
 			if (playerNum == game.playerAmount) {
-				game.timestamp = Date.now();
-				console.log(game.timestamp);
-				game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.cols, 2), ...nbytes(game.rows, 2), game.players.length-1, 0xf0, 0x0f));
+				// game.timestamp = Date.now();
+				// console.log(game.timestamp);
+				// game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.cols, 2), ...nbytes(game.rows, 2), game.players.length-1, 0xf0, 0x0f));
 				game.state = 1;
 				game.turn = 1;
 				game.move = -1;
@@ -168,8 +169,8 @@ wserv.on("connection", (wsock, req) => {
 			playerNum = 1;
 			gameID = genCode();
 			game = genGame(requeWidth, requeHeight, requePlayers, connType === 1 ? 1 : 0);
-            game.buffer.push(Buffer.from(gameID.split('').map(v => v.charCodeAt(0))));
-			game.buffer.push(Buffer.of((settings.REPLAYS.TIMESTAMP?(1<<7):0) | (0b01<<5))); // use timestamp from settings, use medium as it's the largest that doesn't use more bytes
+            // game.buffer.push(Buffer.from(gameID.split('').map(v => v.charCodeAt(0))));
+			// game.buffer.push(Buffer.of((settings.REPLAYS.TIMESTAMP?(1<<7):0) | (0b01<<5))); // use timestamp from settings, use medium as it's the largest that doesn't use more bytes
 			game.inGame[1] = 1;
 			game.inGameAmount = 1;
 			game.connectedAmount = 1;
@@ -358,8 +359,8 @@ function genGame(width, height, player_amount, public) {
 		connectedAmount: 0,
 		playerAmount: player_amount,
 		pub: public,
-        buffer: [Buffer.of(1)],
-		timestamp: 0
+        // buffer: [Buffer.of(1)],
+		// timestamp: 0
 	};
 }
 /**
@@ -367,19 +368,20 @@ function genGame(width, height, player_amount, public) {
  * @param {number} playerNum
  */
 function removePlayer(game, playerNum) {
-	if (game.buffer[2] & (1<<7)) {
-		const ntime = Date.now();
-		const dtime = ntime - game.timestamp;
-		game.timestamp = ntime;
-		if (dtime > 65535) {
-			game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 0, 0, 0));
-		} else {
-			game.buffer.push(Buffer.of(0, ...toBytes(dtime)));
-		}
-	} else {
-		game.buffer.push(Buffer.of(0));
-	}
-	game.buffer.push(Buffer.of(playerNum));
+	// if (game.buffer[2] & (1<<7)) {
+	// 	const ntime = Date.now();
+	// 	const dtime = ntime - game.timestamp;
+	// 	game.timestamp = ntime;
+	// 	if (dtime > 65535) {
+	// 		game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 0, 0, 0));
+	// 	} else {
+	// 		game.buffer.push(Buffer.of(0, ...toBytes(dtime)));
+	// 		// game.buffer.push(Buffer.of(0, ...nbytes(dtime, 2)));
+	// 	}
+	// } else {
+	// 	game.buffer.push(Buffer.of(0));
+	// }
+	// game.buffer.push(Buffer.of(playerNum));
 	game.players[playerNum] = null;
 	game.connectedAmount--;
 	if (game.state == 0) {
@@ -439,8 +441,13 @@ function removePlayer(game, playerNum) {
  */
 function killGame(game) {
     // console.log(game.buffer);
-	game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
-    if (settings.REPLAYS.ENABLED)fs.writeFileSync("replays/"+game.ident+".topl", Buffer.concat(game.buffer));
+	// game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
+    // for (let i = 0; i < game.buffer.length; i ++) {
+    //     if (typeof game.buffer[i] === "number") {
+    //         console.log(`${i}: ${game.buffer[i]}\n${JSON.stringify(game.buffer[i-1])}\n${JSON.stringify(game.buffer[i+1])}`);
+    //     }
+    // }
+    // if (settings.REPLAYS.ENABLED)fs.writeFileSync("replays/"+game.ident+".topl", Buffer.concat(game.buffer));
 	delete games[game.ident];
 	game.state = 2;
 	game.inGameAmount = 0;

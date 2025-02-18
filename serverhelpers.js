@@ -22,21 +22,21 @@ function nbytes(n, c) {
  */
 function updateboard(rorig, corig, team, game, dummy) {
     // if (!dummy) game.buffer.push(...toBytes(rorig), ...toBytes(corig));
-    if (!dummy) {
-		if (game.buffer[2][0] & (1<<7)) {
-			const ntime = Date.now();
-			const dtime = ntime - game.timestamp;
-			game.timestamp = ntime;
-			if (dtime > 65535) {
-				game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 1, 0, 0));
-			} else {
-				game.buffer.push(Buffer.of(1, ...toBytes(dtime)));
-			}
-		} else {
-			game.buffer.push(Buffer.of(1));
-		}
-		game.buffer.push(Buffer.of(rorig&0xff, corig&0xff));
-	}
+    // if (!dummy) {
+	// 	if (game.buffer[2][0] & (1<<7)) {
+	// 		const ntime = Date.now();
+	// 		const dtime = ntime - game.timestamp;
+	// 		game.timestamp = ntime;
+	// 		if (dtime > 65535) {
+	// 			game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 1, 0, 0));
+	// 		} else {
+	// 			game.buffer.push(Buffer.of(1, ...toBytes(dtime)));
+	// 		}
+	// 	} else {
+	// 		game.buffer.push(Buffer.of(1));
+	// 	}
+	// 	game.buffer.push(Buffer.of(rorig&0xff, corig&0xff));
+	// }
 	const rows = game.rows;
 	const cols = game.cols;
 	const tiles = rows * cols;
@@ -72,14 +72,14 @@ function updateboard(rorig, corig, team, game, dummy) {
 			game.owned[lt]--;
 			if ((game.owned[lt] == 0) && (game.owned[0] == 0)) {
 				if (lt) {
-                    if (!dummy) game.buffer.push(0xf0,lt);
+                    // if (!dummy) game.buffer.push(Buffer.of(0,0,0,lt));
 					game.inGame[lt] = 0;
 					game.inGameAmount--;
 				}
 				else {
 					for (let i = 1; i < game.owned.length; i++) {
 						if (!(game.owned[i])) {
-                            if (!dummy) game.buffer.push(Buffer.of(0,0,0,i));
+                            // if (!dummy) game.buffer.push(Buffer.of(0,0,0,i));
 							game.inGame[i] = 0;
 							game.inGameAmount--;
 						}
