@@ -74,7 +74,7 @@ function onRecordReplay(game, options) {
  * MUST be called whenever a player is removed from the turn order for ANY reason
  */
 function onPlayerRemoved(game, playerNum) {
-    if (game.buffer[2] & (1<<7)) {
+    if (game.buffer[0][9] & (1<<7)) {
 		const ntime = Date.now();
 		const dtime = ntime - game.timestamp;
 		game.timestamp = ntime;
@@ -98,7 +98,7 @@ function onPlayerRemoved(game, playerNum) {
  * MUST be called ANY time a successful move is made
  */
 function onMove(game, row, col) {
-    if (game.buffer[2][0] & (1<<7)) {
+    if (game.buffer[0][9] & (1<<7)) {
         const ntime = Date.now();
         const dtime = ntime - game.timestamp;
         game.timestamp = ntime;
