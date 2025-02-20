@@ -84,11 +84,17 @@ http.createServer((request, response) => {
                 response.writeHead(404);
                 response.end();
             } else {
-                if (fpath.endsWith(".js")) {
-                    response.setHeader("Content-Type", "text/javascript");
+                try {
+                    if (fs.lstatSync(fpath).isDirectory()) throw new Error();
+                    const fileStream = fs.createReadStream(fpath);
+                    if (fpath.endsWith(".js")) {
+                        response.setHeader("Content-Type", "text/javascript");
+                    }
+                    fileStream.pipe(response);
+                } catch (e) {
+                    response.writeHead(400);
+                    response.end();
                 }
-                const fileStream = fs.createReadStream(fpath);
-                fileStream.pipe(response);
                 // fileStream.on('open', function() {
                 //     response.writeHead(200);
                 //     response.end();

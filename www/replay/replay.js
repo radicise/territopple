@@ -5,6 +5,9 @@ const replayCont = document.getElementById("replay-area");
 /**@type {HTMLDivElement} */
 const gameBoard = document.getElementById("gameboard");
 
+let symbs = ["!", "-", "+", "W", "&block;"];
+let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
+
 /**
  * @typedef ReplayEvent
  * @type {{type:0,time_delta?:number,player:number}|{type:1,time_delta?:number,move:number[]}|{type:2,time_delta:number}
@@ -57,7 +60,89 @@ let replay_game = {
     timestamp: 0,
     players: [false]
 };
-let replay_turn = 1;
+let replay_turn = -1;
+/**@type {[number[],number[]]} */
+let replay_board = [];
+
+/**
+ * @param {number} r
+ * @param {number} c
+ * @param {number} t
+ */
+function updateBoard(r, c, t) {
+    const board = replay_board;
+    /**@type {number[]} */
+    let q = [c, r];
+    let l = {};
+    const MAXUPDATE = replay_data.width * replay_data.height;
+    let counter = 0;
+    while (q.length > 0) {
+        counter += 1;
+        if (Object.keys(l).length >= MAXUPDATE) break;
+        console.log(Object.keys(l));
+        if (counter > 15) throw new Error();
+        const cr = q.pop();
+        const cc = q.pop();
+        const i = cr * replay_data.width + cc;
+        board[0][i] += 1;
+        board[1][i] = t;
+        /**@type {0|4|8} */
+        const kr = cr === 0 ? 4 : (cr === replay_data.height-1 ? 8 : 0);
+        /**@type {0|1|2} */
+        const kc = cc === 0 ? 1 : (cc === replay_data.width-1 ? 2 : 0);
+        switch (kc|kr) {
+            case 0:
+                if (board[0][i] > 4) {
+                    board[0][i] = 1;
+                    q.push(cc-1, cr, cc, cr-1, cc+1, cr, cc, cr+1);
+                }
+                break;
+            case 1:
+            case 2:
+            case 4:
+            case 8:
+                if (board[0][i] > 3) {
+                    board[0][i] = 1;
+                    switch (kc|kr) {
+                        case 1:
+                            q.push(cc, cr-1, cc+1, cr, cc, cr+1);
+                            break;
+                        case 2:
+                            q.push(cc-1, cr, cc, cr-1, cc, cr+1);
+                            break;
+                        case 4:
+                            q.push(cc-1, cr, cc+1, cr, cc, cr+1);
+                            break;
+                        case 8:
+                            q.push(cc-1, cr, cc, cr-1, cc+1, cr);
+                            break;
+                    }
+                }
+                break;
+            default:
+                if (board[0][i] > 2) {
+                    board[0][i] = 1;
+                    if (kr === 4) {
+                        q.push(cc, cr+1);
+                    } else {
+                        q.push(cc, cr-1);
+                    }
+                    if (kc === 1) {
+                        q.push(cc+1, cr);
+                    } else {
+                        q.push(cc-1, cr);
+                    }
+                }
+                break;
+        }
+        l[`r${cr}c${cc}`] = board[0][i];
+    }
+    for (const id in l) {
+        const e = document.getElementById(id);
+        e.style.color = teamcols[t];
+        e.firstElementChild.textContent = symbs[l[id]];
+    }
+}
 
 /**
  * updates a part of the screen to show the given value
@@ -146,20 +231,26 @@ async function replay_step() {
             if (replay_data.flags.timestamp) {
                 replay_game.timestamp += ev.time_delta;
             }
-            Display.status = `Player ${replay_turn} moved: ${formatMove(ev.move)}`;
-            let i = replay_turn;
-            let c = 0;
-            while (true) {
-                c += 1;
-                if (c > 5) {
-                    throw new Error();
-                }
-                i = (i + 1) % replay_game.players.length;
-                if (replay_game.players[i]) {
-                    replay_turn = i;
-                    break;
+            if (replay_turn === -1) {
+                replay_turn = 1;
+            } else {
+                let i = replay_turn;
+                let c = 0;
+                while (true) {
+                    c += 1;
+                    // console.log(c);
+                    if (c > replay_data.players) {
+                        throw new Error();
+                    }
+                    i = (i + 1) % replay_game.players.length;
+                    if (replay_game.players[i]) {
+                        replay_turn = i;
+                        break;
+                    }
                 }
             }
+            updateBoard(ev.move[0], ev.move[1], replay_turn);
+            Display.status = `Player ${replay_turn} moved: ${formatMove(ev.move)}`;
             break;
         case 2:
             replay_game.timestamp += ev.time_delta;
@@ -265,9 +356,10 @@ async function load_replay() {
     }
     replay_data = rdata;
     replay_pos = 0;
-    replay_turn = 1;
+    replay_turn = -1;
     replay_game.timestamp = replay_data.start;
     replay_game.players = new Array(replay_data.players+1).fill(true, 1, replay_data.players+2);
     replay_game.players[0] = false;
+    replay_board = [new Array(replay_data.width*replay_data.height).fill(1), new Array(replay_data.width*replay_data.height).fill(0)];
     init_replay();
 }
