@@ -272,6 +272,18 @@ conn.addEventListener("open", function(event) {
                             container.parentElement.style.setProperty("--blink-dark", teamcols[mesr]+"88");
                             container.parentElement.classList.add("blink2");
 						}
+                        {
+                            /**@type {HTMLDivElement} */
+                            const da = document.getElementById("download-area");
+                            /**@type {HTMLInputElement} */
+                            const db = da.firstElementChild;
+                            /**@type {HTMLAnchorElement} */
+                            const dl = da.lastElementChild;
+                            db.onclick = ()=>{dl.click();db.onclick = undefined;};
+                            dl.href = `/replays/${ifmt.room}.topl`;
+                            dl.download = `${ifmt.room}.topl`;
+                            da.hidden = false;
+                        }
 						break;
 					case ("dims"):
 						rows = mesr;

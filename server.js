@@ -21,6 +21,9 @@ if (!fs.existsSync("replays")) {
     fs.mkdirSync("replays");
 }
 const _path = require("path");
+if (!fs.existsSync("www/replays")) {
+    fs.symlinkSync(_path.join(__dirname, "replays"), _path.join(__dirname, "www/replays"));
+}
 const http = require("http");
 const crypto = require("crypto");
 const url = require("url");
@@ -153,6 +156,7 @@ wserv.on("connection", (wsock, req) => {
 			wsock.send(`room${gameID}_${playerNum}`);
 			wsock.send(`dims${game.rows}_${game.cols}`);
 			if (playerNum == game.playerAmount) {
+                // onGameStarted(game); // DO NOT PUSH
 				// game.timestamp = Date.now();
 				// console.log(game.timestamp);
 				// game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.cols, 2), ...nbytes(game.rows, 2), game.players.length-1, 0xf0, 0x0f));
@@ -176,6 +180,7 @@ wserv.on("connection", (wsock, req) => {
 			game.connectedAmount = 1;
 			games[gameID] = game;
 			game.ident = gameID;
+            // onGameCreated(game, settings.REPLAYS.TIMESTAMP); // DO NOT PUSH
 			game.players.push(wsock);
 			wsock.send(`room${gameID}_1`);
 			wsock.send(`dims${game.rows}_${game.cols}`);
@@ -382,6 +387,7 @@ function removePlayer(game, playerNum) {
 	// 	game.buffer.push(Buffer.of(0));
 	// }
 	// game.buffer.push(Buffer.of(playerNum));
+    // onPlayerRemoved(game, playerNum); // DO NOT PUSH
 	game.players[playerNum] = null;
 	game.connectedAmount--;
 	if (game.state == 0) {
@@ -448,6 +454,7 @@ function killGame(game) {
     //     }
     // }
     // if (settings.REPLAYS.ENABLED)fs.writeFileSync("replays/"+game.ident+".topl", Buffer.concat(game.buffer));
+    // onRecordReplay(game); // DO NOT PUSH
 	delete games[game.ident];
 	game.state = 2;
 	game.inGameAmount = 0;
