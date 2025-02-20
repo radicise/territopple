@@ -159,6 +159,7 @@ wserv.on("connection", (wsock, req) => {
 				game.state = 1;
 				game.turn = 1;
 				game.move = -1;
+				onGameStarted(game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
 			} else {
 				distrMess(`plyw${game.inGameAmount}_${game.playerAmount}`, game);
@@ -177,6 +178,7 @@ wserv.on("connection", (wsock, req) => {
 			games[gameID] = game;
 			game.ident = gameID;
 			game.players.push(wsock);
+			onGameCreated(game, settings.REPLAYS.TIMESTAMP);
 			wsock.send(`room${gameID}_1`);
 			wsock.send(`dims${game.rows}_${game.cols}`);
 			distrMess(`plyw${game.inGameAmount}_${game.playerAmount}`, game);// TODO rename `playerAmount' property
@@ -235,6 +237,7 @@ wserv.on("connection", (wsock, req) => {
 				
 				let tile_index = (row * game.cols) + col;
 				if (game.teamboard[tile_index] && (game.teamboard[tile_index] != playerNum)) break;
+				onMove(game, row, col, playerNum);
 				let winner = updateboard(row, col, playerNum, game);
 				game.move = tile_index;
 				let next_player = -1;
@@ -394,13 +397,20 @@ function removePlayer(game, playerNum) {
 		distrMess(`plyw${game.inGameAmount}_${game.playerAmount}`, game);
 		return;
 	}
+	if (game.inGame[playerNum]) {
+		game.inGame[playerNum] = 0;
+		game.inGameAmount--;
+		if (game.state == 1) {
+			onPlayerRemoved(game, playerNum);
+		}
+	}
 	if (game.turn != playerNum) {
 		return;
 	}
-	game.inGame[playerNum] = 0;
-	game.inGameAmount--;
-	if ((!(game.inGameAmount)) && (game.state == 1)) {
-		killGame(game);
+	if (!(game.inGameAmount)) {
+		if (game.state == 1) {
+			killGame(game);
+		}
 		return;
 	}
 	let next_player = -1;
@@ -449,6 +459,7 @@ function killGame(game) {
     // }
     // if (settings.REPLAYS.ENABLED)fs.writeFileSync("replays/"+game.ident+".topl", Buffer.concat(game.buffer));
 	delete games[game.ident];
+	let stol = game.state;
 	game.state = 2;
 	game.inGameAmount = 0;
 	for (let i = Math.min(game.playerAmount, game.players.length - 1); i; i--) {
@@ -456,6 +467,9 @@ function killGame(game) {
 			game.inGameAmount++;
 			game.inGame[i] = 1;
 		}
+	}
+	if (stol == 1) {
+		onRecordReplay(game, null);
 	}
 	return;
 }
