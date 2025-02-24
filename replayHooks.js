@@ -1,5 +1,8 @@
 const fs = require("fs");
 const path = require("path");
+
+const FORMAT_VERSION = 2;
+
 /**
  * @param {BigInt} n
  * @param {number} c
@@ -12,6 +15,25 @@ function nbytes(n, c) {
 }
 
 /**
+ * @param {import("./server").Game} game
+ * @param {number} p MSB of flag
+ * @param {number} l bits in flag
+ */
+function getFlag(game, p, l) {
+    return (
+        (
+            game.buffer[0][9]
+            & (
+                (
+                    (0xff << (8-l)) // have l 1s on MSB side of first byte
+                    & 0xff // clip extraneous ones
+                ) >> (7-p) // shift mask into position
+            ) // mask
+        ) >> (p-l+1) // shift flag bits toward LSB position
+    );
+}
+
+/**
  * @summary initializes replay file buffer
  * @param {import("./server").Game} game
  * @param {boolean} timestamp MUST directly pass settings.REPLAYS.TIMESTAMP
@@ -19,7 +41,7 @@ function nbytes(n, c) {
  * MUST be called at the moment the game object is created but only AFTER the game identifier is set
  */
 function onGameCreated(game, timestamp) {
-    game.buffer = [Buffer.of(1, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(1<<5)))];
+    game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(1<<5)))];
     // game.buffer.push(Buffer.from(gameID.split('').map(v => v.charCodeAt(0))));
     // game.buffer.push(Buffer.of((settings.REPLAYS.TIMESTAMP?(1<<7):0) | (0b01<<5))); // use timestamp from settings, use medium as it's the largest that doesn't use more bytes
 }
@@ -74,7 +96,8 @@ function onRecordReplay(game, options) {
  * MUST be called whenever a player is removed from the turn order for ANY reason
  */
 function onPlayerRemoved(game, playerNum) {
-    if (game.buffer[0][9] & (1<<7)) {
+    // if (game.buffer[0][9] & (1<<7)) {
+    if (getFlag(game, 7, 1)) {
 		const ntime = Date.now();
 		const dtime = ntime - game.timestamp;
 		game.timestamp = ntime;
@@ -94,11 +117,13 @@ function onPlayerRemoved(game, playerNum) {
  * @param {import("./server").Game} game
  * @param {number} row
  * @param {number} col
+ * @param {number} team
  * @description
  * MUST be called ANY time a successful move is made
  */
-function onMove(game, row, col) {
-    if (game.buffer[0][9] & (1<<7)) {
+function onMove(game, row, col, team) {
+    // if (game.buffer[0][9] & (1<<7)) {
+    if (getFlag(game, 7, 1)) {
         const ntime = Date.now();
         const dtime = ntime - game.timestamp;
         game.timestamp = ntime;

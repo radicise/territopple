@@ -295,9 +295,15 @@ async function load_replay() {
         alert("replay out of date");
         return;
     }
-    if (data.consume(1) !== 1) {
-        alert("invalid replay verion");
+    if (data.peek(1) > 2) {
+        alert("invalid replay version");
         return;
+    }
+    if (data.consume(1) !== 1) {
+        if (data.peek(9)[8] & 0b11111) {
+            alert("invalid replay version");
+            return;
+        }
     }
     rdata.name = [...data.consume(8)].map(v => String.fromCharCode(v)).join(''); // name
     {

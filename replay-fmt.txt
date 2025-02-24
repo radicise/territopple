@@ -27,7 +27,7 @@ BYTE[4] - 0xff,0xf0,0x0f,0xff - end of replay // allows multiple replays to be p
 EVENT:
 BYTE (TYPE) - type of event
 IF (TIMESTAMP) set:
-BYTE[2] - delta since previous timestamp (EXCEPTING if this is a TIMESTAMP event)
+    BYTE[2] - delta since previous timestamp (EXCEPTING if this is a TIMESTAMP event)
 SWITCH (TYPE):
 0 -> PLAYER ELIM: - player eliminated from turn order, reason not important
     BYTE - player number
@@ -43,3 +43,32 @@ SWITCH (TYPE):
             BYTE[4] - R(16),C(16)
 2 -> TIMESTAMP: - update the timestamp because nothing happened for over 18 hours
     BYTE[3] - delta time
+
+version 2:
+identical to version 1 with the following differences
+
+...
+BYTE - flags ...
+...
+- d (ORDER) - this flag is set if the turn order is NOT standard
+...
+BYTE - player count
+BYTE (STRATEGY) - order determination strategy - valid values are:
+- 0 - each move has the team recorded with it
+- 1 - players go in standard order, but a team map is provided
+BYTE (PADDING)
+IF (STRATEGY) is 1:
+    FOR EACH player:
+    BYTE - team assignment
+IF (player count) is odd:
+    BYTE (PADDING)
+BYTE[2] - 0xf0,0x0f
+...
+SWITCH (TYPE):
+...
+1 -> PLAYER MOVE: - player moved
+    SWITCH (SIZE):
+        00 ->:
+            BYTE[2] - T(6),R(5),C(5) - team, row, col
+        01,10,11 ->:
+            PREPEND BYTE - team
