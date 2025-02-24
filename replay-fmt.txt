@@ -60,8 +60,8 @@ BYTE (PADDING)
 IF (STRATEGY) is 1:
     FOR EACH player:
     BYTE - team assignment
-IF (player count) is odd:
-    BYTE (PADDING)
+    IF (player count) is odd:
+        BYTE (PADDING)
 BYTE[2] - 0xf0,0x0f
 ...
 SWITCH (TYPE):
