@@ -75,7 +75,7 @@ function updateboard(rorig, corig, team, game, dummy) {
                     // if (!dummy) game.buffer.push(Buffer.of(0,0,0,lt));
 					game.inGame[lt] = 0;
 					game.inGameAmount--;
-					onPlayerRemoved(game, lt);
+					if (!dummy) onPlayerRemoved(game, lt);
 				}
 				else {
 					for (let i = 1; i < game.owned.length; i++) {
@@ -83,7 +83,7 @@ function updateboard(rorig, corig, team, game, dummy) {
                             // if (!dummy) game.buffer.push(Buffer.of(0,0,0,i));
 							game.inGame[i] = 0;
 							game.inGameAmount--;
-							onPlayerRemoved(game, i);
+							if (!dummy) onPlayerRemoved(game, i);
 						}
 					}
 				}
