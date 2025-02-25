@@ -5,7 +5,7 @@ const replayCont = document.getElementById("replay-area");
 /**@type {HTMLDivElement} */
 const gameBoard = document.getElementById("gameboard");
 
-let symbs = ["!", "-", "+", "W", "&block;"];
+let symbs = ["!", "-", "+", "W", "█"];
 let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 
 /**
@@ -76,12 +76,12 @@ function updateBoard(r, c, p) {
     let q = [c, r];
     let l = {};
     const MAXUPDATE = replay_data.width * replay_data.height;
-    let counter = 0;
+    // let counter = 0;
     while (q.length > 0) {
-        counter += 1;
+        // counter += 1;
         if (Object.keys(l).length >= MAXUPDATE) break;
-        console.log(Object.keys(l));
-        if (counter > 15) throw new Error();
+        // console.log(Object.keys(l));
+        // if (counter > 15) throw new Error();
         const cr = q.pop();
         const cc = q.pop();
         const i = cr * replay_data.width + cc;
