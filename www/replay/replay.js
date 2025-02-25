@@ -10,13 +10,13 @@ let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"
 
 /**
  * @typedef ReplayEvent
- * @type {{type:0,time_delta?:number,player:number}|{type:1,time_delta?:number,move:number[]}|{type:2,time_delta:number}
+ * @type {{type:0,time_delta?:number,player:number}|{type:1,time_delta?:number,move:number[],player?:number}|{type:2,time_delta:number}
  * }
  */
 
 /**
  * @typedef ReplayData
- * @type {{name:string,width:number,height:number,players:number,flags:{timestamp:boolean,size:number},start:number,events:ReplayEvent[]}}
+ * @type {{name:string,width:number,height:number,players:number,flags:{timestamp:boolean,size:number,order:boolean},start:number,strategy?:number,team_map?:number[],events:ReplayEvent[]}}
  */
 
 class ConsumableBytes {
@@ -67,9 +67,10 @@ let replay_board = [];
 /**
  * @param {number} r
  * @param {number} c
- * @param {number} t
+ * @param {number} p
  */
-function updateBoard(r, c, t) {
+function updateBoard(r, c, p) {
+    const t = replay_data.flags.order ? replay_data.team_map[p-1] : p;
     const board = replay_board;
     /**@type {number[]} */
     let q = [c, r];
@@ -231,21 +232,25 @@ async function replay_step() {
             if (replay_data.flags.timestamp) {
                 replay_game.timestamp += ev.time_delta;
             }
-            if (replay_turn === -1) {
-                replay_turn = 1;
+            if (replay_data.flags.order && replay_data.strategy === 0) {
+                replay_turn = ev.player;
             } else {
-                let i = replay_turn;
-                let c = 0;
-                while (true) {
-                    c += 1;
-                    // console.log(c);
-                    if (c > replay_data.players) {
-                        throw new Error();
-                    }
-                    i = (i + 1) % replay_game.players.length;
-                    if (replay_game.players[i]) {
-                        replay_turn = i;
-                        break;
+                if (replay_turn === -1) {
+                    replay_turn = 1;
+                } else {
+                    let i = replay_turn;
+                    let c = 0;
+                    while (true) {
+                        c += 1;
+                        // console.log(c);
+                        if (c > replay_data.players) {
+                            throw new Error();
+                        }
+                        i = (i + 1) % replay_game.players.length;
+                        if (replay_game.players[i]) {
+                            replay_turn = i;
+                            break;
+                        }
                     }
                 }
             }
@@ -300,7 +305,7 @@ async function load_replay() {
         return;
     }
     if (data.consume(1) !== 1) {
-        if (data.peek(9)[8] & 0b11111) {
+        if (data.peek(9)[8] & 0b1111) {
             alert("invalid replay version");
             return;
         }
@@ -308,13 +313,25 @@ async function load_replay() {
     rdata.name = [...data.consume(8)].map(v => String.fromCharCode(v)).join(''); // name
     {
         const flags = data.consume(1);
-        rdata.flags.timestamp = (flags&0b10000000);
+        rdata.flags.timestamp = (flags&0b10000000) !== 0;
         rdata.flags.size = (flags>>5)&3;
+        rdata.flags.order = (flags&0b00010000) !== 0;
     } // flags
     rdata.start = fromBytes(data.consume(8)); // start timestamp
     rdata.width = fromBytes(data.consume(2));
     rdata.height = fromBytes(data.consume(2));
     rdata.players = data.consume(1);
+    if (rdata.flags.order) {
+        rdata.strategy = data.consume(1);
+        data.consume(1); // consume padding byte
+        rdata.team_map = [];
+        for (let i = 0; i < rdata.players; i ++) {
+            rdata.team_map.push(data.consume(1));
+        }
+        if (rdata.players & 1) {
+            data.consume(1); // consume padding byte
+        }
+    }
     while (true) { // find start of events
         // if (data.peek(1) === 0xf0 && data.consume(2)[1] === 0x0f) {
         if (cmpLists(data.consume(2), [0xf0,0x0f])) {
@@ -342,9 +359,15 @@ async function load_replay() {
                 if (rdata.flags.timestamp) {
                     ev.time_delta = fromBytes(data.consume(2));
                 }
+                if (rdata.flags.order && rdata.strategy === 0 && rdata.flags.size !== 0) {
+                    ev.player = data.consume(1);
+                }
                 switch (rdata.flags.size) {
                     case 0:
-                        ev.move = [((data.consume(1)<<6)>>3)|data.peek(1)>>2,data.consume(1)&0b11111];
+                        if (rdata.flags.order && rdata.strategy === 0) {
+                            ev.player = (data.peek(1)>>2);
+                        }
+                        ev.move = [((data.consume(1)&3)<<3)|(data.peek(1)>>5),data.consume(1)&0b11111];
                         break;
                     case 1:
                         ev.move = [data.consume(1), data.consume(1)];
