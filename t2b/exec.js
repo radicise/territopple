@@ -33,8 +33,8 @@ if (reverse) {
 const text = readFileSync(rpath, {encoding:"utf-8"}).split("\n").map(v => v.slice(0,v.includes(";")?v.indexOf(";"):undefined)).join(' ').replaceAll("|", ''); // split lines, remove comments, join with spaces
 // console.log(text.split(' ').map(v => v.trim()).filter(v => v.length>0).slice(-50));
 const data = text.split(' ').map(v => v.trim()).filter(v => v.length>0).map((v) => {
-    if (v.startsWith('0b')) {
-        return Number.parseInt(v.slice(2).split(/[+_\-]/g).join(''), 2);
+    if (v[0] === '$') {
+        return Number.parseInt(v.slice(1).split(/[+_\-]/g).join(''), 2);
     }
     return Number.parseInt(v, 16);
 });

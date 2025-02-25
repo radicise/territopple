@@ -1,6 +1,6 @@
 02 ; version = 2
 54 45 53 54 30 2d 56 32 ; TEST0-V2
-0b1-00-1-0000 ; timestamps, size=0, non-std order
+$1-00-1-0000 ; timestamps, size=0, non-std order
 00 00 01 95 3d cf c0 46 ; timestamp
 00 02 | 00 02 | 02 ; 2x2 & 2
 
@@ -13,9 +13,9 @@
 ; room for future data
 f0 0f ; game start marker
 
-01 | 00 00 | 0b000000-00 | 0b000-00000 ; move @ 0x0
-01 | 00 00 | 0b000000-00 | 0b000-00001 ; move @ 0x1
-01 | 00 00 | 0b000000-00 | 0b000-00000 ; move @ 0x0
+01 | 00 00 | $000000-00 | $000-00000 ; move @ 0x0
+01 | 00 00 | $000000-00 | $000-00001 ; move @ 0x1
+01 | 00 00 | $000000-00 | $000-00000 ; move @ 0x0
 00 | 00 00 | 02 ; player 2 eliminated
 
 ff f0 0f ff ; EOF marker
