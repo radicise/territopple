@@ -53,11 +53,11 @@ BYTE - flags ...
 - d (ORDER) - this flag is set if the turn order is NOT standard
 ...
 BYTE - player count
-BYTE (STRATEGY) - order determination strategy - valid values are:
-- 0 - each move has the team recorded with it
-- 1 - players go in standard order, but a team map is provided
-BYTE (PADDING)
-IF (STRATEGY) is 1:
+IF (ORDER):
+    BYTE (STRATEGY) - order determination strategy - valid values are:
+    - 0 - each move has the player number recorded with it
+    - 1 - players go in standard order, but a team map is provided
+    BYTE (PADDING)
     FOR EACH player:
     BYTE - team assignment
     IF (player count) is odd:
@@ -69,6 +69,6 @@ SWITCH (TYPE):
 1 -> PLAYER MOVE: - player moved
     SWITCH (SIZE):
         00 ->:
-            BYTE[2] - T(6),R(5),C(5) - team, row, col
+            BYTE[2] - T(6),R(5),C(5) - player number, row, col
         01,10,11 ->:
-            PREPEND BYTE - team
+            PREPEND BYTE - player number
