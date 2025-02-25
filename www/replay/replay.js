@@ -5,7 +5,8 @@ const replayCont = document.getElementById("replay-area");
 /**@type {HTMLDivElement} */
 const gameBoard = document.getElementById("gameboard");
 
-let symbs = ["!", "-", "+", "W", "█"];
+// let symbs = ["!", "-", "+", "W", "█"];
+let symbs = ["!", "-", "+", "W", "&block;"];
 let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 
 /**
@@ -33,6 +34,7 @@ class ConsumableBytes {
      * @returns {Uint8Array|number}
      */
     consume(count) {
+        if (this._pos >= this._bytes.length) throw new Error("DATA ALL GONE");
         if (count === 1) {
             return this._bytes[this._pos++];
         }
@@ -141,7 +143,7 @@ function updateBoard(r, c, p) {
     for (const id in l) {
         const e = document.getElementById(id);
         e.style.color = teamcols[t];
-        e.firstElementChild.textContent = symbs[l[id]];
+        e.firstElementChild.innerHTML = symbs[l[id]];
     }
 }
 
