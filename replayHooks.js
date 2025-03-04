@@ -16,6 +16,25 @@ function nbytes(n, c) {
 
 /**
  * @param {import("./server").Game} game
+ * @param {number} row
+ * @param {number} col
+ * @returns {Buffer}
+ */
+function formatMoveData(game, row, col) {
+    switch (getFlag(game, 6, 2)) {
+        case 0:
+            return Buffer.of(((row >> 3) & 3), (row & 7) | col);
+        case 1:
+            return Buffer.of(row, col);
+        case 2:
+            return Buffer.of((row & 0xf00)>>8, row & 0xff, (col & 0xf00)>>8, col & 0xff);
+        default:
+            return Buffer.of(...nbytes(row, 2), ...nbytes(col, 2));
+    }
+}
+
+/**
+ * @param {import("./server").Game} game
  * @param {number} p MSB of flag
  * @param {number} l bits in flag
  */
@@ -37,11 +56,15 @@ function getFlag(game, p, l) {
  * @summary initializes replay file buffer
  * @param {import("./server").Game} game
  * @param {boolean} timestamp MUST directly pass settings.REPLAYS.TIMESTAMP
+ * @param {boolean|null} order whether non-standard order data is to be recorded, defaults to false
  * @description
  * MUST be called at the moment the game object is created but only AFTER the game identifier is set
  */
-function onGameCreated(game, timestamp) {
-    game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(1<<5)))];
+function onGameCreated(game, timestamp, order) {
+    // game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(1<<5)|(((typeof order)!=="number")?0:(1<<4))))];
+    const maxD = Math.max(game.rows, game.cols);
+    const size = (maxD <= 36) ? 0 : ((maxD <= 256) ? 1 : ((maxD <= 4096) ? 2 : 3));
+    game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(size<<5)|((order?1:0)<<4)))];
     // game.buffer.push(Buffer.from(gameID.split('').map(v => v.charCodeAt(0))));
     // game.buffer.push(Buffer.of((settings.REPLAYS.TIMESTAMP?(1<<7):0) | (0b01<<5))); // use timestamp from settings, use medium as it's the largest that doesn't use more bytes
 }
@@ -49,13 +72,18 @@ function onGameCreated(game, timestamp) {
 /**
  * @summary final game initialization
  * @param {import("./server").Game} game
+ * @param {number?} idstrategy
+ * @param {number[]?} team_map
  * @description
  * MUST be called when the game state changes to being in progress
  */
-function onGameStarted(game) {
+function onGameStarted(game, idstrategy, team_map) {
     game.timestamp = Date.now();
+    if (getFlag(game, 4, 1) === 1) {
+        game.idstrategy = idstrategy;
+    }
     // console.log(game.timestamp);
-    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.cols, 2), ...nbytes(game.rows, 2), game.players.length-1, 0xf0, 0x0f));
+    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.cols, 2), ...nbytes(game.rows, 2), game.players.length-1, ...((getFlag(game, 4, 1) === 1) ? [idstrategy, ...team_map] : []), 0xf0, 0x0f));
 }
 
 /**
@@ -117,11 +145,11 @@ function onPlayerRemoved(game, playerNum) {
  * @param {import("./server").Game} game
  * @param {number} row
  * @param {number} col
- * @param {number} team
+ * @param {number} id
  * @description
  * MUST be called ANY time a successful move is made
  */
-function onMove(game, row, col, team) {
+function onMove(game, row, col, id) {
     // if (game.buffer[0][9] & (1<<7)) {
     if (getFlag(game, 7, 1)) {
         const ntime = Date.now();
@@ -135,7 +163,16 @@ function onMove(game, row, col, team) {
     } else {
         game.buffer.push(Buffer.of(1));
     }
-    game.buffer.push(Buffer.of(row&0xff, col&0xff));
+    let md = formatMoveData(game, row, col);
+    if (game.idstrategy === 0) {
+        if (getFlag(game, 6, 2) === 0) {
+            md[0] = (id << 2) | md[0];
+        } else {
+            game.buffer.push(Buffer.of(id));
+        }
+    }
+    game.buffer.push(md);
+    // game.buffer.push(Buffer.of(row&0xff, col&0xff));
 }
 
 exports.onGameCreated = onGameCreated;
