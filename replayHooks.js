@@ -72,8 +72,8 @@ function onGameCreated(game, timestamp, order) {
 /**
  * @summary final game initialization
  * @param {import("./server").Game} game
- * @param {number?} idstrategy
- * @param {number[]?} team_map
+ * @param {number?} idstrategy what strategy is used to record extra move data
+ * @param {number[]?} team_map map from player ids to team ids
  * @description
  * MUST be called when the game state changes to being in progress
  */
@@ -145,7 +145,7 @@ function onPlayerRemoved(game, playerNum) {
  * @param {import("./server").Game} game
  * @param {number} row
  * @param {number} col
- * @param {number} id
+ * @param {number} id player id
  * @description
  * MUST be called ANY time a successful move is made
  */
