@@ -1,3 +1,5 @@
+const { onPlayerRemoved } = require("./replayHooks.js");
+
 function toBytes(n) {
     return [(n>>8)&0xff,n&0xff];
     // return [(n>>24)&0xff,(n>>16)&0xff,(n>>8)&0xff,n&0xff];
