@@ -127,14 +127,13 @@ function onPlayerRemoved(game, playerNum) {
     // if (game.buffer[0][9] & (1<<7)) {
     if (getFlag(game, 7, 1)) {
 		const ntime = Date.now();
-		const dtime = ntime - game.timestamp;
+		let dtime = ntime - game.timestamp;
 		game.timestamp = ntime;
-		if (dtime > 65535) {
-			game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 0, 0, 0));
-		} else {
-			// game.buffer.push(Buffer.of(0, ...toBytes(dtime)));
-			game.buffer.push(Buffer.of(0, ...nbytes(dtime, 2)));
+		while (dtime > 65535) {
+			game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3)));
+            dtime = Math.max(0, dtime - 65535);
 		}
+		game.buffer.push(Buffer.of(0, ...nbytes(dtime, 2)));
 	} else {
 		game.buffer.push(Buffer.of(0));
 	}
@@ -153,13 +152,13 @@ function onMove(game, row, col, id) {
     // if (game.buffer[0][9] & (1<<7)) {
     if (getFlag(game, 7, 1)) {
         const ntime = Date.now();
-        const dtime = ntime - game.timestamp;
+        let dtime = ntime - game.timestamp;
         game.timestamp = ntime;
-        if (dtime > 65535) {
-            game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 1, 0, 0));
-        } else {
-            game.buffer.push(Buffer.of(1, ...nbytes(dtime, 2)));
+        while (dtime > 65535) {
+            game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3)));
+            dtime = Math.max(0, dtime - 65535);
         }
+        game.buffer.push(Buffer.of(1, ...nbytes(dtime, 2)));
     } else {
         game.buffer.push(Buffer.of(1));
     }
