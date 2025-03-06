@@ -1,41 +1,109 @@
-const { readFileSync, writeFileSync, existsSync } = require("fs");
-const _path = require("path");
-let reverse = false;
-const tar = (()=>{
-    let t = process.argv[2];
-    if (!t) throw new Error("expected target");
-    if (t === "-r") {
-        reverse = true;
-        t = process.argv[3];
-    }
-    if (t === "-w") {
-        t = process.argv[3];
-    }
-    if (!t) throw new Error("expected target");
-    return t;
-})();
+const { readFileSync, writeFileSync, existsSync, mkdirSync } = require("fs");
+const path = require("path");
+const { performance } = require("perf_hooks");
 
-if (!/\..+?\..+$/.test(tar)) throw new Error("target must have two extensions");
-const wtar = tar.slice(0, tar.lastIndexOf("."));
-const rpath = _path.join(__dirname, "t", tar);
-const wpath = _path.join(__dirname, "b", wtar);
-if (!(reverse ? existsSync(wpath) : existsSync(rpath))) throw new Error("File Not Found");
+// Configuration
+const HEX_CHARS = "0123456789abcdef";
+const INPUT_DIR = "t";   // Input directory
+const OUTPUT_DIR = "b";  // Output directory
+const CHUNK_SIZE = 1024; // Process in chunks for large files
 
-if (reverse) {
-    const hex = '0123456789abcdef';
-    const data = readFileSync(wpath);
-    // const text = [...Uint8Array.from(data)].map((v,i) => `${hex[BigInt(v)>>4n]}${hex[BigInt(v)&15n]}${(i+1)%16===0?'\n':''}`).join(' ');
-    const text = [...Uint8Array.from(data)].map((v,i) => `${hex[v>>4]}${hex[v&15]}${(i+1)%16===0?'\n':''}`).join(' ');
-    writeFileSync(rpath, text, {encoding:"utf-8"});
-    process.exit();
-}
+// Command-line parsing with enhanced flexibility
+const parseArgs = () => {
+    const args = process.argv.slice(2);
+    let reverse = false;
+    let target = null;
 
-const text = readFileSync(rpath, {encoding:"utf-8"}).split("\n").map(v => v.slice(0,v.includes(";")?v.indexOf(";"):undefined)).join(' ').replaceAll("|", ''); // split lines, remove comments, join with spaces
-// console.log(text.split(' ').map(v => v.trim()).filter(v => v.length>0).slice(-50));
-const data = text.split(' ').map(v => v.trim()).filter(v => v.length>0).map((v) => {
-    if (v[0] === '$') {
-        return Number.parseInt(v.slice(1).split(/[+_\-]/g).join(''), 2);
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === "-r") reverse = true;
+        else if (args[i] === "-w" && i + 1 < args.length) target = args[++i];
+        else if (!target) target = args[i];
     }
-    return Number.parseInt(v, 16);
-});
-writeFileSync(wpath, Buffer.from(data));
+
+    if (!target) throw new Error("Expected target file argument");
+    if (!/\..+?\..+$/.test(target)) throw new Error("Target must have two extensions (e.g., file.hex.bin)");
+    return { reverse, target };
+};
+
+// Process file paths
+const getPaths = (target, reverse) => {
+    const writeTarget = target.slice(0, target.lastIndexOf("."));
+    const readPath = path.join(__dirname, INPUT_DIR, target);
+    const writePath = path.join(__dirname, OUTPUT_DIR, writeTarget);
+
+    // Ensure directories exist
+    [INPUT_DIR, OUTPUT_DIR].forEach(dir => {
+        const dirPath = path.join(__dirname, dir);
+        if (!existsSync(dirPath)) mkdirSync(dirPath, { recursive: true });
+    });
+
+    if (!existsSync(reverse ? writePath : readPath)) throw new Error(`File not found: ${reverse ? writePath : readPath}`);
+    return { readPath, writePath };
+};
+
+// Hex to Binary (forward operation)
+const hexToBinary = (readPath, writePath) => {
+    const startTime = performance.now();
+    const rawText = readFileSync(readPath, { encoding: "utf-8" });
+    
+    // Process text efficiently
+    const textLines = rawText.split("\n").map(line => {
+        const commentIndex = line.indexOf(";");
+        return commentIndex >= 0 ? line.slice(0, commentIndex) : line;
+    }).join(" ").replace(/\|/g, "");
+
+    const hexValues = textLines.split(/\s+/).filter(v => v.length > 0);
+    const data = new Uint8Array(hexValues.length);
+    
+    for (let i = 0; i < hexValues.length; i += CHUNK_SIZE) {
+        const chunk = hexValues.slice(i, i + CHUNK_SIZE);
+        chunk.forEach((v, idx) => {
+            if (v[0] === "$") {
+                data[i + idx] = parseInt(v.slice(1).replace(/[+_\-]/g, ""), 2);
+            } else {
+                data[i + idx] = parseInt(v, 16);
+            }
+        });
+    }
+
+    writeFileSync(writePath, Buffer.from(data));
+    console.log(`Hex to Binary completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+};
+
+// Binary to Hex (reverse operation)
+const binaryToHex = (readPath, writePath) => {
+    const startTime = performance.now();
+    const data = new Uint8Array(readFileSync(readPath));
+    const hexOutput = [];
+    
+    for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+        const chunk = data.slice(i, i + CHUNK_SIZE);
+        const chunkText = Array.from(chunk)
+            .map(v => `${HEX_CHARS[v >> 4]}${HEX_CHARS[v & 15]}`)
+            .join(" ");
+        hexOutput.push(chunkText);
+    }
+
+    const formattedText = hexOutput.join("\n");
+    writeFileSync(writePath, formattedText, { encoding: "utf-8" });
+    console.log(`Binary to Hex completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+};
+
+// Main execution with error handling
+const main = () => {
+    try {
+        const { reverse, target } = parseArgs();
+        const { readPath, writePath } = getPaths(target, reverse);
+
+        if (reverse) {
+            binaryToHex(writePath, readPath);
+        } else {
+            hexToBinary(readPath, writePath);
+        }
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+        process.exit(1);
+    }
+};
+
+main();
