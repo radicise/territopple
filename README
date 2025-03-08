@@ -1,0 +1,17 @@
+Territopple is a game based on the game Culture by Secret Lab Pty. Ltd.. It is a
+multiplayer strategy game.
+The gameplay is simple. At least two players play, the game's state being
+defined by that of a rectangular board and whose turn it is. Each tile on the
+board has a value and and is either owned by a single player or is not owned by
+any player The board starts off with each tile having a value of 1 and not being
+owned by any player. The players take turns in a cyclic fashion in which the
+player whose turn it is selects a tile that is not owned by another player. The
+selected tile has its value increased by 1, and its owner set to the player whose
+turn it is. If the tile's value exceeds the amount of neighbors that the tile
+has, its value decreases by that amount of neighbors and each of the neighbors
+has its own value incremented by 1, its owner set to the player whose turn it is,
+and, if its own value exceeds the amount of neighbors it has, this process of
+spreading happens with the tile being considered. If at any step of this
+calculation the player whose turn it is occupies owns all tiles, they win. If and
+when a player loses all valid moves, their turn is skipped for the remainder of
+the game. The players take turns until one of them wins.
