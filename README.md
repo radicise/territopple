@@ -1,7 +1,7 @@
 Territopple is a multiplayer strategy game based on the game Culture by Secret Lab Pty. Ltd..
 # Contents
-- [Gameplay](Gameplay)
-- [Computer-based Game Interface](Computer-based-Game-Interface)
+- [Gameplay](https://github.com/radicise/territopple?tab=readme-ov-file#gameplay))
+- [Computer-based Game Interface](https://github.com/radicise/territopple?tab=readme-ov-file#computer-based-game-interface)
 
 # Gameplay
         The game is played on a rectangular board. Each tile on the board has a number of pieces on it, and is either owned or unowned.
