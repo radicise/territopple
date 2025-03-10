@@ -15,6 +15,26 @@
 	<body>
 		<h1>Territopple, the Territory Toppling Game</h1>
         <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize()">
+                <fieldset id="display-settings">
+                  <legend>Display Settings</legend>
+                  <div>
+                    <label for="board-zoom">Zoom</label>
+                    <input type="range" id="board-zoom" min="10" max="100" step="1" value="32">
+                    <label for="settings-expand" id="settings-expand-label">Expand +</label>
+                    <input type="checkbox" id="settings-expand" hidden></input>
+                  </div>
+                  <div id="extra-display-settings" style="display: none">
+                    <!-- hover enabled/color -->
+                    <input type="checkbox" id="hover-enabled" checked>
+                    <label for="hover-enabled">Hover</label>
+                    <input type="color" id="hover-color" value="#000000">
+                    <br>
+                    <!-- last move enabled/color -->
+                    <input type="checkbox" id="last-move-enabled" checked>
+                    <label for="last-move-enabled">Last move</label>
+                    <input type="color" id="last-move-color" value="#aaaaaa">
+                  </div>
+                </fieldset>
 		<div id="container-container"><div id="gameboard" class="container" style="--blink-dark:#ddd"></div></div>
         <input type="button" id="pingbutton" value="ping">
         <div id="download-area" hidden>
