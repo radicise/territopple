@@ -9,6 +9,37 @@
         <link rel="manifest" href="/favicon/site.webmanifest" />
         <title>Territopple</title>
         <style>
+          #help-menu > div {
+            position: absolute;
+            left: 50vw;
+            top: 50vh;
+            transform: translate(-50%, -50%);
+            background-color: dimgray;
+            border: solid black 1px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            /* grid-template-rows: 1fr 1fr 1fr; */
+            align-items: center;
+          }
+          #help-menu {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100vw;
+            height: 100vh;
+            background-color: #33333333;
+          }
+          #help-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            height: 3em;
+          }
+          a > img {
+            height: 1em;
+            vertical-align: text-bottom;
+          }
           body {
               margin: 0px;
           }
@@ -39,27 +70,38 @@
     </head>
     <body>
       <h1 class="game-title">Territopple, the Territory Toppling Game</h1>
+      <div id="help-menu" hidden>
+        <div>
+            <input type="button" value="tutorial" onclick="location.pathname='/tutorial'">
+            <!-- <br> -->
+            <input type="button" value="reference">
+            <!-- <br> -->
+            <input type="button" value="back" onclick="document.getElementById('help-menu').hidden=true">
+        </div>
+      </div>
+      <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="document.getElementById('help-menu').hidden=false">
+      <!-- <a id="help-button" style="font-size:2em;" href="./tutorial/tutorial.html"><img src="./tutorial/icon.svg" alt="tutorial icon"></a><br> -->
       <a href="./replay/replay.html">game replays (WIP)</a>
       <div class="action-box">
         <form action="territopple.html" method="get">
           <h2 class="action-title">Create a new room</h2>
           <input type="hidden" name="port" value="8301">
           <div class="form-row">
-            <label for="t">Room type: </label>
-            <select name="t">
+            <label for="room-create-t">Room type: </label>
+            <select name="t" id="room-create-t">
               <option value="1">Public</option>
               <option value="2">Private</option>
             </select>
           </div>
           <div class="form-row">
-            <label for="w">Width:</label>
-            <input type="number" name="w" value="5" min="1" max="36">
-            <label for="h">Height:</label>
-            <input type="number" name="h" value="5" min="1" max="36">
+            <label for="room-create-w">Width:</label>
+            <input type="number" name="w" id="room-create-w" value="5" min="1" max="36">
+            <label for="room-create-h">Height:</label>
+            <input type="number" name="h" id="room-create-h" value="5" min="1" max="36">
           </div>
           <div class="form-row">
-            <label for="p">Players:</label>
-            <input type="number" name="p" value="2" min="2" max="10">
+            <label for="room-create-p">Players:</label>
+            <input type="number" name="p" id="room-create-p" value="2" min="2" max="10">
           </div>
           <div class="form-row">
             <input type="submit" value="Create a New Room">
@@ -72,8 +114,8 @@
           <input type="hidden" name="port" value="8301">
           <input type="hidden" name="t" value="0">
           <div class="form-row">
-            <label for="g">Room ID:</label>
-            <input name="g">
+            <label for="private-join-g">Room ID:</label>
+            <input name="g" id="private-join-g">
             <input type="submit" value="Join">
           </div>
         </form>

@@ -1,0 +1,15 @@
+Intro:
+Welcome to Territopple!
+This short tutorial will teach you everything you need to know about the territory toppling game. If you ever need a quick refresher, don't forget to check out the Reference (the other option upon clicking the question mark button)
+
+Basic Layout:
+Territopple is played on a grid of tiles. Each tile will have one or more pieces on it, either belonging to a team or unclaimed.
+
+Turns:
+Players take turns in order. On their turn, each player must place a piece onto either a neutral space, or a space owned by their team.
+If a player has no valid moves, they lose. Play continues until one team owns all the tiles.
+
+Toppling:
+If the number of pieces on a tile exceeds the number of neighbors that tile has, the tile will topple. Toppling resets a tile to having one piece, and adds a piece to each of its neighbors. This can cause chain reactions.
+Any tile that is toppled onto will become owned by the team that just played their move.
+Toppling is the only way to claim tiles that are already owned by other teams.
