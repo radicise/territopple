@@ -9,4 +9,6 @@ add chat of quick phrases (via picker wheel?) (potentially with soundbites)
 -- "I miscounted"
 -- "oh! oh! oh!"
 
-make error message banners
+~~make error message banners~~ (complete)
+
+puzzle mode
