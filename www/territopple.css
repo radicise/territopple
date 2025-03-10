@@ -2,6 +2,19 @@ body {
     background-color: #ffffff;
     --blink-light: #fff;
 }
+#display-settings {
+    margin-bottom: 10px;
+    max-width: 500px;
+}
+#settings-expand-label {
+    font-size: 20px;
+    float: right;
+    user-select: none;
+    cursor: pointer;
+}
+#board-zoom {
+    vertical-align: middle;
+}
 #container-container {
     width: fit-content;
     border: solid black 2px;
@@ -15,6 +28,8 @@ body {
     --tile-font-size: 32;
     font-size: calc(var(--tile-font-size) * 1px);
     user-select: none;
+    --tile-hover: #0000001f;
+    --tile-last-move: #aaa;
 }
 .container > div {
     color: #000000;
@@ -31,10 +46,10 @@ body {
     cursor: pointer;
 }
 .container > div:hover {
-    background: #0000001f
+    background: var(--tile-hover);
 }
 .last-move {
-    background: #aaa;
+    background: var(--tile-last-move);
 }
 svg#render {
     width: 100%;
