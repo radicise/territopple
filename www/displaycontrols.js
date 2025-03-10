@@ -17,6 +17,11 @@ const lastMoveCheckbox = document.getElementById("last-move-enabled");
 /**@type {HTMLInputElement} */
 const lastMoveColorPicker = document.getElementById("last-move-color");
 
+/**@type {HTMLInputElement} */
+const volatileCheckbox = document.getElementById("volatiles-enabled");
+/**@type {HTMLInputElement} */
+const volatileColorPicker = document.getElementById("volatiles-color");
+
 
 function setTileSize() {
     container.style.setProperty("--tile-font-size", slider.value);
@@ -49,10 +54,15 @@ settingsCheckbox.addEventListener("change", () => {
 
 hoverCheckbox.addEventListener("change", () => {
     if (hoverCheckbox.checked) {
-        container.style.setProperty("--tile-hover", hoverColorPicker.value+"1f");
+        container.classList.add("tile-hover");
     } else {
-        container.style.setProperty("--tile-hover", "#00000000");
+        container.classList.remove("tile-hover");
     }
+    // if (hoverCheckbox.checked) {
+    //     container.style.setProperty("--tile-hover", hoverColorPicker.value+"1f");
+    // } else {
+    //     container.style.setProperty("--tile-hover", "#00000000");
+    // }
 })
 
 hoverColorPicker.addEventListener("change", () => {
@@ -60,13 +70,27 @@ hoverColorPicker.addEventListener("change", () => {
 });
 
 lastMoveCheckbox.addEventListener("change", () => {
-    if (lastMoveCheckbox.checked) {
-        container.style.setProperty("--tile-last-move", lastMoveColorPicker.value);
-    } else {
-        container.style.setProperty("--tile-last-move", "#00000000");
-    }
+    displaySettings.highlightLastMove = lastMoveCheckbox.checked;
+    // if (lastMoveCheckbox.checked) {
+    //     container.style.setProperty("--tile-last-move", lastMoveColorPicker.value);
+    // } else {
+    //     container.style.setProperty("--tile-last-move", "#00000000");
+    // }
 })
 
 lastMoveColorPicker.addEventListener("change", () => {
     container.style.setProperty("--tile-last-move", lastMoveColorPicker.value);
+});
+
+volatileCheckbox.addEventListener("change", () => {
+    if (volatileCheckbox.checked) {
+        container.classList.add("volatiles");
+    } else {
+        container.classList.remove("volatiles");
+    }
+    // container.style.setProperty("--tile-volatile", )
+});
+
+volatileColorPicker.addEventListener("change", () => {
+    container.style.setProperty("--tile-volatile", volatileColorPicker.value);
 });

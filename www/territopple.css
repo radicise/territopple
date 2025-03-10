@@ -30,6 +30,7 @@ body {
     user-select: none;
     --tile-hover: #0000001f;
     --tile-last-move: #aaa;
+    --tile-volatile: #ddd;
 }
 .container > div {
     color: #000000;
@@ -45,8 +46,11 @@ body {
 .container:hover {
     cursor: pointer;
 }
-.container > div:hover {
+.container.tile-hover > div:hover {
     background: var(--tile-hover);
+}
+.container.volatiles > div.volatile {
+    background: var(--tile-volatile);
 }
 .last-move {
     background: var(--tile-last-move);

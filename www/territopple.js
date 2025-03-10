@@ -435,6 +435,22 @@ function updateboard(rorig, corig, team) {
                 ct--;
             }
         }
+        for (let r = 0; r < rows; r ++) {
+            for (let c = 0; c < cols; c ++) {
+                let nm = 4;
+                if ((c == 0) || (c == (cols - 1))) {
+                    nm--;
+                }
+                if ((r == 0) || (r == (rows - 1))) {
+                    nm--;
+                }
+                if (board[r*cols + c] === nm) {
+                    document.getElementById(`r${r}c${c}`).classList.add("volatile");
+                } else {
+                    document.getElementById(`r${r}c${c}`).classList.remove("volatile");
+                }
+            }
+        }
     }
 	for (let i = (cols * rows) - 1; i >= 0; i--) {
 		boardold[i] = board[i];
