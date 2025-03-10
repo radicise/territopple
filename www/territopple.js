@@ -118,7 +118,8 @@ for (let i = (cols * rows) - 1; i >= 0; i--) {
 	teamboard[i] = 0;
 	teamboardold[i] = 0;
 }
-display("Connecting . . .");
+// display("Connecting . . .");
+createBanner({type:"info",content:"Connecting . . ."});
 if (dbg) {
 	console.log(serv);
 }
@@ -127,7 +128,8 @@ conn.addEventListener("open", function(event) {
     document.getElementById("pingbutton").addEventListener("click", () => {
         conn.send(`ping`);
     });
-	display("Connected");
+	// display("Connected");
+    createBanner({type:"info",content:"Connected"});
 	conn.addEventListener("message", function(event) {
 		var type = event.data.substring(0,4);
 		var mess = event.data.substring(4);
@@ -146,7 +148,8 @@ conn.addEventListener("open", function(event) {
 			case ("disc"):// ex. gr. disc
 				conn.close();
 				mess = sanint(mess);
-				display("Disconnected by server for reason number " + mess.toString());
+				// display("Disconnected by server for reason number " + mess.toString());
+                createBanner({type:"error",fade:false,content:`Disconnected by server. Error ${mess}`});
 				break;
 			case ("updt"):// ex. gr. updtr0c0_1_1;r0c1_1_2;
                 throw new Error("unresolved security issue");
@@ -361,7 +364,8 @@ conn.addEventListener("open", function(event) {
 	return;
 });
 function recvInval(valstr) {
-	display("Invalid data received from server, error " + valstr);
+	// display("Invalid data received from server, error " + valstr);
+    createBanner({type:"error", fade:false, content:`Invalid data received from server, error ${valstr}`});
 	return;
 }// TODO Disconnect from server
 // TODO: Upon disconnection from server
