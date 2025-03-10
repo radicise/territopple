@@ -3,9 +3,12 @@ const container = document.getElementById("gameboard");
 /**@type {HTMLInputElement} */
 const slider = document.getElementById("board-zoom");
 
-slider.addEventListener("input", () => {
+function setTileSize() {
     container.style.setProperty("--tile-font-size", slider.value);
-});
+}
+
+// slider.addEventListener("input", () => {
+// });
 // document.addEventListener("keydown", (e) => {
 //     switch (e.code) {
 //     case "Minus":

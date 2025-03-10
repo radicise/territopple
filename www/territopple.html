@@ -14,7 +14,7 @@
 	</head>
 	<body>
 		<h1>Territopple, the Territory Toppling Game</h1>
-        <input type="range" id="board-zoom" min="10" max="100" step="1" value="32">
+        <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize()">
 		<div id="container-container"><div id="gameboard" class="container" style="--blink-dark:#ddd"></div></div>
         <input type="button" id="pingbutton" value="ping">
         <div id="download-area" hidden>
@@ -24,7 +24,7 @@
 		<!-- <div id="gameboard" class="container m1"></div> -->
 		<h2 id="status">Connecting to server . . .</h2>
 		<p id="info">Not yet connected to server</p>
-        <a href="/index.html">home</a>
+        <a href="/">home</a>
         <script type="importmap">
             {
                 "imports": {

@@ -126,6 +126,7 @@ if (dbg) {
 let conn = new WebSocket(serv);
 conn.addEventListener("open", function(event) {
     document.getElementById("pingbutton").addEventListener("click", () => {
+        if (ifmt.turn === 0) return;
         conn.send(`ping`);
     });
 	// display("Connected");
