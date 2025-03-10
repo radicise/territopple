@@ -36,6 +36,7 @@ const port = settings.WEBPORT;
 const urlmap = settings.URL_MAP;
 const urlmapgroups = settings.URL_MAP_GROUPS;
 const devopts = settings.DEVOPTS;
+if (devopts.expr_webpath) console.log(contentDir);
 
 /**
  * @param {string} urlpath
@@ -89,6 +90,9 @@ http.createServer((request, response) => {
                     const fileStream = fs.createReadStream(fpath);
                     if (fpath.endsWith(".js")) {
                         response.setHeader("Content-Type", "text/javascript");
+                    }
+                    if (fpath.endsWith(".svg")) {
+                        response.setHeader("Content-Type", "image/svg+xml");
                     }
                     fileStream.pipe(response);
                 } catch (e) {

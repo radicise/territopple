@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="7.5 0 85 80" width="100" height="100" version="1.1">
+    <!-- <rect x="0" y="0" width="100" height="100" fill="red" /> -->
+    <path d="M50,25L75,75L25,75Z" fill="goldenrod" stroke="wheat" stroke-width="2" />
+    <g transform="rotate(180) translate(-50,-50)">
+        <!-- <path d="M0,50L43.301,-25L-43.301,-25Z" fill="lime" /> -->
+        <!-- <path d="M5,41.340L38.301,-16.340L33.301,-25L-33.301,-25L-38.301,-16.340L-5,41.340Z" fill="goldenrod" stroke="wheat" stroke-width="2" /> -->
+        <path d="M5,41.340L38.301,-16.340A30,10,150,0,0,33.301,-25L-33.301,-25A30,10,30,0,0,-38.301,-16.340L-5,41.340A30,10,90,0,0,5,41.340" fill="goldenrod" stroke="wheat" stroke-width="2" />
+        <circle cx="0" cy="-10" r="5" fill="wheat" />
+        <!-- <path d="M-5,25H5V0H-5" /> -->
+        <path d="M-5,25q0,5,5,5h0q5,0,5,-5V5q0,-5,-5,-5h-0q-5,0,-5,5" fill="wheat" />
+    </g>
+</svg>
