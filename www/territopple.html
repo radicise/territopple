@@ -38,6 +38,13 @@
                     <input type="checkbox" id="volatiles-enabled" checked>
                     <label for="volatiles-enabled">Volatiles</label>
                     <input type="color" id="volatiles-color" value="#dddddd">
+                    <br>
+                    <!-- board rendering option -->
+                    <label for="board-rendering-option">Board Rendering:</label>
+                    <select id="board-rendering-option">
+                        <option value="1">original</option>
+                        <option value="2">concentric</option>
+                    </select>
                   </div>
                 </fieldset>
 		<div id="container-container"><div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd"></div></div>
@@ -59,6 +66,7 @@
             }
         </script>
         <!-- <script type="module" src="render3.js"></script> -->
+        <script src="helpers/render/unified.js"></script>
         <script src="helpers/banners.js"></script>
 		<script src="territopple.js?rev=25"></script>
         <script src="displaycontrols.js"></script>

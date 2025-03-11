@@ -32,6 +32,35 @@ body {
     --tile-last-move: #aaa;
     --tile-volatile: #ddd;
 }
+.container > svg {
+    width: calc(var(--tile-font-size) * var(--ncols) * 1px);
+    height: calc(var(--tile-font-size) * var(--nrows) * 1px);
+    --l-tile-hover: rgb(from var(--tile-hover) r g b / 1);
+    --volatile-mul: 1;
+    --volatile-add: 0;
+    --lm-contrib: 35%;
+    --main-contrib: 75%;
+    --vol-contrib: 25%;
+    --hov-contrib: 15%;
+}
+.container > svg > defs > g > rect:last-child {
+    fill: var(--color);
+}
+.container > svg > defs > g > rect:first-child {
+    /* fill: color-mix(in srgb, var(--h-color, transparent) 50%, transparent); */
+    --c: rgb(from var(--h-color) r g b / 0.25);
+    fill: var(--c, revert-layer);
+}
+.container > svg > use {
+    --l-alpha-tweak: var(--alpha-tweak);
+    --base: rgb(from var(--color) r g b / var(--l-alpha-tweak));
+    --lm-amt: 0%;
+    --vol-amt: 0%;
+    --hov-amt: 0%;
+    /* fill: color-mix(in srgb, var(--base) var(--main-contrib), var(--tile-last-move) var(--lm-amt)); */
+    fill: color-mix(in srgb, color-mix(in srgb, var(--base) var(--main-contrib), var(--l-tile-hover) var(--hov-amt)), var(--tile-last-move) var(--lm-amt));
+    /* fill: color-mix(in srgb, color-mix(in srgb, color-mix(in srgb, var(--tile-last-move) var(--lm-amt), var(--tile-hover) var(--hov-amt)), var(--tile-volatile) var(--vol-amt)), var(--base) var(--main-contrib)); */
+}
 .container > div {
     color: #000000;
     display: flex;
@@ -49,10 +78,23 @@ body {
 .container.tile-hover > div:hover {
     background: var(--tile-hover);
 }
+.container.tile-hover > svg > use:hover {
+    /* fill: var(--tile-hover); */
+    --hov-amt: var(--hov-contrib);
+    --h-color: var(--color);
+}
 .container.volatiles > div.volatile {
     background: var(--tile-volatile);
 }
-.last-move {
+.container.volatiles > svg > use.volatile {
+    --l-alpha-tweak: clamp(0, calc(var(--alpha-tweak) * var(--volatile-mul) + var(--volatile-add)), 1);
+    --vol-amt: var(--vol-contrib);
+    /* fill: var(--tile-hover); */
+}
+.container > svg > use.last-move {
+    --lm-amt: var(--lm-contrib);
+}
+div.last-move {
     background: var(--tile-last-move);
 }
 svg#render {

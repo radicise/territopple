@@ -1,6 +1,6 @@
 var dbg = 1;
-let symbs = ["!", "-", "+", "W", "&block;"];
-let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
+// let symbs = ["!", "-", "+", "W", "&block;"];
+// let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 let queries = new URLSearchParams(window.location.search);
 
 let lastMoveId = null;
@@ -293,15 +293,6 @@ conn.addEventListener("open", function(event) {
 						rows = mesr;
 						cols = mess;
 						document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
-						let baroa = "";
-						for (let i = 0; i < rows; i++) {
-							for (let j = 0; j < cols; j++) {
-								baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\"><div>-</div></div>");
-							}
-						}
-						if (!render3d) {
-							document.getElementById("gameboard").innerHTML = baroa;
-						}
 						board = new Array(cols * rows);
 						boardold = new Array(cols * rows);
 						teamboard = new Array(cols * rows);
@@ -313,6 +304,10 @@ conn.addEventListener("open", function(event) {
 							teamboard[i] = 0;
 							teamboardold[i] = 0;
 						}
+                        createBoard(rows, cols, board, teamboard);
+                        document.getElementById("board-rendering-option").onchange = () => {
+                            createBoard(rows, cols, board, teamboard, Number(document.getElementById("board-rendering-option").value)-1);
+                        };
 						break;
 					default:// This should be impossible
 						recvInval("10");
@@ -425,12 +420,10 @@ function updateboard(rorig, corig, team) {
         for (let row = rows - 1; row >= 0; row--) {
             for (let col = cols - 1; col >= 0; col--) {
                 if ((boardold[ct] != board[ct]) || (teamboardold[ct] != teamboard[ct])) {
-                    let dat = document.getElementById("r" + row.toString() + "c" + col.toString());
                     if (dbg) {
                         console.log("Change of state of tile at r" + row.toString() + "c" + col.toString());
                     }
-                    dat.style.color = teamcols[team];
-                    dat.firstElementChild.innerHTML = symbs[board[ct]];
+                    updateTile(row, col, team, board[ct]);
                 }
                 ct--;
             }
@@ -444,11 +437,7 @@ function updateboard(rorig, corig, team) {
                 if ((r == 0) || (r == (rows - 1))) {
                     nm--;
                 }
-                if (board[r*cols + c] === nm) {
-                    document.getElementById(`r${r}c${c}`).classList.add("volatile");
-                } else {
-                    document.getElementById(`r${r}c${c}`).classList.remove("volatile");
-                }
+                setVolatile(r, c, board[r*cols + c] === nm);
             }
         }
     }
