@@ -9,7 +9,7 @@ const { onGameCreated, onGameStarted, onRecordReplay, onPlayerRemoved, onMove } 
 
 /**
  * @typedef Game
- * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],owned:number[],turn:number,move:number,inGame:number[],inGameAmount:number,connectedAmount:number,playerAmount:number,pub:boolean,ident:string,buffer:Buffer[],timestamp:number}}
+ * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],rejoin_keys:string[],owned:number[],turn:number,move:number,inGame:number[],inGameAmount:number,connectedAmount:number,playerAmount:number,pub:boolean,ident:string,buffer:Buffer[],timestamp:number}}
  */
 
 /**@type {Game[]} */
@@ -95,7 +95,8 @@ const maxDim = 37;
 wserv.on("connection", (wsock, req) => {
 	let params = null;
 	try {
-		params = (new URL(`http://localhost${req.url}`)).searchParams;
+        const rurl = (new URL(`http://localhost${req.url}`));
+		params = rurl.searchParams;
 	} catch (et) {
 		if(dbg) {
 			console.log("URL object creation exception");
@@ -129,6 +130,11 @@ wserv.on("connection", (wsock, req) => {
 				return;
 			}// TODO Should the socket be closed and terminated immediately?
 			if (games[gameID].state != 0) {
+                if (params.get("k")) {
+                    if (params.get("k") === game.rejoin_keys[requePlayers]) {
+                        // TODO
+                    }
+                }
 				wsock.send("disc5");// "GAME HAS ALREADY STARTED" // TODO Allow spectation
 				wsock.close();
 				wsock.terminate();
@@ -147,6 +153,8 @@ wserv.on("connection", (wsock, req) => {
 				playerNum = game.players.length;
 				game.players.push(wsock);
 			}
+            game.rejoin_keys.push(crypto.randomBytes(8).toString("base64url"));
+            wsock.send(`keydrejoin_${game.rejoin_keys[game.rejoin_keys.length-1]}`);
 			game.connectedAmount++;
 			game.inGame[playerNum] = 1;
 			game.inGameAmount++;
@@ -361,6 +369,7 @@ function genGame(width, height, player_amount, public) {
 		teamboard:new Array(height * width).fill(0),
 		state:0,
 		players:[null],
+        rejoin_keys:[null],
 		owned:(new Array(player_amount + 1)).fill(height * width, 0, 1).fill(0, 1, player_amount + 1),
 		inGame:(new Array(player_amount + 1)).fill(0, 0, player_amount + 1),
 		inGameAmount: 0,

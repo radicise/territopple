@@ -97,7 +97,7 @@ if (players < 2 || players > 10) {
 
 let serv = null;
 let gameid = "--------";
-if (t) {
+if (t !== 0) {
     serv = `ws://${host}:${port}/?t=${t}&h=${rows}&w=${cols}&p=${players}`;
 } else {
     let gameid = queries.get("g") ?? "g";
