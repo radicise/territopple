@@ -1,0 +1,30 @@
+GAME TO CLIENT:
+    waiting:
+        promote (n [player num]: number)
+        start (void)
+        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
+        ~~leave (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])~~
+    error: (code: number, message: string | null)
+    key:
+        rejoin (key: string)
+    player:
+        join (n [player num]: number)
+        leave (n [player num]: number)
+        spectate (n [player num]: number, id [spectator id]: string)
+    spectator:
+        join (n [spectator id]: string)
+        leave (n [spectator id]: string)
+    game:
+        move (n [tile num]: number, t [team id]: number)
+
+CLIENT TO GAME:
+    waiting:
+        leave (void)
+        start (void)
+        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
+    spectator:
+        leave (void)
+    player:
+        leave (void)
+    game:
+        move (n [tile num]: number)

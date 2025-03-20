@@ -12,7 +12,7 @@ const { onGameCreated, onGameStarted, onRecordReplay, onPlayerRemoved, onMove } 
  * @type {{rows:number,cols:number,board:number[],teamboard:number[],state:number,index:number,players:import("ws").WebSocket[],rejoin_keys:string[],owned:number[],turn:number,move:number,inGame:number[],inGameAmount:number,connectedAmount:number,playerAmount:number,pub:boolean,ident:string,buffer:Buffer[],timestamp:number}}
  */
 
-/**@type {Game[]} */
+/**@type {Record<string, Game>} */
 const games = {};
 console.log("Starting server . . .");
 const ws = require("ws");

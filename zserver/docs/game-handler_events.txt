@@ -1,0 +1,31 @@
+ALL HANDLERS AUTOMATICALLY ADD "#gameid" TO THEIR EMITTED DATA, POPULATED WITH THEIR GAME ID
+ALL HANDLERS WILL ONLY RECIEVE EMISSIONS IF THE EMITTED DATA CONTAINS A "#gameid" PROPERTY THAT MATCHES THEIR GAME ID
+
+waiting:
+    start (void)
+    promote (n [player num]: number)
+    need-promote (void)
+    kick (n [player num | spectator id]: number | string)
+
+spectator:
+    leave (n [spectator id]: string)
+    join (n [spectator id]: string, acc? [account id]: string)
+
+player:
+    join (n [player num]: number, acc? [account id]: string)
+    leave (n [player num]: number)
+    spectate (n [player num]: number)
+
+game:
+    out:
+        move (n [tile num]: number, t [team num]: number)
+    in:
+        move (n [tile num]: number, p [player num]: number)
+
+HANDLER ARGS:
+    error (code: number, data: string)
+    join (id [game id]: string, asSpectator: boolean)
+    leave (isHost: boolean)
+    waiting (isHost: boolean)
+    create (type [conn type]: number, width: string, height: string, players: string)
+    rejoin (id [game id]: string, n [player num]: string, key [rejoin key]: string)

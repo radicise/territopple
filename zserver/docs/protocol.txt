@@ -1,0 +1,9 @@
+client-server and handler-game communications
+
+high-level:
+- contains a type/name of the form "[category][:specifier]+"
+- optionally sends data
+
+client-server specific:
+- communicated as JSON string of the form "{"type":[type],"payload":[data]}"
+- payload may be empty, but not null
