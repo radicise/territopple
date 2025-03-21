@@ -18,6 +18,7 @@ GAME TO CLIENT:
         ownid (n [spectator id]: string)
     game:
         roomid (g [room id]: string)
+        config (w [width]: number, h [height]: number, p [max players]: number, l [host player num]: number)
         turn (n [player num]: number)
         move (n [tile num]: number, t [team id]: number)
         win (t [team id]: number)

@@ -8,6 +8,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     let isHost = args.isHost ?? false;
+    // if (isHost) {
+    //     sock.send(NetData.Waiting.Promote(state.playerNum));
+    // }
+    {
+        const g = state.game;
+        sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum));
+    }
     on("waiting:promote", (data) => {
         // sock.send("waiting:promote");
         sock.send(NetData.Waiting.Promote(data["n"]));

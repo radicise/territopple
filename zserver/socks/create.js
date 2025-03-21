@@ -20,6 +20,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     state.game.addPlayer(sock);
     state.playerNum = 1;
     state.spectating = false;
+    state.game.state.hostNum = 1;
     emit("game:add", {id:useid,game:state.game});
     })();
     sock.send(NetData.Player.Ownid(state.playerNum));

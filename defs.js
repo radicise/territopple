@@ -54,6 +54,7 @@ class Player {
  * @prop {number} state
  * @prop {boolean} public
  * @prop {boolean} observable
+ * @prop {number} hostNum
  */
 /*
  * @typedef Game
@@ -88,7 +89,8 @@ class Game {
             turn: -1,
             state: 0,
             public: state.public,
-            observable: state.observable
+            observable: state.observable,
+            hostNum: 0
         };
         /**@type {Buffer[]} */
         this.buffer = [];
@@ -507,6 +509,16 @@ class NetData {
          */
         static Roomid(id) {
             return Misc("roomid", {g:id});
+        }
+        /**
+         * @param {number} width
+         * @param {number} height
+         * @param {number} maxPlayers
+         * @param {number} hostNum
+         * @returns {string}
+         */
+        static Config(width, height, maxPlayers, hostNum) {
+            return Misc("config", {w:width,h:height,p:maxPlayers,l:hostNum});
         }
     }
 }

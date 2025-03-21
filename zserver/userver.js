@@ -110,8 +110,8 @@ ws_server.on("connection", (sock, req) => {
         case 2:socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "id":genCode()}, state);break;
         case 3:socks.handle("rejoin", sock, {"id":params.get("g"), "n":params.get("i"), "key":params.get("k")}, state);break;
     }
-    sock.on("message", (data, bin) => {
-    });
+    // sock.on("message", (data, bin) => {
+    // });
 });
 
 ex_server.use("/", express.static(_path.resolve(__dname, "www")));
