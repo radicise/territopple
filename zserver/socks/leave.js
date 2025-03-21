@@ -2,7 +2,7 @@ const { NetPayload } = require("../../defs.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
-const handler = (sock, globals, {change, emit, on}, args, state) => {
+const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let messageL;
     let closeL;
     let errorL;

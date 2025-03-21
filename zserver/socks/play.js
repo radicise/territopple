@@ -2,19 +2,19 @@ const { NetPayload, NetData } = require("../../defs.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
-const handler = (sock, globals, {change, emit, on}, args, state) => {
+const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let messageL;
     let closeL;
     let errorL;
     (() => {
     // change("error", {code:1, data:"TODO"});
-    on("game:out:move", (data) => {
+    onall("game:out:move", (data) => {
         sock.send(NetData.Game.Move(data["n"], data["t"]));
     });
-    on("game:win", (data) => {
+    onall("game:win", (data) => {
         sock.send(NetData.Game.Win(data["t"]))
     });
-    on("game:turn", (data) => {
+    onall("game:turn", (data) => {
         sock.send(NetData.Game.Turn(data["n"]));
     });
     messageL = (_data) => {

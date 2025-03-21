@@ -11,10 +11,13 @@ GAME TO CLIENT:
         join (n [player num]: number)
         leave (n [player num]: number)
         spectate (n [player num]: number, id [spectator id]: string)
+        ownid (n [player num]: number)
     spectator:
         join (n [spectator id]: string)
         leave (n [spectator id]: string)
+        ownid (n [spectator id]: string)
     game:
+        roomid (g [room id]: string)
         turn (n [player num]: number)
         move (n [tile num]: number, t [team id]: number)
         win (t [team id]: number)

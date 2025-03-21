@@ -1,8 +1,8 @@
-const { Game, GameState } = require("../../defs.js");
+const { Game, NetData, NetPayload } = require("../../defs.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
-const handler = (sock, globals, {change, emit, on}, args, state) => {
+const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let messageL;
     let closeL;
     let errorL;
@@ -17,6 +17,8 @@ const handler = (sock, globals, {change, emit, on}, args, state) => {
     if (args.asSpectator??false) {
         state.spectating = true;
         state.spectatorId = game.addSpectator(sock);
+        sock.send(NetData.Spectator.Ownid(state.playerNum));
+        sock.send(NetData.Game.Roomid(state.game.ident));
         emit("spectator:join", {n:state.spectatorId});
         change("waiting");
         return;
@@ -27,6 +29,8 @@ const handler = (sock, globals, {change, emit, on}, args, state) => {
     }
     state.game = game;
     state.playerNum = game.addPlayer(sock);
+    sock.send(NetData.Player.Ownid(state.playerNum));
+    sock.send(NetData.Game.Roomid(state.game.ident));
     emit("player:join", {n:state.playerNum});
     change("waiting");
     })();

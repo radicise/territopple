@@ -370,6 +370,13 @@ class NetData {
         static Spectate(playerNumber, spectatorId) {
             return Misc("spectate", {n:playerNumber, id:spectatorId});
         }
+        /**
+         * @param {number} playerNumber
+         * @returns {string}
+         */
+        static Ownid(playerNumber) {
+            return Misc("ownid", {n:playerNumber});
+        }
     }
     static Spectator = class {
         /**
@@ -393,6 +400,13 @@ class NetData {
          */
         static Leave(spectatorId) {
             return Misc("leave", {n:spectatorId});
+        }
+        /**
+         * @param {string} spectatorId
+         * @returns {string}
+         */
+        static Ownid(spectatorId) {
+            return Misc("ownid", {n:spectatorId});
         }
     }
     static Key = class {
@@ -486,6 +500,13 @@ class NetData {
          */
         static Win(team) {
             return Misc("win", {t:team});
+        }
+        /**
+         * @param {string} id
+         * @returns {string}
+         */
+        static Roomid(id) {
+            return Misc("roomid", {g:id});
         }
     }
 }

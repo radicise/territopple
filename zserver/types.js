@@ -27,7 +27,7 @@ const { Game, HostingSettings } = require("../defs");
 //, emit: (name: string, data?: DataRecord) => {void}, on: (name: string, cb: (data: DataRecord) => {void}) => {void}
 /**
  * @typedef SocketHandler
- * @type {(sock: import("ws").WebSocket, globals: GlobalRecord, _:{change: (to: string, args?: DataRecord) => void, emit: TaggedEmitFunction, on: TaggedOnFunction}, args: DataRecord, state: HandlerState) => {messageL?:()=>any,closeL?:()=>any,errorL?:()=>any}}
+ * @type {(sock: import("ws").WebSocket, globals: GlobalRecord, _:{change: (to: string, args?: DataRecord) => void, emit: TaggedEmitFunction, onall: TaggedOnFunction, on: TaggedOnFunction}, args: DataRecord, state: HandlerState) => {messageL?:()=>any,closeL?:()=>any,errorL?:()=>any}}
  */
 /**
  * @typedef TaggedEmitFunction
