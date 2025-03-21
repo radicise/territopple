@@ -15,7 +15,9 @@ GAME TO CLIENT:
         join (n [spectator id]: string)
         leave (n [spectator id]: string)
     game:
+        turn (n [player num]: number)
         move (n [tile num]: number, t [team id]: number)
+        win (t [team id]: number)
 
 CLIENT TO GAME:
     waiting:

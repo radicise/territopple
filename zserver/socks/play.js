@@ -11,14 +11,25 @@ const handler = (sock, globals, {change, emit, on}, args, state) => {
     on("game:out:move", (data) => {
         sock.send(NetData.Game.Move(data["n"], data["t"]));
     });
+    on("game:win", (data) => {
+        sock.send(NetData.Game.Win(data["t"]))
+    });
+    on("game:turn", (data) => {
+        sock.send(NetData.Game.Turn(data["n"]));
+    });
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
         switch (data.type) {
             case "game:move":{
                 if (state.game.validateMove(data.payload["n"], state.playerNum)) {
-                    state.game.move(data.payload["n"], state.playerNum);
                     emit("game:out:move", {"n":data["n"],"t":state.playerNum});
+                    let res = state.game.move(data.payload["n"], state.playerNum);
+                    if (res.win) {
+                        emit("game:win", {t:state.game.players[state.playerNum].team});
+                    } else {
+                        emit("game:turn", {n:res.turn});
+                    }
                 }
             }
         }

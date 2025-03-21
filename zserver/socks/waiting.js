@@ -21,6 +21,7 @@ const handler = (sock, globals, {change, emit, on}, args, state) => {
         if (state.spectating) {
             change("spectating");
         } else {
+            sock.send(NetData.Game.Turn(state.game.state.turn));
             change("play");
         }
     });
@@ -59,6 +60,7 @@ const handler = (sock, globals, {change, emit, on}, args, state) => {
         switch (data.type) {
             case "waiting:kick":
                 if (isHost) {
+                    state.game.start();
                     emit("waiting:kick", {n:data["n"]});
                 }
                 break;

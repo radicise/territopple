@@ -154,7 +154,7 @@ wserv.on("connection", (wsock, req) => {
 				game.players.push(wsock);
 			}
             game.rejoin_keys.push(crypto.randomBytes(8).toString("base64url"));
-            wsock.send(`keydrejoin_${game.rejoin_keys[game.rejoin_keys.length-1]}`);
+            // wsock.send(`keydrejoin_${game.rejoin_keys[game.rejoin_keys.length-1]}`);
 			game.connectedAmount++;
 			game.inGame[playerNum] = 1;
 			game.inGameAmount++;

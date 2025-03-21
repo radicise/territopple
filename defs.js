@@ -15,9 +15,11 @@ const crypto = require("crypto");
 class Player {
     /**
      * @param {WS} conn
+     * @param {number} team
      */
-    constructor(conn) {
+    constructor(conn, team) {
         this.conn = conn;
+        this.team = team;
         /**@type {boolean} */
         this.alive = true;
         /**@type {string} */
@@ -118,16 +120,79 @@ class Game {
      * @returns {boolean}
      */
     validateMove(tile, player) {
-        if (this.state.turn !== player) {
+        if (this.state.turn !== player) { // current turn
             return false;
         }
-        //
+        const p = this.players[player];
+        if (this.state.teamboard[tile] !== p.team && this.state.teamboard[tile] !== 0) { // team matches
+            return false;
+        }
+        return true;
+    }
+    start() {
+        for (let i = 0; i < this.players.length; i ++) {
+            if (this.players[i] !== null) {
+                this.state.turn = i;
+                break;
+            }
+        }
     }
     /**
      * @param {number} tile
      * @param {number} player
+     * @returns {{win:boolean,turn:number}}
      */
-    move(tile, player) {}
+    move(tile, player) {
+        const adds = [tile];
+        const p = this.players[player];
+        const tb = this.state.teamboard;
+        const bb = this.state.board;
+        const w = this.state.cols;
+        const h = this.state.rows;
+        while (adds.length) {
+            const t = adds.pop();
+            if (tb[t] !== p.team) {
+                this.state.owned[tb[t]] --;
+                this.state.owned[p.team] ++;
+                tb[t] = p.team;
+                if (this.state.owned[p.team] === bb.length) {
+                    return {win:true,turn:-1};
+                }
+            }
+            bb[t] ++;
+            const c = t%w;
+            const r = (t-c)/w;
+            let mv = 4 - ((c===0||c===w-1)?1:0) - ((r===0||r===h-1)?1:0);
+            if (bb[t] > mv) {
+                bb[t] = 1;
+                if (c > 0) {
+                    adds.push(t-1);
+                }
+                if (c < w-1) {
+                    adds.push(t+1);
+                }
+                if (r > 0) {
+                    adds.push(t-w);
+                }
+                if (r < h-1) {
+                    adds.push(r+w);
+                }
+            }
+        }
+        let i = this.state.turn;
+        while (true) {
+            i += 1;
+            i = i % this.players.length;
+            if (i === this.state.turn) {
+                return {win:true,turn:-1};
+            }
+            if (this.players[i] !== null) {
+                this.state.turn = i;
+                break;
+            }
+        }
+        return {win:false,turn:this.state.turn};
+    }
     /**
      * returns spectator id
      * @param {WS} conn
@@ -164,7 +229,7 @@ class Game {
      */
     addPlayer(conn) {
         let pN = -1;
-        const p = new Player(conn);
+        const p = new Player(conn, 0);
         for (let i = 0; i < this.players.length; i ++) {
             const cP = this.players[i];
             if (cP === null) {
@@ -177,6 +242,7 @@ class Game {
             pN = this.stats.playing;
             this.players.push(p);
         }
+        p.team = pN;
         this.stats.playing ++;
         this.stats.connected ++;
         // this.sendAll(NetData.Player.Join(pN), pN);
@@ -402,10 +468,24 @@ class NetData {
             return Misc("move", {n:tile, t:team});
         }
         /**
+         * @param {number} playerNum
+         * @returns {string}
+         */
+        static Turn(playerNum) {
+            return Misc("turn", {n:playerNum});
+        }
+        /**
          * @returns {string}
          */
         static Close() {
             return Misc("close");
+        }
+        /**
+         * @param {number} team
+         * @returns {string}
+         */
+        static Win(team) {
+            return Misc("win", {t:team});
         }
     }
 }

@@ -17,6 +17,8 @@ player:
     spectate (n [player num]: number)
 
 game:
+    win (t [team id]: number)
+    turn (n [player num]: number)
     out:
         move (n [tile num]: number, t [team num]: number)
     in:
