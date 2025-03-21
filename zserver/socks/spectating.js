@@ -13,15 +13,23 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     on("player:spectate", (data) => {
         sock.send(NetData.Player.Spectate(data["n"], data["id"]));
     });
-    on("player:leave", (data) => {
-        sock.send(NetData.Player.Leave(data["n"]));
-    });
+    // on("player:leave", (data) => {
+    //     sock.send(NetData.Player.Leave(data["n"]));
+    // });
     on("spectator:join", (data) => {
         sock.send(NetData.Spectator.Join(data["n"]));
     });
-    on("spectator:leave", (data) => {
-        sock.send(NetData.Spectator.Leave(data["n"]));
-    });
+    // on("spectator:leave", (data) => {
+    //     sock.send(NetData.Spectator.Leave(data["n"]));
+    // });
+    errorL = () => {
+        change("leave");
+    };
+    sock.on("error", errorL);
+    closeL = () => {
+        change("leave");
+    };
+    sock.on("close", closeL);
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);

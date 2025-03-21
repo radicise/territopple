@@ -30,7 +30,7 @@ relaunch();
 i.on("SIGINT", () => {
     i.close();
 });
-
+let passthrough = false;
 i.on("line", (l) => {
     switch (l) {
         case "rs":
@@ -39,12 +39,23 @@ i.on("line", (l) => {
         case "stop":
             i.close();
             break;
+        case "#child":
+            passthrough = true;
+            break;
         default:
-            if ((/^pass-(web|game) .*$/).test(l)) {
-                if (l[5] === 'w') {
-                    webserver.stdin.write(l.substring(9));
+            // if ((/^pass-(web|game) .*$/).test(l)) {
+            //     if (l[5] === 'w') {
+            //         webserver.stdin.write(l.substring(9));
+            //     } else {
+            //         gameserver.stdin.write(l.substring(10));
+            //     }
+            //     break;
+            // }
+            if (passthrough) {
+                if (l !== "#main") {
+                    child.stdin.write(l);
                 } else {
-                    gameserver.stdin.write(l.substring(10));
+                    passthrough = false;
                 }
                 break;
             }

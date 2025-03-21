@@ -51,8 +51,8 @@ function handle(name, sock, args, state, __tag) {
         if (closeL) sock.removeListener("close", closeL);
         if (errorL) sock.removeListener("error", errorL);
         clear(genTag);
-        handle(name, sock, req, args, state, genTag);
-    }, emit:(name, data) => {data["#gameid"]=state.game.ident;emit(genTag, name, data);}, onall:(name, cb) => {on(genTagg, name, (data, tag) => {if (data["#gameid"]===state.game.ident)cb(data, tag);});}, on:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident&&tag!==genTag)cb(data, tag);});}}, args||{}, state);
+        handle(name, sock, args, state, genTag);
+    }, emit:(name, data) => {data=data??{};data["#gameid"]=state.game?.ident??"!pregame";emit(genTag, name, data);}, onall:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident)cb(data, tag);});}, on:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident&&tag!==genTag)cb(data, tag);});}}, args||{}, state);
     messageL = m.messageL;
     closeL = m.closeL;
     errorL = m.errorL;

@@ -56,16 +56,6 @@ class Player {
  * @prop {boolean} observable
  * @prop {number} hostNum
  */
-/*
- * @typedef Game
- * @type {{
- * stats: Stats,
- * state: State,
- * players:Player[],
- * ident:string,
- * buffer:Buffer[],
- * timestamp:number}}
- */
 
 class Game {
     /**
@@ -84,7 +74,7 @@ class Game {
             cols: state.cols,
             board: new Array(state.rows*state.cols).fill(0),
             teamboard: new Array(state.rows*state.cols).fill(0),
-            owned: new Array(players).fill(0),
+            owned: new Array(players+1).fill(0),
             move: -1,
             turn: -1,
             state: 0,
@@ -92,6 +82,7 @@ class Game {
             observable: state.observable,
             hostNum: 0
         };
+        this.state.owned[0] = state.rows*state.cols;
         /**@type {Buffer[]} */
         this.buffer = [];
         /**@type {number} */
@@ -232,7 +223,7 @@ class Game {
     addPlayer(conn) {
         let pN = -1;
         const p = new Player(conn, 0);
-        for (let i = 0; i < this.players.length; i ++) {
+        for (let i = 1; i < this.players.length; i ++) {
             const cP = this.players[i];
             if (cP === null) {
                 pN = i;
@@ -240,12 +231,12 @@ class Game {
                 break;
             }
         }
+        this.stats.playing ++;
         if (pN < 0) {
             pN = this.stats.playing;
             this.players.push(p);
         }
         p.team = pN;
-        this.stats.playing ++;
         this.stats.connected ++;
         // this.sendAll(NetData.Player.Join(pN), pN);
         p.conn.send(NetData.Key.Rejoin(p.rejoin_key));
@@ -352,17 +343,26 @@ class NetData {
         }
         /**
          * @param {number} playerNumber
+         * @param {number} team
          * @returns {string}
          */
-        static Join(playerNumber) {
-            return Misc("join", {n:playerNumber});
+        static Join(playerNumber, team) {
+            return this.Misc("join", {n:playerNumber, t:team});
+        }
+        /**
+         * @param {number} playerNumber
+         * @param {number} team
+         * @returns {string}
+         */
+        static Switch(playerNumber, team) {
+            return this.Misc("switch", {n:playerNumber, t:team});
         }
         /**
          * @param {number} playerNumber
          * @returns {string}
          */
         static Leave(playerNumber) {
-            return Misc("leave", {n:playerNumber});
+            return this.Misc("leave", {n:playerNumber});
         }
         /**
          * @param {number} playerNumber
@@ -370,14 +370,15 @@ class NetData {
          * @returns {string}
          */
         static Spectate(playerNumber, spectatorId) {
-            return Misc("spectate", {n:playerNumber, id:spectatorId});
+            return this.Misc("spectate", {n:playerNumber, id:spectatorId});
         }
         /**
          * @param {number} playerNumber
+         * @param {number} team
          * @returns {string}
          */
-        static Ownid(playerNumber) {
-            return Misc("ownid", {n:playerNumber});
+        static Ownid(playerNumber, team) {
+            return this.Misc("ownid", {n:playerNumber, t:team});
         }
     }
     static Spectator = class {
@@ -394,21 +395,21 @@ class NetData {
          * @returns {string}
          */
         static Join(spectatorId) {
-            return Misc("join", {n:spectatorId});
+            return this.Misc("join", {n:spectatorId});
         }
         /**
          * @param {string} spectatorId
          * @returns {string}
          */
         static Leave(spectatorId) {
-            return Misc("leave", {n:spectatorId});
+            return this.Misc("leave", {n:spectatorId});
         }
         /**
          * @param {string} spectatorId
          * @returns {string}
          */
         static Ownid(spectatorId) {
-            return Misc("ownid", {n:spectatorId});
+            return this.Misc("ownid", {n:spectatorId});
         }
     }
     static Key = class {
@@ -425,7 +426,7 @@ class NetData {
          * @returns {string}
          */
         static Rejoin(key) {
-            return Misc("rejoin", {key});
+            return this.Misc("rejoin", {key});
         }
     }
     /**
@@ -434,7 +435,7 @@ class NetData {
      * @returns {string}
      */
     static Error(code, data) {
-        return Misc("error", {code, message:data??null});
+        return this.Misc("error", {code, message:data??null});
     }
     static Waiting = class {
         /**
@@ -450,20 +451,20 @@ class NetData {
          * @returns {string}
          */
         static Kick(n) {
-            return Misc("kick", {n});
+            return this.Misc("kick", {n});
         }
         /**
          * @param {number} n
          * @returns {string}
          */
         static Promote(n) {
-            return Misc("promote", {n});
+            return this.Misc("promote", {n});
         }
         /**
          * @returns {string}
          */
         static Start() {
-            return Misc("start");
+            return this.Misc("start");
         }
     }
     static Game = class {
@@ -481,34 +482,34 @@ class NetData {
          * @returns {string}
          */
         static Move(tile, team) {
-            return Misc("move", {n:tile, t:team});
+            return this.Misc("move", {n:tile, t:team});
         }
         /**
          * @param {number} playerNum
          * @returns {string}
          */
         static Turn(playerNum) {
-            return Misc("turn", {n:playerNum});
+            return this.Misc("turn", {n:playerNum});
         }
         /**
          * @returns {string}
          */
         static Close() {
-            return Misc("close");
+            return this.Misc("close");
         }
         /**
          * @param {number} team
          * @returns {string}
          */
         static Win(team) {
-            return Misc("win", {t:team});
+            return this.Misc("win", {t:team});
         }
         /**
          * @param {string} id
          * @returns {string}
          */
         static Roomid(id) {
-            return Misc("roomid", {g:id});
+            return this.Misc("roomid", {g:id});
         }
         /**
          * @param {number} width
@@ -518,7 +519,7 @@ class NetData {
          * @returns {string}
          */
         static Config(width, height, maxPlayers, hostNum) {
-            return Misc("config", {w:width,h:height,p:maxPlayers,l:hostNum});
+            return this.Misc("config", {w:width,h:height,p:maxPlayers,l:hostNum});
         }
     }
 }

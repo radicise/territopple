@@ -70,6 +70,7 @@ on("main", "waiting:need-promote", (data) => {
         delete games[gameid];
         return;
     }
+    games[gameid].state.hostNum = n;
     emit("main", "waiting:promote", {"#gameid":gameid,n});
 });
 on("main", "game:add", (data) => {
@@ -91,6 +92,9 @@ const ex_server = express();
 const main_server = http.createServer({}, ex_server);
 
 const ws_server = new ws.Server({server: main_server});
+// /**@type {ws.WebSocket} */
+// let x = ws_server.clients.values().next().value;
+// x.on("close", () => {});
 ws_server.on("connection", (sock, req) => {
 // ex_server.ws("/", (sock, req) => {
     let params = null;
@@ -115,7 +119,17 @@ ws_server.on("connection", (sock, req) => {
 });
 
 ex_server.use("/", express.static(_path.resolve(__dname, "www")));
-ex_server.get()
+// ex_server.get()
 
 main_server.listen(8300);
 // ex_server.listen(8300);
+// const rl = require("readline");
+// const i = rl.createInterface({input:process.stdin,output:process.stdout});
+// i.on("line", (l) => {
+//     console.log(`LINE: ${l}`);
+//     console.log(eval(l));
+// });
+process.stdin.on("data", (d) => {
+    const l = d.toString("utf-8");
+    console.log(eval(l));
+});

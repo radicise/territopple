@@ -17,7 +17,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     if (args.asSpectator??false) {
         state.spectating = true;
         state.spectatorId = game.addSpectator(sock);
-        sock.send(NetData.Spectator.Ownid(state.playerNum));
+        sock.send(NetData.Spectator.Ownid(state.spectatorId));
         sock.send(NetData.Game.Roomid(state.game.ident));
         emit("spectator:join", {n:state.spectatorId});
         change("waiting");
@@ -29,9 +29,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     }
     state.game = game;
     state.playerNum = game.addPlayer(sock);
-    sock.send(NetData.Player.Ownid(state.playerNum));
+    sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
     sock.send(NetData.Game.Roomid(state.game.ident));
-    emit("player:join", {n:state.playerNum});
+    emit("player:join", {n:state.playerNum, t:state.game.players[state.playerNum].team});
     change("waiting");
     })();
     return {messageL, closeL, errorL};

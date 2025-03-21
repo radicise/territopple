@@ -14,6 +14,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     {
         const g = state.game;
         sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum));
+        for (let i = 0; i < g.players.length; i ++) {
+            if (g.players[i]) {
+                sock.send(NetData.Player.Join(i, g.players[i].team));
+            }
+        }
     }
     on("waiting:promote", (data) => {
         // sock.send("waiting:promote");
@@ -22,7 +27,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             isHost = true;
         }
     });
-    on("waiting:start", (data) => {
+    onall("waiting:start", (data) => {
         // sock.send("waiting:start");
         sock.send(NetData.Waiting.Start());
         if (state.spectating) {
@@ -32,7 +37,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             change("play");
         }
     });
-    on("waiting:kick", (data) => {
+    onall("waiting:kick", (data) => {
         sock.send(NetData.Waiting.Kick(data["n"]));
         if (state.spectating?(data.n===state.spectatorId):(data.n===state.playerNum)) {
             change("close");
@@ -42,17 +47,25 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Player.Spectate(data["n"], data["id"]));
     });
     on("player:join", (data) => {
-        sock.send(NetData.Player.Join(data["n"]));
+        sock.send(NetData.Player.Join(data["n"], data["t"]));
     });
-    on("player:leave", (data) => {
-        sock.send(NetData.Player.Leave(data["n"]));
-    });
+    // on("player:leave", (data) => {
+    //     sock.send(NetData.Player.Leave(data["n"]));
+    // });
     on("spectator:join", (data) => {
         sock.send(NetData.Spectator.Join(data["n"]));
     });
-    on("spectator:leave", (data) => {
-        sock.send(NetData.Spectator.Leave(data["n"]));
-    });
+    // on("spectator:leave", (data) => {
+    //     sock.send(NetData.Spectator.Leave(data["n"]));
+    // });
+    errorL = () => {
+        change("leave", {isHost});
+    };
+    sock.on("error", errorL);
+    closeL = () => {
+        change("leave", {isHost});
+    };
+    sock.on("close", closeL);
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
@@ -67,12 +80,12 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         switch (data.type) {
             case "waiting:kick":
                 if (isHost) {
-                    state.game.start();
                     emit("waiting:kick", {n:data["n"]});
                 }
                 break;
             case "waiting:start":
                 if (isHost) {
+                    state.game.start();
                     emit("waiting:start");
                 }
                 break;

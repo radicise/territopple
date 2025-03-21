@@ -13,7 +13,7 @@
         <title>Territopple</title>
 	</head>
 	<body>
-		<h1>Territopple, the Territory Toppling Game</h1>
+		<h1 style="width:fit-content;">Territopple, the Territory Toppling Game</h1>
         <!-- <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize()"> -->
                 <fieldset id="display-settings">
                   <legend>Display Settings</legend>
@@ -49,6 +49,7 @@
                 </fieldset>
 		<div id="container-container"><div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd"></div></div>
         <input type="button" id="pingbutton" value="ping">
+        <input type="button" id="startbutton" value="start">
         <div id="download-area" hidden>
             <input type="button" value="download replay">
             <a hidden></a>
@@ -68,6 +69,7 @@
         <!-- <script type="module" src="render3.js"></script> -->
         <script src="helpers/render/unified.js"></script>
         <script src="helpers/banners.js"></script>
+		<script src="logic/game.js"></script>
 		<script src="territopple.js?rev=25"></script>
         <script src="displaycontrols.js"></script>
 	</body>

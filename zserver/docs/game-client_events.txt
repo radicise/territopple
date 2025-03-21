@@ -8,10 +8,11 @@ GAME TO CLIENT:
     key:
         rejoin (key: string)
     player:
-        join (n [player num]: number)
+        join (n [player num]: number, t [team id]: number)
         leave (n [player num]: number)
+        switch (n [player num]: number, t [team id]: number)
         spectate (n [player num]: number, id [spectator id]: string)
-        ownid (n [player num]: number)
+        ownid (n [player num]: number, t [team id]: number)
     spectator:
         join (n [spectator id]: string)
         leave (n [spectator id]: string)

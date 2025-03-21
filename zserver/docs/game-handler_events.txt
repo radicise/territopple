@@ -12,7 +12,7 @@ spectator:
     join (n [spectator id]: string, acc? [account id]: string)
 
 player:
-    join (n [player num]: number, acc? [account id]: string)
+    join (n [player num]: number, t [team id]: number, acc? [account id]: string)
     leave (n [player num]: number)
     spectate (n [player num]: number)
 
