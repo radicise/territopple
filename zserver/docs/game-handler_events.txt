@@ -17,6 +17,7 @@ player:
     spectate (n [player num]: number)
 
 game:
+    add (id [game id]: string, game [game object]: Game)
     win (t [team id]: number)
     turn (n [player num]: number)
     out:
@@ -29,5 +30,5 @@ HANDLER ARGS:
     join (id [game id]: string, asSpectator: boolean)
     leave (isHost: boolean)
     waiting (isHost: boolean)
-    create (type [conn type]: number, width: string, height: string, players: string)
+    create (type [conn type]: number, width: string, height: string, players: string, id [game id to use]: string)
     rejoin (id [game id]: string, n [player num]: string, key [rejoin key]: string)

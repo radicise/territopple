@@ -5,6 +5,25 @@ const __dname = process.cwd();
 
 /**@type {Record<string, Game>} */
 const games = {};
+
+function genCode() {
+    const len = 8;
+    const arr = new Uint16Array(len);
+    let code = "";
+    while (1) {
+        crypto.getRandomValues(arr);
+        for (let i = len; i; i--) {
+            code += codeChars[arr.at(i - 1) % codeChars.length];
+        }
+        if (code in games) {
+            code = "";
+            continue;
+        }
+        break;
+    }
+    return code;
+}
+
 /**@type {GlobalState} */
 const globals = {
     MAX_DIM: 36,
@@ -53,6 +72,9 @@ on("main", "waiting:need-promote", (data) => {
     }
     emit("main", "waiting:promote", {"#gameid":gameid,n});
 });
+on("main", "game:add", (data) => {
+    games[data["id"]] = data["game"];
+});
 // on("main", "player:spectate", (data, tag) => {
 //     /**@type {string} */
 //     const gameid = data["#gameid"];
@@ -85,7 +107,7 @@ ws_server.on("connection", (sock, req) => {
         case 4:
         case 0:socks.handle("join", sock, {"id":params.get("g"), "asSpectator":connType===4}, state);break;
         case 1:
-        case 2:socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p")}, state);break;
+        case 2:socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "id":genCode()}, state);break;
         case 3:socks.handle("rejoin", sock, {"id":params.get("g"), "n":params.get("i"), "key":params.get("k")}, state);break;
     }
     sock.on("message", (data, bin) => {
