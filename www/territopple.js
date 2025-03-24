@@ -107,11 +107,11 @@ if (players < 2 || players > 10) {
 
 let serv = null;
 let gameid = "--------";
-if (t !== 0) {
+if (t !== 0 && t !== 4) {
     serv = `ws://${host}:${port}/?t=${t}&h=${rows}&w=${cols}&p=${players}`;
 } else {
     let gameid = queries.get("g") ?? "g";
-    serv = `ws://${host}:${port}/?t=0&g=${gameid}`;
+    serv = `ws://${host}:${port}/?t=${t}&g=${gameid}`;
 }
 
 let board = new Array(cols * rows);
@@ -133,6 +133,37 @@ if (dbg) {
 	console.log(serv);
 }
 let conn = new WebSocket(serv);
+
+/**
+ * @param {number} pNum
+ */
+function kickPlayer(pNum) {
+    if (ifmt.pln !== game.hostNum) return; // can only kick if host
+    if (ifmt.pln === pNum) return; // can't kick self
+    if (!game.playerList[pNum]) return; // player doesn't exist
+    conn.send(JSON.stringify({type:"waiting:kick",payload:{n:pNum}}));
+}
+/**
+ * @param {string} sId
+ */
+function kickSpectator(sId) {
+    if (ifmt.pln !== game.hostNum) return; // can only kick if host
+    conn.send(JSON.stringify({type:"waiting:kick",payload:{n:sId}}));
+}
+/**
+ * @param {number} pNum
+ */
+function promotePlayer(pNum) {
+    if (ifmt.pln !== game.hostNum) return; // can only promote if host
+    if (ifmt.pln === pNum) return; // can't promote self
+    if (!game.playerList[pNum]) return; // player doesn't exist
+    conn.send(JSON.stringify({type:"waiting:promote",payload:{n:pNum}}));
+}
+function rescanHostOnly() {
+    const dis = !(game.hostNum === ifmt.pln);
+    document.querySelectorAll("input.FLAG-host-only").forEach(v => v.disabled = dis);
+}
+
 conn.addEventListener("open", function(event) {
     document.getElementById("pingbutton").addEventListener("click", () => {
         if (ifmt.turn === 0) return;
@@ -150,15 +181,51 @@ conn.addEventListener("open", function(event) {
         const data = JSON.parse(event.data);
         switch (data.type) {
             case "waiting:promote":{
+                if (game.hostNum) {
+                    const c = document.getElementById(`JLIST-player-${game.hostNum}`);
+                    if (c) {
+                        c.children[1].textContent = "Player";
+                    }
+                }
                 game.hostNum = data.payload["n"];
-                document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                const c = document.getElementById(`JLIST-player-${game.hostNum}`);
+                if (c) {
+                    c.children[1].textContent = "Host";
+                }
+                // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                createBanner({type:"info",content:`Player ${game.hostNum} was promoted to host`});
+                rescanHostOnly();
                 break;
             }
             case "waiting:start":{
                 game.started = true;
+                createBanner({type:"info",content:`Game started`});
                 break;
             }
             case "waiting:kick":{
+                let n = data.payload["n"];
+                if (typeof n === "number") {
+                    if (ifmt.pln === n) {
+                        createBanner({type:"info",fade:false,content:"You were kicked"});
+                        conn.close();
+                        return;
+                    }
+                    createBanner({type:"info",content:`Player ${n} kicked`});
+                    removeJListPlayer(n);
+                    game.joinedPlayers --;
+                    game.playerList[n] = null;
+                    updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                } else {
+                    if (ifmt.team === -1) {
+                        if (n === ifmt.pln) {
+                            createBanner({type:"info",content:"You were kicked"});
+                            conn.close();
+                            return;
+                        }
+                    }
+                    createBanner({type:"info",content:`Spectator ${n} kicked`});
+                    removeJListSpectator(n);
+                }
                 break;
             }
             case "error":{
@@ -171,39 +238,64 @@ conn.addEventListener("open", function(event) {
             case "player:join":{
                 game.joinedPlayers ++;
                 game.playerList[data.payload["n"]] = {team:data.payload["t"]};
+                createBanner({type:"info",content:`Player ${data.payload['n']} has joined`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                if (ifmt.pln !== data.payload["n"]) addJListPlayer(data.payload["n"]);
 				break;
             }
             case "player:leave":{
                 game.joinedPlayers --;
                 game.playerList[data.payload["n"]] = null;
+                createBanner({type:"info",content:`Player ${data.payload['n']} has left`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                removeJListPlayer(data.payload["n"]);
 				break;
             }
-            case "player:spectate":{}
+            case "player:spectate":{
+                break;
+            }
             case "player:ownid":{
                 ifmt.pln = data.payload["n"];
                 ifmt.team = data.payload["t"];
-                document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                game.joinedPlayers ++;
+                updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                rescanHostOnly();
+                removeJListPlayer(ifmt.pln);
+                addJListSelf(ifmt.pln);
                 if (ifmt.room) {
                     updScr("info", `Room ${game.ident}, Player ${ifmt.pln}`);
                 }
                 break;
             }
             case "spectator:join":{
+                addJListSpectator(data.payload["n"]);
+                createBanner({type:"info",content:`Spectator ${data.payload['n']} has joined`});
                 break;
             }
             case "spectator:leave":{
+                createBanner({type:"info",content:`Spectator ${data.payload['n']} has left`});
+                removeJListSpectator(data.payload["n"]);
                 break;
             }
             case "spectator:ownid":{
+                ifmt.pln = data.payload["n"];
+                ifmt.team = -1;
+                addJListSelf(data.payload["n"]);
+                if (ifmt.room) {
+                    updScr("info", `Room ${game.ident}, Spectator ${ifmt.pln}`);
+                }
                 break;
             }
             case "game:roomid":{
                 ifmt.room = data.payload["g"];
                 game.ident = data.payload["g"];
                 if (ifmt.pln) {
-                    updScr("info", `Room ${game.ident}, Player ${ifmt.pln}`);
+                    if (ifmt.team === -1) {
+                        updScr("info", `Room ${game.ident}, Spectator ${ifmt.pln}`);
+                    } else {
+                        updScr("info", `Room ${game.ident}, Player ${ifmt.pln}`);
+                    }
                 }
                 break;
             }
@@ -214,12 +306,13 @@ conn.addEventListener("open", function(event) {
                 cols = data.payload["w"];
                 players = data.payload["p"];
                 game.hostNum = data.payload["l"];
-                document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                const c = document.getElementById(`JLIST-player-${game.hostNum}`);
+                if (c) {
+                    c.children[1].textContent = "Host";
+                }
+                // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                rescanHostOnly();
                 document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
-                // board = new Array(cols * rows).fill(1);
-                // boardold = new Array(cols * rows).fill(1);
-                // teamboard = new Array(cols * rows).fill(0);
-                // teamboardold = new Array(cols * rows).fill(0);
                 ifmt.turn = 0;
                 game.setConfig(cols, rows, players);
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
@@ -227,6 +320,22 @@ conn.addEventListener("open", function(event) {
                 document.getElementById("board-rendering-option").onchange = () => {
                     createBoard(rows, cols, game.board, game.teamboard, Number(document.getElementById("board-rendering-option").value)-1);
                 };
+                break;
+            }
+            case "game:jlist":{
+                /**@type {[number, number][]} */
+                const pl = data.payload["p"];
+                /**@type {string[]} */
+                const sl = data.payload["s"];
+                for (const p of pl) {
+                    game.joinedPlayers ++;
+                    game.playerList[p[0]] = {team:p[1]};
+                    addJListPlayer(p[0]);
+                }
+                for (const s of sl) {
+                    addJListSpectator(s);
+                }
+                updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 break;
             }
             case "game:turn":{

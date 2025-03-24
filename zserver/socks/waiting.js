@@ -14,13 +14,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     {
         const g = state.game;
         sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum));
-        for (let i = 0; i < g.players.length; i ++) {
-            if (g.players[i]) {
-                sock.send(NetData.Player.Join(i, g.players[i].team));
-            }
-        }
+        // for (let i = 0; i < g.players.length; i ++) {
+        //     if (g.players[i]) {
+        //         sock.send(NetData.Player.Join(i, g.players[i].team));
+        //     }
+        // }
     }
-    on("waiting:promote", (data) => {
+    onall("waiting:promote", (data) => {
         // sock.send("waiting:promote");
         sock.send(NetData.Waiting.Promote(data["n"]));
         if (data.n === state.playerNum) {
@@ -40,6 +40,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     onall("waiting:kick", (data) => {
         sock.send(NetData.Waiting.Kick(data["n"]));
         if (state.spectating?(data.n===state.spectatorId):(data.n===state.playerNum)) {
+            if (state.spectating) {
+                state.game.removeSpectator(data.n);
+            } else {
+                state.game.removePlayer(data.n);
+            }
             change("close");
         }
     });
@@ -80,7 +85,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         switch (data.type) {
             case "waiting:kick":
                 if (isHost) {
-                    emit("waiting:kick", {n:data["n"]});
+                    emit("waiting:kick", {n:data.payload["n"]});
                 }
                 break;
             case "waiting:start":
@@ -91,6 +96,17 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 break;
             case "waiting:leave":
                 change("leave", {isHost});
+                break;
+            case "waiting:promote":
+                if (isHost) {
+                    /**@type {number} */
+                    const n = data.payload["n"];
+                    if (n === state.playerNum) return;
+                    if (n > 0 && n < state.game.players.length && state.game.players[n]) {
+                        state.game.state.hostNum = n;
+                        emit("waiting:promote", {n});
+                    }
+                }
                 break;
             case "player:spectate":
                 state.spectating = true;

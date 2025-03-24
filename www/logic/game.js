@@ -14,7 +14,7 @@ class Game {
         /**@type {number} */
         this.maxPlayers = null;
         /**@type {number} */
-        this.joinedPlayers = null;
+        this.joinedPlayers = 0;
         /**@type {number} */
         this.spectators = null;
         /**@type {number[]} */
@@ -25,7 +25,7 @@ class Game {
         /**@type {Player[]} */
         this.playerList = [];
         this.started = false;
-        this.hostNum = 0;
+        this.hostNum = null;
     }
     /**
      * @param {number} width
@@ -36,7 +36,7 @@ class Game {
         this.rows = height;
         this.cols = width;
         this.maxPlayers = players;
-        this.joinedPlayers = 0;
+        // this.joinedPlayers = 0;
         this.spectators = 0;
         this.owned[0] = width*height;
         this.board = new Array(width*height).fill(1);

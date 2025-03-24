@@ -5,6 +5,7 @@ const __dname = process.cwd();
 
 /**@type {Record<string, Game>} */
 const games = {};
+let GAME_COUNTER = 0n;
 
 function genCode() {
     const len = 8;
@@ -57,8 +58,8 @@ on("main", "player:leave", (data) => {
 on("main", "spectator:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
-    games[gameid].removeSpectator(data["n"]);
-    games[gameid].sendAll(NetData.Spectator.Leave(data["n"]));
+    games[gameid]?.removeSpectator(data["n"]);
+    games[gameid]?.sendAll(NetData.Spectator.Leave(data["n"]));
 });
 on("main", "waiting:need-promote", (data) => {
     /**@type {string} */
@@ -75,6 +76,8 @@ on("main", "waiting:need-promote", (data) => {
 });
 on("main", "game:add", (data) => {
     games[data["id"]] = data["game"];
+    games[data["id"]].sort_key = GAME_COUNTER;
+    GAME_COUNTER ++;
 });
 // on("main", "player:spectate", (data, tag) => {
 //     /**@type {string} */
@@ -118,6 +121,27 @@ ws_server.on("connection", (sock, req) => {
     // });
 });
 
+function formatServerList() {
+    const arr = Object.values(games).filter(v => v.state.public).sort((a, b) => a.sort_key - b.sort_key);
+    return JSON.stringify(arr.slice(0, Math.min(50, arr.length)).map(v => {
+        return {
+            ident:v.ident,
+            capacity:v.stats.maxPlayers,
+            playing:v.stats.playing,
+            spectating:v.stats.spectating,
+            width:v.state.cols,
+            height:v.state.rows
+        };
+    }));
+}
+
+{
+    const serverListRouter = express.Router();
+    serverListRouter.use((req, res, next) => {
+        res.send(formatServerList());
+    });
+    ex_server.use("/serverlist", serverListRouter);
+}
 ex_server.use("/", express.static(_path.resolve(__dname, "www")));
 // ex_server.get()
 

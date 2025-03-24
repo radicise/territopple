@@ -20,6 +20,23 @@ body {
     border: solid black 2px;
     overflow: hidden;
 }
+#row-container {
+    display: flex;
+    justify-content: space-between;
+    /* display: grid; */
+    /* grid-template-columns: 1fr 1fr; */
+}
+#joined-table {
+    height: fit-content;
+}
+table {
+    border-collapse: collapse;
+    border: 3px solid #888888;
+}
+th, tr, td {
+    border: 1px solid #888888;
+    padding: 5px;
+}
 .container {
     display: grid;
     grid-template-columns: repeat(var(--ncols), fit-content(100%));

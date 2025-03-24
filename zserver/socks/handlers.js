@@ -72,7 +72,11 @@ function setGlobals(value, emitf, onf, clearf) {
     on = onf;
     clear = clearf;
 }
+function getGlobals() {
+    return globals;
+}
 
 exports.handlers = handlers;
 exports.handle = handle;
 exports.setGlobals = setGlobals;
+exports.getGlobals = getGlobals;

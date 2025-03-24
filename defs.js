@@ -91,6 +91,8 @@ class Game {
         this.players = [null];
         /**@type {Record<string,WS>} */
         this.spectators = {};
+        /**@type {BigInt} */
+        this.sort_key = null;
     }
     /**
      * kills all connections
@@ -123,6 +125,7 @@ class Game {
         return true;
     }
     start() {
+        this.state.state = 1;
         for (let i = 0; i < this.players.length; i ++) {
             if (this.players[i] !== null) {
                 this.state.turn = i;
@@ -520,6 +523,14 @@ class NetData {
          */
         static Config(width, height, maxPlayers, hostNum) {
             return this.Misc("config", {w:width,h:height,p:maxPlayers,l:hostNum});
+        }
+        /**
+         * @param {[number, number][]} players
+         * @param {string[]} spectators
+         * @returns {string}
+         */
+        static JList(players, spectators) {
+            return this.Misc("jlist", {p:players,s:spectators});
         }
     }
 }
