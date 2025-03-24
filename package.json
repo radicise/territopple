@@ -7,8 +7,8 @@
     "ws": "^8.18.0"
   },
   "scripts": {
-    "start": "node server.js",
-    "udev": "node proc_wrap.js zserver/userver.js"
+    "start": "node proc_wrap.js zserver/userver.js",
+    "dev": "node proc_wrap.js zserver/userver.js --eval-stdin"
   },
   "name": "territopple",
   "version": "1.0.0",

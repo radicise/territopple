@@ -178,7 +178,9 @@ main_server.listen(settings.APPEASEMENT ? settings.GAMEPORT : settings.WEBPORT);
 //     console.log(`LINE: ${l}`);
 //     console.log(eval(l));
 // });
-process.stdin.on("data", (d) => {
-    const l = d.toString("utf-8");
-    console.log(eval(l));
-});
+if (process.argv.includes("--eval-stdin")) {
+    process.stdin.on("data", (d) => {
+        const l = d.toString("utf-8");
+        console.log(eval(l));
+    });
+}

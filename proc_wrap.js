@@ -14,7 +14,7 @@ function shutdown() {
 
 function relaunch() {
     shutdown();
-    child = spawn("node", [process.argv[2]]);
+    child = spawn("node", process.argv.slice(2));
     child.stdout.on("data", (data) => {
         console.log(`data: ${data}`);
     });
