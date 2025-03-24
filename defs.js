@@ -24,6 +24,8 @@ class Player {
         this.alive = true;
         /**@type {string} */
         this.rejoin_key = crypto.randomBytes(64).toString("base64url");
+        /**@type {boolean} */
+        this.ready = false;
     }
     /**
      * regenerates the rejoin key, returns the new key for convenience
@@ -41,6 +43,7 @@ class Player {
  * @prop {number} playing number of players (includes players who have lost)
  * @prop {number} maxPlayers max number of players for this game
  * @prop {number} reservedSlots number of slots reserved for players in the process of joining (for preventing race conditions)
+ * @prop {number} readies
  */
 /**
  * @typedef State
@@ -254,6 +257,9 @@ class Game {
         if (this.players[playerNum]) {
             this.stats.connected --;
             this.stats.playing --;
+            if (this.players[playerNum].ready) {
+                this.stats.readies --;
+            }
         }
         this.players[playerNum] = null;
     }
@@ -295,7 +301,7 @@ class Game {
  * @type {{
  * GAMEPORT:number,
  * WEBPORT:number,
- * LISTPORT:number,
+ * APPEASEMENT:boolean,
  * WEBCONTENT_DIR:string,
  * URL_MAP:Record<string,string>,
  * URL_MAP_GROUPS:Record<string,string[]>,
@@ -468,6 +474,14 @@ class NetData {
          */
         static Start() {
             return this.Misc("start");
+        }
+        /**
+         * @param {number} playerNum
+         * @param {boolean} ready
+         * @returns {string}
+         */
+        static SetReady(playerNum, ready) {
+            return this.Misc("setready", {n:playerNum,r:ready});
         }
     }
     static Game = class {

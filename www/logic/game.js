@@ -1,6 +1,6 @@
 /**
  * @typedef Player
- * @type {{team:number}}
+ * @type {{team:number,ready:boolean}}
  */
 
 class Game {

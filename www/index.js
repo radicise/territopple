@@ -1,6 +1,6 @@
 let table = document.getElementById("roomRows");
 let host = document.location.hostname;
-fetch(`http://${host}:8300/serverlist`,
+fetch(`http://${host}:${game_port}/serverlist`,
       {
           method: "GET",
       })

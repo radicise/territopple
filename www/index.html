@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <!-- <inject which="favicon" /> -->
-        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
         <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
         <title>Territopple</title>
@@ -85,7 +84,7 @@
       <div class="action-box">
         <form action="territopple.html" method="get">
           <h2 class="action-title">Create a new room</h2>
-          <input type="hidden" name="port" value="8300">
+          <input type="hidden" name="port" value="80">
           <div class="form-row">
             <label for="room-create-t">Room type: </label>
             <select name="t" id="room-create-t">
@@ -111,7 +110,7 @@
       <div class="action-box">
         <form action="territopple.html" method="get">
           <h2 class="action-title">Join a Private Room</h2>
-          <input type="hidden" name="port" value="8301">
+          <input type="hidden" name="port" value="80">
           <input type="hidden" name="t" value="0">
           <div class="form-row">
             <label for="private-join-g">Room ID:</label>
@@ -144,6 +143,7 @@
             document.querySelector("input[name=\"h\"]").value = 2;
         }
       </script>
+      <script src="portno.js"></script>
       <script src="index.js?rev=6"></script>
     </body>
 </html>

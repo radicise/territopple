@@ -3,7 +3,7 @@ GAME TO CLIENT:
         promote (n [player num]: number)
         start (void)
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
-        ~~leave (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])~~
+        setready (n [player num]: number, r [ready]: boolean)
     error: (code: number, message: string | null)
     key:
         rejoin (key: string)
@@ -31,6 +31,7 @@ CLIENT TO GAME:
         start (void)
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
         promote (n [player num]: number)
+        setready (r [ready]: boolean)
     spectator:
         leave (void)
     player:

@@ -36,6 +36,7 @@ const globals = {
 console.log("Starting server . . .");
 const ws = require("ws");
 const fs = require("fs");
+fs.writeFileSync("www/portno.js", settings.APPEASEMENT ? `const game_port = ${settings.GAMEPORT};\n` : `const game_port = ${settings.WEBPORT};\n`);
 if (!fs.existsSync("replays")) {
     fs.mkdirSync("replays");
 }
@@ -44,7 +45,7 @@ if (!fs.existsSync("www/replays")) {
     fs.symlinkSync(_path.join(__dname, "replays"), _path.join(__dname, "www/replays"));
 }
 const http = require("http");
-const net = require("net");
+// const net = require("net");
 const crypto = require("crypto");
 const url = require("url");
 const socks = require("./socks/handlers.js");
@@ -52,23 +53,30 @@ socks.setGlobals({state:globals, settings:settings}, emit, on, clear);
 on("main", "player:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
     games[gameid].removePlayer(data["n"]);
     games[gameid].sendAll(NetData.Player.Leave(data["n"]));
+    if (games[gameid].stats.playing === 0) {
+        terminateGame(gameid);
+    }
 });
 on("main", "spectator:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
-    games[gameid]?.removeSpectator(data["n"]);
-    games[gameid]?.sendAll(NetData.Spectator.Leave(data["n"]));
+    if (!(gameid in games)) return;
+    games[gameid].removeSpectator(data["n"]);
+    games[gameid].sendAll(NetData.Spectator.Leave(data["n"]));
 });
 on("main", "waiting:need-promote", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
     const n = games[gameid].getPromotion();
     if (n === null) {
-        games[gameid].sendAll(NetData.Game.Close());
-        games[gameid].kill();
-        delete games[gameid];
+        // games[gameid].sendAll(NetData.Game.Close());
+        // games[gameid].kill();
+        // delete games[gameid];
+        terminateGame(gameid);
         return;
     }
     games[gameid].state.hostNum = n;
@@ -79,6 +87,12 @@ on("main", "game:add", (data) => {
     games[data["id"]].sort_key = GAME_COUNTER;
     GAME_COUNTER ++;
 });
+function terminateGame(id) {
+    if (!(id in games)) return;
+    games[id].sendAll(NetData.Game.Close());
+    games[id].kill();
+    delete games[id];
+}
 // on("main", "player:spectate", (data, tag) => {
 //     /**@type {string} */
 //     const gameid = data["#gameid"];
@@ -87,19 +101,30 @@ on("main", "game:add", (data) => {
 //     const id = games[gameid].addSpectator(c);
 //     emit("main", `#META:${tag}`, {"#gameid":gameid,"#id":id});
 // });
-const express = require("express");
 const { GlobalState } = require("./types.js");
-const ex_server = express();
-// const expressWs = require("express-ws")(ex_server);
-
-const main_server = http.createServer({}, ex_server);
+let express, ex_server, main_server;
+if (!settings.APPEASEMENT) {
+    express = require("express");
+    ex_server = express();
+    main_server = http.createServer({}, ex_server);
+} else {
+    main_server = http.createServer((requ, resp) => {// TODO Check request target
+        const reqpath = url.parse(requ.url).pathname;
+        switch (reqpath) {
+            case "/serverlist":
+                resp.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
+                resp.end(formatServerList());
+                return;
+            default:
+                resp.writeHead(400);
+                resp.end();
+                return;
+        }
+    });
+}
 
 const ws_server = new ws.Server({server: main_server});
-// /**@type {ws.WebSocket} */
-// let x = ws_server.clients.values().next().value;
-// x.on("close", () => {});
 ws_server.on("connection", (sock, req) => {
-// ex_server.ws("/", (sock, req) => {
     let params = null;
     try {
         const rurl = (new URL(`http://localhost${req.url}`));
@@ -135,17 +160,17 @@ function formatServerList() {
     }));
 }
 
-{
+if (!settings.APPEASEMENT) {
     const serverListRouter = express.Router();
     serverListRouter.use((req, res, next) => {
         res.send(formatServerList());
     });
     ex_server.use("/serverlist", serverListRouter);
+    ex_server.use("/", express.static(_path.resolve(__dname, "www")));
 }
-ex_server.use("/", express.static(_path.resolve(__dname, "www")));
 // ex_server.get()
 
-main_server.listen(8300);
+main_server.listen(settings.APPEASEMENT ? settings.GAMEPORT : settings.WEBPORT);
 // ex_server.listen(8300);
 // const rl = require("readline");
 // const i = rl.createInterface({input:process.stdin,output:process.stdout});

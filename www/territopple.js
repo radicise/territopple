@@ -82,11 +82,12 @@ let t = parseInt(queries.get("t") ?? "0") || 0;
 let rows = parseInt(queries.get("h") ?? "6") || 6;
 let cols = parseInt(queries.get("w") ?? "6") || 6;
 let players = parseInt(queries.get("p") ?? "2") || 2;
-let port = parseInt(queries.get("port") ?? "8300");
+let port = parseInt(queries.get("port") ?? "noport");
 if (isNaN(port)) {
-	port = 8300;
+	// port = 8300;
+    port = null;
 }
-let host = document.location.hostname;
+let host = document.location.hostname + ":" + game_port.toString();
 
 const render3d = document.getElementById("feature-3d")?.nodeName === "META";
 if (render3d) {
@@ -108,10 +109,10 @@ if (players < 2 || players > 10) {
 let serv = null;
 let gameid = "--------";
 if (t !== 0 && t !== 4) {
-    serv = `ws://${host}:${port}/?t=${t}&h=${rows}&w=${cols}&p=${players}`;
+    serv = `ws://${host}/?t=${t}&h=${rows}&w=${cols}&p=${players}`;
 } else {
     let gameid = queries.get("g") ?? "g";
-    serv = `ws://${host}:${port}/?t=${t}&g=${gameid}`;
+    serv = `ws://${host}/?t=${t}&g=${gameid}`;
 }
 
 let board = new Array(cols * rows);
@@ -164,7 +165,16 @@ function rescanHostOnly() {
     document.querySelectorAll("input.FLAG-host-only").forEach(v => v.disabled = dis);
 }
 
+// /**@type {HTMLInputElement} */
+// const readyButton = document.getElementById("readybutton");
+// let amready = false;
 conn.addEventListener("open", function(event) {
+    // readyButton.addEventListener("click", () => {
+    //     if (game.started) return;
+    //     amready = !amready;
+    //     readyButton.value = amready ? "unready" : "ready";
+    //     conn.send(JSON.stringify({type:"waiting:setready",payload:{r:amready}}));
+    // });
     document.getElementById("pingbutton").addEventListener("click", () => {
         if (ifmt.turn === 0) return;
         // conn.send(`ping`);
@@ -180,6 +190,11 @@ conn.addEventListener("open", function(event) {
         /**@type {{type:string,payload:Record<string,any>}} */
         const data = JSON.parse(event.data);
         switch (data.type) {
+            // case "waiting:setready":{
+            //     game.playerList[data.payload["n"]]?.ready = data.payload["r"];
+            //     //
+            //     break;
+            // }
             case "waiting:promote":{
                 if (game.hostNum) {
                     const c = document.getElementById(`JLIST-player-${game.hostNum}`);
@@ -372,7 +387,7 @@ conn.addEventListener("open", function(event) {
                     // mess = mess % cols;
                     updScr("status", `Team ${data.payload['t']} won the game`);
                     displaySettings.highlightLastMove = false;
-                    container.parentElement.style.setProperty("--blink-dark", teamcols[mesr]+"88");
+                    container.parentElement.style.setProperty("--blink-dark", teamcols[data.payload["t"]]+"88");
                     container.parentElement.classList.add("blink2");
                 }
                 {

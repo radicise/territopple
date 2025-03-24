@@ -6,6 +6,7 @@ waiting:
     promote (n [player num]: number)
     need-promote (void)
     kick (n [player num | spectator id]: number | string)
+    setready (n [player num]: number, r [ready]: boolean)
 
 spectator:
     leave (n [spectator id]: string)

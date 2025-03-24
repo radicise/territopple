@@ -16,10 +16,16 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum));
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {
-        //         sock.send(NetData.Player.Join(i, g.players[i].team));
+        //         if (g.players[i].ready) {
+        //             sock.send(NetData.Waiting.SetReady(i, g.players[i].ready));
+        //         }
+        //         // sock.send(NetData.Player.Join(i, g.players[i].team));
         //     }
         // }
     }
+    // onall("waiting:setready", (data) => {
+    //     sock.send(NetData.Waiting.SetReady(data["n"], data["r"]));
+    // });
     onall("waiting:promote", (data) => {
         // sock.send("waiting:promote");
         sock.send(NetData.Waiting.Promote(data["n"]));
@@ -83,6 +89,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             return;
         }
         switch (data.type) {
+            // case "waiting:setready":
+            //     emit("waiting:setready", {n:state.playerNum,r:data.payload["r"]});
+            //     break;
             case "waiting:kick":
                 if (isHost) {
                     emit("waiting:kick", {n:data.payload["n"]});
