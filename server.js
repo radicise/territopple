@@ -3,8 +3,6 @@ let maxGameAmount = 4;
 
 const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 
-const { updateboard, nbytes } = require("./serverhelpers.js");
-const { RandomAI, DumbAI, SimpleAI } = require("./terriai.js");
 const { onGameCreated, onGameStarted, onRecordReplay, onPlayerRemoved, onMove } = require("./replayHooks.js");
 
 /**
@@ -90,6 +88,7 @@ const maxDim = 37;
  * The following are only present after the game has been started:
  * "turn" - Number defining the 1-indexed number of the player whose turn it is
  * "move" - Index of board tile on which the last move was played, -1 if no move has yet been played
+ * "spec" - Whether the game is speculative
  *
  */
 wserv.on("connection", (wsock, req) => {
@@ -210,9 +209,10 @@ wserv.on("connection", (wsock, req) => {
 		let type = whole.substring(0, 4);
 		let message = whole.substring(4);
 		switch (type) {
-            case"ping":
-                const pingtype = message.split(",")[1] || "default";
-                const pingdest = message.split(",")[0] || "active";
+		/*
+	    case"ping":
+                const pingtype = "default";
+                const pingdest = "active";
                 const validtypes = ["default", "flash", "audio"];
                 if (!validtypes.includes(pingtype)) return;
                 const payload = `ping${playerNum},${pingtype}`;
@@ -222,6 +222,7 @@ wserv.on("connection", (wsock, req) => {
                     game.players[pingdest === "active" ? game.turn : pingdest].send(payload);
                 }
                 return;
+		*/
 			case ("move"):
 				if (game.state != 1) return;
 				if (dbg) {
@@ -283,8 +284,8 @@ wserv.on("connection", (wsock, req) => {
 				}
 				distrMess(`pcmtr${row}c${col}_${playerNum}`, game);
 				distrMess(`turn${game.turn}_${game.move}`, game);
-				const _fmtmov = (i) => {const c = i % game.cols;const r = (i - c) / game.cols;return `(${c}, ${r})`;};
-				console.log(`rando: ${_fmtmov(RandomAI(game))}\ndummy: ${_fmtmov(DumbAI(game))}\nsimpl: ${_fmtmov(SimpleAI(game))}`);
+				let om = opponent(0, game, game.turn, 1);
+				console.log(om);
 				break;
 			default:
 				removePlayer(game, playerNum);
@@ -358,10 +359,10 @@ function distrMess(mmsg, game) {
  * @param {number} width
  * @param {number} height
  * @param {number} player_amount
- * @param {boolean} public
+ * @param {boolean} publi
  * @returns {Game}
  */
-function genGame(width, height, player_amount, public) {
+function genGame(width, height, player_amount, publi) {
 	return {
 		rows:height,
 		cols:width,
@@ -375,10 +376,20 @@ function genGame(width, height, player_amount, public) {
 		inGameAmount: 0,
 		connectedAmount: 0,
 		playerAmount: player_amount,
-		pub: public,
+		pub: publi,
+		spec: 0
         // buffer: [Buffer.of(1)],
 		// timestamp: 0
 	};
+}
+function clonespec(game) {
+	let gnew = Object.fromEntries(Object.entries(game));
+	gnew.board = Array.from(gnew.board);
+	gnew.teamboard = Array.from(gnew.teamboard);
+	gnew.owned = Array.from(gnew.owned);
+	gnew.inGame = Array.from(gnew.inGame);
+	gnew.spec = 1;
+	return gnew;
 }
 /**
  * @param {Game} game
@@ -528,4 +539,139 @@ function genCode() {
 		break;
 	}
 	return code;
+}
+/**
+ * @param {number} rorig
+ * @param {number} corig
+ * @param {number} team
+ * @param {import("./server").Game} game
+ * @returns {boolean}
+ */
+function updateboard(rorig, corig, team, game) {
+    // if (!dummy) game.buffer.push(...toBytes(rorig), ...toBytes(corig));
+    // if (!dummy) {
+	// 	if (game.buffer[2][0] & (1<<7)) {
+	// 		const ntime = Date.now();
+	// 		const dtime = ntime - game.timestamp;
+	// 		game.timestamp = ntime;
+	// 		if (dtime > 65535) {
+	// 			game.buffer.push(Buffer.of(2, ...nbytes(dtime, 3), 1, 0, 0));
+	// 		} else {
+	// 			game.buffer.push(Buffer.of(1, ...toBytes(dtime)));
+	// 		}
+	// 	} else {
+	// 		game.buffer.push(Buffer.of(1));
+	// 	}
+	// 	game.buffer.push(Buffer.of(rorig&0xff, corig&0xff));
+	// }
+	const rows = game.rows;
+	const cols = game.cols;
+	const tiles = rows * cols;
+	const adds = [corig, rorig];
+	while (adds.length) {
+		const row = adds.pop();
+		const col = adds.pop();
+		let nv = ++(game.board[(row * cols) + col]);
+		let nm = 5;
+		if ((col == 0) || (col == (cols - 1))) {
+			nm--;
+		}
+		if ((row == 0) || (row == (rows - 1))) {
+			nm--;
+		}
+		if (nv >= nm) {
+			game.board[(row * cols) + col] -= (nm - 1);
+			if (col != 0) {
+				adds.push(col - 1, row);
+			}
+			if (col != (cols - 1)) {
+				adds.push(col + 1, row);
+			}
+			if (row != 0) {
+				adds.push(col, row - 1);
+			}
+			if (row != (rows - 1)) {
+				adds.push(col, row + 1);
+			}
+		}
+		if (game.teamboard[(row * cols) + col] != team) {
+			let lt = game.teamboard[(row * cols) + col];
+			game.owned[lt]--;
+			game.teamboard[(row * cols) + col] = team;
+			game.owned[team]++;
+			if ((game.owned[lt] == 0) && (game.owned[0] == 0)) {
+				if (lt) {
+                    // if (!dummy) game.buffer.push(Buffer.of(0,0,0,lt));
+					game.inGame[lt] = 0;
+					game.inGameAmount--;
+					if (!(game.spec)) {
+						onPlayerRemoved(game, lt);
+					}
+				}
+				else {
+					for (let i = 1; i < game.owned.length; i++) {
+						if (!(game.owned[i])) {
+                            // if (!dummy) game.buffer.push(Buffer.of(0,0,0,i));
+							game.inGame[i] = 0;
+							game.inGameAmount--;
+							if (!(game.spec)) {
+								onPlayerRemoved(game, i);
+							}
+						}
+					}
+				}
+			}
+			if (game.owned[team] == tiles) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+function opponent(mth, game, pln, npln) {
+	let mxsc = (-1);
+	let mxmm = 0;
+	let mr = (-1);
+	let mc = (-1);
+	let rows = game.rows;
+	let cols = game.cols;
+	for (let row = 0; row < rows; row++) {
+		for (let col = 0; col < rows; col++) {
+			let score = 0;
+			ngame = clonespec(game);
+
+			if (ngame.teamboard[(row * cols) + col] && (ngame.teamboard[(row * cols) + col] != pln)) {
+				score = (-1);
+			}
+			else {
+				if (updateboard(row, col, pln, ngame)) {
+					score = (-2);
+				}
+				else {
+					score = ngame.owned[pln];
+				}
+			}
+			
+			console.log(`${col},${row}: ${score}`);
+			if (score == (-2)) {
+				mxsc = score;
+				mxmm = 1;
+				mr = row;
+				mc = col;
+				break;
+			}
+			if (score > mxsc) {
+				mxsc = score;
+				mr = row;
+				mc = col;
+			}
+		}
+		if (mxmm) {
+			break;
+		}
+	}
+	if (mxsc == (-1)) {
+		return 0;
+	}
+	return [mr, mc];
 }

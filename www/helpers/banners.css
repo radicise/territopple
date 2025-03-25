@@ -22,7 +22,8 @@ body > div#helper-banner-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    > .helper-banner-base {
+}
+body > div#helper-banner-container > .helper-banner-base {
         border: solid 1px black;
         border-radius: 5px;
         padding: 5px;
@@ -31,21 +32,20 @@ body > div#helper-banner-container {
         grid-template-rows: 1fr;
         align-items: center;
         margin-bottom: 1px;
-    }
-    > .helper-banner-fade {
+}
+body > div#helper-banner-container > .helper-banner-fade {
         animation: helper_banner_fadeout 5s linear forwards;
-    }
-    img {
+}
+body > div#helper-banner-container > img {
         height: 1.5em;
         vertical-align: middle;
-    }
-    .info {
+}
+body > div#helper-banner-container > .info {
         color: gray;
-    }
-    .warning {
+}
+body > div#helper-banner-container > .warning {
         color: goldenrod;
-    }
-    .error {
+}
+body > div#helper-banner-container > .error {
         color: crimson;
-    }
 }
