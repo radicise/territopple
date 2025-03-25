@@ -6,3 +6,6 @@
 /prefs.json
 /www/replays
 /t2b/b
+.vscode
+/www/portno.js
+/crashlog.txt

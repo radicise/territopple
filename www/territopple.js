@@ -1,3 +1,13 @@
+{
+    const tmp = document.body.children[0].clientLeft+document.body.children[0].clientWidth;
+    document.body.style.setProperty("--banner-min-left", (window.innerWidth - tmp)/2 + tmp);
+    window.addEventListener("resize", () => {
+        // document.body.style.setProperty("--banner-min-left", document.body.children[0].clientLeft+document.body.children[0].clientWidth);
+        const tmp = document.body.children[0].clientLeft+document.body.children[0].clientWidth;
+    document.body.style.setProperty("--banner-min-left", (window.innerWidth - tmp)/2 + tmp);
+    });
+}
+
 var dbg = 1;
 // let symbs = ["!", "-", "+", "W", "&block;"];
 // let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
@@ -72,11 +82,12 @@ let t = parseInt(queries.get("t") ?? "0") || 0;
 let rows = parseInt(queries.get("h") ?? "6") || 6;
 let cols = parseInt(queries.get("w") ?? "6") || 6;
 let players = parseInt(queries.get("p") ?? "2") || 2;
-let port = parseInt(queries.get("port") ?? "8301");
+let port = parseInt(queries.get("port") ?? "noport");
 if (isNaN(port)) {
-	port = 8301;
+	// port = 8300;
+    port = null;
 }
-let host = document.location.hostname;
+let host = document.location.hostname + ":" + game_port.toString();
 
 const render3d = document.getElementById("feature-3d")?.nodeName === "META";
 if (render3d) {
@@ -97,11 +108,12 @@ if (players < 2 || players > 10) {
 
 let serv = null;
 let gameid = "--------";
-if (t) {
-    serv = `ws://${host}:${port}/?t=${t}&h=${rows}&w=${cols}&p=${players}`;
+if (t !== 0 && t !== 4) {
+    const allow_spectators = queries.get("s") ?? "1";
+    serv = `ws://${host}/?t=${t}&s=${allow_spectators}&h=${rows}&w=${cols}&p=${players}`;
 } else {
     let gameid = queries.get("g") ?? "g";
-    serv = `ws://${host}:${port}/?t=0&g=${gameid}`;
+    serv = `ws://${host}/?t=${t}&g=${gameid}`;
 }
 
 let board = new Array(cols * rows);
@@ -110,24 +122,294 @@ let teamboard = new Array(cols * rows);
 let teamboardold = new Array(cols * rows);
 let ifmt = {};
 ifmt.pln = 0;
-ifmt.room = 0;
+ifmt.room = null;
 ifmt.turn = 0;
-for (let i = (cols * rows) - 1; i >= 0; i--) {
-	board[i] = 1;
-	boardold[i] = 1;
-	teamboard[i] = 0;
-	teamboardold[i] = 0;
-}
+ifmt.team = 0;
+
+/**@type {Game} */
+let game = new Game();
+
 // display("Connecting . . .");
 createBanner({type:"info",content:"Connecting . . ."});
 if (dbg) {
 	console.log(serv);
 }
 let conn = new WebSocket(serv);
+
+/**
+ * @param {number} pNum
+ */
+function kickPlayer(pNum) {
+    if (ifmt.pln !== game.hostNum) return; // can only kick if host
+    if (ifmt.pln === pNum) return; // can't kick self
+    if (!game.playerList[pNum]) return; // player doesn't exist
+    conn.send(JSON.stringify({type:"waiting:kick",payload:{n:pNum}}));
+}
+/**
+ * @param {string} sId
+ */
+function kickSpectator(sId) {
+    if (ifmt.pln !== game.hostNum) return; // can only kick if host
+    conn.send(JSON.stringify({type:"waiting:kick",payload:{n:sId}}));
+}
+/**
+ * @param {number} pNum
+ */
+function promotePlayer(pNum) {
+    if (ifmt.pln !== game.hostNum) return; // can only promote if host
+    if (ifmt.pln === pNum) return; // can't promote self
+    if (!game.playerList[pNum]) return; // player doesn't exist
+    conn.send(JSON.stringify({type:"waiting:promote",payload:{n:pNum}}));
+}
+function rescanHostOnly() {
+    const dis = !(game.hostNum === ifmt.pln);
+    document.querySelectorAll("input.FLAG-host-only").forEach(v => v.disabled = dis);
+}
+
+// /**@type {HTMLInputElement} */
+// const readyButton = document.getElementById("readybutton");
+// let amready = false;
 conn.addEventListener("open", function(event) {
+    // readyButton.addEventListener("click", () => {
+    //     if (game.started) return;
+    //     amready = !amready;
+    //     readyButton.value = amready ? "unready" : "ready";
+    //     conn.send(JSON.stringify({type:"waiting:setready",payload:{r:amready}}));
+    // });
+    document.getElementById("pingbutton").addEventListener("click", () => {
+        if (ifmt.turn === 0) return;
+        // conn.send(`ping`);
+    });
+    document.getElementById("startbutton").addEventListener("click", () => {
+        if (!game.started && game.hostNum === ifmt.pln) {
+            conn.send(JSON.stringify({type:"waiting:start",payload:{}}));
+        }
+    });
 	// display("Connected");
     createBanner({type:"info",content:"Connected"});
 	conn.addEventListener("message", function(event) {
+        /**@type {{type:string,payload:Record<string,any>}} */
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+            // case "waiting:setready":{
+            //     game.playerList[data.payload["n"]]?.ready = data.payload["r"];
+            //     //
+            //     break;
+            // }
+            case "waiting:promote":{
+                if (game.hostNum) {
+                    const c = document.getElementById(`JLIST-player-${game.hostNum}`);
+                    if (c) {
+                        c.children[1].textContent = "Player";
+                    }
+                }
+                game.hostNum = data.payload["n"];
+                const c = document.getElementById(`JLIST-player-${game.hostNum}`);
+                if (c) {
+                    c.children[1].textContent = "Host";
+                }
+                // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                createBanner({type:"info",content:`Player ${game.hostNum} was promoted to host`});
+                rescanHostOnly();
+                break;
+            }
+            case "waiting:start":{
+                game.started = true;
+                createBanner({type:"info",content:`Game started`});
+                break;
+            }
+            case "waiting:kick":{
+                let n = data.payload["n"];
+                if (typeof n === "number") {
+                    if (ifmt.pln === n) {
+                        createBanner({type:"info",fade:false,content:"You were kicked"});
+                        conn.close();
+                        return;
+                    }
+                    createBanner({type:"info",content:`Player ${n} kicked`});
+                    removeJListPlayer(n);
+                    game.joinedPlayers --;
+                    game.playerList[n] = null;
+                    updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                } else {
+                    if (ifmt.team === -1) {
+                        if (n === ifmt.pln) {
+                            createBanner({type:"info",content:"You were kicked"});
+                            conn.close();
+                            return;
+                        }
+                    }
+                    createBanner({type:"info",content:`Spectator ${n} kicked`});
+                    removeJListSpectator(n);
+                }
+                break;
+            }
+            case "error":{
+                if (data.payload["redirect"]) {
+                    window.location.pathname = data.payload["redirect"];
+                }
+                createBanner({type:"error", fade:false, content:`${data.payload["message"]??data.payload["code"]}`});
+                break;
+            }
+            case "key:rejoin":{
+                break;
+            }
+            case "player:join":{
+                game.joinedPlayers ++;
+                game.playerList[data.payload["n"]] = {team:data.payload["t"]};
+                createBanner({type:"info",content:`Player ${data.payload['n']} has joined`});
+                updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                if (ifmt.pln !== data.payload["n"]) addJListPlayer(data.payload["n"]);
+				break;
+            }
+            case "player:leave":{
+                game.joinedPlayers --;
+                game.playerList[data.payload["n"]] = null;
+                createBanner({type:"info",content:`Player ${data.payload['n']} has left`});
+                updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                removeJListPlayer(data.payload["n"]);
+				break;
+            }
+            case "player:spectate":{
+                break;
+            }
+            case "player:ownid":{
+                ifmt.pln = data.payload["n"];
+                ifmt.team = data.payload["t"];
+                game.joinedPlayers ++;
+                updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                rescanHostOnly();
+                removeJListPlayer(ifmt.pln);
+                addJListSelf(ifmt.pln);
+                if (ifmt.room) {
+                    updScr("info", `Room ${game.ident}, Player ${ifmt.pln}`);
+                }
+                break;
+            }
+            case "spectator:join":{
+                addJListSpectator(data.payload["n"]);
+                createBanner({type:"info",content:`Spectator ${data.payload['n']} has joined`});
+                break;
+            }
+            case "spectator:leave":{
+                createBanner({type:"info",content:`Spectator ${data.payload['n']} has left`});
+                removeJListSpectator(data.payload["n"]);
+                break;
+            }
+            case "spectator:ownid":{
+                ifmt.pln = data.payload["n"];
+                ifmt.team = -1;
+                addJListSelf(data.payload["n"]);
+                if (ifmt.room) {
+                    updScr("info", `Room ${game.ident}, Spectator ${ifmt.pln}`);
+                }
+                break;
+            }
+            case "game:roomid":{
+                ifmt.room = data.payload["g"];
+                game.ident = data.payload["g"];
+                if (ifmt.pln) {
+                    if (ifmt.team === -1) {
+                        updScr("info", `Room ${game.ident}, Spectator ${ifmt.pln}`);
+                    } else {
+                        updScr("info", `Room ${game.ident}, Player ${ifmt.pln}`);
+                    }
+                }
+                break;
+            }
+            case "game:config":{
+                // rows = mesr;
+                // cols = mess;
+                rows = data.payload["h"];
+                cols = data.payload["w"];
+                players = data.payload["p"];
+                game.hostNum = data.payload["l"];
+                const c = document.getElementById(`JLIST-player-${game.hostNum}`);
+                if (c) {
+                    c.children[1].textContent = "Host";
+                }
+                // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
+                rescanHostOnly();
+                document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
+                ifmt.turn = 0;
+                game.setConfig(cols, rows, players);
+                updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                createBoard(rows, cols, game.board, game.teamboard);
+                document.getElementById("board-rendering-option").onchange = () => {
+                    createBoard(rows, cols, game.board, game.teamboard, Number(document.getElementById("board-rendering-option").value)-1);
+                };
+                break;
+            }
+            case "game:jlist":{
+                /**@type {[number, number][]} */
+                const pl = data.payload["p"];
+                /**@type {string[]} */
+                const sl = data.payload["s"];
+                for (const p of pl) {
+                    game.joinedPlayers ++;
+                    game.playerList[p[0]] = {team:p[1]};
+                    addJListPlayer(p[0]);
+                }
+                for (const s of sl) {
+                    addJListSpectator(s);
+                }
+                updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                break;
+            }
+            case "game:turn":{
+                ifmt.turn = data.payload["n"];
+                updScr("status", `Player ${data.payload["n"]}'s turn`);
+                // if (mess < 0) {
+                // }
+                // else {
+                //     let rmo = Math.floor(mess / cols);
+                //     mess = mess % cols;
+                //     updScr("status", "Player " + mesr.toString() + "\'s turn, last move was " + mess.toString() + "x" + rmo.toString());
+                // }
+                break;
+            }
+            case "game:move":{
+                const n = data.payload["n"];
+                const col = n % cols;
+                const row = (n-col)/cols;
+                console.log(rows, cols, n, data);
+                const tmu = data.payload["t"];
+                game.move(n, tmu);
+                // updateboard(row, col, tmu);
+                lastMoveId = `r${row}c${col}`;
+                if (displaySettings.highlightLastMove) {
+                    document.querySelector(".last-move")?.classList.remove("last-move");
+                    document.getElementById(lastMoveId).classList.add("last-move");
+                }
+				break;
+            }
+            case "game:win":{
+                ifmt.turn = 0;
+                {
+                    // let rmo = Math.floor(mess / cols);
+                    // mess = mess % cols;
+                    updScr("status", `Team ${data.payload['t']} won the game`);
+                    displaySettings.highlightLastMove = false;
+                    container.parentElement.style.setProperty("--blink-dark", teamcols[data.payload["t"]]+"88");
+                    container.parentElement.classList.add("blink2");
+                }
+                {
+                    /**@type {HTMLDivElement} */
+                    const da = document.getElementById("download-area");
+                    /**@type {HTMLInputElement} */
+                    const db = da.firstElementChild;
+                    /**@type {HTMLAnchorElement} */
+                    const dl = da.lastElementChild;
+                    db.onclick = ()=>{dl.click();db.onclick = undefined;};
+                    dl.href = `/replays/${ifmt.room}.topl`;
+                    dl.download = `${ifmt.room}.topl`;
+                    da.hidden = false;
+                }
+                break;
+            }
+        }
+        return;
 		var type = event.data.substring(0,4);
 		var mess = event.data.substring(4);
 		switch (type) {
@@ -147,48 +429,6 @@ conn.addEventListener("open", function(event) {
 				mess = sanint(mess);
 				// display("Disconnected by server for reason number " + mess.toString());
                 createBanner({type:"error",fade:false,content:`Disconnected by server. Error ${mess}`});
-				break;
-			case ("updt"):// ex. gr. updtr0c0_1_1;r0c1_1_2;
-                throw new Error("unresolved security issue");
-				let lst = 0;
-				while (1) {
-					let nxt = mess.indexof(";", lst + 1);
-					if (nxt == (-1)) {
-						break;
-					}
-					let dat = mess.substring(lst + 1, nxt);
-					let dspl = dat.split("_");
-					let ident = dspl[0];
-					let val = dspl[1];
-					let tm = dspl[2];
-					if (ident.split(0, 1) != "r") {
-						recvInval("2");
-						lst = nxt;
-						continue;
-					}
-					dat = sanint(val);
-					if ((dat < 1) || (dat >= 5)) {
-						recvInval("4");
-						lst = nxt;
-						continue;
-					}
-					let symb = symbs[dat];
-					dat = sanint(tm);
-					if ((dat < 0) || (dat >= teamcol.length)) {
-						recvInval("6");
-						lst = nxt;
-						continue;
-					}
-					let tcol = teamcols[dat];
-					dat = document.getElementById(ident);
-					if (dat === null) {
-						lst = nxt;
-						continue;
-					}
-					dat.style.color = tcol;
-					dat.innerHTML = symb;
-					lst = nxt;
-				}// TODO Adjust board and teamboard
 				break;
 			case ("pcmt"):// ex. gr. pcmtr0c0_1
 				if (dbg) {
@@ -323,6 +563,7 @@ conn.addEventListener("open", function(event) {
 		if (dbg) {
 			console.log("Click on board");
 		}
+        if (!game.started) return;
 		if (!(ifmt.turn)) {
 			return;
 		}
@@ -347,10 +588,11 @@ conn.addEventListener("open", function(event) {
 			return;
 		}
 		mes = (mes * cols) + meg;
-		if ((teamboard[mes]) && (teamboard[mes] != ifmt.pln)) {
+		if ((game.teamboard[mes]) && (game.teamboard[mes] != ifmt.pln)) {
 			return;
 		}
-		conn.send("move" + d);
+		// conn.send("move" + d);
+        conn.send(JSON.stringify({type:"game:move",payload:{n:mes}}));
 		return;
 	});
 	return;

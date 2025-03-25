@@ -16,7 +16,7 @@
 }
 body > div#helper-banner-container {
     position: absolute;
-    left: 50vw;
+    left: max(calc(1px * var(--banner-min-left)), 50vw);
     transform: translateX(-50%);
     top: 15px;
     display: flex;

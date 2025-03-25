@@ -1,15 +1,13 @@
 {
-    "GAMEPORT":8301,
-    "WEBPORT":8300,
-    "LISTPORT": 8302,
+    "GAMEPORT":81,
+    "WEBPORT":80,
     "WEBCONTENT_DIR":"www",
+    "APPEASEMENT": false,
     "URL_MAP": {
         "": "/index.html",
         "/": "/index.html",
         "/?FAVICONS?": "/favicon/?1?",
         "/three/?ANY?": "/../node_modules/three/?1?",
-        "/SPECIAL:THREEJS": "/../node_modules/three/build/three.module.js",
-        "/SPECIAL:THREEJSADDONS/?ANY?": "/../node_modules/three/examples/jsm/?1?",
         "/helpers/banners/?ANY?": "/helpers/banners.css",
         "/tutorial": "/tutorial/tutorial.html"
     },

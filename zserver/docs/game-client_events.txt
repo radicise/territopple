@@ -1,0 +1,40 @@
+GAME TO CLIENT:
+    waiting:
+        promote (n [player num]: number)
+        start (void)
+        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
+        setready (n [player num]: number, r [ready]: boolean)
+    error: (code: number, message: string | null, redirect: string | null)
+    key:
+        rejoin (key: string)
+    player:
+        join (n [player num]: number, t [team id]: number)
+        leave (n [player num]: number)
+        switch (n [player num]: number, t [team id]: number)
+        spectate (n [player num]: number, id [spectator id]: string)
+        ownid (n [player num]: number, t [team id]: number)
+    spectator:
+        join (n [spectator id]: string)
+        leave (n [spectator id]: string)
+        ownid (n [spectator id]: string)
+    game:
+        roomid (g [room id]: string)
+        config (w [width]: number, h [height]: number, p [max players]: number, l [host player num]: number)
+        jlist (p [player list]: [number [player num], number [team id]][], s [spectator list]: string[])
+        turn (n [player num]: number)
+        move (n [tile num]: number, t [team id]: number)
+        win (t [team id]: number)
+
+CLIENT TO GAME:
+    waiting:
+        leave (void)
+        start (void)
+        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
+        promote (n [player num]: number)
+        setready (r [ready]: boolean)
+    spectator:
+        leave (void)
+    player:
+        leave (void)
+    game:
+        move (n [tile num]: number)

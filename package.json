@@ -1,10 +1,14 @@
 {
   "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-ws": "^5.0.2",
     "three": "^0.173.0",
     "ws": "^8.18.0"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node proc_wrap.js zserver/userver.js",
+    "dev": "node proc_wrap.js zserver/userver.js --eval-stdin"
   },
   "name": "territopple",
   "version": "1.0.0",

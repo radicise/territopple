@@ -1,6 +1,6 @@
 let table = document.getElementById("roomRows");
 let host = document.location.hostname;
-fetch(`http://${host}:8302/serverlist`,
+fetch(`http://${host}:${game_port}/serverlist`,
       {
           method: "GET",
       })
@@ -10,57 +10,74 @@ fetch(`http://${host}:8302/serverlist`,
 		return;
 	}
 	response.text().then((text) => {
-	    for (const game of text.split(";")) {
-		    if (game === "") {
-			continue;
+        /**@type {{ident:string,capacity:number,playing:number,spectating:number,width:number,height:number,can_spectate:boolean}[]} */
+        const games = JSON.parse(text);
+	    for (const game of games) {
+		    if (!game) {
+			    continue;
 		    }
-		    const properties = game.split("_");
 
-		    const identifier = properties[0];
-		    const width      = properties[1];
-		    const height     = properties[2];
-		    const status     = properties[3];
-		    const observers  = properties[4];
-		    const players    = properties[5];
-		    const capacity   = properties[6];
+		    // const identifier = properties[0];
+		    // const width      = properties[1];
+		    // const height     = properties[2];
+		    // const status     = properties[3];
+		    // const observers  = properties[4];
+		    // const players    = properties[5];
+		    // const capacity   = properties[6];
 
 		    const row = document.createElement("tr");
 		    row.scope = "row";
 
                     const link = document.createElement("a");
-                    link.appendChild(document.createTextNode(identifier));
-                    link.href = `http://${document.location.host}/territopple.html?t=0&g=${identifier}&w=${width}&h=${height}&p=${capacity}`;
+                    link.textContent = game.ident;
+                    // link.appendChild(document.createTextNode(game.ident));
+                    link.href = `http://${document.location.host}/territopple?t=0&g=${game.ident}`;
 
 		    const roomEntry = document.createElement("td");
 		    roomEntry.appendChild(link);
 		    row.appendChild(roomEntry);
 
 		    const sizeEntry = document.createElement("td");
-		    sizeEntry.appendChild(document.createTextNode(`${width}x${height}`));
+		    sizeEntry.appendChild(document.createTextNode(`${game.width}x${game.height}`));
 		    row.appendChild(sizeEntry);
 		    
 		    const statusEntry = document.createElement("td");
-		    statusEntry.appendChild(document.createTextNode(status ? "In progress" : "Waiting for players"));
+		    statusEntry.appendChild(document.createTextNode(false ? "In progress" : "Waiting for players"));
 		    row.appendChild(statusEntry);
 		    
 		    const playerEntry = document.createElement("td");
-		    playerEntry.appendChild(document.createTextNode(players));
+		    playerEntry.appendChild(document.createTextNode(game.playing));
 		    row.appendChild(playerEntry);
 		    
 		    const capacityEntry = document.createElement("td");
-		    capacityEntry.appendChild(document.createTextNode(capacity));
+		    capacityEntry.appendChild(document.createTextNode(game.capacity));
 		    row.appendChild(capacityEntry);
+
+            const spectatingEntry = document.createElement("td");
+            spectatingEntry.appendChild(document.createTextNode(game.spectating));
+            row.append(spectatingEntry);
+
+            const sLinkEntry = document.createElement("td");
+            let spectateLink = document.createElement("a");
+            if (game.can_spectate) {
+                spectateLink.textContent = "(spectate)";
+                spectateLink.href = `http://${document.location.host}/territopple.html?t=4&g=${game.ident}`;
+            } else {
+                spectateLink = document.createElement("span");
+                spectateLink.textContent = "(disabled)";
+            }
+            sLinkEntry.appendChild(spectateLink);
+            row.append(sLinkEntry);
 
 		    table.appendChild(row);
 	    }
-            if (roomRows.children.length) {
-                document.getElementById("fetchingMessage").hidden = true;
-                document.getElementById("roomTable").removeAttribute("hidden");
-            } else {
-                document.getElementById("fetchingMessage").innerText = "No public rooms";
-            }
+        if (roomRows.children.length) {
+            document.getElementById("fetchingMessage").hidden = true;
+            document.getElementById("roomTable").removeAttribute("hidden");
+        } else {
+            document.getElementById("fetchingMessage").innerText = "No public rooms";
+        }
 
-            console.log("Public rooms fetched");
-
+        console.log("Public rooms fetched");
 	});
-    });
+});

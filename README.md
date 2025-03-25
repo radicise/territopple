@@ -11,7 +11,7 @@ This can in turn cause those tiles to topple as well. If a tile topples onto a t
 If a player has no valid moves, they lose. The game ends when one person owns all the tiles on the board.
 
 # Computer-based Game Interface
-The game implementation exists a clients-and-server system accessible as a web page, using on the host's side by default the incoming ports 8300, 8301, and 8302.
+The game implementation exists a clients-and-server system accessible as a web page, using on the host's side by default the incoming ports 80 and 81.
 The webpages are to be hosted by HTTP, and the rest of the server is written for Node.js.
-To run the server, the 'server.js' is to be run with the working directory being the root of the repository and and '/www' directory is to be hosted as the root directory of an HTTP server.
+To run the server, run 'npm run start' with the working directory being the root of the repository with the '/www' directory hosted as the root directory of an HTTP server.
 Connecting clients may then open '/index.html' on a modern web browser and play the game.

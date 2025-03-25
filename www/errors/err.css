@@ -1,0 +1,13 @@
+div {
+    display: flex;
+    flex-direction: column;
+    /* align-content: space-around; */
+    align-items: center;
+    position: absolute;
+    left: 50vw;
+    transform: translateX(-50%);
+}
+div > * {
+    width: fit-content;
+    height: fit-content;
+}
