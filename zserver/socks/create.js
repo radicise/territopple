@@ -11,12 +11,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     const width = Number.parseInt(args["width"]);
     const height = Number.parseInt(args["height"]);
     const playerCapacity = Number.parseInt(args["players"]);
+    const allowSpectators = args["spectators"];
     const useid = args["id"];
     if (Number.isNaN(width) || Number.isNaN(height) || Number.isNaN(playerCapacity)) {
         change("error", {code:1,data:"Invalid Parameters"});
         return;
     }
-    state.game = new Game(useid, playerCapacity, {rows:height,cols:width,public:public,observable:true});
+    state.game = new Game(useid, playerCapacity, {rows:height,cols:width,public:public,observable:allowSpectators});
     state.game.addPlayer(sock);
     state.playerNum = 1;
     state.spectating = false;

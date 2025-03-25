@@ -109,7 +109,8 @@ if (players < 2 || players > 10) {
 let serv = null;
 let gameid = "--------";
 if (t !== 0 && t !== 4) {
-    serv = `ws://${host}/?t=${t}&h=${rows}&w=${cols}&p=${players}`;
+    const allow_spectators = queries.get("s") ?? "1";
+    serv = `ws://${host}/?t=${t}&s=${allow_spectators}&h=${rows}&w=${cols}&p=${players}`;
 } else {
     let gameid = queries.get("g") ?? "g";
     serv = `ws://${host}/?t=${t}&g=${gameid}`;

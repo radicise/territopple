@@ -10,7 +10,7 @@ fetch(`http://${host}:${game_port}/serverlist`,
 		return;
 	}
 	response.text().then((text) => {
-        /**@type {{ident:string,capacity:number,playing:number,spectating:number,width:number,height:number}[]} */
+        /**@type {{ident:string,capacity:number,playing:number,spectating:number,width:number,height:number,can_spectate:boolean}[]} */
         const games = JSON.parse(text);
 	    for (const game of games) {
 		    if (!game) {
@@ -57,10 +57,15 @@ fetch(`http://${host}:${game_port}/serverlist`,
             spectatingEntry.appendChild(document.createTextNode(game.spectating));
             row.append(spectatingEntry);
 
-            const spectateLink = document.createElement("a");
-            spectateLink.textContent = "(spectate)";
-            spectateLink.href = `http://${document.location.host}/territopple.html?t=4&g=${game.ident}`;
             const sLinkEntry = document.createElement("td");
+            let spectateLink = document.createElement("a");
+            if (game.can_spectate) {
+                spectateLink.textContent = "(spectate)";
+                spectateLink.href = `http://${document.location.host}/territopple.html?t=4&g=${game.ident}`;
+            } else {
+                spectateLink = document.createElement("span");
+                spectateLink.textContent = "(disabled)";
+            }
             sLinkEntry.appendChild(spectateLink);
             row.append(sLinkEntry);
 

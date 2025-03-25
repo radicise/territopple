@@ -146,7 +146,7 @@ ws_server.on("connection", (sock, req) => {
         case 4:
         case 0:socks.handle("join", sock, {"id":params.get("g"), "asSpectator":connType===4}, state);break;
         case 1:
-        case 2:if(SERVER_TOOL_FLAGS.REJECT_CREATE)return socks.handle("error", sock, {data:"The server is not currently accepting room creation requests",redirect:"/no-create"}, state);socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "id":genCode()}, state);break;
+        case 2:if(SERVER_TOOL_FLAGS.REJECT_CREATE)return socks.handle("error", sock, {data:"The server is not currently accepting room creation requests",redirect:"/no-create"}, state);socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "spectators":(params.get("s")??"1")==="1", "id":genCode()}, state);break;
         case 3:socks.handle("rejoin", sock, {"id":params.get("g"), "n":params.get("i"), "key":params.get("k")}, state);break;
     }
     // sock.on("message", (data, bin) => {
@@ -154,7 +154,7 @@ ws_server.on("connection", (sock, req) => {
 });
 
 function formatServerList() {
-    const arr = Object.values(games).filter(v => v.state.public).sort((a, b) => a.sort_key - b.sort_key);
+    const arr = Object.values(games).filter(v => v.state.public).sort((a, b) => Number(a.sort_key - b.sort_key));
     return JSON.stringify(arr.slice(0, Math.min(50, arr.length)).map(v => {
         return {
             ident:v.ident,
@@ -162,7 +162,8 @@ function formatServerList() {
             playing:v.stats.playing,
             spectating:v.stats.spectating,
             width:v.state.cols,
-            height:v.state.rows
+            height:v.state.rows,
+            can_spectate:v.state.observable
         };
     }));
 }
