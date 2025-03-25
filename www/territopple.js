@@ -244,6 +244,9 @@ conn.addEventListener("open", function(event) {
                 break;
             }
             case "error":{
+                if (data.payload["redirect"]) {
+                    window.location.pathname = data.payload["redirect"];
+                }
                 createBanner({type:"error", fade:false, content:`${data.payload["message"]??data.payload["code"]}`});
                 break;
             }

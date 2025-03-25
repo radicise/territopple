@@ -27,7 +27,8 @@ game:
         move (n [tile num]: number, p [player num]: number)
 
 HANDLER ARGS:
-    error (code: number, data: string)
+    ~~error (code: number, data: string)~~
+    error (data: string, redirect?: string)
     join (id [game id]: string, asSpectator: boolean)
     leave (isHost: boolean)
     waiting (isHost: boolean)

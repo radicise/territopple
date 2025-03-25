@@ -441,10 +441,11 @@ class NetData {
     /**
      * @param {number} code
      * @param {string?} data
+     * @param {string?} redirect
      * @returns {string}
      */
-    static Error(code, data) {
-        return this.Misc("error", {code, message:data??null});
+    static Error(code, data, redirect) {
+        return this.Misc("error", {code, message:data??null, redirect:redirect??null});
     }
     static Waiting = class {
         /**

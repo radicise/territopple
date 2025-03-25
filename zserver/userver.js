@@ -3,6 +3,21 @@ const { settings, Game, codeChars, extend, emit, on, clear, NetData } = require(
 
 const __dname = process.cwd();
 
+/**
+ * @description
+ * these flags allow parts of the server to be selectively disabled or have altered behavior
+ */
+const SERVER_TOOL_FLAGS = {
+    /**
+     * causes the server to respond to all requests (except GET requests targeting error pages, www/errors/err.css, www/_icons.js, and tab icons) with a 503 error
+     */
+    SYS_DOWN: false,
+    /**
+     * causes the server to immediately close all incoming room creation connections with an appropriate error
+     */
+    REJECT_CREATE: false
+};
+
 /**@type {Record<string, Game>} */
 const games = {};
 let GAME_COUNTER = 0n;
@@ -93,14 +108,6 @@ function terminateGame(id) {
     games[id].kill();
     delete games[id];
 }
-// on("main", "player:spectate", (data, tag) => {
-//     /**@type {string} */
-//     const gameid = data["#gameid"];
-//     const c = games[gameid].players[data["n"]].conn;
-//     games[gameid].removePlayer(data["n"]);
-//     const id = games[gameid].addSpectator(c);
-//     emit("main", `#META:${tag}`, {"#gameid":gameid,"#id":id});
-// });
 const { GlobalState } = require("./types.js");
 let express, ex_server, main_server;
 if (!settings.APPEASEMENT) {
@@ -108,7 +115,7 @@ if (!settings.APPEASEMENT) {
     ex_server = express();
     main_server = http.createServer({}, ex_server);
 } else {
-    main_server = http.createServer((requ, resp) => {// TODO Check request target
+    main_server = http.createServer((requ, resp) => {
         const reqpath = url.parse(requ.url).pathname;
         switch (reqpath) {
             case "/serverlist":
@@ -139,7 +146,7 @@ ws_server.on("connection", (sock, req) => {
         case 4:
         case 0:socks.handle("join", sock, {"id":params.get("g"), "asSpectator":connType===4}, state);break;
         case 1:
-        case 2:socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "id":genCode()}, state);break;
+        case 2:if(SERVER_TOOL_FLAGS.REJECT_CREATE)return socks.handle("error", sock, {data:"The server is not currently accepting room creation requests",redirect:"/no-create"}, state);socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "id":genCode()}, state);break;
         case 3:socks.handle("rejoin", sock, {"id":params.get("g"), "n":params.get("i"), "key":params.get("k")}, state);break;
     }
     // sock.on("message", (data, bin) => {
@@ -165,8 +172,34 @@ if (!settings.APPEASEMENT) {
     serverListRouter.use((req, res, next) => {
         res.send(formatServerList());
     });
+    ex_server.use("/", (req, res, next) => {
+        if (!SERVER_TOOL_FLAGS.SYS_DOWN) {
+            return next();
+        }
+        const p = _path.relative(_path.join(__dname, "www"), _path.resolve(__dname, _path.join("www", req.path)));
+        // console.log("RUNNING: " + p);
+        if (!(["_icons.js","errors/err.css"].includes(p) || /^favicon\/.+$/.test(p))) {
+            res.sendFile(_path.resolve(__dname, "www/errors/503.html"));
+            return;
+        }
+        next();
+    });
     ex_server.use("/serverlist", serverListRouter);
-    ex_server.use("/", express.static(_path.resolve(__dname, "www")));
+    ex_server.get("/territopple(.html)?", (req, res, next) => {
+        if (!SERVER_TOOL_FLAGS.REJECT_CREATE) {
+            return next();
+        }
+        const t = req.query.t;
+        // console.log("running: " + t);
+        if (t === '1' || t === '2') {
+            res.redirect("/no-create");
+            return;
+        }
+        next();
+    });
+    ex_server.use("/", express.static(_path.resolve(__dname, "www"), {extensions:["html"]}));
+    ex_server.get("/no-create", (req, res) => {res.sendFile(_path.resolve(__dname, "www/errors/no_create.html"));});
+    ex_server.get("*", (req, res) => {res.sendFile(_path.resolve(__dname, "www/errors/404.html"));});
 }
 // ex_server.get()
 

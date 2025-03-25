@@ -31,7 +31,7 @@ fetch(`http://${host}:${game_port}/serverlist`,
                     const link = document.createElement("a");
                     link.textContent = game.ident;
                     // link.appendChild(document.createTextNode(game.ident));
-                    link.href = `http://${document.location.host}/territopple.html?t=0&g=${game.ident}`;
+                    link.href = `http://${document.location.host}/territopple?t=0&g=${game.ident}`;
 
 		    const roomEntry = document.createElement("td");
 		    roomEntry.appendChild(link);
