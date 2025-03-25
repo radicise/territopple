@@ -127,7 +127,7 @@ if (!settings.APPEASEMENT) {
         const reqpath = url.parse(requ.url).pathname;
         switch (reqpath) {
             case "/serverlist":
-                resp.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
+                resp.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"});
                 resp.end(formatServerList());
                 return;
             default:
@@ -187,6 +187,7 @@ function formatServerList() {
 if (!settings.APPEASEMENT) {
     const serverListRouter = express.Router();
     serverListRouter.use((req, res, next) => {
+        res.set("Content-Type", "application/json");
         res.send(formatServerList());
     });
     ex_server.use("/", (req, res, next) => {
