@@ -15,7 +15,11 @@ const SERVER_TOOL_FLAGS = {
     /**
      * causes the server to immediately close all incoming room creation connections with an appropriate error
      */
-    REJECT_CREATE: false
+    REJECT_CREATE: false,
+    /**
+     * if the request ip address is either localhost or machine loopback, ignore the SYS_DOWN flag
+     */
+    LOCAL_UP: true
 };
 
 /**@type {Record<string, Game>} */
@@ -58,6 +62,10 @@ if (!fs.existsSync("replays")) {
 const _path = require("path");
 if (!fs.existsSync("www/replays")) {
     fs.symlinkSync(_path.join(__dname, "replays"), _path.join(__dname, "www/replays"));
+}
+const CRASHLOG = _path.resolve(__dname, "crashlog.txt");
+if (!fs.existsSync(CRASHLOG)) {
+    fs.writeFileSync(CRASHLOG, "", {encoding:"utf-8"});
 }
 const http = require("http");
 // const net = require("net");
@@ -142,12 +150,20 @@ ws_server.on("connection", (sock, req) => {
     }
     const connType = Number(params.get("t"));
     let state = {};
-    switch (connType) {
-        case 4:
-        case 0:socks.handle("join", sock, {"id":params.get("g"), "asSpectator":connType===4}, state);break;
-        case 1:
-        case 2:if(SERVER_TOOL_FLAGS.REJECT_CREATE)return socks.handle("error", sock, {data:"The server is not currently accepting room creation requests",redirect:"/no-create"}, state);socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "spectators":(params.get("s")??"1")==="1", "id":genCode()}, state);break;
-        case 3:socks.handle("rejoin", sock, {"id":params.get("g"), "n":params.get("i"), "key":params.get("k")}, state);break;
+    try {
+        switch (connType) {
+            case 4:
+            case 0:socks.handle("join", sock, {"id":params.get("g"), "asSpectator":connType===4}, state);break;
+            case 1:
+            case 2:if(SERVER_TOOL_FLAGS.REJECT_CREATE)return socks.handle("error", sock, {data:"The server is not currently accepting room creation requests",redirect:"/no-create"}, state);socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "spectators":(params.get("s")??"1")==="1", "id":genCode()}, state);break;
+            case 3:socks.handle("rejoin", sock, {"id":params.get("g"), "n":params.get("i"), "key":params.get("k")}, state);break;
+        }
+    } catch (E) {
+        fs.appendFileSync(CRASHLOG, `\n${new Date()} - WEBSOCKET\n${E.stack}\n`, {encoding:"utf-8"});
+        if (sock.readyState === sock.OPEN) {
+            sock.send("{\"type\":\"error\",\"payload\":{\"code\":0,\"message\":\"unkown error occurred\"}}");
+        }
+        setTimeout(sock.terminate, 250);
     }
     // sock.on("message", (data, bin) => {
     // });
@@ -176,6 +192,12 @@ if (!settings.APPEASEMENT) {
     ex_server.use("/", (req, res, next) => {
         if (!SERVER_TOOL_FLAGS.SYS_DOWN) {
             return next();
+        }
+        if (SERVER_TOOL_FLAGS.LOCAL_UP) {
+            // console.log(req.ip);
+            if (["127.0.0.1", "0.0.0.0", "::1", "::ffff:127.0.0.1"].includes(req.ip)) {
+                return next();
+            }
         }
         const p = _path.relative(_path.join(__dname, "www"), _path.resolve(__dname, _path.join("www", req.path)));
         // console.log("RUNNING: " + p);
@@ -212,9 +234,61 @@ main_server.listen(settings.APPEASEMENT ? settings.GAMEPORT : settings.WEBPORT);
 //     console.log(`LINE: ${l}`);
 //     console.log(eval(l));
 // });
-if (process.argv.includes("--eval-stdin")) {
-    process.stdin.on("data", (d) => {
-        const l = d.toString("utf-8");
-        console.log(eval(l));
-    });
-}
+process.stdin.on("data", (d) => {
+    const l = d.toString("utf-8");
+    const parts = l.split(/:|;/).map(v => v.trim());
+    const uparts = parts.map(v => v.toUpperCase());
+    // console.log(parts);
+    // console.log(uparts);
+    const p1 = uparts[0];
+    switch (p1) {
+        case "TOOL":
+            if (parts.length < 3) {
+                if (uparts[1] === "LIST") {
+                    console.log(Object.keys(SERVER_TOOL_FLAGS));
+                    return;
+                }
+                console.error("INCOMPLETE SERVERTOOL COMMAND");
+                return;
+            }
+            const method = uparts[1];
+            const toolname = isNaN(uparts[2]) ? uparts[2].replaceAll("-","_") : Object.keys(SERVER_TOOL_FLAGS)[Number(parts[2])];
+            if (!(toolname in SERVER_TOOL_FLAGS)) {
+                console.error("BAD TOOLNAME");
+                return;
+            }
+            switch (method) {
+                case "GET":
+                    console.log(`TOOL:${toolname} is ${SERVER_TOOL_FLAGS[toolname]}`);
+                    return;
+                case "SET":
+                    if (parts.length < 4) {
+                        console.error("INCOMPLETE SERVERTOOL SET");
+                        return;
+                    }
+                    const value = parts[3].toLowerCase();
+                    const vidx = ["true","false","on","off","enabled","disabled","1","0","y","n"].indexOf(value);
+                    if (vidx === -1) {
+                        console.error("BAD SERVERTOOL SET VALUE");
+                        return;
+                    }
+                    SERVER_TOOL_FLAGS[toolname] = vidx%2 === 0;
+                    console.log(`TOOL:${toolname} = ${vidx%2===0}`);
+                    return;
+                default:
+                    console.error("BAD SERVERTOOL METHOD");
+                    return;
+            }
+        default:
+            if (process.argv.includes("--eval-stdin")) {
+                try {
+                    console.log(eval(l));
+                } catch (E) {
+                    console.error(E.stack);
+                }
+            } else {
+                console.error("UNRECOGNIZED COMMAND");
+            }
+            break;
+    }
+});
