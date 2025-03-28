@@ -303,6 +303,7 @@ class Game {
  * @type {{
  * GAMEPORT:number,
  * WEBPORT:number,
+ * REJOIN_TIME:number,
  * APPEASEMENT:boolean,
  * WEBCONTENT_DIR:string,
  * URL_MAP:Record<string,string>,

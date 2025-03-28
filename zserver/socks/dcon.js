@@ -17,7 +17,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             return;
         }
         change("leave", {isHost:args.isHost});
-    }, 1000);
+    }, globals.settings.REJOIN_TIME);
     })();
     return {messageL, closeL, errorL};
 };
