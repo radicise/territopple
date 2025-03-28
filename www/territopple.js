@@ -108,12 +108,19 @@ if (players < 2 || players > 10) {
 
 let serv = null;
 let gameid = "--------";
-if (t !== 0 && t !== 4) {
-    const allow_spectators = queries.get("s") ?? "1";
-    serv = `ws://${host}/?t=${t}&s=${allow_spectators}&h=${rows}&w=${cols}&p=${players}`;
+if (sessionStorage.getItem("rejoin_key") !== null) {
+    gameid = sessionStorage.getItem("rejoin_g");
+    let pn = sessionStorage.getItem("rejoin_p");
+    let rkey = sessionStorage.getItem("rejoin_key");
+    serv = `ws://${host}/?t=3&g=${gameid}&i=${pn}&k=${rkey}`;
 } else {
-    let gameid = queries.get("g") ?? "g";
-    serv = `ws://${host}/?t=${t}&g=${gameid}`;
+    if (t > 0 && t < 3) {
+        const allow_spectators = queries.get("s") ?? "1";
+        serv = `ws://${host}/?t=${t}&s=${allow_spectators}&h=${rows}&w=${cols}&p=${players}`;
+    } else {
+        gameid = queries.get("g") ?? "g";
+        serv = `ws://${host}/?t=${t}&g=${gameid}`;
+    }
 }
 
 let board = new Array(cols * rows);
@@ -257,6 +264,7 @@ conn.addEventListener("open", function(event) {
         }
         /**@type {{type:string,payload:Record<string,any>}} */
         const data = JSON.parse(event.data);
+        console.log(data.type);
         switch (data.type) {
             // case "waiting:setready":{
             //     game.playerList[data.payload["n"]]?.ready = data.payload["r"];
@@ -417,6 +425,9 @@ conn.addEventListener("open", function(event) {
                 /**@type {string[]} */
                 const sl = data.payload["s"];
                 for (const p of pl) {
+                    if (ifmt.pln) {
+                        if (p[0] === ifmt.pln) continue;
+                    }
                     game.joinedPlayers ++;
                     game.playerList[p[0]] = {team:p[1]};
                     addJListPlayer(p[0]);
@@ -425,6 +436,10 @@ conn.addEventListener("open", function(event) {
                     addJListSpectator(s);
                 }
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
+                break;
+            }
+            case "game:reconnected":{
+                game.started = true;
                 break;
             }
             case "game:turn":{

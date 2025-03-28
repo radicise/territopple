@@ -544,12 +544,19 @@ class NetData {
             return this.Misc("config", {w:width,h:height,p:maxPlayers,l:hostNum});
         }
         /**
-         * @param {[number, number][]} players
-         * @param {string[]} spectators
+         * @param {Game} game
          * @returns {string}
          */
-        static JList(players, spectators) {
+        static JList(game) {
+            const players = game.players.map((v, i) => v ? [i, v.team] : null).filter(v => v !== null);
+            const spectators = Object.keys(game.spectators)
             return this.Misc("jlist", {p:players,s:spectators});
+        }
+        /**
+         * @returns {string}
+         */
+        static Reconnected() {
+            return this.Misc("reconnected");
         }
     }
     static Bin = class {

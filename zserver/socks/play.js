@@ -29,11 +29,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
     errorL = () => {
-        change("leave");
+        change("dcon");
     };
     sock.on("error", errorL);
     closeL = () => {
-        change("leave");
+        change("dcon");
     };
     sock.on("close", closeL);
     messageL = (_data) => {

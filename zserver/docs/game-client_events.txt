@@ -24,6 +24,7 @@ GAME TO CLIENT:
         turn (n [player num]: number)
         move (n [tile num]: number, t [team id]: number)
         win (t [team id]: number)
+        reconnected ()
 
 BINARY GAME TO CLIENT:
     0:

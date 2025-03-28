@@ -15,7 +15,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         return;
     }
     const game = globals.state.games[rgameId];
-    const pack = NetData.Game.JList(game.players.map((v, i) => v ? [i, v.team] : null).filter(v => v !== null), Object.keys(game.spectators));
+    const pack = NetData.Game.JList(game);
     if (args.asSpectator??false) {
         if (!game.state.observable) {
             change("error", {data:"spectators aren't allowed in this room"});
