@@ -26,6 +26,8 @@ class Player {
         this.rejoin_key = crypto.randomBytes(64).toString("base64url");
         /**@type {boolean} */
         this.ready = false;
+        /**@type {number} */
+        this.dcon_timer = null;
     }
     /**
      * regenerates the rejoin key, returns the new key for convenience
@@ -75,7 +77,7 @@ class Game {
         this.state = {
             rows: state.rows,
             cols: state.cols,
-            board: new Array(state.rows*state.cols).fill(0),
+            board: new Array(state.rows*state.cols).fill(1),
             teamboard: new Array(state.rows*state.cols).fill(0),
             owned: new Array(players+1).fill(0),
             move: -1,
@@ -432,10 +434,12 @@ class NetData {
         }
         /**
          * @param {string} key
+         * @param {string} gameid
+         * @param {number} playerNum
          * @returns {string}
          */
-        static Rejoin(key) {
-            return this.Misc("rejoin", {key});
+        static Rejoin(key, gameid, playerNum) {
+            return this.Misc("rejoin", {key, g:gameid, p:playerNum});
         }
     }
     /**
@@ -546,6 +550,119 @@ class NetData {
          */
         static JList(players, spectators) {
             return this.Misc("jlist", {p:players,s:spectators});
+        }
+    }
+    static Bin = class {
+        /**
+         * @param {Game} game
+         * @returns {Buffer}
+         */
+        static Board(game) {
+            /**@type {bigint[]} */
+            let d = [];
+            /**@type {number[]} */
+            let dnew = [];
+            let bposnew = 8;
+            const pushbitsnew = (bits, n) => {
+                if (bpos === 8) {
+                    bpos = 0;
+                    d.push(0);
+                }
+                if (bpos + n > 8) {
+                    const n1 = 8 - bpos;
+                    const n2 = n - n1;
+                    pushbits(bits>>n2, n1);
+                    pushbits(bits, n2);
+                    return;
+                }
+                const p = d.length - 1;
+                // console.log(bits, n);
+                d[p] = d[p] | (((bits&(0xff>>(8-n)))<<(8-bpos))&0xff);
+                bpos += n;
+            }
+            let bpos = 64n;
+            const pushbits = (bits, n) => {
+                bits = BigInt(bits);
+                n = BigInt(n);
+                if (bpos === 64n) {
+                    bpos = 0n;
+                    d.push(0n);
+                }
+                if (bpos + n > 64n) {
+                    const n1 = 64n - bpos;
+                    const n2 = n - n1;
+                    pushbits(bits>>n2, n1);
+                    pushbits(bits, n2);
+                    return;
+                }
+                // console.log(`${bits}, ${n}`);
+                const p = d.length-1;
+                for (let i = n-1n; i >= 0n; i --) {
+                    d[p] = d[p] | (((bits>>i)&1n)<<(63n-bpos));
+                    // d[p] = d[p] | (((n>>i)&1n)<<(bpos));
+                    bpos ++;
+                }
+            };
+            const bb = game.state.board;
+            const tb = game.state.teamboard;
+            // let i = 0;
+            // for (let row = 0; row < game.state.rows; row ++) {
+            //     for (let col = 0; col < game.state.cols; col ++) {
+            //         if ((row === 0 || row === mrow))
+            //         i ++;
+            //     }
+            // }
+            const bleft = game.state.rows * (game.state.cols - 1) - 1;
+            const bright = bb.length - 1;
+            for (let i = 0; i < bb.length; i ++) {
+                if (i === 0 || i === game.state.cols-1 || i === bleft || i === bright) {
+                    pushbits(bb[i] - 1, 1);
+                } else {
+                    pushbits(bb[i] - 1, 2);
+                }
+                // console.log(d.map(v => v.toString(2)));
+            }
+            // console.log(Buffer.from(d).toString("hex"));
+            let count = 1;
+            let curr = tb[0];
+            for (let i = 1; i < tb.length; i ++) {
+                if (tb[i] === curr) {
+                    count ++;
+                    if (count === 17) {
+                        pushbits(1, 1);
+                        pushbits(curr, 3);
+                        pushbits(15, 4);
+                        count = 1;
+                    }
+                    continue;
+                }
+                if (count > 1) {
+                    pushbits(1, 1);
+                    pushbits(curr, 3);
+                    pushbits(count-1, 4);
+                } else {
+                    pushbits(0, 1);
+                    pushbits(curr, 3);
+                }
+                count = 1;
+                curr = tb[i];
+            }
+            if (count > 1) {
+                pushbits(1, 1);
+                pushbits(curr, 3);
+                pushbits(count-1, 4);
+            } else {
+                pushbits(0, 1);
+                pushbits(curr, 3);
+            }
+            // console.log(d.map(v => v.toString(2).padStart(64, '0')));
+            // Buffer.of().toString("")
+            // return Buffer.concat([Buffer.of(0), Buffer.from(d)]);
+            let buff = Buffer.alloc(d.length*8);
+            for (let i = 0; i < d.length; i ++) {
+                buff.writeBigUInt64BE(d[i], i*8);
+            }
+            return Buffer.concat([Buffer.of(0), buff]);
         }
     }
 }

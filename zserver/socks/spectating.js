@@ -7,6 +7,12 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let closeL;
     let errorL;
     (() => {
+    {
+        const g = state.game;
+        sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum), () => {
+            sock.send(NetData.Bin.Board(g), {"binary":true});
+        });
+    }
     on("game:out:move", (data) => {
         sock.send(NetData.Game.Move(data["n"], data["t"]));
     });

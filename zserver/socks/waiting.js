@@ -13,7 +13,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     // }
     {
         const g = state.game;
-        sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum));
+        if (!state.spectating) {
+            sock.send(NetData.Key.Rejoin(g.players[state.playerNum].rejoin_key, g.ident, state.playerNum));
+        }
+        sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum), () => {
+            // sock.send(NetData.Bin.Board(state.game), {"binary":true});
+        });
+        // sock.send(Buffer.of(10,10), {"binary":true});
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {
         //         if (g.players[i].ready) {

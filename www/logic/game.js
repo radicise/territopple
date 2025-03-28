@@ -90,31 +90,38 @@ class Game {
                 }
             }
         }
+        this.updateBoard(boardold, teamboardold);
+    }
+    /**
+     * @param {number[]} oldb
+     * @param {number[]} oldt
+     */
+    updateBoard(oldb, oldt) {
         if (render3d) {
-            window.dispatchEvent(new Customevent("board-update", {board:this.board,teamboard:this.teamboard,boardold,teamboardold}));
+            window.dispatchEvent(new Customevent("board-update", {board:this.board,teamboard:this.teamboard,boardold:oldb,teamboardold:oldt}));
         } else {
-            let ct = (cols * rows) - 1;
-            for (let row = rows - 1; row >= 0; row--) {
-                for (let col = cols - 1; col >= 0; col--) {
-                    if ((boardold[ct] != this.board[ct]) || (teamboardold[ct] != this.teamboard[ct])) {
+            let ct = (this.cols * this.rows) - 1;
+            for (let row = this.rows - 1; row >= 0; row--) {
+                for (let col = this.cols - 1; col >= 0; col--) {
+                    if ((oldb[ct] != this.board[ct]) || (oldt[ct] != this.teamboard[ct])) {
                         if (dbg) {
                             console.log("Change of state of tile at r" + row.toString() + "c" + col.toString());
                         }
-                        updateTile(row, col, team, this.board[ct]);
+                        updateTile(row, col, this.teamboard[ct], this.board[ct]);
                     }
                     ct--;
                 }
             }
-            for (let r = 0; r < rows; r ++) {
-                for (let c = 0; c < cols; c ++) {
+            for (let r = 0; r < this.rows; r ++) {
+                for (let c = 0; c < this.cols; c ++) {
                     let nm = 4;
-                    if ((c == 0) || (c == (cols - 1))) {
+                    if ((c == 0) || (c == (this.cols - 1))) {
                         nm--;
                     }
-                    if ((r == 0) || (r == (rows - 1))) {
+                    if ((r == 0) || (r == (this.rows - 1))) {
                         nm--;
                     }
-                    setVolatile(r, c, this.board[r*cols + c] === nm);
+                    setVolatile(r, c, this.board[r*this.cols + c] === nm);
                 }
             }
         }

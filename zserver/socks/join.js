@@ -9,7 +9,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     (() => {
     /**@type {string} */
     const rgameId = args["id"];
-    console.log(rgameId);
+    // console.log(rgameId);
     if (!(rgameId in globals.state.games)) {
         change("error", {code:1,data:"game id does not exist"});
         return;
@@ -28,7 +28,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Roomid(state.game.ident));
         sock.send(pack);
         emit("spectator:join", {n:state.spectatorId});
-        change("waiting");
+        if (game.state.state === 0) {
+            change("waiting");
+        } else {
+            change("spectating");
+        }
         return;
     }
     if (game.state.state !== 0) {

@@ -1,5 +1,8 @@
 let table = document.getElementById("roomRows");
 let host = document.location.hostname;
+sessionStorage.removeItem("rejoin_key");
+sessionStorage.removeItem("rejoin_g");
+sessionStorage.removeItem("rejoin_p");
 fetch(`http://${host}:${game_port}/serverlist`,
       {
           method: "GET",

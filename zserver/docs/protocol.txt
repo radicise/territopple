@@ -7,3 +7,5 @@ high-level:
 client-server specific:
 - communicated as JSON string of the form "{"type":[type],"payload":[data]}"
 - payload may be empty, but not null
+- instead of JSON, may send binary data, the first byte indicates the type of data
+-- 0 - board state

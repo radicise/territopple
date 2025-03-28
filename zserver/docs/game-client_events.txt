@@ -6,7 +6,7 @@ GAME TO CLIENT:
         setready (n [player num]: number, r [ready]: boolean)
     error: (code: number, message: string | null, redirect: string | null)
     key:
-        rejoin (key: string)
+        rejoin (key: string, g [game id]: string, p [player num]: number)
     player:
         join (n [player num]: number, t [team id]: number)
         leave (n [player num]: number)
@@ -24,6 +24,17 @@ GAME TO CLIENT:
         turn (n [player num]: number)
         move (n [tile num]: number, t [team id]: number)
         win (t [team id]: number)
+
+BINARY GAME TO CLIENT:
+    0:
+        PREREQUISITE - game must have already transmitted the size of the board to the client
+        sends tile values, then ownerships. sends each from left to right, top to bottom in a continuous stream, allowing the right edge of one row to wrap to the left edge of the next
+        when sending tile values:
+            if the tile is a corner: one bit is sent, 0 = 1 piece, 1 = 2 pieces
+            if the tile is an edge or center: two bits are sent, following the pattern as above
+        when sending tile ownerships:
+            if the first bit is 0: the next three bits denote team
+            if the first bit is 1: the next three bits denote team, and the following four bits denote the next n tiles all being that team (run-length encoding)
 
 CLIENT TO GAME:
     waiting:

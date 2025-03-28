@@ -126,7 +126,7 @@ ifmt.room = null;
 ifmt.turn = 0;
 ifmt.team = 0;
 
-/**@type {Game} */
+/**@type {import("./logic/game.js").Game} */
 let game = new Game();
 
 // display("Connecting . . .");
@@ -166,6 +166,8 @@ function rescanHostOnly() {
     document.querySelectorAll("input.FLAG-host-only").forEach(v => v.disabled = dis);
 }
 
+// let nonstrdata = null;
+
 // /**@type {HTMLInputElement} */
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
@@ -188,6 +190,71 @@ conn.addEventListener("open", function(event) {
 	// display("Connected");
     createBanner({type:"info",content:"Connected"});
 	conn.addEventListener("message", function(event) {
+        if (typeof event.data !== "string") {
+            // console.log(event.data);
+            // nonstrdata = event.data;
+            /**@type {Blob} */
+            const dat = event.data;
+            // dat.arrayBuffer().then((v) => {
+            // })
+            dat.arrayBuffer().then((v) => {
+                const arr = new Uint8Array(v);
+                let bypos = 1;
+                let bipos = 0;
+                const consumebits = (n) => {
+                    if (bipos === 8) {
+                        bypos ++;
+                        bipos = 0;
+                    }
+                    if (bipos + n > 8) {
+                        const rem = 8 - bipos;
+                        const oth = n - rem;
+                        return (consumebits(rem)<<oth)|consumebits(oth);
+                    }
+                    // const r = (arr[bypos]>>(7-bipos))&(0xff>>(8-n));
+                    // const r = (arr[bypos]>>(0xff>>bipos))&(0xff>>(8-n));
+                    const r = (arr[bypos]>>(8-bipos-n))&(0xff>>(8-n));
+                    bipos += n;
+                    return r;
+                };
+                const kind = arr[0];
+                switch (kind) {
+                    case 0:{
+                        const bb = game.board;
+                        const tb = game.teamboard;
+                        const oldb = Array.from(bb);
+                        const oldt = Array.from(tb);
+                        const bleft = game.rows * (game.cols - 1) - 1;
+                        const bright = bb.length - 1;
+                        for (let i = 0; i < bb.length; i ++) {
+                            if (i === 0 || i === game.cols-1 || i === bleft || i === bright) {
+                                game.board[i] = consumebits(1) + 1;
+                                // console.log(`${i}: ${game.board[i]}`);
+                            } else {
+                                game.board[i] = consumebits(2) + 1;
+                            }
+                        }
+                        let i = 0;
+                        while (i < tb.length) {
+                            if (consumebits(1) === 0) {
+                                tb[i] = consumebits(3);
+                                i ++;
+                                continue;
+                            } else {
+                                const t = consumebits(3);
+                                const c = consumebits(4)+1;
+                                for (let j = 0; j < c; j ++) {
+                                    tb[i+j] = t;
+                                }
+                                i += c;
+                            }
+                        }
+                        game.updateBoard(oldb, oldt);
+                    }
+                }
+            });
+            return;
+        }
         /**@type {{type:string,payload:Record<string,any>}} */
         const data = JSON.parse(event.data);
         switch (data.type) {
@@ -252,6 +319,9 @@ conn.addEventListener("open", function(event) {
                 break;
             }
             case "key:rejoin":{
+                sessionStorage.setItem("rejoin_key", data.payload["key"]);
+                sessionStorage.setItem("rejoin_g", data.payload["g"]);
+                sessionStorage.setItem("rejoin_p", data.payload["p"]);
                 break;
             }
             case "player:join":{

@@ -19,7 +19,11 @@ const SERVER_TOOL_FLAGS = {
     /**
      * if the request ip address is either localhost or machine loopback, ignore the SYS_DOWN flag
      */
-    LOCAL_UP: true
+    LOCAL_UP: true,
+    /**
+     * forces SYS_DOWN and LOCAL_UP, and causes genCode to only return "TESTROOM"
+     */
+    TEST_ROOM_ONLY: false
 };
 
 /**@type {Record<string, Game>} */
@@ -27,6 +31,9 @@ const games = {};
 let GAME_COUNTER = 0n;
 
 function genCode() {
+    if (SERVER_TOOL_FLAGS.TEST_ROOM_ONLY) {
+        return "TESTROOM";
+    }
     const len = 8;
     const arr = new Uint16Array(len);
     let code = "";
@@ -191,10 +198,10 @@ if (!settings.APPEASEMENT) {
         res.send(formatServerList());
     });
     ex_server.use("/", (req, res, next) => {
-        if (!SERVER_TOOL_FLAGS.SYS_DOWN) {
+        if (!(SERVER_TOOL_FLAGS.SYS_DOWN || SERVER_TOOL_FLAGS.TEST_ROOM_ONLY)) {
             return next();
         }
-        if (SERVER_TOOL_FLAGS.LOCAL_UP) {
+        if (SERVER_TOOL_FLAGS.LOCAL_UP || SERVER_TOOL_FLAGS.TEST_ROOM_ONLY) {
             // console.log(req.ip);
             if (["127.0.0.1", "0.0.0.0", "::1", "::ffff:127.0.0.1"].includes(req.ip)) {
                 return next();
