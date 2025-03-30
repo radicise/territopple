@@ -273,7 +273,7 @@ conn.addEventListener("open", function(event) {
         }
         /**@type {{type:string,payload:Record<string,any>}} */
         const data = JSON.parse(event.data);
-        console.log(data.type);
+        // console.log(data.type);
         switch (data.type) {
             // case "waiting:setready":{
             //     game.playerList[data.payload["n"]]?.ready = data.payload["r"];
@@ -469,7 +469,7 @@ conn.addEventListener("open", function(event) {
                 const n = data.payload["n"];
                 const col = n % cols;
                 const row = (n-col)/cols;
-                console.log(rows, cols, n, data);
+                // console.log(rows, cols, n, data);
                 const tmu = data.payload["t"];
                 game.move(n, tmu);
                 // updateboard(row, col, tmu);

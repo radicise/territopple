@@ -1,8 +1,8 @@
 import * as three from "three";
-import { SVGRenderer } from "three/addons/renderers/SVGRenderer.js";
+// import { SVGRenderer } from "three/addons/renderers/SVGRenderer.js";
 import { preserveCopy } from "./render_helper/updater.js";
 
-console.log("done loading 3d render script");
+// console.log("done loading 3d render script");
 
 const team_colors = [new three.Color(33,33,33),new three.Color(255,0,0),new three.Color(0,0,255),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
 // let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
@@ -70,19 +70,19 @@ window.addEventListener("gameboard-fresize", () => {handleResize();});
 // container.appendChild(renderer.domElement);
 // document.body.appendChild(renderer.domElement);
 
-const spgeom = new three.SphereGeometry(1, 32, 32, 0, Math.PI, 0, Math.PI);
+// const spgeom = new three.SphereGeometry(1, 32, 32, 0, Math.PI, 0, Math.PI);
 // const spgeom = new three.BoxGeometry(5,5,5);
 // const spmat = new three.MeshPhongMaterial({color:new three.Color(0,255,0)});
 // const spmat3 = new three.MeshPhongMaterial({color:new three.Color(0,0,255)});
 // const spmat4 = new three.MeshPhongMaterial({color:new three.Color(255,0,255)});
-const spmat = new three.MeshPhongMaterial({color:0,emissive:team_colors[1],emissiveIntensity:0.001});
-const spmat2 = new three.MeshPhongMaterial({color:0,emissive:team_colors[4],emissiveIntensity:0.001});
-const spmat3 = new three.MeshPhongMaterial({color:0,emissive:team_colors[2],emissiveIntensity:0.001});
-const spmat4 = new three.MeshPhongMaterial({emissive:team_colors[3],emissiveIntensity:0.001});
-const spmat_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[1],emissiveIntensity:0.01});
-const spmat2_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[4],emissiveIntensity:0.01});
-const spmat3_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[2],emissiveIntensity:0.01});
-const spmat4_lit = new three.MeshPhongMaterial({emissive:team_colors[3],emissiveIntensity:0.01});
+// const spmat = new three.MeshPhongMaterial({color:0,emissive:team_colors[1],emissiveIntensity:0.001});
+// const spmat2 = new three.MeshPhongMaterial({color:0,emissive:team_colors[4],emissiveIntensity:0.001});
+// const spmat3 = new three.MeshPhongMaterial({color:0,emissive:team_colors[2],emissiveIntensity:0.001});
+// const spmat4 = new three.MeshPhongMaterial({emissive:team_colors[3],emissiveIntensity:0.001});
+// const spmat_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[1],emissiveIntensity:0.01});
+// const spmat2_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[4],emissiveIntensity:0.01});
+// const spmat3_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[2],emissiveIntensity:0.01});
+// const spmat4_lit = new three.MeshPhongMaterial({emissive:team_colors[3],emissiveIntensity:0.01});
 const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.001}));
 const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.01}));
 // const spmat = new three.MeshPhongMaterial({color:team_colors[1],emissive:team_colors[0],emissiveIntensity:0.02});
@@ -92,22 +92,22 @@ const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissi
 // const spmat = new three.MeshDepthMaterial();
 // const spmat2 = new three.MeshDistanceMaterial();
 // const spmat2 = new three.MeshPhongMaterial({color:0x0000ff,emissive:0x0000ff,emissiveIntensity:0.2});
-const sphere1 = new three.Mesh(spgeom, spmat);
-const sphere2 = new three.Mesh(spgeom, spmat2);
-sphere2.rotation.y = Math.PI;
+// const sphere1 = new three.Mesh(spgeom, spmat);
+// const sphere2 = new three.Mesh(spgeom, spmat2);
+// sphere2.rotation.y = Math.PI;
 // sphere2.rotation.z = Math.PI;
-const sphere = new three.Group();
-sphere.add(sphere1);
-sphere.add(sphere2);
+// const sphere = new three.Group();
+// sphere.add(sphere1);
+// sphere.add(sphere2);
 // sphere.position.set(-1, -1, 1);
-sphere.position.set(0, 0, 0);
+// sphere.position.set(0, 0, 0);
 // sphere.scale.setScalar(20);
 // sphere.rotation.y = Math.PI*5/4;
 // sphere.rotation.x = Math.PI/2;
-sphere.rotation.y = Math.PI/2;
+// sphere.rotation.y = Math.PI/2;
 // scene.add(sphere);
 // renderer.render(scene, camera);
-console.log("rendered");
+// console.log("rendered");
 
 const main_group = new three.Group();
 const main_light = new three.PointLight(0xffffff);
@@ -257,7 +257,7 @@ window.addEventListener("message", (ev) => {
         case "3d-createboard":{
             rows = data.rows;
             cols = data.cols;
-            console.log(rows);
+            // console.log(rows);
             board = data.board;
             teamboard = data.teamboard;
             container.appendChild(renderer.domElement);
