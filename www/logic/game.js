@@ -48,6 +48,12 @@ class Game {
         this.playerList = playerList;
         this.playerList[0] = {team:0};
     }
+    recalcDerived() {
+        this.owned = new Array(6).fill(0);
+        for (let i = 0; i < this.teamboard.length; i ++) {
+            this.owned[this.teamboard[i]] ++;
+        }
+    }
     /**
      * @param {number} tile
      * @param {number} team
@@ -75,6 +81,9 @@ class Game {
             const r = (t-c)/w;
             let mv = 4 - ((c===0||c===w-1)?1:0) - ((r===0||r===h-1)?1:0);
             if (bb[t] > mv) {
+                // console.log(`(${r},${c}) ${((c===0||c===w-1)?'':'not ')}H-edge ${((r===0||r===h-1)?'':'not ')}V-edge\nVT:${bb[t]},${tb[t]} MV=${mv}`);
+                // console.log(t);
+                // console.log(adds);
                 bb[t] = 1;
                 if (c > 0) {
                     adds.push(t-1);
@@ -86,8 +95,9 @@ class Game {
                     adds.push(t-w);
                 }
                 if (r < h-1) {
-                    adds.push(r+w);
+                    adds.push(t+w);
                 }
+                // console.log(adds);
             }
         }
         this.updateBoard(boardold, teamboardold);
@@ -97,15 +107,15 @@ class Game {
      * @param {number[]} oldt
      */
     updateBoard(oldb, oldt) {
-        if (render3d) {
-            window.dispatchEvent(new Customevent("board-update", {board:this.board,teamboard:this.teamboard,boardold:oldb,teamboardold:oldt}));
+        if (false&&render3d) {
+            // window.dispatchEvent(new CustomEvent("board-update", {board:this.board,teamboard:this.teamboard,boardold:oldb,teamboardold:oldt}));
         } else {
             let ct = (this.cols * this.rows) - 1;
             for (let row = this.rows - 1; row >= 0; row--) {
                 for (let col = this.cols - 1; col >= 0; col--) {
                     if ((oldb[ct] != this.board[ct]) || (oldt[ct] != this.teamboard[ct])) {
                         if (dbg) {
-                            console.log("Change of state of tile at r" + row.toString() + "c" + col.toString());
+                            // console.log("Change of state of tile at r" + row.toString() + "c" + col.toString());
                         }
                         updateTile(row, col, this.teamboard[ct], this.board[ct]);
                     }
@@ -124,6 +134,7 @@ class Game {
                     setVolatile(r, c, this.board[r*this.cols + c] === nm);
                 }
             }
+            flushUpdates();
         }
     }
 }

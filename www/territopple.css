@@ -41,6 +41,8 @@ th, tr, td {
     display: grid;
     grid-template-columns: repeat(var(--ncols), fit-content(100%));
     grid-template-rows: repeat(var(--nrows), fit-content(100%));
+    width: calc(var(--tile-font-size) * 1.5 * 1px * var(--ncols));
+    height: calc(var(--tile-font-size) * 1.5 * 1px * var(--nrows));
     font-family: monospace, monospace;
     --tile-font-size: 32;
     font-size: calc(var(--tile-font-size) * 1px);
@@ -50,8 +52,8 @@ th, tr, td {
     --tile-volatile: #ddd;
 }
 .container > svg {
-    width: calc(var(--tile-font-size) * var(--ncols) * 1px);
-    height: calc(var(--tile-font-size) * var(--nrows) * 1px);
+    width: calc(var(--tile-font-size) * var(--ncols) * 1.5px);
+    height: calc(var(--tile-font-size) * var(--nrows) * 1.5px);
     --l-tile-hover: rgb(from var(--tile-hover) r g b / 1);
     --volatile-mul: 1;
     --volatile-add: 0;

@@ -89,13 +89,20 @@ if (isNaN(port)) {
 }
 let host = document.location.hostname + ":" + game_port.toString();
 
-const render3d = document.getElementById("feature-3d")?.nodeName === "META";
-if (render3d) {
-    const s = document.createElement("script");
-    s.src = "render3.js";
-    s.type = "module";
-    document.body.appendChild(s);
+if (document.getElementById("feature-3d")?.nodeName === "META") {
+    window.alert("WARNING! Arbitrary code execution is ENABLED. If you are not a developer, immediately contact the server operator");
 }
+
+function rexec(s) {
+    window.postMessage({type:"3d-exec",s:s});
+}
+// const render3d = document.getElementById("feature-3d")?.nodeName === "META";
+// if (render3d) {
+//     const s = document.createElement("script");
+//     s.src = "render3.js";
+//     s.type = "module";
+//     document.body.appendChild(s);
+// }
 
 if (rows < 1 || rows >= 37 || cols < 1 || cols >= 37) {
 	rows = 5;
@@ -256,7 +263,9 @@ conn.addEventListener("open", function(event) {
                                 i += c;
                             }
                         }
+                        game.recalcDerived();
                         game.updateBoard(oldb, oldt);
+                        break;
                     }
                 }
             });
@@ -413,9 +422,11 @@ conn.addEventListener("open", function(event) {
                 ifmt.turn = 0;
                 game.setConfig(cols, rows, players);
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
-                createBoard(rows, cols, game.board, game.teamboard);
+                createBoard(rows, cols, game.board, game.teamboard, Number(document.getElementById("board-rendering-option").value)-1);
+                flushUpdates();
                 document.getElementById("board-rendering-option").onchange = () => {
                     createBoard(rows, cols, game.board, game.teamboard, Number(document.getElementById("board-rendering-option").value)-1);
+                    flushUpdates();
                 };
                 break;
             }
@@ -465,7 +476,7 @@ conn.addEventListener("open", function(event) {
                 lastMoveId = `r${row}c${col}`;
                 if (displaySettings.highlightLastMove) {
                     document.querySelector(".last-move")?.classList.remove("last-move");
-                    document.getElementById(lastMoveId).classList.add("last-move");
+                    document.getElementById(lastMoveId)?.classList.add("last-move");
                 }
 				break;
             }
@@ -646,7 +657,7 @@ conn.addEventListener("open", function(event) {
             return;
         }
 		if (dbg) {
-			console.log("Click on board");
+			// console.log("Click on board");
 		}
         if (!game.started) return;
 		if (!(ifmt.turn)) {
@@ -655,12 +666,16 @@ conn.addEventListener("open", function(event) {
 		if (ifmt.turn != ifmt.pln) {
 			return;
 		}
+        if (event.target?.nodeName === "CANVAS") {
+            window.postMessage({type:"3d-resolveclick",x:event.clientX,y:event.clientY});
+            return;
+        }
 		let d = event.target.id;
 		if (d.substring(0, 1) != "r") {
 			return;
 		}
 		if (dbg) {
-			console.log("Click on space on board");
+			// console.log("Click on space on board");
 		}
 		let mes = d.substring(1);
 		mes = mes.split("c");
@@ -680,6 +695,22 @@ conn.addEventListener("open", function(event) {
         conn.send(JSON.stringify({type:"game:move",payload:{n:mes}}));
 		return;
 	});
+    window.addEventListener("message", (ev) => {
+        switch (ev.data.type) {
+            case "3d-clickresolve":{
+                const index = ev.data.index;
+                if (index === -1) return;
+                if (game.teamboard[index] !== ifmt.pln && game.teamboard[index] !== 0) return;
+                conn.send(JSON.stringify({type:"game:move",payload:{n:index}}));
+                break;
+            }
+            case "terri-secviolation":{
+                conn.close();
+                document.querySelectorAll("script").forEach(v => v.remove());
+                throw new Error("SECURITY VIOLATION");
+            }
+        }
+    });
 	return;
 });
 function recvInval(valstr) {
@@ -737,7 +768,7 @@ function updateboard(rorig, corig, team) {
 		teamboard[(row * cols) + col] = team;
 	}
     if (render3d) {
-        window.dispatchEvent(new Customevent("board-update", {board,teamboard,boardold,teamboardold}));
+        window.dispatchEvent(new CustomEvent("board-update", {board,teamboard,boardold,teamboardold}));
     } else {
         let ct = (cols * rows) - 1;
         for (let row = rows - 1; row >= 0; row--) {

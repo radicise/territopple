@@ -12,7 +12,7 @@
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" /> -->
         <script src="/_icons.js"></script>
-        <!-- <meta id="feature-3d" /> -->
+        <meta id="feature-3d" />
         <link rel="stylesheet" type="text/css" href="/territopple.css" />
 		<style>
 		</style>
@@ -25,7 +25,7 @@
                   <legend>Display Settings</legend>
                   <div>
                     <label for="board-zoom">Zoom</label>
-                    <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize()">
+                    <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize();window.dispatchEvent(new CustomEvent('gameboard-fresize'));">
                     <label for="settings-expand" id="settings-expand-label">Expand +</label>
                     <input type="checkbox" id="settings-expand" hidden></input>
                   </div>
@@ -49,12 +49,14 @@
                     <label for="board-rendering-option">Board Rendering:</label>
                     <select id="board-rendering-option">
                         <option value="1">original</option>
-                        <option value="2" disabled>concentric</option>
+                        <option value="2">concentric (broken)</option>
+                        <option value="3" selected>spherical</option>
+                        <!-- <option value="3">spherical</option> -->
                     </select>
                   </div>
                 </fieldset>
 		<div id="row-container">
-            <div id="container-container"><div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd"></div></div>
+            <div id="container-container"><div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd;--tile-font-size:32;"></div></div>
             <!-- <div id="joined-list"></div> -->
             <table id="joined-table">
                 <thead>
@@ -85,13 +87,13 @@
                 }
             }
         </script>
-        <!-- <script type="module" src="render3.js"></script> -->
+        <script id="SCRIPT-r3d" type="module" src="render3.js"></script>
         <script src="portno.js"></script>
         <script src="helpers/render/unified.js"></script>
         <script src="helpers/banners.js"></script>
-		    <script src="logic/game.js"></script>
+		<script src="logic/game.js"></script>
         <script src="logic/joinlist.js"></script>
-		    <script src="territopple.js"></script>
+		<script src="territopple.js"></script>
         <script src="displaycontrols.js"></script>
 	</body>
 </html>

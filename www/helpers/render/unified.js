@@ -1,9 +1,9 @@
 let symbs = ["!", "-", "+", "W", "&block;"];
 let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 
-let __unified_queues = [[],[],[]];
+let __unified_queues = [[],[],[],false];
 
-let {updateTile, createBoard, setVolatile} = (()=>{
+let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
     /**
      * updates a tile
      * @param {number} row
@@ -37,12 +37,20 @@ let {updateTile, createBoard, setVolatile} = (()=>{
     function setVolatile(row, col, value) {
         __unified_queues[2].push([row, col, value]);
     }
-    return { updateTile, createBoard, setVolatile };
+    /**
+     * flushes updateTile, updateBoard, and setVolatile calls when applicable
+     * @returns {void}
+     */
+    function flushUpdates() {
+        __unified_queues[3] = true;
+    }
+    return { updateTile, createBoard, setVolatile, flushUpdates };
 })();
 {
     const f = (()=>{
+        const dummyFunc = () => {};
         let renderchoice = 0;
-        const methods = [[original_updateTile, concentric_updateTile], [original_createBoard, concentric_createBoard], [original_setVolatile, concentric_setVolatile], [original_cleanup, concentric_cleanup]];
+        const methods = [[original_updateTile, concentric_updateTile, d3_updateTile], [original_createBoard, concentric_createBoard, d3_createBoard], [original_setVolatile, concentric_setVolatile, d3_setVolatile], [original_cleanup, concentric_cleanup, d3_cleanup], [dummyFunc, dummyFunc, d3_flushUpdates]];
         /**
          * updates a tile
          * @param {number} row
@@ -82,12 +90,24 @@ let {updateTile, createBoard, setVolatile} = (()=>{
         function setVolatile(row, col, value) {
             methods[2][renderchoice](row, col, value);
         }
-        return { updateTile, createBoard, setVolatile };
+        /**
+         * flushes updateTile, updateBoard, and setVolatile calls when applicable
+         * @returns {void}
+         */
+        function flushUpdates() {
+            methods[4][renderchoice]();
+        }
+        return { updateTile, createBoard, setVolatile, flushUpdates };
     });
-    let n = 2;
-    for (const name of ["original", "concentric"]) {
-        const s = document.createElement("script");
-        s.src = `helpers/render/${name}.js`;
+    let n = 4;
+    for (const name of ["original", "concentric", "3d", "_"]) {
+        let s;
+        if (name !== "_") {
+            s = document.createElement("script");
+            s.src = `helpers/render/${name}.js`;
+        } else {
+            s = document.getElementById("SCRIPT-r3d");
+        }
         s.onload = () => {
             n --;
             if (n === 0) {
@@ -95,14 +115,18 @@ let {updateTile, createBoard, setVolatile} = (()=>{
                 updateTile = o.updateTile;
                 createBoard = o.createBoard;
                 setVolatile = o.setVolatile;
-                for (const l of __unified_queues[0]) {
-                    updateTile(...l);
-                }
+                flushUpdates = o.flushUpdates;
                 for (const l of __unified_queues[1]) {
                     createBoard(...l);
                 }
+                for (const l of __unified_queues[0]) {
+                    updateTile(...l);
+                }
                 for (const l of __unified_queues[2]) {
                     setVolatile(...l);
+                }
+                if (__unified_queues[3]) {
+                    flushUpdates();
                 }
             }
         }

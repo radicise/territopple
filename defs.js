@@ -176,7 +176,7 @@ class Game {
                     adds.push(t-w);
                 }
                 if (r < h-1) {
-                    adds.push(r+w);
+                    adds.push(t+w);
                 }
             }
         }

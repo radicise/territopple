@@ -23,7 +23,7 @@ const SERVER_TOOL_FLAGS = {
     /**
      * forces SYS_DOWN and LOCAL_UP, and causes genCode to only return "TESTROOM"
      */
-    TEST_ROOM_ONLY: false
+    TEST_ROOM_ONLY: true
 };
 
 /**@type {Record<string, Game>} */
@@ -216,6 +216,7 @@ if (!settings.APPEASEMENT) {
         next();
     });
     ex_server.use("/serverlist", serverListRouter);
+    ex_server.use("/three", express.static(_path.resolve(__dname, "node_modules/three")));
     ex_server.get("/territopple(.html)?", (req, res, next) => {
         if (!SERVER_TOOL_FLAGS.REJECT_CREATE) {
             return next();

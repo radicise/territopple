@@ -25,7 +25,11 @@ const volatileColorPicker = document.getElementById("volatiles-color");
 
 function setTileSize() {
     container.style.setProperty("--tile-font-size", slider.value);
+    window.dispatchEvent(new CustomEvent("gameboard-fresize"));
 }
+slider.addEventListener("change", () => {
+    window.dispatchEvent(new CustomEvent('gameboard-fresize'));
+});
 
 // slider.addEventListener("input", () => {
 // });
