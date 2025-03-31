@@ -151,6 +151,7 @@ scene.add(main_group);
 // main_group.material = darkmat;
 
 const tile_radius = 0.5;
+const tile_spacing = tile_radius/2;
 
 const radial_markers = new three.Group();
 // radial_markers.material = darkmat;
@@ -240,6 +241,7 @@ let doBloom = true;
 
 function renderScene() {
     if (!doBloom) {
+        scene.background.set(0xf0f0f0);
         renderer.render(scene, camera);
         return;
     }
@@ -257,7 +259,8 @@ function renderScene() {
     });
     bloomComposer.render();
     // scene.background = new three.Color(255,255,255);
-    scene.background.set(0x707070);
+    // scene.background.set(0x707070);
+    scene.background.set(0xa0a0a0);
     // scene.background.set(...bgColor.toArray());
     main_group.traverse((o) => {
         // if (!o.isGroup)console.log(o.userData.matindex);
@@ -333,7 +336,7 @@ function createTile(r, c, t, v) {
         g.add(new three.Mesh(tile_geom_bright, (v > 3 ? litmats : unlitmats)[t]));
     }
     g.rotation.y = Math.PI/2;
-    g.position.set((c/cols)*(viewhmax-viewhmin) + viewhmin + tile_radius, 0, (r/rows)*(viewvmax-viewvmin) + viewvmin + tile_radius);
+    g.position.set((c/cols)*(viewhmax-viewhmin) + viewhmin + tile_radius + (tile_spacing * (c - (cols-1)/2)), 0, (r/rows)*(viewvmax-viewvmin) + viewvmin + tile_radius + (tile_spacing * (r - (rows-1)/2)));
     g.userData.index = r*cols + c;
     g.children.forEach((o,i) => {o.userData.index = r*cols + c;o.userData.matindex=t;o.userData.lit=(v>i);if(v>i){o.layers.enable(1);}});
     // g.children.forEach(v => {v.userData.index = r*cols + c;v.userData.matindex=t;});
@@ -426,8 +429,8 @@ window.addEventListener("message", (ev) => {
                     i ++;
                 }
             }
-            main_group.scale.x = (viewhmax-viewhmin)/cols;
-            main_group.scale.z = (viewvmax-viewvmin)/rows;
+            main_group.scale.x = (viewhmax-viewhmin)/(cols+(tile_spacing*cols));
+            main_group.scale.z = (viewvmax-viewvmin)/(rows+(tile_spacing*rows));
             // renderer.render(scene, camera);
             if (clearid) clearInterval(clearid);
             reftime = performance.now();
