@@ -36,7 +36,7 @@ body > div#helper-banner-container > .helper-banner-base {
 body > div#helper-banner-container > .helper-banner-fade {
         animation: helper_banner_fadeout 5s linear forwards;
 }
-body > div#helper-banner-container > img {
+body > div#helper-banner-container > .helper-banner-base > img {
         height: 1.5em;
         vertical-align: middle;
 }
