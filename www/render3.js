@@ -1,10 +1,18 @@
 import * as three from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 // import { SVGRenderer } from "three/addons/renderers/SVGRenderer.js";
 import { preserveCopy } from "./render_helper/updater.js";
 
 // console.log("done loading 3d render script");
 
-const team_colors = [new three.Color(33,33,33),new three.Color(255,0,0),new three.Color(0,0,255),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
+const bgColor = new three.Color(200,200,200);
+
+const lit_team_colors = [new three.Color(30,30,30),new three.Color(175,0,0),new three.Color(0,20,175),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
+const unlit_team_colors = [new three.Color(200,200,200),new three.Color(255,0,0),new three.Color(0,0,255),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
+// const team_colors = [new three.Color(0,0,0),new three.Color(255,0,0),new three.Color(0,0,255),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
 // let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 
 const allow_exec = document.getElementById("feature-3d")?.nodeName === "META";
@@ -28,7 +36,8 @@ let viewmargin = 0.5;
 
 const scene = new three.Scene();
 // scene.background = new three.Color(0,0,0);
-scene.background = new three.Color(255,255,255);
+// scene.background = new three.Color(255,255,255);
+scene.background = bgColor;
 /**@type {"ortho"|"perspective"} */
 const cam_style = "ortho";
 const camera = (cam_style === "perspective") ? new three.PerspectiveCamera( 75, container.clientWidth / container.clientHeight, 0.1, 1000) : (cam_style === "ortho") ? new three.OrthographicCamera(viewhmin-viewmargin, viewhmax+viewmargin, viewvmax+viewmargin, viewvmin-viewmargin) : null;
@@ -59,7 +68,8 @@ function handleResize(suppress_update) {
     }
     renderer.setSize(container.clientWidth, container.clientHeight);
     if (!suppress_update) {
-        renderer.render(scene, camera);
+        // renderer.render(scene, camera);
+        renderScene();
     }
 }
 window.addEventListener("resize", () => {handleResize();});
@@ -91,11 +101,18 @@ window.addEventListener("gameboard-fresize", () => {handleResize();});
 // const spmat4_lit = new three.MeshPhongMaterial({emissive:team_colors[3],emissiveIntensity:0.01});
 // const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.001}));
 // const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:team_colors[0],emissiveIntensity:0.001}));
-const unlitmats = team_colors.map(v => new three.MeshBasicMaterial({color:0}));
+const darkmat = new three.MeshBasicMaterial({color:0});
+// const unlitmats = team_colors.map(v => new three.MeshBasicMaterial({color:v}));
 // const unlitmats = team_colors.map(v => new three.MeshBasicMaterial({color:0,transparent:true,opacity:0}));
+// const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:v,transparent:true,opacity:0.5,vertexColors:true}));
+// const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:v,emissive:v,emissiveIntensity:0.01,vertexColors:true}));
+// const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:v,emissive:v,emissiveIntensity:0.01}));
+// const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:v}));
+const unlitmats = unlit_team_colors.map(v => new three.MeshLambertMaterial({color:v}));
 // const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.01}));
-const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:v}));
-// const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:v,side:three.DoubleSide}));
+// const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:v,emissive:v,emissiveIntensity:0.01,vertexColors:true}));
+const litmats = lit_team_colors.map(v => new three.MeshLambertMaterial({color:v,emissive:v,emissiveIntensity:0.01,vertexColors:true}));
+// const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:v,vertexColors:true}));
 // const spmat = new three.MeshPhongMaterial({color:team_colors[1],emissive:team_colors[0],emissiveIntensity:0.02});
 // const spmat3 = new three.MeshPhongMaterial({color:team_colors[2],emissive:team_colors[2],emissiveIntensity:0.2});
 // const spmat4 = new three.MeshPhongMaterial({color:team_colors[3],emissive:team_colors[3],emissiveIntensity:0.2});
@@ -121,32 +138,142 @@ const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:v}));
 // console.log("rendered");
 
 const main_group = new three.Group();
-const main_light = new three.PointLight(0xffffff);
+const main_light = new three.PointLight(0xffffff,0.5);
 const MAIN_LIGHT_HEIGHT = 5;
 const MAIN_LIGHT_RADIUS = viewvmax;
-const amb_light = new three.AmbientLight(0x333333,0.05);
-// const amb_light = new three.AmbientLight(0x333333,0.1);
+// const amb_light = new three.AmbientLight(0x333333,0.2);
+const amb_light = new three.AmbientLight(0x333333,0.1);
 main_light.position.set(0, MAIN_LIGHT_HEIGHT, MAIN_LIGHT_RADIUS);
 // main_light.position.set(0, 5, 0);
-scene.add(main_light);
+// scene.add(main_light);
 scene.add(amb_light);
 scene.add(main_group);
+// main_group.material = darkmat;
 
 const tile_radius = 0.5;
 
+const radial_markers = new three.Group();
+// radial_markers.material = darkmat;
 {
     const radial_geom = new three.SphereGeometry(tile_radius/4);
-    const radial_markers = new three.Group();
     // up, down, left, right, front, back
     const radial_colors = [new three.Color(0, 255, 255), new three.Color(255, 0, 255), new three.Color(255,0,0), new three.Color(0,255,0), new three.Color(0, 0, 255), new three.Color(255, 255, 0)];
     const radial_positions = [[0, 1, 0], [0, -1, 0], [-1, 0, 0], [1, 0, 0], [0, 0, -1], [0, 0, 1]];
     for (let i = 0; i < 6; i ++) {
-        const s = new three.Mesh(radial_geom, new three.MeshBasicMaterial({color:radial_colors[i],depthTest:false,opacity:0.5,transparent:true}));
+        const s = new three.Mesh(radial_geom, new three.MeshBasicMaterial({color:radial_colors[i],depthTest:false,opacity:0.9,transparent:true}));
+        // const s = new three.Mesh(radial_geom, new three.MeshBasicMaterial({color:radial_colors[i],depthTest:false}));
         s.position.set(...radial_positions[i]);
         radial_markers.add(s);
     }
     scene.add(radial_markers);
 }
+
+/*
+the following code pertaining to bloom has been derived from user prisoner849 on the three.js forums
+original post here: https://discourse.threejs.org/t/how-to-use-bloom-effect-not-for-all-object-in-scene/24244/13
+*/
+renderer.toneMapping = three.ReinhardToneMapping;
+renderer.toneMappingExposure = 1;
+const renderScenePass = new RenderPass(scene, camera);
+
+const params = {
+    exposure: 1,
+    // bloomStrength: 0.25,
+    bloomStrength: 0.5,
+    bloomThreshold: 0,
+    bloomRadius: 0
+};
+
+const bloomPass = new UnrealBloomPass(new three.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+bloomPass.threshold = params.bloomThreshold;
+bloomPass.strength = params.bloomStrength;
+bloomPass.radius = params.bloomRadius;
+
+const bloomComposer = new EffectComposer(renderer);
+bloomComposer.renderToScreen = false;
+bloomComposer.addPass(renderScenePass);
+bloomComposer.addPass(bloomPass);
+
+/*
+varying vec2 vUv;
+
+void main() {
+
+    vUv = uv;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+}
+*/
+const vertexShaderCode = "varying vec2 vUv;\n\nvoid main() {\n\n    vUv = uv;\n\n    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n\n}\n";
+/*
+uniform sampler2D baseTexture;
+uniform sampler2D bloomTexture;
+
+varying vec2 vUv;
+
+void main() {
+
+    gl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( bloomTexture, vUv ) );
+
+}
+*/
+const fragmentShaderCode = "uniform sampler2D baseTexture;\nuniform sampler2D bloomTexture;\n\nvarying vec2 vUv;\n\nvoid main() {\n\ngl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( bloomTexture, vUv ) );\n\n}\n";
+
+const finalPass = new ShaderPass(
+    new three.ShaderMaterial( {
+        uniforms: {
+            baseTexture: { value: null },
+            bloomTexture: { value: bloomComposer.renderTarget2.texture }
+        },
+        vertexShader: vertexShaderCode,
+        fragmentShader: fragmentShaderCode,
+        defines: {}
+    }), "baseTexture"
+);
+finalPass.needsSwap = true;
+
+const finalComposer = new EffectComposer(renderer);
+finalComposer.addPass(renderScenePass);
+finalComposer.addPass(finalPass);
+let doBloom = true;
+
+function renderScene() {
+    if (!doBloom) {
+        renderer.render(scene, camera);
+        return;
+    }
+    // scene.background = new three.Color(0,0,0);
+    scene.background.set(0);
+    main_group.traverse((o) => {
+        if (!o.isGroup && !o.layers.isEnabled(1)) {
+            o.material = darkmat;
+        }
+    });
+    let mats = [null,null,null,null,null,null];
+    radial_markers.children.forEach((o, i) => {
+        mats[i] = o.material;
+        o.material = darkmat;
+    });
+    bloomComposer.render();
+    // scene.background = new three.Color(255,255,255);
+    scene.background.set(0x707070);
+    // scene.background.set(...bgColor.toArray());
+    main_group.traverse((o) => {
+        // if (!o.isGroup)console.log(o.userData.matindex);
+        if (!o.isGroup && !o.layers.isEnabled(1)) {
+            o.material = (o.userData.lit?litmats:unlitmats)[o.userData.matindex];
+            // o.material = litmats[o.userData.matindex];
+        }
+    });
+    radial_markers.children.forEach((o, i) => {
+        o.material = mats[i];
+    });
+    finalComposer.render();
+}
+/*
+end derived code
+*/
 
 // setTimeout(() => {
 //     spmat.color.setRGB(0,255,0);
@@ -208,7 +335,9 @@ function createTile(r, c, t, v) {
     g.rotation.y = Math.PI/2;
     g.position.set((c/cols)*(viewhmax-viewhmin) + viewhmin + tile_radius, 0, (r/rows)*(viewvmax-viewvmin) + viewvmin + tile_radius);
     g.userData.index = r*cols + c;
-    g.children.forEach(v => {v.userData.index = r*cols + c;});
+    g.children.forEach((o,i) => {o.userData.index = r*cols + c;o.userData.matindex=t;o.userData.lit=(v>i);if(v>i){o.layers.enable(1);}});
+    // g.children.forEach(v => {v.userData.index = r*cols + c;v.userData.matindex=t;});
+    // g.material = darkmat;
     // if (r === 2 && c === 2) {
     //     preserveCopy(g.children[0], new three.Mesh(tile_geom_tleft, spmat_lit), "position", "rotation");
     //     console.log(g.position);
@@ -234,7 +363,8 @@ function updateTile(r, c, t, v) {
     if (c === 0 || c === cols - 1) {
         parts --;
     }
-    g.children.forEach((o, i) => {o.material = litmats[t];if (v >= i){o.layers.enable(1);}else{o.layers.disable(1);}});
+    g.children.forEach((o, i) => {o.material = ((v>i)?litmats:unlitmats)[t];o.userData.lit=v>i;o.userData.matindex=t;if (v > i){o.layers.enable(1);}else{o.layers.disable(1);}});
+    // g.children.forEach((o, i) => {o.material = litmats[t];o.userData.matindex=t;o.userData.lit=v>=i;if (v >= i){o.layers.enable(1);}else{o.layers.disable(1);}});
     if (parts === 2) {
         // preserveCopy(g.children[0], new three.Mesh(tile_geom_left, litmats[t]), "position", "rotation");
         // preserveCopy(g.children[1], new three.Mesh(tile_geom_right, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
@@ -276,7 +406,8 @@ window.addEventListener("message", (ev) => {
     // console.log(data);
     switch (data.type) {
         case "3d-flushupdates":{
-            renderer.render(scene, camera);
+            // renderer.render(scene, camera);
+            renderScene();
             break;
         }
         case "3d-createboard":{
@@ -361,6 +492,11 @@ window.addEventListener("message", (ev) => {
             rot_key_sensitivity = data.rot_key||rot_key_sensitivity;
             break;
         }
+        case "3d-setbloom":{
+            doBloom = data.enabled;
+            renderScene();
+            break;
+        }
     }
 });
 let drag_down = false;
@@ -383,7 +519,8 @@ function setCameraRotation() {
     const v = camera.localToWorld(new three.Vector3(0, 0, 5));
     camera.position.set(v.x, v.y, v.z);
     main_light.position.set(MAIN_LIGHT_RADIUS*Math.cos(cam_temp_rot.x), MAIN_LIGHT_HEIGHT, -MAIN_LIGHT_RADIUS*Math.sin(cam_temp_rot.x));
-    renderer.render(scene, camera);
+    // renderer.render(scene, camera);
+    renderScene();
 }
 
 function keyControls() {
@@ -441,7 +578,9 @@ document.addEventListener("keyup", (ev) => {
         camera.position.set(0, 5, 0);
         cam_curr_rot.set(-Math.PI/2, Math.PI/2);
         cam_temp_rot.set(-Math.PI/2, Math.PI/2);
-        renderer.render(scene, camera);
+        main_light.position.set(0, MAIN_LIGHT_HEIGHT, MAIN_LIGHT_RADIUS);
+        // renderer.render(scene, camera);
+        renderScene();
     }
 });
 renderer.domElement.addEventListener("mousedown", (ev) => {

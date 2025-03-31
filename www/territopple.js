@@ -182,6 +182,9 @@ function rescanHostOnly() {
 
 // updateTile(0, 0, 1, 1);
 // updateTile(0, 2, 2, 2);
+// updateTile(0, 3, 3, 2);
+// updateTile(0, 4, 4, 1);
+// updateTile(0, 5, 5, 2);
 // flushUpdates();
 
 // let nonstrdata = null;
@@ -426,12 +429,18 @@ conn.addEventListener("open", function(event) {
                 ifmt.turn = 0;
                 game.setConfig(cols, rows, players);
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
-                createBoard(rows, cols, game.board, game.teamboard, Number(document.getElementById("board-rendering-option").value)-1);
+                /**@type {HTMLSelectElement} */
+                const bro = document.getElementById("board-rendering-option");
+                createBoard(rows, cols, game.board, game.teamboard, Number(bro.value)-1);
                 flushUpdates();
-                document.getElementById("board-rendering-option").onchange = () => {
-                    createBoard(rows, cols, game.board, game.teamboard, Number(document.getElementById("board-rendering-option").value)-1);
+                bro.onchange = () => {
+                    createBoard(rows, cols, game.board, game.teamboard, Number(bro.value)-1);
                     flushUpdates();
+                    document.getElementById("spherical-bloom-enabled").hidden = (bro.value !== "3");
                 };
+                document.getElementById("spherical-enable-bloom").onchange = () => {
+                    window.postMessage({type:"3d-setbloom",enabled:document.getElementById("spherical-enable-bloom").checked});
+                }
                 break;
             }
             case "game:jlist":{
