@@ -41,6 +41,12 @@ const renderer = new three.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(container.clientWidth, container.clientHeight);
 
+// suppress right-click menu
+renderer.domElement.addEventListener("contextmenu", (ev) => {
+    ev.preventDefault();
+    return false;
+});
+
 function handleResize(suppress_update) {
     if (cam_style === "perspective") {
         camera.aspect = container.clientWidth / container.clientHeight;
@@ -83,8 +89,13 @@ window.addEventListener("gameboard-fresize", () => {handleResize();});
 // const spmat2_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[4],emissiveIntensity:0.01});
 // const spmat3_lit = new three.MeshPhongMaterial({color:0,emissive:team_colors[2],emissiveIntensity:0.01});
 // const spmat4_lit = new three.MeshPhongMaterial({emissive:team_colors[3],emissiveIntensity:0.01});
-const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.001}));
-const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.01}));
+// const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.001}));
+// const unlitmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:team_colors[0],emissiveIntensity:0.001}));
+const unlitmats = team_colors.map(v => new three.MeshBasicMaterial({color:0}));
+// const unlitmats = team_colors.map(v => new three.MeshBasicMaterial({color:0,transparent:true,opacity:0}));
+// const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissive:v,emissiveIntensity:0.01}));
+const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:v}));
+// const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:v,side:three.DoubleSide}));
 // const spmat = new three.MeshPhongMaterial({color:team_colors[1],emissive:team_colors[0],emissiveIntensity:0.02});
 // const spmat3 = new three.MeshPhongMaterial({color:team_colors[2],emissive:team_colors[2],emissiveIntensity:0.2});
 // const spmat4 = new three.MeshPhongMaterial({color:team_colors[3],emissive:team_colors[3],emissiveIntensity:0.2});
@@ -111,12 +122,31 @@ const litmats = team_colors.map(v => new three.MeshPhongMaterial({color:0,emissi
 
 const main_group = new three.Group();
 const main_light = new three.PointLight(0xffffff);
+const MAIN_LIGHT_HEIGHT = 5;
+const MAIN_LIGHT_RADIUS = viewvmax;
 const amb_light = new three.AmbientLight(0x333333,0.05);
-main_light.position.set(0, 5, viewvmax*2);
+// const amb_light = new three.AmbientLight(0x333333,0.1);
+main_light.position.set(0, MAIN_LIGHT_HEIGHT, MAIN_LIGHT_RADIUS);
 // main_light.position.set(0, 5, 0);
 scene.add(main_light);
 scene.add(amb_light);
 scene.add(main_group);
+
+const tile_radius = 0.5;
+
+{
+    const radial_geom = new three.SphereGeometry(tile_radius/4);
+    const radial_markers = new three.Group();
+    // up, down, left, right, front, back
+    const radial_colors = [new three.Color(0, 255, 255), new three.Color(255, 0, 255), new three.Color(255,0,0), new three.Color(0,255,0), new three.Color(0, 0, 255), new three.Color(255, 255, 0)];
+    const radial_positions = [[0, 1, 0], [0, -1, 0], [-1, 0, 0], [1, 0, 0], [0, 0, -1], [0, 0, 1]];
+    for (let i = 0; i < 6; i ++) {
+        const s = new three.Mesh(radial_geom, new three.MeshBasicMaterial({color:radial_colors[i],depthTest:false,opacity:0.5,transparent:true}));
+        s.position.set(...radial_positions[i]);
+        radial_markers.add(s);
+    }
+    scene.add(radial_markers);
+}
 
 // setTimeout(() => {
 //     spmat.color.setRGB(0,255,0);
@@ -126,11 +156,10 @@ scene.add(main_group);
 const QUARTER = Math.PI/2;
 const THIRD = 2*Math.PI/3;
 
-const tile_radius = 0.5;
-const tile_geom_bright = new three.SphereGeometry(tile_radius, 32, 32, 0, QUARTER, 0, QUARTER);
-const tile_geom_tleft = new three.SphereGeometry(tile_radius, 32, 32, Math.PI, QUARTER, 0, QUARTER);
-const tile_geom_tright = new three.SphereGeometry(tile_radius, 32, 32, Math.PI/2, QUARTER, 0, QUARTER);
-const tile_geom_bleft = new three.SphereGeometry(tile_radius, 32, 32, 3*Math.PI/2, QUARTER, 0, QUARTER);
+const tile_geom_bright = new three.SphereGeometry(tile_radius, 32, 32, 0, QUARTER, 0, Math.PI);
+const tile_geom_tleft = new three.SphereGeometry(tile_radius, 32, 32, Math.PI, QUARTER, 0, Math.PI);
+const tile_geom_tright = new three.SphereGeometry(tile_radius, 32, 32, Math.PI/2, QUARTER, 0, Math.PI);
+const tile_geom_bleft = new three.SphereGeometry(tile_radius, 32, 32, 3*Math.PI/2, QUARTER, 0, Math.PI);
 const tile_geom_left = new three.SphereGeometry(tile_radius, 32, 32, Math.PI, Math.PI, 0, Math.PI);
 const tile_geom_right = new three.SphereGeometry(tile_radius, 32, 32, 0, Math.PI, 0, Math.PI);
 const tile_geom_tl3 = new three.SphereGeometry(tile_radius, 32, 32, Math.PI, THIRD, 0, Math.PI);
@@ -205,18 +234,22 @@ function updateTile(r, c, t, v) {
     if (c === 0 || c === cols - 1) {
         parts --;
     }
+    g.children.forEach((o, i) => {o.material = litmats[t];if (v >= i){o.layers.enable(1);}else{o.layers.disable(1);}});
     if (parts === 2) {
-        preserveCopy(g.children[0], new three.Mesh(tile_geom_left, litmats[t]), "position", "rotation");
-        preserveCopy(g.children[1], new three.Mesh(tile_geom_right, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
+        // preserveCopy(g.children[0], new three.Mesh(tile_geom_left, litmats[t]), "position", "rotation");
+        // preserveCopy(g.children[1], new three.Mesh(tile_geom_right, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
+        // g.children[0].material = litmats[t];
+        // g.children[1].material = litmats[t];
+        // preserveCopy(g.children[1], new three.Mesh(tile_geom_right, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
     } else if (parts === 3) {
-        preserveCopy(g.children[0], new three.Mesh(tile_geom_tl3, litmats[t]), "position", "rotation");
-        preserveCopy(g.children[1], new three.Mesh(tile_geom_tr3, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
-        preserveCopy(g.children[2], new three.Mesh(tile_geom_b3, (v > 2 ? litmats : unlitmats)[t]), "position", "rotation");
+        // preserveCopy(g.children[0], new three.Mesh(tile_geom_tl3, litmats[t]), "position", "rotation");
+        // preserveCopy(g.children[1], new three.Mesh(tile_geom_tr3, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
+        // preserveCopy(g.children[2], new three.Mesh(tile_geom_b3, (v > 2 ? litmats : unlitmats)[t]), "position", "rotation");
     } else {
-        preserveCopy(g.children[0], new three.Mesh(tile_geom_tleft, litmats[t]), "position", "rotation");
-        preserveCopy(g.children[1], new three.Mesh(tile_geom_tright, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
-        preserveCopy(g.children[2], new three.Mesh(tile_geom_bleft, (v > 2 ? litmats : unlitmats)[t]), "position", "rotation");
-        preserveCopy(g.children[3], new three.Mesh(tile_geom_bright, (v > 3 ? litmats : unlitmats)[t]), "position", "rotation");
+        // preserveCopy(g.children[0], new three.Mesh(tile_geom_tleft, litmats[t]), "position", "rotation");
+        // preserveCopy(g.children[1], new three.Mesh(tile_geom_tright, (v > 1 ? litmats : unlitmats)[t]), "position", "rotation");
+        // preserveCopy(g.children[2], new three.Mesh(tile_geom_bleft, (v > 2 ? litmats : unlitmats)[t]), "position", "rotation");
+        // preserveCopy(g.children[3], new three.Mesh(tile_geom_bright, (v > 3 ? litmats : unlitmats)[t]), "position", "rotation");
     }
 }
 
@@ -234,17 +267,9 @@ document.addEventListener("keyup", (e) => {
     delete _keymap[e.code];
 });
 
-let reftime = performance.now();
-
-function physics() {
-    let time;
-    {const ntime = performance.now();time=ntime-reftime;reftime=ntime;}
-    if("KeyU" in _keymap)line.rotateX(time*Math.PI/180);
-    if("KeyI" in _keymap)line.rotateY(time*Math.PI/180);
-    if("KeyO" in _keymap)line.rotateZ(time*Math.PI/180);
-    if("KeyJ" in _keymap)preserveCopy(line, new three.Line(geom, new three.LineDashedMaterial({color:0xff0000,linewidth:1,gapSize:10,dashSize:1})), "position", "rotation", "scale");
-    if("KeyK" in _keymap)preserveCopy(line2, new three.Line(geom, new three.LineDashedMaterial({color:0x0000ff,linewidth:1,gapSize:10,dashSize:1})), "position", "rotation", "scale");
-}
+let rot_mouse_sensitivity = 1.0;
+let rot_key_sensitivity = 1.0;
+let reftime, clearid;
 
 window.addEventListener("message", (ev) => {
     const data = ev.data;
@@ -273,9 +298,13 @@ window.addEventListener("message", (ev) => {
             main_group.scale.x = (viewhmax-viewhmin)/cols;
             main_group.scale.z = (viewvmax-viewvmin)/rows;
             // renderer.render(scene, camera);
+            if (clearid) clearInterval(clearid);
+            reftime = performance.now();
+            clearid = setInterval(keyControls, 17);
             break;
         }
         case "3d-cleanup":{
+            if (clearid) clearInterval(clearid);
             container.removeChild(renderer.domElement);
             break;
         }
@@ -327,7 +356,111 @@ window.addEventListener("message", (ev) => {
             }
             break;
         }
+        case "3d-sensitivity":{
+            rot_mouse_sensitivity = data.rot_mouse||rot_mouse_sensitivity;
+            rot_key_sensitivity = data.rot_key||rot_key_sensitivity;
+            break;
+        }
     }
+});
+let drag_down = false;
+const init_pos = new three.Vector2();
+// let cam_curr_el = 0; // camera elevation
+// let cam_curr_az = 0; // camera azimuth
+// rotations are <azimuth, elevation>
+let cam_curr_rot = new three.Vector2(-Math.PI/2, Math.PI/2);
+let cam_temp_rot = new three.Vector2(-Math.PI/2, Math.PI/2);
+const elem = renderer.domElement;
+camera.rotation.order = "YXZ";
+
+// const MOUSE_ROT_SPEED = 1.0;
+const KEY_ROT_SPEED = 0.05;
+
+function setCameraRotation() {
+    camera.rotation.x = -cam_temp_rot.y;
+    camera.rotation.y = cam_temp_rot.x+Math.PI/2;
+    camera.position.set(0, 0, 0);
+    const v = camera.localToWorld(new three.Vector3(0, 0, 5));
+    camera.position.set(v.x, v.y, v.z);
+    main_light.position.set(MAIN_LIGHT_RADIUS*Math.cos(cam_temp_rot.x), MAIN_LIGHT_HEIGHT, -MAIN_LIGHT_RADIUS*Math.sin(cam_temp_rot.x));
+    renderer.render(scene, camera);
+}
+
+function keyControls() {
+    let time;
+    {const ntime = performance.now();time=ntime-reftime;reftime=ntime;}
+    if (drag_down) return;
+    const delta = new three.Vector2();
+    if("ArrowUp" in _keymap)delta.add(new three.Vector2(0, 1));
+    if("ArrowDown" in _keymap)delta.add(new three.Vector2(0, -1));
+    if("ArrowRight" in _keymap)delta.add(new three.Vector2(1, 0));
+    if("ArrowLeft" in _keymap)delta.add(new three.Vector2(-1, 0));
+    if("ShiftLeft" in _keymap || "ShiftRight" in _keymap)delta.multiplyScalar(0.25);
+    // if no delta, don't re-render
+    if (delta.lengthSq() === 0) return;
+    delta.multiplyScalar(KEY_ROT_SPEED*rot_key_sensitivity);
+    cam_temp_rot.add(delta);
+    cam_curr_rot.add(delta);
+    setCameraRotation();
+    // if("KeyU" in _keymap)line.rotateX(time*Math.PI/180);
+    // if("KeyI" in _keymap)line.rotateY(time*Math.PI/180);
+    // if("KeyO" in _keymap)line.rotateZ(time*Math.PI/180);
+    // if("KeyJ" in _keymap)preserveCopy(line, new three.Line(geom, new three.LineDashedMaterial({color:0xff0000,linewidth:1,gapSize:10,dashSize:1})), "position", "rotation", "scale");
+    // if("KeyK" in _keymap)preserveCopy(line2, new three.Line(geom, new three.LineDashedMaterial({color:0x0000ff,linewidth:1,gapSize:10,dashSize:1})), "position", "rotation", "scale");
+}
+
+document.addEventListener("mousemove", (ev) => {
+    if (!elem.parentElement) return;
+    if (drag_down) {
+        const curr_pos = new three.Vector2();
+        curr_pos.x = (ev.clientX-elem.offsetLeft)/elem.clientWidth * 2 - 1;
+        curr_pos.y = -(ev.clientY-elem.offsetTop)/elem.clientHeight * 2 + 1;
+        cam_temp_rot.x = cam_curr_rot.x + (init_pos.x - curr_pos.x) * rot_mouse_sensitivity;
+        cam_temp_rot.y = cam_curr_rot.y + (init_pos.y - curr_pos.y) * rot_mouse_sensitivity;
+        setCameraRotation();
+        // // let cam_az_rad = 5*Math.cos(cam_temp_rot.y);
+        // // camera.position.set(cam_az_rad*Math.cos(cam_temp_rot.x), 5*Math.sin(cam_temp_rot.y), cam_az_rad*Math.sin(cam_temp_rot.x));
+        // camera.rotation.x = -cam_temp_rot.y;
+        // camera.rotation.y = cam_temp_rot.x+Math.PI/2;
+        // // camera.rotation.y = Math.PI-(cam_temp_rot.x+Math.PI/2);
+        // camera.position.set(0, 0, 0);
+        // const v = camera.localToWorld(new three.Vector3(0, 0, 5));
+        // camera.position.set(v.x, v.y, v.z);
+        // // camera.lookAt(0, 0, 0);
+        // // camera.rotation.z = 0;
+        // renderer.render(scene, camera);
+    }
+});
+document.addEventListener("keyup", (ev) => {
+    if (!elem.parentElement) return;
+    if (ev.code === "KeyR") {
+        if (drag_down) return;
+        camera.rotation.x = -Math.PI/2;
+        camera.rotation.y = 0;
+        camera.rotation.z = 0;
+        camera.position.set(0, 5, 0);
+        cam_curr_rot.set(-Math.PI/2, Math.PI/2);
+        cam_temp_rot.set(-Math.PI/2, Math.PI/2);
+        renderer.render(scene, camera);
+    }
+});
+renderer.domElement.addEventListener("mousedown", (ev) => {
+    // console.log("MDOWN", ev.button);
+    if (ev.button === 2) {
+        drag_down = true;
+        init_pos.x = (ev.clientX-elem.offsetLeft)/elem.clientWidth * 2 - 1;
+        init_pos.y = -(ev.clientY-elem.offsetTop)/elem.clientHeight * 2 + 1;
+        cam_curr_rot.x = cam_temp_rot.x;
+        cam_curr_rot.y = cam_temp_rot.y;
+    }
+});
+document.addEventListener("mouseup", (ev) => {
+    if (ev.button === 2) {
+        drag_down = false;
+    }
+});
+window.addEventListener("blur", () => {
+    drag_down = false;
 });
 // window.addEventListener("3d-cleanup", () => {
 // });

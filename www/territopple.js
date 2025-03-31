@@ -180,6 +180,10 @@ function rescanHostOnly() {
     document.querySelectorAll("input.FLAG-host-only").forEach(v => v.disabled = dis);
 }
 
+// updateTile(0, 0, 1, 1);
+// updateTile(0, 2, 2, 2);
+// flushUpdates();
+
 // let nonstrdata = null;
 
 // /**@type {HTMLInputElement} */
@@ -653,6 +657,7 @@ conn.addEventListener("open", function(event) {
 		return;
 	});
 	document.getElementById("gameboard").addEventListener("mouseup", function(event) {
+        if (event.button !== 0) return;
         if (document.getElementById("gameboard").style.getPropertyValue("--disabled") === "1") {
             return;
         }
