@@ -193,7 +193,7 @@ class Game {
             if (i === this.state.turn) {
                 return {win:true,turn:-1};
             }
-            if (this.players[i] !== null) {
+            if (this.players[i] !== null && (this.state.owned[0]||this.state.owned[this.players[i].team])) {
                 this.state.turn = i;
                 break;
             }
