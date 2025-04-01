@@ -721,10 +721,35 @@ function clear(tag) {
     }
 }
 
+class SecurityError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "SecurityError";
+    }
+}
+class InvariantViolationError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "InvariantViolationError";
+    }
+}
+
+/**
+ * @param {number|BigInt} n
+ * @param {number} c
+ * @returns {number[]}
+ */
+function nbytes(n, c) {
+    n = BigInt(n);
+    // console.log(n, c);
+	return [n&0xffn,(n>>8n)&0xffn,(n>>16n)&0xffn,(n>>24n)&0xffn,(n>>32n)&0xffn,(n>>40n)&0xffn,(n>>48n)&0xffn,(n>>56n)&0xffn].map(v => Number(v)).slice(0, c).reverse();
+}
+
 exports.extend = extend;
 exports.emit = emit;
 exports.on = on;
 exports.clear = clear;
+exports.nbytes = nbytes;
 exports.HostingSettings = this.HostingSettings;
 exports.Game = Game;
 exports.NetData = NetData;
@@ -732,5 +757,7 @@ exports.Player = Player;
 exports.Stats = this.Stats;
 exports.State = this.State;
 exports.NetPayload = this.NetPayload;
+exports.SecurityError = SecurityError;
+exports.InvariantViolationError = InvariantViolationError;
 exports.codeChars = codeChars;
 exports.settings = settings;
