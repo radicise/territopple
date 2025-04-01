@@ -347,6 +347,7 @@ function createTile(r, c, t, v) {
     // }
     // g.position.set(0, 0, 0);
     main_group.add(g);
+    return g;
 }
 
 /**
@@ -423,14 +424,32 @@ window.addEventListener("message", (ev) => {
             main_group.clear();
             // createTile(0, 0);
             let i = 0;
+            // let x = viewhmin;
+            // let z = viewvmin;
+            let x = viewhmin-(tile_spacing*(cols-5)*2.5);
+            let z = viewvmin-(tile_spacing*(rows-5)*2.5);
             for (let r = 0; r < rows; r ++) {
                 for (let c = 0; c < cols; c ++) {
-                    createTile(r, c, teamboard[i], board[i]);
+                    const g = createTile(r, c, teamboard[i], board[i]);
+                    g.position.set(x, 0, z);
+                    x += 1 + tile_spacing;
                     i ++;
                 }
+                x = viewhmin-(tile_spacing*(cols-5)*2.5);
+                // x = viewhmin;
+                z += 1 + tile_spacing;
             }
-            main_group.scale.x = (viewhmax-viewhmin)/(cols+(tile_spacing*cols));
-            main_group.scale.z = (viewvmax-viewvmin)/(rows+(tile_spacing*rows));
+            // main_group.scale.x = (viewhmax-viewhmin)/(cols);
+            // main_group.scale.z = (viewvmax-viewvmin)/(rows);
+            // main_group.scale.x = 3/(cols);
+            // main_group.scale.z = 3/(rows);
+            // main_group.scale.x = (viewhmax-viewhmin)/(cols+(tile_spacing*cols));
+            // main_group.scale.z = (viewvmax-viewvmin)/(rows+(tile_spacing*rows));
+            const sv = Math.min((viewhmax-viewhmin)/(cols+(tile_spacing*cols)), (viewvmax-viewvmin)/(rows+(tile_spacing*rows)));
+            // main_group.scale.set();
+            main_group.scale.x = sv;
+            main_group.scale.y = sv;
+            main_group.scale.z = sv;
             // renderer.render(scene, camera);
             if (clearid) clearInterval(clearid);
             reftime = performance.now();
