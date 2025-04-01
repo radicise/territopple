@@ -10,7 +10,7 @@ const FORMAT_VERSION = 2;
  */
 function nbytes(n, c) {
     n = BigInt(n);
-    console.log(n, c);
+    // console.log(n, c);
 	return [n&0xffn,(n>>8n)&0xffn,(n>>16n)&0xffn,(n>>24n)&0xffn,(n>>32n)&0xffn,(n>>40n)&0xffn,(n>>48n)&0xffn,(n>>56n)&0xffn].map(v => Number(v)).slice(0, c).reverse();
 }
 
@@ -54,7 +54,7 @@ function getFlag(game, p, l) {
 
 /**
  * @summary initializes replay file buffer
- * @param {import("./server").Game} game
+ * @param {import("./defs").Game} game
  * @param {boolean} timestamp MUST directly pass settings.REPLAYS.TIMESTAMP
  * @param {boolean|null} order whether non-standard order data is to be recorded, defaults to false
  * @description
@@ -62,7 +62,7 @@ function getFlag(game, p, l) {
  */
 function onGameCreated(game, timestamp, order) {
     // game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(1<<5)|(((typeof order)!=="number")?0:(1<<4))))];
-    const maxD = Math.max(game.rows, game.cols);
+    const maxD = Math.max(game.state.rows, game.state.cols);
     const size = (maxD <= 36) ? 0 : ((maxD <= 256) ? 1 : ((maxD <= 4096) ? 2 : 3));
     game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(size<<5)|((order?1:0)<<4)))];
     // game.buffer.push(Buffer.from(gameID.split('').map(v => v.charCodeAt(0))));
@@ -83,7 +83,7 @@ function onGameStarted(game, idstrategy, team_map) {
         game.idstrategy = idstrategy;
     }
     // console.log(game.timestamp);
-    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.cols, 2), ...nbytes(game.rows, 2), game.players.length-1, ...((getFlag(game, 4, 1) === 1) ? [idstrategy, ...team_map] : []), 0xf0, 0x0f));
+    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.state.cols, 2), ...nbytes(game.state.rows, 2), game.players.length-1, ...((getFlag(game, 4, 1) === 1) ? [idstrategy, ...team_map] : []), 0xf0, 0x0f));
 }
 
 /**

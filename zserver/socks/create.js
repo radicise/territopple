@@ -1,4 +1,5 @@
 const { NetPayload, NetData, Game } = require("../../defs.js");
+const { onGameCreated } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
@@ -18,6 +19,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         return;
     }
     state.game = new Game(useid, playerCapacity, {rows:height,cols:width,public:public,observable:allowSpectators});
+    onGameCreated(state.game, true, 1);
     state.game.addPlayer(sock);
     state.playerNum = 1;
     state.spectating = false;

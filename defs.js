@@ -150,10 +150,16 @@ class Game {
         const bb = this.state.board;
         const w = this.state.cols;
         const h = this.state.rows;
+        const tcol = tile % w;
+        const trow = (tile-tcol)/w;
+        onMove(this, trow, tcol, player);
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
+                if (this.state.owned[tb[t]] === 0) {
+                    this.players.forEach((v, i) => {if(v&&v.team===tb[t])onPlayerRemoved(this, i);});
+                }
                 this.state.owned[p.team] ++;
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
@@ -315,6 +321,7 @@ class Game {
 
 const fs = require("fs");
 const _path = require("path");
+const { onPlayerRemoved, onMove } = require("./replayHooks");
 /**@type {HostingSettings} */
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
 const extend = (e, o) => {

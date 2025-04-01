@@ -1,4 +1,5 @@
 const { NetPayload } = require("../../defs.js");
+const { onPlayerRemoved } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
@@ -8,6 +9,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     if (!state.spectating) {
+        if (state.game.state.state !== 0) {
+            onPlayerRemoved(state.game, state.playerNum);
+        }
         state.game.removePlayer(state.playerNum);
         emit("player:leave", {n:state.playerNum});
         if (args.isHost??false) {

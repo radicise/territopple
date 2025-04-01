@@ -1,4 +1,5 @@
 const { NetPayload, NetData } = require("../../defs.js");
+const { onRecordReplay } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
@@ -45,6 +46,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     emit("game:out:move", {"n":data.payload["n"],"t":state.game.players[state.playerNum].team});
                     let res = state.game.move(data.payload["n"], state.playerNum);
                     if (res.win) {
+                        onRecordReplay(state.game);
                         emit("game:win", {t:state.game.players[state.playerNum].team});
                     } else {
                         emit("game:turn", {n:res.turn});

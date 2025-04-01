@@ -1,4 +1,5 @@
 const { NetPayload, NetData } = require("../../defs.js");
+const { onGameStarted } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
@@ -105,6 +106,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 break;
             case "waiting:start":
                 if (isHost) {
+                    onGameStarted(state.game, 0, state.game.players.slice(1).map(v => v?v.team:0));
                     state.game.start();
                     emit("waiting:start");
                 }
