@@ -1,0 +1,5 @@
+This file documents the purpose and structure of all instances of rotating cryptographic data.
+
+quickAuthBase:
+    PURPOSE: acts as salt when creating QuickAuthToken hashes, when rotated, the tokens that were created with it are automatically invalidated
+    VALUE: 32 bytes from a CSPRNG

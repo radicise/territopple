@@ -1,0 +1,8 @@
+This file describes what is stored in the database and how it is stored.
+
+AccountId: Account {
+    username: string
+    salt: SALT
+    password: SHA512HASH(salt + plaintext)
+    email: ENCRYPTED<string>
+}

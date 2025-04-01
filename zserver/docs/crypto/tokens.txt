@@ -1,0 +1,9 @@
+This file defines the types of tokens and their acceptable use cases and other considerations such as expiration intervals.
+ALL tokens are considered to be sensitive data, and as such must NEVER be transmitted without secure encryption.
+
+QuickAuthToken:
+    PREREQ: can only be produced AFTER full account authentication
+    USE: can be used only to verify that a player websocket connection is logged in to the specified account
+    EXPIRATION: must expire after at most one minute
+    DEPENDSON: RotatingCryptoData.quickAuthBase
+    STRUCTURE: [TIME, ACCOUNTID, HASH(quickAuthBase, TIME, ACCOUNTID)]
