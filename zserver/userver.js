@@ -23,7 +23,11 @@ const SERVER_TOOL_FLAGS = {
     /**
      * forces SYS_DOWN and LOCAL_UP, and causes genCode to only return "TESTROOM"
      */
-    TEST_ROOM_ONLY: false
+    TEST_ROOM_ONLY: false,
+    /**
+     * determines whether replay files are actually written
+     */
+    SAVE_REPLAYS: true
 };
 
 /**@type {Record<string, Game>} */
@@ -57,7 +61,10 @@ const globals = {
     MIN_DIM: 1,
     MIN_PLAYERS: 2,
     MAX_PLAYERS: 10,
-    games: games
+    games: games,
+    get saveReplays() {
+        return SERVER_TOOL_FLAGS.SAVE_REPLAYS;
+    }
 };
 console.log("Starting server . . .");
 const ws = require("ws");
@@ -197,6 +204,21 @@ if (!settings.APPEASEMENT) {
         res.set("Content-Type", "application/json");
         res.send(formatServerList());
     });
+    // TODO: change this to be on the websocket so that it doesn't need express to function
+    const replayRouter = express.Router();
+    replayRouter.use((req, res, next) => {
+        let gamename = req.path.slice(1);
+        if (gamename.length !== 13) {
+            res.status(404).send("replay does not exist");
+            return;
+        }
+        gamename = gamename.slice(0, 8);
+        if (!(gamename in games)) {
+            res.status(404).send("replay does not exist");
+            return;
+        }
+        res.send(Buffer.concat(games[gamename].buffer));
+    });
     ex_server.use("/", (req, res, next) => {
         if (!(SERVER_TOOL_FLAGS.SYS_DOWN || SERVER_TOOL_FLAGS.TEST_ROOM_ONLY)) {
             return next();
@@ -230,6 +252,7 @@ if (!settings.APPEASEMENT) {
         next();
     });
     ex_server.use("/", express.static(_path.resolve(__dname, "www"), {extensions:["html"]}));
+    ex_server.use("/replays", replayRouter);
     ex_server.get("/no-create", (req, res) => {res.sendFile(_path.resolve(__dname, "www/errors/no_create.html"));});
     ex_server.get("*", (req, res) => {res.sendFile(_path.resolve(__dname, "www/errors/404.html"));});
 }

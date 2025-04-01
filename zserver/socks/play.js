@@ -46,7 +46,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     emit("game:out:move", {"n":data.payload["n"],"t":state.game.players[state.playerNum].team});
                     let res = state.game.move(data.payload["n"], state.playerNum);
                     if (res.win) {
-                        onRecordReplay(state.game);
+                        if (globals.state.saveReplays) {
+                            onRecordReplay(state.game);
+                        } else {
+                            state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
+                        }
                         emit("game:win", {t:state.game.players[state.playerNum].team});
                     } else {
                         emit("game:turn", {n:res.turn});

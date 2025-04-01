@@ -11,7 +11,8 @@ const { Game, HostingSettings } = require("../defs");
  * MIN_DIM:number,
  * MIN_PLAYERS:number,
  * MAX_PLAYERS:number,
- * games:Record<string,Game>
+ * games:Record<string,Game>,
+ * saveReplays:boolean
  * }}
  */
 /**
