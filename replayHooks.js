@@ -4,7 +4,7 @@ const path = require("path");
 const FORMAT_VERSION = 2;
 
 /**
- * @param {BigInt} n
+ * @param {number|BigInt} n
  * @param {number} c
  * @returns {number[]}
  */
