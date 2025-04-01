@@ -439,7 +439,10 @@ window.addEventListener("message", (ev) => {
         }
         case "3d-cleanup":{
             if (clearid) clearInterval(clearid);
-            container.removeChild(renderer.domElement);
+            // console.log(renderer.domElement.parentNode);
+            if (renderer.domElement.parentNode) {
+                container.removeChild(renderer.domElement);
+            }
             break;
         }
         case "3d-updatetile":{
