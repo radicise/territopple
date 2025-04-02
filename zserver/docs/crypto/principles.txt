@@ -3,4 +3,6 @@ This file enumerates the fundamental principles and assumptions pertaining to al
 1. TLS is considered a minimum of security, necessary only to expose the SubtleCrypto webAPI on the client side.
 2. As #1, all sensitive data should be further encrypted.
 3. More than adequate security measures should be used where feasible.
-4. It should intentionally be made very difficult to misuse constructs. (eg. SensitiveData prevents serialization of plaintext)
+4. All constructs should be designed as though RCE is possible, and requires mitigation.
+5. As #4, it should intentionally be made very difficult to misuse constructs. (eg. SensitiveData prevents serialization of plaintext)
+6. As #4, it should be as difficult as possible to compromise the integrity of internal cryptographic state and obtaining references directly to secrets.

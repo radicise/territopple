@@ -5,7 +5,7 @@
 
 const { hash, createHash, randomBytes, getHashes } = require("crypto");
 const { SecurityError, nbytes } = require("../../defs.js");
-const { AccountId, AuthToken, SensitiveData, RotatingCryptoData } = require("./common.js");
+const { AccountId, AuthToken, SensitiveData, RotatingCryptoData, SecretData } = require("./common.js");
 const HASH_ALGORITHM = "sha512";
 
 if (!getHashes().includes(HASH_ALGORITHM)) {
@@ -38,6 +38,14 @@ function verifyQuickAuthToken(token) {
     let test = saltedHash(base, Buffer.from(nbytes(time, 8)), aid);
     return test.equals(h);
 }
+
+// /**
+//  * @param {SecretData} token
+//  * @returns {boolean}
+//  */
+// function verifyQuickAuthToken(token) {
+//     return token.use("VERIFY");
+// }
 
 /**
  * @param {Buffer|bigint} salt
