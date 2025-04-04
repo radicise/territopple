@@ -12,7 +12,7 @@ BYTE[4] - duo 16bit int, move coordinates, row then column
 version 1:
 BYTE - version
 BYTE[8] - name of game (ASCII plain text)
-BYTE - flags <a-f> where a is MSB
+BYTE - flags <a-h> where a is MSB
 - a (TIMESTAMP) - includes timestamps // timestamps can get big, best to give option of disabling them
 - b+c (SIZE) - combine as a 2bit selector, 00 (tiny) is 36x36 max, 01 (medium) is 256x256 max, 10 (large) is 4096x4096 max, 11 (huge) is 2^16x2^16 max // allows further space savings
 BYTE[8] - game start timestamp (ms since Jan 1, 1970 UTC) // this is nice and only adds constant cost
@@ -59,7 +59,7 @@ IF (ORDER):
     - 1 - players go in standard order, but a team map is provided
     BYTE (PADDING)
     FOR EACH player:
-    BYTE - team assignment
+        BYTE - team assignment
     IF (player count) is odd:
         BYTE (PADDING)
 BYTE[2] - 0xf0,0x0f
@@ -72,3 +72,57 @@ SWITCH (TYPE):
             BYTE[2] - T(6),R(5),C(5) - player number, row, col
         01,10,11 ->:
             PREPEND BYTE - player number
+
+version 3:
+BYTE - version
+BYTE[8] - name of game (ASCII plain text)
+BYTE - flags <a-h> where a is MSB
+- a (TIMESTAMP) - includes timestamps // timestamps can get big, best to give option of disabling them
+- b+c (SIZE) - combine as a 2bit selector, 00 (tiny) is 1024 max, 01 (medium) is 2^18 max, 10 (large) is reserved, 11 (huge) is reserved // allows further space savings
+- d (ORDER) - this flag is set if the turn order is NOT standard
+- e (CTOPOLOGY) - this flag is set if the topology chosen is NOT standard
+BYTE[8] - game start timestamp (ms since Jan 1, 1970 UTC) // this is nice and only adds constant cost
+BYTE[4] - tile count
+BYTE - player count
+IF (ORDER):
+    BYTE (STRATEGY) - order determination strategy - valid values are:
+    - 0 - each move has the player number recorded with it
+    - 1 - players go in standard order, but a team map is provided
+    BYTE (PADDING)
+    FOR EACH player:
+        BYTE - team assignment
+    IF (player count) is odd:
+        BYTE (PADDING)
+IF (CTOPOLOGY):
+    IN PROGRESS
+ELSE:
+    BYTE[2] (TOPOLOGY) - topology scheme - valid values are:
+    - 0 - 2d grid
+    SWITCH (TOPOLOGY):
+        0 ->:
+            BYTE[2] - width (height is to be calculated as tile count / width)
+    ALIGNMENT BYTE
+-- garbage data between the timestamp and start of game is to be ignored, and does not make a topl invalid --
+BYTE[2] - 0xf0,0x0f - start of game data
+...EVENT
+BYTE[4] - 0xff,0xf0,0x0f,0xff - end of replay // allows multiple replays to be put into one file
+
+EVENT:
+BYTE (TYPE) - type of event
+IF (TIMESTAMP) set:
+    BYTE[2] - delta since previous timestamp (EXCEPTING if this is a TIMESTAMP event)
+SWITCH (TYPE):
+0 -> PLAYER ELIM: - player eliminated from turn order, reason not important
+    BYTE - player number
+1 -> PLAYER MOVE: - player moved
+    SWITCH (SIZE):
+        00 ->:
+            BYTE[2] - P(6),I(10)
+        01 ->:
+            BYTE[3] - P(6),I(18)
+        10 ->:
+            RESERVED
+        11 ->:
+            RESERVED
+2 -> TIMESTAMP: - update the timestamp because nothing happened for over 18 hours
+    BYTE[3] - delta time

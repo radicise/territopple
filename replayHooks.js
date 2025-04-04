@@ -1,7 +1,17 @@
 const fs = require("fs");
 const path = require("path");
 
-const FORMAT_VERSION = 2;
+exports.onGameCreated = onGameCreated;
+exports.onGameStarted = onGameStarted;
+exports.onRecordReplay = onRecordReplay;
+exports.onPlayerRemoved = onPlayerRemoved;
+exports.onMove = onMove;
+
+// const { topology } = require("./defs.js");
+const defs = require("./defs.js");
+const topology = defs.topology;
+
+const FORMAT_VERSION = 3;
 
 /**
  * @param {number|BigInt} n
@@ -16,20 +26,28 @@ function nbytes(n, c) {
 
 /**
  * @param {import("./server").Game} game
- * @param {number} row
- * @param {number} col
+ * @param {number} tile
  * @returns {Buffer}
  */
-function formatMoveData(game, row, col) {
+function formatMoveData(game, tile) {
     switch (getFlag(game, 6, 2)) {
+        // case 0:
+        //     return Buffer.of(((row >> 3) & 3), (row & 7) | col);
+        // case 1:
+        //     return Buffer.of(row, col);
+        // case 2:
+        //     return Buffer.of((row & 0xf00)>>8, row & 0xff, (col & 0xf00)>>8, col & 0xff);
+        // default:
+        //     return Buffer.of(...nbytes(row, 2), ...nbytes(col, 2));
         case 0:
-            return Buffer.of(((row >> 3) & 3), (row & 7) | col);
+            return Buffer.from(nbytes(tile, 2));
         case 1:
-            return Buffer.of(row, col);
+            return Buffer.from(nbytes(tile, 3));
         case 2:
-            return Buffer.of((row & 0xf00)>>8, row & 0xff, (col & 0xf00)>>8, col & 0xff);
+            // return Buffer.of((row & 0xf00)>>8, row & 0xff, (col & 0xf00)>>8, col & 0xff);
         default:
-            return Buffer.of(...nbytes(row, 2), ...nbytes(col, 2));
+            // return Buffer.of(...nbytes(row, 2), ...nbytes(col, 2));
+            throw new Error("reserved");
     }
 }
 
@@ -62,8 +80,8 @@ function getFlag(game, p, l) {
  */
 function onGameCreated(game, timestamp, order) {
     // game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(1<<5)|(((typeof order)!=="number")?0:(1<<4))))];
-    const maxD = Math.max(game.state.rows, game.state.cols);
-    const size = (maxD <= 36) ? 0 : ((maxD <= 256) ? 1 : ((maxD <= 4096) ? 2 : 3));
+    const maxD = game.state.topology.tileCount;
+    const size = (maxD <= 1024) ? 0 : ((maxD<=2<<18) ? 1 : ((maxD <= 4096) ? 2 : 3));
     game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(size<<5)|((order?1:0)<<4)))];
     // game.buffer.push(Buffer.from(gameID.split('').map(v => v.charCodeAt(0))));
     // game.buffer.push(Buffer.of((settings.REPLAYS.TIMESTAMP?(1<<7):0) | (0b01<<5))); // use timestamp from settings, use medium as it's the largest that doesn't use more bytes
@@ -71,7 +89,7 @@ function onGameCreated(game, timestamp, order) {
 
 /**
  * @summary final game initialization
- * @param {import("./server").Game} game
+ * @param {import("./defs.js").Game} game
  * @param {number?} idstrategy what strategy is used to record extra move data
  * @param {number[]?} team_map map from player ids to team ids
  * @description
@@ -82,8 +100,20 @@ function onGameStarted(game, idstrategy, team_map) {
     if (getFlag(game, 4, 1) === 1) {
         game.idstrategy = idstrategy;
     }
+    const topologyData = [];
+    if (getFlag(game, 3, 1) === 1) {
+        throw new Error("not implemented");
+    } else {
+        const tid = topology.m.getTopologyId(game.state.topology);
+        topologyData.push(...nbytes(tid, 2));
+        switch (tid) {
+            case 0:{
+                topologyData.push(...nbytes(game.state.topology.width, 2));
+            }
+        }
+    }
     // console.log(game.timestamp);
-    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.state.cols, 2), ...nbytes(game.state.rows, 2), game.players.length-1, ...((getFlag(game, 4, 1) === 1) ? [idstrategy, ...team_map] : []), 0xf0, 0x0f));
+    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.state.topology.tileCount, 4), game.players.length-1, ...((getFlag(game, 4, 1) === 1) ? [idstrategy, ...team_map] : []), ...topologyData, 0xf0, 0x0f));
 }
 
 /**
@@ -141,14 +171,13 @@ function onPlayerRemoved(game, playerNum) {
 }
 /**
  * @summary records a player move
- * @param {import("./server").Game} game
- * @param {number} row
- * @param {number} col
+ * @param {import("./defs.js").Game} game
+ * @param {number} tile
  * @param {number} id player id
  * @description
  * MUST be called ANY time a successful move is made
  */
-function onMove(game, row, col, id) {
+function onMove(game, tile, id) {
     // if (game.buffer[0][9] & (1<<7)) {
     if (getFlag(game, 7, 1)) {
         const ntime = Date.now();
@@ -162,7 +191,7 @@ function onMove(game, row, col, id) {
     } else {
         game.buffer.push(Buffer.of(1));
     }
-    let md = formatMoveData(game, row, col);
+    let md = formatMoveData(game, tile);
     if (game.idstrategy === 0) {
         if (getFlag(game, 6, 2) === 0) {
             md[0] = (id << 2) | md[0];
@@ -173,9 +202,3 @@ function onMove(game, row, col, id) {
     game.buffer.push(md);
     // game.buffer.push(Buffer.of(row&0xff, col&0xff));
 }
-
-exports.onGameCreated = onGameCreated;
-exports.onGameStarted = onGameStarted;
-exports.onRecordReplay = onRecordReplay;
-exports.onPlayerRemoved = onPlayerRemoved;
-exports.onMove = onMove;

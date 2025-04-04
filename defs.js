@@ -1,5 +1,18 @@
 const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 const crypto = require("crypto");
+const topology = new class{
+    #m=null;
+    set m(v){if(this.#m===null){this.#m=v;}}
+    /**@returns {typeof import("./topology/topology.js")} */
+    get m(){return this.#m;}
+}();
+exports.loadPromise = new Promise((res,_) => {
+    import("./topology/topology.js").then(v => {
+        topology.m = v;
+        res();
+    }, r => {throw new ReferenceError("could not load topology module");});
+});
+exports.topology = topology;
 /**
  * @typedef WS
  * @type {import("ws").WebSocket}
@@ -51,6 +64,7 @@ class Player {
  * @typedef State
  * @prop {number} rows
  * @prop {number} cols
+ * @prop {import("./topology/topology.js").Topology} topology
  * @prop {number[]} board
  * @prop {number[]} teamboard
  * @prop {number[]} owned
@@ -66,7 +80,7 @@ class Game {
     /**
      * @param {string} ident
      * @param {number} players
-     * @param {{rows:number,cols:number,public:boolean,observable:boolean}} state
+     * @param {{topology:import("./topology/topology.js").TopologyParams,public:boolean,observable:boolean}} state
      */
     constructor (ident, players, state) {
         /**@type {string} */
@@ -75,11 +89,14 @@ class Game {
         this.stats = {maxPlayers:players,playing:0,connected:0,spectating:0,reservedSlots:0};
         /**@type {State} */
         this.state = {
-            rows: state.rows,
-            cols: state.cols,
-            board: new Array(state.rows*state.cols).fill(1),
-            teamboard: new Array(state.rows*state.cols).fill(0),
-            owned: new Array(players+1).fill(0),
+            // rows: state.rows,
+            // cols: state.cols,
+            get rows() {console.log(`${new Error("fix rows access").stack}`);return 5;},
+            get cols() {console.log(`${new Error("fix cols access").stack}`);return 5;},
+            topology: topology.m.makeTopology(state.topology),
+            board: null,
+            teamboard: null,
+            owned: new Array(6).fill(0),
             move: -1,
             turn: -1,
             state: 0,
@@ -87,7 +104,9 @@ class Game {
             observable: state.observable,
             hostNum: 0
         };
-        this.state.owned[0] = state.rows*state.cols;
+        this.state.board = new Array(this.state.topology.tileCount).fill(1);
+        this.state.teamboard = new Array(this.state.topology.tileCount).fill(0);
+        this.state.owned[0] = this.state.topology.tileCount;
         /**@type {Buffer[]} */
         this.buffer = [];
         /**@type {number} */
@@ -148,11 +167,12 @@ class Game {
         const p = this.players[player];
         const tb = this.state.teamboard;
         const bb = this.state.board;
-        const w = this.state.cols;
-        const h = this.state.rows;
-        const tcol = tile % w;
-        const trow = (tile-tcol)/w;
-        onMove(this, trow, tcol, player);
+        // const w = this.state.cols;
+        // const h = this.state.rows;
+        // const tcol = tile % w;
+        // const trow = (tile-tcol)/w;
+        // onMove(this, trow, tcol, player);
+        onMove(this, tile, player);
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
@@ -167,23 +187,28 @@ class Game {
                 }
             }
             bb[t] ++;
-            const c = t%w;
-            const r = (t-c)/w;
-            let mv = 4 - ((c===0||c===w-1)?1:0) - ((r===0||r===h-1)?1:0);
-            if (bb[t] > mv) {
-                bb[t] = 1;
-                if (c > 0) {
-                    adds.push(t-1);
-                }
-                if (c < w-1) {
-                    adds.push(t+1);
-                }
-                if (r > 0) {
-                    adds.push(t-w);
-                }
-                if (r < h-1) {
-                    adds.push(t+w);
-                }
+            // const c = t%w;
+            // const r = (t-c)/w;
+            // let mv = 4 - ((c===0||c===w-1)?1:0) - ((r===0||r===h-1)?1:0);
+            // if (bb[t] > mv) {
+            //     bb[t] = 1;
+            //     if (c > 0) {
+            //         adds.push(t-1);
+            //     }
+            //     if (c < w-1) {
+            //         adds.push(t+1);
+            //     }
+            //     if (r > 0) {
+            //         adds.push(t-w);
+            //     }
+            //     if (r < h-1) {
+            //         adds.push(t+w);
+            //     }
+            // }
+            const neighbors = this.state.topology.getNeighbors(t);
+            if (bb[t] > neighbors.length) {
+                bb[t] -= neighbors.length;
+                adds.push(...neighbors);
             }
         }
         let i = this.state.turn;
@@ -321,7 +346,10 @@ class Game {
 
 const fs = require("fs");
 const _path = require("path");
-const { onPlayerRemoved, onMove } = require("./replayHooks");
+// const { onPlayerRemoved, onMove } = require("./replayHooks");
+const replayHooks = require("./replayHooks.js");
+const onPlayerRemoved = replayHooks.onPlayerRemoved;
+const onMove = replayHooks.onMove;
 /**@type {HostingSettings} */
 const settings = JSON.parse(fs.readFileSync(_path.join(__dirname, "settings.json"), {encoding:"utf-8"}));
 const extend = (e, o) => {
@@ -542,14 +570,20 @@ class NetData {
             return this.Misc("roomid", {g:id});
         }
         /**
-         * @param {number} width
-         * @param {number} height
-         * @param {number} maxPlayers
-         * @param {number} hostNum
+         * @param {Game} game
          * @returns {string}
          */
-        static Config(width, height, maxPlayers, hostNum) {
-            return this.Misc("config", {w:width,h:height,p:maxPlayers,l:hostNum});
+        static Config(game) {
+            const o = {c:game.state.topology.tileCount,t:topology.m.getTopologyId(game.state.topology),p:game.stats.maxPlayers,l:game.state.hostNum};
+            let d;
+            switch (o.t) {
+                case 0:{
+                    d = {width:game.state.topology.width};
+                    break;
+                }
+            }
+            o.d = d;
+            return this.Misc("config", o);
         }
         /**
          * @param {Game} game
@@ -740,6 +774,26 @@ class InvariantViolationError extends Error {
         this.name = "InvariantViolationError";
     }
 }
+class TypeConversionError extends Error {
+    /**
+     * represents an error caused by an attempt to convert between incompatible types
+     * @param {String} message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "TypeConversionError";
+    }
+}
+class ValueError extends Error {
+    /**
+     * represents an error caused by an invalid value
+     * @param {String} message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "ValueError";
+    }
+}
 
 /**
  * @param {number|BigInt} n
@@ -766,5 +820,7 @@ exports.State = this.State;
 exports.NetPayload = this.NetPayload;
 exports.SecurityError = SecurityError;
 exports.InvariantViolationError = InvariantViolationError;
+exports.TypeConversionError = TypeConversionError;
+exports.ValueError = ValueError;
 exports.codeChars = codeChars;
 exports.settings = settings;

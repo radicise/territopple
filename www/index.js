@@ -13,7 +13,7 @@ fetch(`http://${host}:${game_port}/serverlist`,
 		return;
 	}
 	response.text().then((text) => {
-        /**@type {{ident:string,capacity:number,playing:number,spectating:number,width:number,height:number,can_spectate:boolean}[]} */
+        /**@type {{ident:string,capacity:number,playing:number,spectating:number,dstr:string,can_spectate:boolean}[]} */
         const games = JSON.parse(text);
 	    for (const game of games) {
 		    if (!game) {
@@ -41,7 +41,7 @@ fetch(`http://${host}:${game_port}/serverlist`,
 		    row.appendChild(roomEntry);
 
 		    const sizeEntry = document.createElement("td");
-		    sizeEntry.appendChild(document.createTextNode(`${game.width}x${game.height}`));
+		    sizeEntry.appendChild(document.createTextNode(game.dstr));
 		    row.appendChild(sizeEntry);
 		    
 		    const statusEntry = document.createElement("td");

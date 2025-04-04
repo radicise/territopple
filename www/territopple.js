@@ -415,8 +415,17 @@ conn.addEventListener("open", function(event) {
             case "game:config":{
                 // rows = mesr;
                 // cols = mess;
-                rows = data.payload["h"];
-                cols = data.payload["w"];
+                // rows = data.payload["h"];
+                // cols = data.payload["w"];
+                const tilecount = data.payload["c"];
+                const dims = data.payload["d"];
+                const topid = data.payload["t"];
+                if (topid === 0) {
+                    rows = tilecount/dims.width;
+                    cols = dims.width;
+                } else {
+                    throw new Error("unknown topology");
+                }
                 players = data.payload["p"];
                 game.hostNum = data.payload["l"];
                 const c = document.getElementById(`JLIST-player-${game.hostNum}`);

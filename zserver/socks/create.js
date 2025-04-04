@@ -18,7 +18,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         change("error", {code:1,data:"Invalid Parameters"});
         return;
     }
-    state.game = new Game(useid, playerCapacity, {rows:height,cols:width,public:public,observable:allowSpectators});
+    state.game = new Game(useid, playerCapacity, {topology:{type:0,x:height,y:width},public:public,observable:allowSpectators});
     onGameCreated(state.game, true, 1);
     state.game.addPlayer(sock);
     state.playerNum = 1;

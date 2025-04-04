@@ -23,5 +23,6 @@
   "bugs": {
     "url": "https://github.com/radicise/territopple/issues"
   },
-  "homepage": "https://github.com/radicise/territopple#readme"
+  "homepage": "https://github.com/radicise/territopple#readme",
+  "type":"commonjs"
 }

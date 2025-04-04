@@ -19,7 +19,7 @@ GAME TO CLIENT:
         ownid (n [spectator id]: string)
     game:
         roomid (g [room id]: string)
-        config (w [width]: number, h [height]: number, p [max players]: number, l [host player num]: number)
+        config (c [tile count]: number, t [topology]: number, d [necessary dimensions (see Topology class)]: Record<string,number>, p [max players]: number, l [host player num]: number)
         jlist (p [player list]: [number [player num], number [team id]][], s [spectator list]: string[])
         turn (n [player num]: number)
         move (n [tile num]: number, t [team id]: number)

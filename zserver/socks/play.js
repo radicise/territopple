@@ -52,6 +52,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                             state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                         }
                         emit("game:win", {t:state.game.players[state.playerNum].team});
+                        state.game.state.state = 2;
                     } else {
                         emit("game:turn", {n:res.turn});
                     }

@@ -1,5 +1,5 @@
 const { onGameCreated, onGameStarted, onRecordReplay, onPlayerRemoved, onMove } = require("../replayHooks.js");
-const { settings, Game, codeChars, extend, emit, on, clear, NetData } = require("../defs.js");
+const { settings, Game, codeChars, extend, emit, on, clear, NetData, loadPromise } = require("../defs.js");
 
 const __dname = process.cwd();
 
@@ -191,8 +191,7 @@ function formatServerList() {
             capacity:v.stats.maxPlayers,
             playing:v.stats.playing,
             spectating:v.stats.spectating,
-            width:v.state.cols,
-            height:v.state.rows,
+            dstr:v.state.topology.dimensionString,
             can_spectate:v.state.observable
         };
     }));
@@ -258,7 +257,10 @@ if (!settings.APPEASEMENT) {
 }
 // ex_server.get()
 
-main_server.listen(settings.APPEASEMENT ? settings.GAMEPORT : settings.WEBPORT);
+// ensure that the topology module is loaded before allowing connections to occurr
+loadPromise.then(v => {
+    main_server.listen(settings.APPEASEMENT ? settings.GAMEPORT : settings.WEBPORT);
+});
 // ex_server.listen(8300);
 // const rl = require("readline");
 // const i = rl.createInterface({input:process.stdin,output:process.stdout});
