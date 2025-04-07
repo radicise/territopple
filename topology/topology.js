@@ -6,7 +6,7 @@
  */
 
 // const { RenderType, RenderRestriction, TilePosition, TP_Cart2D, TP_Cart3D } = require("./rendertypes.js");
-import { TP_Cart2D, TP_Cart3D } from "./rendertypes.js";
+import { TP_Cart2D, TP_Cart3D, ValueError } from "./rendertypes.js";
 
 /**
  * @typedef {import("./rendertypes.js").RenderType} RenderType
@@ -73,6 +73,13 @@ export class Topology {
      * @returns {number[]}
      */
     getNeighbors(tindex) {}
+    /**
+     * gets the required number of bits to store the max value of the given tile
+     * @virtual
+     * @param {number} tindex
+     * @returns {number}
+     */
+    getRequiredBits(tindex) {}
 }
 
 /**
@@ -80,6 +87,7 @@ export class Topology {
  * @inheritdoc
  */
 export class TGrid2D extends Topology {
+    #bleft;#bright;#tright;
     /**
      * @inheritdoc
      * @param {{width:number,height:number}} dimensions
@@ -90,6 +98,9 @@ export class TGrid2D extends Topology {
         this.height = dimensions.height;
         this.tc = this.width * this.height;
         this.dstr = `Grid2D ${this.width}x${this.height}`;
+        this.#tright = this.width - 1;
+        this.#bleft = this.width*this.height-this.width - 1;
+        this.#bright = this.width*this.height - 1;
     }
     /**
      * @inheritdoc
@@ -160,6 +171,17 @@ export class TGrid2D extends Topology {
         }
         return f;
     }
+    /**
+     * @inheritdoc
+     * @param {number} tindex
+     * @returns {number}
+     */
+    getRequiredBits(tindex) {
+        if (tindex === 0 || tindex === this.#tright || tindex === this.#bleft || tindex === this.#bright) {
+            return 1;
+        }
+        return 2;
+    }
 }
 
 /**
@@ -193,4 +215,29 @@ export function getTopologyId(topology) {
         }
     }
     return -1;
+}
+
+/**
+ * @param {number[]} dims
+ * @returns {Record<string,number>|null}
+ */
+export function formatDimensions(dims) {
+    switch (dims[0]) {
+        case 0:{
+            return {type:0,x:dims[1],y:dims[2]};
+        }
+        default:return null;
+    }
+}
+
+/**
+ * @param {Topology} top
+ * @returns {Record<string,number>}
+ */
+export function exportDimensions(top) {
+    switch (getTopologyId(top)) {
+        case 0:{
+            return {x:top.width,y:top.height};
+        }
+    }
 }

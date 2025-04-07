@@ -1,23 +1,25 @@
 /**
- * @param {number} row
- * @param {number} col
+ * @param {TilePosition} pos
  * @param {number} team
  * @param {number} val
  * @returns {void}
  */
-function original_updateTile(row, col, team, val) {
+function original_updateTile(pos, team, val) {
+    const row = pos.y;
+    const col = pos.x;
     let dat = document.getElementById("r" + row.toString() + "c" + col.toString());
     dat.style.color = teamcols[team];
     dat.firstElementChild.innerHTML = symbs[val];
 }
 /**
- * @param {number} rows
- * @param {number} cols
+ * @param {Topology} topo
  * @param {number[]} board
  * @param {number[]} teamboard
  * @returns {void}
  */
-function original_createBoard(rows, cols, board, teamboard) {
+function original_createBoard(topo, board, teamboard) {
+    const rows = topo.width;
+    const cols = topo.height;
     let baroa = "";
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
@@ -28,12 +30,13 @@ function original_createBoard(rows, cols, board, teamboard) {
     document.getElementById("gameboard").innerHTML = baroa;
 }
 /**
- * @param {number} row
- * @param {number} col
+ * @param {TilePosition} pos
  * @param {boolean} value
  * @returns {void}
  */
-function original_setVolatile(row, col, value) {
+function original_setVolatile(pos, value) {
+    const row = pos.y;
+    const col = pos.x;
     if (value) {
         document.getElementById(`r${row}c${col}`).classList.add("volatile");
     } else {

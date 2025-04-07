@@ -268,6 +268,17 @@ export class TP_Polar3D {
  * @type {TP_Cart2D|TP_Cart3D|TP_Polar2D|TP_Polar3D}
  */
 
+export class ValueError extends Error {
+    /**
+     * represents an error caused by an invalid value
+     * @param {String} message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "ValueError";
+    }
+}
+
 // exports.RenderType = this.RenderType;
 // exports.RenderRestriction = this.RenderRestriction;
 // exports.TilePosition = this.TilePosition;

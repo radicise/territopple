@@ -45,7 +45,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         const nkey = g.players[pnum].reKey();
         sock.send(NetData.Key.Rejoin(nkey, g.ident, pnum));
         sock.send(NetData.Game.Reconnected());
-        sock.send(NetData.Game.Config(g.state.cols, g.state.rows, g.stats.maxPlayers, g.state.hostNum), () => {
+        sock.send(NetData.Game.Config(g), () => {
             sock.send(NetData.Bin.Board(g), () => {
                 sock.send(NetData.Game.Turn(game.state.turn));
                 change("play");

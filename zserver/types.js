@@ -12,7 +12,8 @@ const { Game, HostingSettings } = require("../defs");
  * MIN_PLAYERS:number,
  * MAX_PLAYERS:number,
  * games:Record<string,Game>,
- * saveReplays:boolean
+ * saveReplays:boolean,
+ * topology:typeof import("../topology/topology.js")
  * }}
  */
 /**

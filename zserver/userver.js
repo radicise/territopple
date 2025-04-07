@@ -77,6 +77,9 @@ const _path = require("path");
 if (!fs.existsSync("www/replays")) {
     fs.symlinkSync(_path.join(__dname, "replays"), _path.join(__dname, "www/replays"));
 }
+if (!fs.existsSync("www/topology")) {
+    fs.symlinkSync(_path.join(__dname, "topology"), _path.join(__dname, "www/topology"));
+}
 const CRASHLOG = _path.resolve(__dname, "crashlog.txt");
 if (!fs.existsSync(CRASHLOG)) {
     fs.writeFileSync(CRASHLOG, "", {encoding:"utf-8"});
@@ -169,7 +172,7 @@ ws_server.on("connection", (sock, req) => {
             case 4:
             case 0:socks.handle("join", sock, {"id":params.get("g"), "asSpectator":connType===4}, state);break;
             case 1:
-            case 2:if(SERVER_TOOL_FLAGS.REJECT_CREATE)return socks.handle("error", sock, {data:"The server is not currently accepting room creation requests",redirect:"/no-create"}, state);socks.handle("create", sock, {"type":connType, "width":params.get("w"), "height":params.get("h"), "players":params.get("p"), "spectators":(params.get("s")??"1")==="1", "id":genCode()}, state);break;
+            case 2:if(SERVER_TOOL_FLAGS.REJECT_CREATE)return socks.handle("error", sock, {data:"The server is not currently accepting room creation requests",redirect:"/no-create"}, state);socks.handle("create", sock, {"type":connType, "dims":params.get("d"), "players":params.get("p"), "spectators":(params.get("s")??"1")==="1", "id":genCode()}, state);break;
             case 3:socks.handle("rejoin", sock, {"id":params.get("g"), "n":params.get("i"), "key":params.get("k")}, state);break;
         }
     } catch (E) {
@@ -259,6 +262,7 @@ if (!settings.APPEASEMENT) {
 
 // ensure that the topology module is loaded before allowing connections to occurr
 loadPromise.then(v => {
+    globals.topology = v;
     main_server.listen(settings.APPEASEMENT ? settings.GAMEPORT : settings.WEBPORT);
 });
 // ex_server.listen(8300);

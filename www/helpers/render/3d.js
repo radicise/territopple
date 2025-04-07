@@ -1,11 +1,12 @@
 /**
- * @param {number} row
- * @param {number} col
+ * @param {TilePosition} pos
  * @param {number} team
  * @param {number} val
  * @returns {void}
  */
-function d3_updateTile(row, col, team, val) {
+function d3_updateTile(pos, team, val) {
+    const row = pos.y;
+    const col = pos.x;
     // let dat = document.getElementById("r" + row.toString() + "c" + col.toString());
     // dat.style.color = teamcols[team];
     // dat.firstElementChild.innerHTML = symbs[val];
@@ -13,13 +14,14 @@ function d3_updateTile(row, col, team, val) {
     window.postMessage({"type":"3d-updatetile",row,col,team,val});
 }
 /**
- * @param {number} rows
- * @param {number} cols
+ * @param {Topology} topo
  * @param {number[]} board
  * @param {number[]} teamboard
  * @returns {void}
  */
-function d3_createBoard(rows, cols, board, teamboard) {
+function d3_createBoard(topo, board, teamboard) {
+    const rows = topo.height;
+    const cols = topo.width;
     // let baroa = "";
     // for (let i = 0; i < rows; i++) {
     //     for (let j = 0; j < cols; j++) {
@@ -32,12 +34,11 @@ function d3_createBoard(rows, cols, board, teamboard) {
     // window.dispatchEvent(new CustomEvent("3d-createBoard", {rows:rows, cols:cols, board:board, teamboard:teamboard}));
 }
 /**
- * @param {number} row
- * @param {number} col
+ * @param {TilePosition} pos
  * @param {boolean} value
  * @returns {void}
  */
-function d3_setVolatile(row, col, value) {
+function d3_setVolatile(pos, value) {
     // if (value) {
     //     document.getElementById(`r${row}c${col}`).classList.add("volatile");
     // } else {

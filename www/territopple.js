@@ -81,6 +81,7 @@ const queueAnimation = (()=>{
 let t = parseInt(queries.get("t") ?? "0") || 0;
 let rows = parseInt(queries.get("h") ?? "6") || 6;
 let cols = parseInt(queries.get("w") ?? "6") || 6;
+let dims = queries.get("d");
 let players = parseInt(queries.get("p") ?? "2") || 2;
 let port = parseInt(queries.get("port") ?? "noport");
 if (isNaN(port)) {
@@ -104,10 +105,10 @@ function rexec(s) {
 //     document.body.appendChild(s);
 // }
 
-if (rows < 1 || rows >= 37 || cols < 1 || cols >= 37) {
-	rows = 5;
-	cols = 5;
-}
+// if (rows < 1 || rows >= 37 || cols < 1 || cols >= 37) {
+// 	rows = 5;
+// 	cols = 5;
+// }
 
 if (players < 2 || players > 10) {
 	players = 2;
@@ -123,17 +124,17 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
 } else {
     if (t > 0 && t < 3) {
         const allow_spectators = queries.get("s") ?? "1";
-        serv = `ws://${host}/?t=${t}&s=${allow_spectators}&h=${rows}&w=${cols}&p=${players}`;
+        serv = `ws://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
     } else {
         gameid = queries.get("g") ?? "g";
         serv = `ws://${host}/?t=${t}&g=${gameid}`;
     }
 }
 
-let board = new Array(cols * rows);
-let boardold = new Array(cols * rows);
-let teamboard = new Array(cols * rows);
-let teamboardold = new Array(cols * rows);
+// let board = new Array(cols * rows);
+// let boardold = new Array(cols * rows);
+// let teamboard = new Array(cols * rows);
+// let teamboardold = new Array(cols * rows);
 let ifmt = {};
 ifmt.pln = 0;
 ifmt.room = null;
@@ -192,7 +193,7 @@ function rescanHostOnly() {
 // /**@type {HTMLInputElement} */
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
-conn.addEventListener("open", function(event) {
+conn.addEventListener("open", async function(event) {
     // readyButton.addEventListener("click", () => {
     //     if (game.started) return;
     //     amready = !amready;
@@ -210,7 +211,7 @@ conn.addEventListener("open", function(event) {
     });
 	// display("Connected");
     createBanner({type:"info",content:"Connected"});
-	conn.addEventListener("message", function(event) {
+	conn.addEventListener("message", async function(event) {
         if (typeof event.data !== "string") {
             // console.log(event.data);
             // nonstrdata = event.data;
@@ -420,9 +421,11 @@ conn.addEventListener("open", function(event) {
                 const tilecount = data.payload["c"];
                 const dims = data.payload["d"];
                 const topid = data.payload["t"];
+                dims.type = topid;
+                // console.log(dims);
                 if (topid === 0) {
-                    rows = tilecount/dims.width;
-                    cols = dims.width;
+                    rows = tilecount/dims.x;
+                    cols = dims.x;
                 } else {
                     throw new Error("unknown topology");
                 }
@@ -436,14 +439,15 @@ conn.addEventListener("open", function(event) {
                 rescanHostOnly();
                 document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
                 ifmt.turn = 0;
-                game.setConfig(cols, rows, players);
+                // await game.setConfig(topology.m.formatDimensions(dims), players);
+                await game.setConfig(dims, players);
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 /**@type {HTMLSelectElement} */
                 const bro = document.getElementById("board-rendering-option");
-                createBoard(rows, cols, game.board, game.teamboard, Number(bro.value)-1);
+                createBoard(game.topology, game.board, game.teamboard, Number(bro.value)-1);
                 flushUpdates();
                 bro.onchange = () => {
-                    createBoard(rows, cols, game.board, game.teamboard, Number(bro.value)-1);
+                    createBoard(game.topology, game.board, game.teamboard, Number(bro.value)-1);
                     flushUpdates();
                     document.getElementById("spherical-bloom-enabled").hidden = (bro.value !== "3");
                 };

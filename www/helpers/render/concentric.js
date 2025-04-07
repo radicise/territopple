@@ -153,13 +153,17 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         return `${x[v-1]}-${['two','three','four'][mv-2]}`;
     }
     /**
-     * @param {number} rows
-     * @param {number} cols
+     * @param {Topology} topo
      * @param {number[]} board
      * @param {number[]} teamboard
      * @returns {void}
      */
-    function concentric_createBoard(rows, cols, board, teamboard) {
+    function concentric_createBoard(topo, board, teamboard) {
+        if (!(topo instanceof topology.m.TGrid2D)) {
+            throw new Error("wrong topology");
+        }
+        const rows = topo.height;
+        const cols = topo.width;
         g_rows = rows;
         g_cols = cols;
         for (let r = 0; r < rows; r ++) {
@@ -181,13 +185,14 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         document.getElementById("gameboard").appendChild(SVG);
     }
     /**
-     * @param {number} row
-     * @param {number} col
+     * @param {TilePosition} pos
      * @param {number} team
      * @param {number} val
      * @returns {void}
      */
-    function concentric_updateTile(row, col, team, val) {
+    function concentric_updateTile(pos, team, val) {
+        const row = pos.y;
+        const col = pos.x;
         /**@type {SVGUseElement} */
         const u = document.getElementById(`r${row}c${col}`);
         // u.setAttribute("fill", teamcols[team]+c_fill_tweak);
@@ -196,12 +201,13 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         u.setAttribute("href", `#fill-${getFill(row, col, val)}`);
     }
     /**
-     * @param {number} row
-     * @param {number} col
+     * @param {TilePosition} pos
      * @param {boolean} value
      * @returns {void}
      */
-    function concentric_setVolatile(row, col, value) {
+    function concentric_setVolatile(pos, value) {
+        const row = pos.y;
+        const col = pos.x;
         if (value) {
             document.getElementById(`r${row}c${col}`).classList.add("volatile");
         } else {

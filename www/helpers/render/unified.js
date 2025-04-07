@@ -3,39 +3,41 @@ let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"
 
 let __unified_queues = [[],[],[],false];
 
+/**
+ * @typedef {import("../../../topology/topology.js").TilePosition} TilePosition
+ * @typedef {import("../../../topology/topology.js").Topology} Topology
+ */
+
 let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
     /**
      * updates a tile
-     * @param {number} row
-     * @param {number} col
+     * @param {TilePosition} pos
      * @param {number} team
      * @param {number} val
      * @returns {void}
      */
-    function updateTile(row, col, team, val) {
-        __unified_queues[0].push([row, col, team, val]);
+    function updateTile(pos, team, val) {
+        __unified_queues[0].push([pos, team, val]);
     }
     /**
      * reinstantiates the game board
-     * @param {number} rows
-     * @param {number} cols
+     * @param {Topology} topology
      * @param {number[]} board
      * @param {number[]} teamboard
      * @param {number?} choice overrides the rendering choice when provided, setting it to the given value
      * @returns {void}
      */
-    function createBoard(rows, cols, board, teamboard, choice) {
-        __unified_queues[1].push([rows, cols, board, teamboard, choice]);
+    function createBoard(topology, board, teamboard, choice) {
+        __unified_queues[1].push([topology, board, teamboard, choice]);
     }
     /**
      * sets the volatile highlight state for a tile
-     * @param {number} row
-     * @param {number} col
+     * @param {TilePosition} pos
      * @param {boolean} value
      * @returns {void}
      */
-    function setVolatile(row, col, value) {
-        __unified_queues[2].push([row, col, value]);
+    function setVolatile(pos, value) {
+        __unified_queues[2].push([pos, value]);
     }
     /**
      * flushes updateTile, updateBoard, and setVolatile calls when applicable
@@ -53,42 +55,39 @@ let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
         const methods = [[original_updateTile, concentric_updateTile, d3_updateTile], [original_createBoard, concentric_createBoard, d3_createBoard], [original_setVolatile, concentric_setVolatile, d3_setVolatile], [original_cleanup, concentric_cleanup, d3_cleanup], [dummyFunc, dummyFunc, d3_flushUpdates]];
         /**
          * updates a tile
-         * @param {number} row
-         * @param {number} col
+         * @param {TilePosition} pos
          * @param {number} team
          * @param {number} val
          * @returns {void}
          */
-        function updateTile(row, col, team, val) {
-            methods[0][renderchoice](row, col, team, val);
+        function updateTile(pos, team, val) {
+            methods[0][renderchoice](pos, team, val);
         }
         /**
          * reinstantiates the game board
-         * @param {number} rows
-         * @param {number} cols
+         * @param {Topology} topology
          * @param {number[]} board
          * @param {number[]} teamboard
          * @param {number?} choice overrides the rendering choice when provided, setting it to the given value
          * @returns {void}
          */
-        function createBoard(rows, cols, board, teamboard, choice) {
+        function createBoard(topology, board, teamboard, choice) {
             if ((choice ?? false) !== false) {
                 if (choice !== renderchoice) {
                     methods[3][renderchoice]();
                 }
                 renderchoice = choice;
             }
-            methods[1][renderchoice](rows, cols, board, teamboard);
+            methods[1][renderchoice](topology, board, teamboard);
         }
         /**
          * sets the volatile highlight state for a tile
-         * @param {number} row
-         * @param {number} col
+         * @param {TilePosition} pos
          * @param {boolean} value
          * @returns {void}
          */
-        function setVolatile(row, col, value) {
-            methods[2][renderchoice](row, col, value);
+        function setVolatile(pos, value) {
+            methods[2][renderchoice](pos, value);
         }
         /**
          * flushes updateTile, updateBoard, and setVolatile calls when applicable

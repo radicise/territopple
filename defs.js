@@ -9,7 +9,7 @@ const topology = new class{
 exports.loadPromise = new Promise((res,_) => {
     import("./topology/topology.js").then(v => {
         topology.m = v;
-        res();
+        res(v);
     }, r => {throw new ReferenceError("could not load topology module");});
 });
 exports.topology = topology;
@@ -574,15 +574,15 @@ class NetData {
          * @returns {string}
          */
         static Config(game) {
-            const o = {c:game.state.topology.tileCount,t:topology.m.getTopologyId(game.state.topology),p:game.stats.maxPlayers,l:game.state.hostNum};
-            let d;
-            switch (o.t) {
-                case 0:{
-                    d = {width:game.state.topology.width};
-                    break;
-                }
-            }
-            o.d = d;
+            const o = {c:game.state.topology.tileCount,d:topology.m.exportDimensions(game.state.topology),t:topology.m.getTopologyId(game.state.topology),p:game.stats.maxPlayers,l:game.state.hostNum};
+            // let d;
+            // switch (o.t) {
+            //     case 0:{
+            //         d = {width:game.state.topology.width};
+            //         break;
+            //     }
+            // }
+            // o.d = d;
             return this.Misc("config", o);
         }
         /**
@@ -661,14 +661,11 @@ class NetData {
             //         i ++;
             //     }
             // }
-            const bleft = game.state.rows * (game.state.cols - 1) - 1;
-            const bright = bb.length - 1;
+            // const bleft = game.state.rows * (game.state.cols - 1) - 1;
+            // const bright = bb.length - 1;
             for (let i = 0; i < bb.length; i ++) {
-                if (i === 0 || i === game.state.cols-1 || i === bleft || i === bright) {
-                    pushbits(bb[i] - 1, 1);
-                } else {
-                    pushbits(bb[i] - 1, 2);
-                }
+                pushbits(bb[i] - 1, game.state.topology.getRequiredBits(i));
+                // pushbits(bb[i] - 1, 2);
                 // console.log(d.map(v => v.toString(2)));
             }
             // console.log(Buffer.from(d).toString("hex"));

@@ -66,6 +66,12 @@
               border: 1px solid #888888;
               padding: 5px;
           }
+          .dimensions {
+            display: none;
+          }
+          .dimensions.show {
+            display: initial;
+          }
         </style>
     </head>
     <body>
@@ -83,9 +89,10 @@
       <!-- <a id="help-button" style="font-size:2em;" href="./tutorial/tutorial.html"><img src="./tutorial/icon.svg" alt="tutorial icon"></a><br> -->
       <a href="./replay/replay.html">game replays (WIP)</a>
       <div class="action-box">
-        <form action="territopple" method="get">
+        <form action="territopple" method="get" id="create-form">
           <h2 class="action-title">Create a new room</h2>
           <input type="hidden" name="port" value="80">
+          <input type="hidden" name="d" id="room-create-dims" value="">
           <div class="form-row">
             <label for="room-create-t">Room type: </label>
             <select name="t" id="room-create-t">
@@ -94,10 +101,18 @@
             </select>
           </div>
           <div class="form-row">
-            <label for="room-create-w">Width:</label>
-            <input type="number" name="w" id="room-create-w" value="5" min="1" max="36">
-            <label for="room-create-h">Height:</label>
-            <input type="number" name="h" id="room-create-h" value="5" min="1" max="36">
+            <label for="room-create-topology">Topology: </label>
+            <select id="room-create-topology">
+                <option value="0" selected>Grid 2D</option>
+            </select>
+          </div>
+          <div id="dimensions-container">
+              <div class="form-row dimensions show">
+                <label for="room-create-g2d-w">Width:</label>
+                <input type="number" id="room-create-g2d-w" value="5" min="1" max="36">
+                <label for="room-create-g2d-h">Height:</label>
+                <input type="number" id="room-create-g2d-h" value="5" min="1" max="36">
+              </div>
           </div>
           <div class="form-row">
             <label for="room-create-p">Players:</label>
@@ -109,7 +124,7 @@
             </select>
           </div>
           <div class="form-row">
-            <input type="submit" value="Create a New Room">
+            <input type="button" value="Create a New Room" onclick="preSubmit();">
           </div>
         </form>
       </div>
@@ -143,6 +158,32 @@
           </tbody>
         </table>
       </div>
+      <script>
+        /**@type {HTMLDivElement} */
+        const dimscont = document.getElementById("dimensions-container");
+        /**@type {HTMLInputElement} */
+        const toptype = document.getElementById("room-create-topology");
+        /**@type {HTMLInputElement} */
+        const diminput = document.getElementById("room-create-dims");
+        toptype.onchange = () => {
+            document.querySelector(".dimensions.show").classList.remove("show");
+            dimscont.children[toptype.value].classList.add("show");
+        }
+        function preSubmit() {
+            /**@type {HTMLFormElement} */
+            const form = document.getElementById("create-form");
+            const list = [toptype.value];
+            switch (toptype.value) {
+                case"0":{
+                    list.push(document.getElementById("room-create-g2d-w").value);
+                    list.push(document.getElementById("room-create-g2d-h").value);
+                    break;
+                }
+            }
+            diminput.value = list.join(",");
+            form.submit();
+        }
+      </script>
       <script>
         if (new URL(location.href).searchParams.get("dev")) {
             document.querySelector("input[name=\"w\"]").value = 2;
