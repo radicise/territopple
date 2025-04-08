@@ -184,11 +184,300 @@ export class TGrid2D extends Topology {
     }
 }
 
+export class THWrap2D extends Topology {
+    /**
+     * @inheritdoc
+     * @param {{width:number,height:number}} dimensions
+     */
+    constructor(dimensions) {
+        super(dimensions);
+        this.width = dimensions.width;
+        this.height = dimensions.height;
+        this.tc = this.width * this.height;
+        this.dstr = `HWrap2D ${this.width}x${this.height}`;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get dimensionString() {
+        return this.dstr;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     * @returns {RenderRestriction}
+     */
+    get renderRestrictions() {
+        return {"some":["2d-grid","3d-grid"]};
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get maxNeighbors() {
+        return 4;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get tileCount() {
+        return this.tc;
+    }
+    /**
+     * @inheritdoc
+     * {@link Topology.getPositionOf}
+     * @param {number} tindex
+     * @param {RenderType} mode
+     * @returns {TilePosition}
+     */
+    getPositionOf(tindex, mode) {
+        switch (mode) {
+            case "3d-grid":
+            case "2d-grid":
+                let x = tindex % this.width;
+                return (mode === "2d-grid" ?TP_Cart2D:TP_Cart3D).from([x, (tindex-x)/this.width]);
+            default:
+                throw new TypeError("GridTopology can only render as 2d or 3d grid");
+        }
+    }
+    /**
+     * gets the neighbors of a tile
+     * @param {number} tindex tile index
+     * @returns {number[]}
+     */
+    getNeighbors(tindex) {
+        const x = tindex % this.width;
+        const y = (tindex - x) / this.width;
+        const f = [];
+        if (x > 0) {
+            f.push(tindex-1);
+        } else {
+            f.push(tindex+this.width-1);
+        }
+        if (x < this.width-1) {
+            f.push(tindex+1);
+        } else {
+            f.push(tindex-this.width+1);
+        }
+        if (y > 0) {
+            f.push(tindex-this.width);
+        }
+        if (y < this.height-1) {
+            f.push(tindex+this.width);
+        }
+        return f;
+    }
+    /**
+     * @inheritdoc
+     * @param {number} tindex
+     * @returns {number}
+     */
+    getRequiredBits(tindex) {
+        return 2;
+    }
+}
+export class TVWrap2D extends Topology {
+    /**
+     * @inheritdoc
+     * @param {{width:number,height:number}} dimensions
+     */
+    constructor(dimensions) {
+        super(dimensions);
+        this.width = dimensions.width;
+        this.height = dimensions.height;
+        this.tc = this.width * this.height;
+        this.dstr = `VWrap2D ${this.width}x${this.height}`;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get dimensionString() {
+        return this.dstr;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     * @returns {RenderRestriction}
+     */
+    get renderRestrictions() {
+        return {"some":["2d-grid","3d-grid"]};
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get maxNeighbors() {
+        return 4;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get tileCount() {
+        return this.tc;
+    }
+    /**
+     * @inheritdoc
+     * {@link Topology.getPositionOf}
+     * @param {number} tindex
+     * @param {RenderType} mode
+     * @returns {TilePosition}
+     */
+    getPositionOf(tindex, mode) {
+        switch (mode) {
+            case "3d-grid":
+            case "2d-grid":
+                let x = tindex % this.width;
+                return (mode === "2d-grid" ?TP_Cart2D:TP_Cart3D).from([x, (tindex-x)/this.width]);
+            default:
+                throw new TypeError("GridTopology can only render as 2d or 3d grid");
+        }
+    }
+    /**
+     * gets the neighbors of a tile
+     * @param {number} tindex tile index
+     * @returns {number[]}
+     */
+    getNeighbors(tindex) {
+        const x = tindex % this.width;
+        const y = (tindex - x) / this.width;
+        const f = [];
+        if (x > 0) {
+            f.push(tindex-1);
+        }
+        if (x < this.width-1) {
+            f.push(tindex+1);
+        }
+        if (y > 0) {
+            f.push(tindex-this.width);
+        } else {
+            f.push(this.tc-this.width+x);
+        }
+        if (y < this.height-1) {
+            f.push(tindex+this.width);
+        } else {
+            f.push(x);
+        }
+        return f;
+    }
+    /**
+     * @inheritdoc
+     * @param {number} tindex
+     * @returns {number}
+     */
+    getRequiredBits(tindex) {
+        return 2;
+    }
+}
+export class TBWrap2D extends Topology {
+    /**
+     * @inheritdoc
+     * @param {{width:number,height:number}} dimensions
+     */
+    constructor(dimensions) {
+        super(dimensions);
+        this.width = dimensions.width;
+        this.height = dimensions.height;
+        this.tc = this.width * this.height;
+        this.dstr = `BWrap2D ${this.width}x${this.height}`;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get dimensionString() {
+        return this.dstr;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     * @returns {RenderRestriction}
+     */
+    get renderRestrictions() {
+        return {"some":["2d-grid","3d-grid"]};
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get maxNeighbors() {
+        return 4;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get tileCount() {
+        return this.tc;
+    }
+    /**
+     * @inheritdoc
+     * {@link Topology.getPositionOf}
+     * @param {number} tindex
+     * @param {RenderType} mode
+     * @returns {TilePosition}
+     */
+    getPositionOf(tindex, mode) {
+        switch (mode) {
+            case "3d-grid":
+            case "2d-grid":
+                let x = tindex % this.width;
+                return (mode === "2d-grid" ?TP_Cart2D:TP_Cart3D).from([x, (tindex-x)/this.width]);
+            default:
+                throw new TypeError("GridTopology can only render as 2d or 3d grid");
+        }
+    }
+    /**
+     * gets the neighbors of a tile
+     * @param {number} tindex tile index
+     * @returns {number[]}
+     */
+    getNeighbors(tindex) {
+        const x = tindex % this.width;
+        const y = (tindex - x) / this.width;
+        const f = [];
+        if (x > 0) {
+            f.push(tindex-1);
+        } else {
+            f.push(tindex+this.width-1);
+        }
+        if (x < this.width-1) {
+            f.push(tindex+1);
+        } else {
+            f.push(tindex-this.width+1);
+        }
+        if (y > 0) {
+            f.push(tindex-this.width);
+        } else {
+            f.push(this.tc-this.width+x);
+        }
+        if (y < this.height-1) {
+            f.push(tindex+this.width);
+        } else {
+            f.push(x);
+        }
+        return f;
+    }
+    /**
+     * @inheritdoc
+     * @param {number} tindex
+     * @returns {number}
+     */
+    getRequiredBits(tindex) {
+        return 2;
+    }
+}
+
+//// TOPOLOGY CONFIG POINT ////
 /**
  * @typedef TopologyParams
- * @type {{type:0,x:number,y:number}|{type:1,x:number,y:number,z:number}}
+ * @type {{type:0,x:number,y:number}|{type:1,x:number,y:number}|{type:2,x:number,y:number}|{type:3,x:number,y:number}}
  */
 
+//// TOPOLOGY CONFIG POINT ////
 /**
  * @param {TopologyParams} params
  * @returns {Topology}
@@ -198,12 +487,22 @@ export function makeTopology(params) {
         case 0:{
             return new TGrid2D({width:params.x,height:params.y});
         }
+        case 1:{
+            return new THWrap2D({width:params.x,height:params.y});
+        }
+        case 2:{
+            return new TVWrap2D({width:params.x,height:params.y});
+        }
+        case 3:{
+            return new TBWrap2D({width:params.x,height:params.y});
+        }
         default:{
             throw new ValueError("unkown topology type identifier");
         }
     }
 }
-const tops = [TGrid2D];
+//// TOPOLOGY CONFIG POINT ////
+const tops = [TGrid2D,THWrap2D,TVWrap2D,TBWrap2D];
 /**
  * @param {Topology} topology
  * @returns {number}
@@ -217,6 +516,7 @@ export function getTopologyId(topology) {
     return -1;
 }
 
+//// TOPOLOGY CONFIG POINT ////
 /**
  * @param {number[]} dims
  * @returns {Record<string,number>|null}
@@ -226,18 +526,32 @@ export function formatDimensions(dims) {
         case 0:{
             return {type:0,x:dims[1],y:dims[2]};
         }
+        case 1:{
+            return {type:1,x:dims[1],y:dims[2]};
+        }
+        case 2:{
+            return {type:2,x:dims[1],y:dims[2]};
+        }
+        case 3:{
+            return {type:3,x:dims[1],y:dims[2]};
+        }
         default:return null;
     }
 }
 
+//// TOPOLOGY CONFIG POINT ////
 /**
  * @param {Topology} top
  * @returns {Record<string,number>}
  */
 export function exportDimensions(top) {
     switch (getTopologyId(top)) {
+        case 3:
+        case 2:
+        case 1:
         case 0:{
             return {x:top.width,y:top.height};
         }
+    
     }
 }

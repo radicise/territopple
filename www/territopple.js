@@ -426,7 +426,8 @@ conn.addEventListener("open", async function(event) {
                 const topid = data.payload["t"];
                 dims.type = topid;
                 // console.log(dims);
-                if (topid === 0) {
+                //// TOPOLOGY CONFIG POINT ////
+                if (topid < 4) {
                     rows = tilecount/dims.x;
                     cols = dims.x;
                 } else {

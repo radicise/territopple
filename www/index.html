@@ -134,10 +134,15 @@
           <div class="form-row">
             <label for="room-create-topology">Topology: </label>
             <select id="room-create-topology">
-                <option value="0" selected>Grid 2D</option>
+                <!-- //// TOPOLOGY CONFIG POINT //// -->
+                <option data-fields="0" value="0" selected>Grid 2D</option>
+                <option data-fields="0" value="1">Horizontal Wrap 2D</option>
+                <option data-fields="0" value="2">Vertical Wrap 2D</option>
+                <option data-fields="0" value="3">Omni Wrap 2D</option>
             </select>
           </div>
           <div id="dimensions-container">
+              <!-- //// TOPOLOGY CONFIG POINT //// -->
               <div class="form-row dimensions show">
                 <label for="room-create-g2d-w">Width:</label>
                 <input type="number" id="room-create-g2d-w" value="5" min="1" max="36">
@@ -198,13 +203,17 @@
         const diminput = document.getElementById("room-create-dims");
         toptype.onchange = () => {
             document.querySelector(".dimensions.show").classList.remove("show");
-            dimscont.children[toptype.value].classList.add("show");
+            dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
         }
         function preSubmit() {
             /**@type {HTMLFormElement} */
             const form = document.getElementById("create-form");
             const list = [toptype.value];
+            //// TOPOLOGY CONFIG POINT ////
             switch (toptype.value) {
+                case"3":
+                case"2":
+                case"1":
                 case"0":{
                     list.push(document.getElementById("room-create-g2d-w").value);
                     list.push(document.getElementById("room-create-g2d-h").value);
