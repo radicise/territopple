@@ -253,6 +253,9 @@ if (!settings.APPEASEMENT) {
         }
         next();
     });
+    ex_server.get("/help(.html)?", (req, res) => {
+        res.sendFile(_path.resolve(__dname, "www/tutorial/tutorial.html"));
+    });
     ex_server.use("/", express.static(_path.resolve(__dname, "www"), {extensions:["html"]}));
     ex_server.use("/replays", replayRouter);
     ex_server.get("/no-create", (req, res) => {res.sendFile(_path.resolve(__dname, "www/errors/no_create.html"));});
