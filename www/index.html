@@ -72,20 +72,51 @@
           .dimensions.show {
             display: initial;
           }
+          #error-popup {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+            background-color: #88888888;
+          }
+          #error-popup > div {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 50vw;
+            top: 50vh;
+            transform: translate(-50%, -50%);
+            background-color: #888888;
+            border: solid 2px white;
+          }
+          #error-popup > div > * {
+            /* margin-left: 5px;
+            margin-right: 5px; */
+            margin: 5px;
+          }
         </style>
     </head>
     <body>
       <h1 class="game-title">Territopple, the Territory Toppling Game</h1>
       <div id="help-menu" hidden>
         <div>
-            <input type="button" value="tutorial" onclick="location.pathname='/tutorial'">
+            <input type="button" value="tutorial" onclick="location.pathname='/help'">
             <!-- <br> -->
             <input type="button" value="reference">
             <!-- <br> -->
             <input type="button" value="back" onclick="document.getElementById('help-menu').hidden=true">
         </div>
       </div>
-      <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="document.getElementById('help-menu').hidden=false">
+      <!-- <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="document.getElementById('help-menu').hidden=false"> -->
+      <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="location.pathname='/help'">
+      <div id="error-popup" hidden>
+        <div>
+            <p id="error-popup-text"></p>
+            <input type="button" value="ok" onclick="document.getElementById('error-popup').hidden=true;">
+        </div>
+      </div>
       <!-- <a id="help-button" style="font-size:2em;" href="./tutorial/tutorial.html"><img src="./tutorial/icon.svg" alt="tutorial icon"></a><br> -->
       <a href="./replay/replay.html">game replays (WIP)</a>
       <div class="action-box">

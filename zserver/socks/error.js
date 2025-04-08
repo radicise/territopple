@@ -8,7 +8,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     emit("error", args);
     if (args.data) {
-        sock.send(NetData.Error(0, args.data, args.redirect));
+        sock.send(NetData.Error(0, args.data, {redirect:args.redirect,store:args.store}));
         // sock.close(args["code"], args["data"]);
     } else {
         sock.send(NetData.Error(0));

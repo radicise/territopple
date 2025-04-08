@@ -481,11 +481,12 @@ class NetData {
     /**
      * @param {number} code
      * @param {string?} data
-     * @param {string?} redirect
+     * @param {{redirect?:string,store?:string}|string} rs
      * @returns {string}
      */
-    static Error(code, data, redirect) {
-        return this.Misc("error", {code, message:data??null, redirect:redirect??null});
+    static Error(code, data, rs) {
+        const {redirect, store} = typeof rs==="object"?rs:(typeof rs==="string"?{redirect:rs}:{});
+        return this.Misc("error", {code, message:data??null, redirect:redirect??null, store:store??null});
     }
     static Waiting = class {
         /**

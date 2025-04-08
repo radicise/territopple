@@ -4,7 +4,7 @@ GAME TO CLIENT:
         start (void)
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
         setready (n [player num]: number, r [ready]: boolean)
-    error: (code: number, message: string | null, redirect: string | null)
+    error: (code: number, message: string | null, redirect: string | null, store: string | null)
     key:
         rejoin (key: string, g [game id]: string, p [player num]: number)
     player:

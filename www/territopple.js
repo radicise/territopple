@@ -337,8 +337,11 @@ conn.addEventListener("open", async function(event) {
                 break;
             }
             case "error":{
+                if (data.payload["store"]) {
+                    sessionStorage.setItem("error-store", data.payload["store"]);
+                }
                 if (data.payload["redirect"]) {
-                    window.location.pathname = data.payload["redirect"];
+                    window.location.href = data.payload["redirect"];
                 }
                 createBanner({type:"error", fade:false, content:`${data.payload["message"]??data.payload["code"]}`});
                 break;
