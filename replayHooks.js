@@ -17,7 +17,7 @@ if (!fs.existsSync("gameid.bin")) {
 function allocGameId() {
     const b = fs.readFileSync("gameid.bin");
     const wb = Buffer.allocUnsafe(8);
-    wb.writeBigUInt64BE(b.readBigUInt64BE()+1);
+    wb.writeBigUInt64BE(b.readBigUInt64BE()+1n);
     fs.writeFileSync("gameid.bin", wb);
     return b;
 }
