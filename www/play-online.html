@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+        <link rel="manifest" href="/favicon/site.webmanifest" /> -->
+        <script src="/_icons.js"></script>
+        <title>Territopple</title>
+        <style>
+          #help-menu > div {
+            position: absolute;
+            left: 50vw;
+            top: 50vh;
+            transform: translate(-50%, -50%);
+            background-color: dimgray;
+            border: solid black 1px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            /* grid-template-rows: 1fr 1fr 1fr; */
+            align-items: center;
+          }
+          #help-menu {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100vw;
+            height: 100vh;
+            background-color: #33333333;
+          }
+          #help-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            height: 3em;
+          }
+          a > img {
+            height: 1em;
+            vertical-align: text-bottom;
+          }
+          body {
+              margin: 0px;
+          }
+          .game-title {
+              margin: 10px;
+          }
+          .action-box {
+              border: 2px solid #000000;
+              padding: 3px;
+              margin: 5px;
+          }
+          .action-title {
+              padding: 0px;
+              margin: 3px;
+          }
+          .form-row {
+              margin: 2px;
+          }
+          table {
+              border-collapse: collapse;
+              border: 1px solid #888888;
+          }
+          th, tr, td {
+              border: 1px solid #888888;
+              padding: 5px;
+          }
+          .dimensions {
+            display: none;
+          }
+          .dimensions.show {
+            display: initial;
+          }
+          #error-popup {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+            background-color: #88888888;
+          }
+          #error-popup > div {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 50vw;
+            top: 50vh;
+            transform: translate(-50%, -50%);
+            background-color: #888888;
+            border: solid 2px white;
+          }
+          #error-popup > div > * {
+            /* margin-left: 5px;
+            margin-right: 5px; */
+            margin: 5px;
+          }
+        </style>
+    </head>
+    <body>
+      <h1 class="game-title">Territopple, the Territory Toppling Game</h1>
+      <div id="help-menu" hidden>
+        <div>
+            <input type="button" value="tutorial" onclick="location.pathname='/help'">
+            <!-- <br> -->
+            <input type="button" value="reference">
+            <!-- <br> -->
+            <input type="button" value="back" onclick="document.getElementById('help-menu').hidden=true">
+        </div>
+      </div>
+      <!-- <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="document.getElementById('help-menu').hidden=false"> -->
+      <!-- <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="location.pathname='/help'"> -->
+      <div id="error-popup" hidden>
+        <div>
+            <p id="error-popup-text"></p>
+            <input type="button" value="ok" onclick="document.getElementById('error-popup').hidden=true;">
+        </div>
+      </div>
+      <!-- <a id="help-button" style="font-size:2em;" href="./tutorial/tutorial.html"><img src="./tutorial/icon.svg" alt="tutorial icon"></a><br> -->
+      <!-- <a href="./replay/replay.html">game replays (WIP)</a> -->
+      <a href="/">Home</a>
+      <div class="action-box">
+        <form action="territopple" method="get" id="create-form">
+          <h2 class="action-title">Create a new room</h2>
+          <input type="hidden" name="port" value="80">
+          <input type="hidden" name="d" id="room-create-dims" value="">
+          <div class="form-row">
+            <label for="room-create-t">Room type: </label>
+            <select name="t" id="room-create-t">
+              <option value="1">Public</option>
+              <option value="2">Private</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="room-create-topology">Topology: </label>
+            <select id="room-create-topology">
+                <!-- //// TOPOLOGY CONFIG POINT //// -->
+                <option data-fields="0" value="0" selected>Grid 2D</option>
+                <option data-fields="0" value="1">Horizontal Wrap 2D</option>
+                <option data-fields="0" value="2">Vertical Wrap 2D</option>
+                <option data-fields="0" value="3">Omni Wrap 2D</option>
+            </select>
+          </div>
+          <div id="dimensions-container">
+              <!-- //// TOPOLOGY CONFIG POINT //// -->
+              <div class="form-row dimensions show">
+                <label for="room-create-g2d-w">Width:</label>
+                <input type="number" id="room-create-g2d-w" value="5" min="1" max="36">
+                <label for="room-create-g2d-h">Height:</label>
+                <input type="number" id="room-create-g2d-h" value="5" min="1" max="36">
+              </div>
+          </div>
+          <div class="form-row">
+            <label for="room-create-p">Players:</label>
+            <input type="number" name="p" id="room-create-p" value="2" min="2" max="10">
+            <label for="room-create-s">Spectators: </label>
+            <select name="s" id="room-create-s">
+                <option value="1">allow</option>
+                <option value="2">deny</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input type="button" value="Create a New Room" onclick="preSubmit();">
+          </div>
+        </form>
+      </div>
+      <div class="action-box">
+        <form action="territopple" method="get">
+          <h2 class="action-title">Join a Private Room</h2>
+          <input type="hidden" name="port" value="80">
+          <input type="hidden" name="t" value="0">
+          <div class="form-row">
+            <label for="private-join-g">Room ID:</label>
+            <input name="g" id="private-join-g">
+            <input type="submit" value="Join">
+          </div>
+        </form>
+      </div>
+      <div class="action-box">
+        <h2 class="action-title">Join a Public Room</h2>
+        <em id="fetchingMessage">Fetching rooms...</em>
+        <table id="roomTable" hidden="true">
+          <thead>
+            <th scope="col">Room ID</th>
+            <th scope="col">Topology</th>
+            <th scope="col">Status</th>
+            <th scope="col">Players</th>
+            <th scope="col">Capacity</th>
+            <th scope="col">Spectating</th>
+            <th scope="col">Spectate</th>
+          </thead>
+          <tbody id="roomRows">
+            
+          </tbody>
+        </table>
+      </div>
+      <script>
+        /**@type {HTMLDivElement} */
+        const dimscont = document.getElementById("dimensions-container");
+        /**@type {HTMLInputElement} */
+        const toptype = document.getElementById("room-create-topology");
+        /**@type {HTMLInputElement} */
+        const diminput = document.getElementById("room-create-dims");
+        toptype.onchange = () => {
+            document.querySelector(".dimensions.show").classList.remove("show");
+            dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
+        }
+        function preSubmit() {
+            /**@type {HTMLFormElement} */
+            const form = document.getElementById("create-form");
+            const list = [toptype.value];
+            //// TOPOLOGY CONFIG POINT ////
+            switch (toptype.value) {
+                case"3":
+                case"2":
+                case"1":
+                case"0":{
+                    list.push(document.getElementById("room-create-g2d-w").value);
+                    list.push(document.getElementById("room-create-g2d-h").value);
+                    break;
+                }
+            }
+            diminput.value = list.join(",");
+            form.submit();
+        }
+      </script>
+      <script>
+        if (new URL(location.href).searchParams.get("dev")) {
+            document.querySelector("input[name=\"w\"]").value = 2;
+            document.querySelector("input[name=\"h\"]").value = 2;
+        }
+      </script>
+      <script src="portno.js"></script>
+      <script src="play-online.js"></script>
+    </body>
+</html>

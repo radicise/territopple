@@ -536,10 +536,8 @@ conn.addEventListener("open", async function(event) {
             }
         }
         return;
-		var type = event.data.substring(0,4);
-		var mess = event.data.substring(4);
-		switch (type) {
-            case "ping":
+        /**
+         * case "ping":
                 const orig = mess.split(",")[0];
                 const kind = mess.split(",")[1].replace("default", "flash");
                 switch (kind) {
@@ -550,137 +548,7 @@ conn.addEventListener("open", async function(event) {
                         break;
                 }
                 break;
-			case ("disc"):// ex. gr. disc
-				conn.close();
-				mess = sanint(mess);
-				// display("Disconnected by server for reason number " + mess.toString());
-                createBanner({type:"error",fade:false,content:`Disconnected by server. Error ${mess}`});
-				break;
-			case ("pcmt"):// ex. gr. pcmtr0c0_1
-				if (dbg) {
-					console.log("Player move reception from server");
-				}
-				let tmu = mess.split("_");
-				mess = tmu[0];
-				tmu = sanint(tmu[1]);
-				if ((tmu < 0) || (tmu >= teamcols.length)) {
-					break;
-				}
-				mess = mess.substring(1);
-				mess = mess.split("c");
-				if (mess.length != 2) {
-					break;
-				}
-				let col = sanint(mess[1]);
-				let row = sanint(mess[0]);
-				if (((col < 0) || (col >= cols)) || ((row < 0) || (row >= rows))) {
-					break;
-				}
-				updateboard(row, col, tmu);
-                lastMoveId = `r${row}c${col}`;
-                if (displaySettings.highlightLastMove) {
-                    document.querySelector(".last-move")?.classList.remove("last-move");
-                    document.getElementById(lastMoveId).classList.add("last-move");
-                }
-				break;
-			case ("room"):// ex. gr. roomAWNW8W9D_2
-			case ("plyw"):// ex. gr. plyw2_3
-			case ("turn"):// ex. gr. turn2_23
-			case ("wnnr"):// ex. gr. wnnr2_0
-			case ("dims"):// ex. gr. dims6_8
-				mess = mess.split("_");
-				if (mess.length != 2) {
-					recvInval(9);
-				}
-				let mesr = mess[0];
-				if (type == "room") {
-					let mea = mesr.split("");
-					if (mea.length != 8) {
-						recvInval(11);
-					}
-					for (let i = 0; i < 8; i++) {
-						let j = mea[i].charCodeAt(0);
-						if ((j < 52) || (j >= 91) || ((j >= 58) && (j < 65))) {
-							recvInval(12);
-						}
-					}
-				} else {
-					mesr = sanint(mesr);
-				}
-				mess = sanint(mess[1]);
-				switch (type) {
-					case ("room"):
-						ifmt.room = mesr;
-						ifmt.pln = mess;
-						updScr("info", "Room " + mesr + ", Player " + mess.toString());
-						break;
-					case ("plyw"):
-						updScr("status", mesr.toString() + " player(s) present in room, " + mess.toString() + " needed to start");
-						break;
-					case ("turn"):
-						ifmt.turn = mesr;
-						if (mess < 0) {
-							updScr("status", "Player " + mesr.toString() + "\'s turn");
-						}
-						else {
-							let rmo = Math.floor(mess / cols);
-							mess = mess % cols;
-							updScr("status", "Player " + mesr.toString() + "\'s turn, last move was " + mess.toString() + "x" + rmo.toString());
-						}
-						break;
-					case ("wnnr"):
-						ifmt.turn = 0;
-						{
-							let rmo = Math.floor(mess / cols);
-							mess = mess % cols;
-							updScr("status", "Player " + mesr.toString() + " won the game with move " + mess.toString() + "x" + rmo.toString());
-                            displaySettings.highlightLastMove = false;
-                            container.parentElement.style.setProperty("--blink-dark", teamcols[mesr]+"88");
-                            container.parentElement.classList.add("blink2");
-						}
-                        {
-                            /**@type {HTMLDivElement} */
-                            const da = document.getElementById("download-area");
-                            /**@type {HTMLInputElement} */
-                            const db = da.firstElementChild;
-                            /**@type {HTMLAnchorElement} */
-                            const dl = da.lastElementChild;
-                            db.onclick = ()=>{dl.click();db.onclick = undefined;};
-                            dl.href = `/replays/${ifmt.room}.topl`;
-                            dl.download = `${ifmt.room}.topl`;
-                            da.hidden = false;
-                        }
-						break;
-					case ("dims"):
-						rows = mesr;
-						cols = mess;
-						document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
-						board = new Array(cols * rows);
-						boardold = new Array(cols * rows);
-						teamboard = new Array(cols * rows);
-						teamboardold = new Array(cols * rows);
-						ifmt.turn = 0;
-						for (let i = (cols * rows) - 1; i >= 0; i--) {
-							board[i] = 1;
-							boardold[i] = 1;
-							teamboard[i] = 0;
-							teamboardold[i] = 0;
-						}
-                        createBoard(rows, cols, board, teamboard);
-                        document.getElementById("board-rendering-option").onchange = () => {
-                            createBoard(rows, cols, board, teamboard, Number(document.getElementById("board-rendering-option").value)-1);
-                        };
-						break;
-					default:// This should be impossible
-						recvInval("10");
-						break;
-				}
-				break;
-			default:
-				recvInval("1");
-				break;
-		}
-		return;
+         */
 	});
 	document.getElementById("gameboard").addEventListener("mouseup", function(event) {
         if (event.button !== 0) return;

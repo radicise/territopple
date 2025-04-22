@@ -1,236 +1,205 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <!-- <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
-        <link rel="manifest" href="/favicon/site.webmanifest" /> -->
         <script src="/_icons.js"></script>
-        <title>Territopple</title>
+        <title>Home - Territopple</title>
         <style>
-          #help-menu > div {
-            position: absolute;
-            left: 50vw;
-            top: 50vh;
-            transform: translate(-50%, -50%);
-            background-color: dimgray;
-            border: solid black 1px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            /* grid-template-rows: 1fr 1fr 1fr; */
-            align-items: center;
-          }
-          #help-menu {
-            position: absolute;
-            left: 0px;
-            top: 0px;
-            width: 100vw;
-            height: 100vh;
-            background-color: #33333333;
-          }
-          #help-button {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            height: 3em;
-          }
-          a > img {
-            height: 1em;
-            vertical-align: text-bottom;
-          }
-          body {
-              margin: 0px;
-          }
-          .game-title {
-              margin: 10px;
-          }
-          .action-box {
-              border: 2px solid #000000;
-              padding: 3px;
-              margin: 5px;
-          }
-          .action-title {
-              padding: 0px;
-              margin: 3px;
-          }
-          .form-row {
-              margin: 2px;
-          }
-          table {
-              border-collapse: collapse;
-              border: 1px solid #888888;
-          }
-          th, tr, td {
-              border: 1px solid #888888;
-              padding: 5px;
-          }
-          .dimensions {
-            display: none;
-          }
-          .dimensions.show {
-            display: initial;
-          }
-          #error-popup {
-            position: absolute;
-            left: 0px;
-            top: 0px;
-            width: 100vw;
-            height: 100vh;
-            z-index: 10;
-            background-color: #88888888;
-          }
-          #error-popup > div {
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            left: 50vw;
-            top: 50vh;
-            transform: translate(-50%, -50%);
-            background-color: #888888;
-            border: solid 2px white;
-          }
-          #error-popup > div > * {
-            /* margin-left: 5px;
-            margin-right: 5px; */
-            margin: 5px;
-          }
+            div.modal {
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                width: 100vw;
+                height: 100vh;
+                background-color: #33333388;
+            }
+            div.modal > div {
+                position: absolute;
+                left: 50vw;
+                top: 50vh;
+                transform: translate(-50%, -50%);
+                background-color: #fff;
+                border: inset gray 2px;
+                padding: 5px;
+            }
+            a.perma-blue:visited {
+                color: LinkText;
+            }
+            a.button-link, a.button-link:visited {
+                color: darkgray;
+                text-decoration: none;
+            }
+            a.button-link:hover {
+                color: dimgray;
+                text-decoration: underline;
+                cursor: pointer;
+            }
+        </style>
+        <style>
+            div#splash-banner {
+                --left: 10vw;
+                margin-left: var(--left);
+                width: calc(100vw - var(--left));
+                /* justify-items: center; */
+            }
+            div#splash-banner > h1#splash-main {
+                width: fit-content;
+            }
+        </style>
+        <style>
+            div#play-options {
+                display: flex;
+                flex-direction: column;
+                width: max-content;
+                margin-left: 3em;
+            }
+            div#play-options > *:not(:first-child) {
+                margin-top: 0.5em;
+            }
+            div#contact-footer {
+                position: absolute;
+                width: calc(100vw - 2em);
+                left: 0px;
+                bottom: 0px;
+                /* margin: 1em; */
+                padding: 1em;
+                /* margin-right: 0.5em;
+                margin-left: 1.5em; */
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                justify-items: left;
+                border-top: solid gray 2px;
+                /* margin-top: 0em; */
+                padding-top: 1em;
+                /* display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap; */
+            }
+            div#contact-footer > * {
+                /* margin-left: 5px; */
+                display: flex;
+                flex-direction: column;
+                width: max-content;
+                justify-self: center;
+            }
+            #test {
+                position:absolute;
+                left:calc(50vw - 2.5px);
+                width:5px;
+                background-color: black;
+                height:100vh;
+                top:0px;
+            }
+        </style>
+        <style>
+            div#random-replay {
+                --size: 75vmin;
+                width: var(--size);
+                height: var(--size);
+                border: inset black 3px;
+                margin-right: 2px;
+                position: absolute;
+                right: 0px;
+                top: 50vh;
+                transform: translateY(-50%);
+                align-content: center;
+                text-align: center;
+            }
         </style>
     </head>
     <body>
-      <h1 class="game-title">Territopple, the Territory Toppling Game</h1>
-      <div id="help-menu" hidden>
-        <div>
-            <input type="button" value="tutorial" onclick="location.pathname='/help'">
-            <!-- <br> -->
-            <input type="button" value="reference">
-            <!-- <br> -->
-            <input type="button" value="back" onclick="document.getElementById('help-menu').hidden=true">
+        <!-- <div id="test"></div> -->
+        <div id="splash-banner">
+            <h1 id="splash-main">Territopple</h1>
         </div>
-      </div>
-      <!-- <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="document.getElementById('help-menu').hidden=false"> -->
-      <input type="image" src="./tutorial/icon.svg" alt="tutorial icon" id="help-button" onclick="location.pathname='/help'">
-      <div id="error-popup" hidden>
-        <div>
-            <p id="error-popup-text"></p>
-            <input type="button" value="ok" onclick="document.getElementById('error-popup').hidden=true;">
+        <div id="play-options">
+            <input type="button" value="Play Online" onclick="location.pathname='/play-online'">
+            <input type="button" value="Puzzles" disabled>
+            <input type="button" value="Reference / Guide" onclick="location.pathname='/help'">
+            <input type="button" value="Watch Replay" disabled>
         </div>
-      </div>
-      <!-- <a id="help-button" style="font-size:2em;" href="./tutorial/tutorial.html"><img src="./tutorial/icon.svg" alt="tutorial icon"></a><br> -->
-      <a href="./replay/replay.html">game replays (WIP)</a>
-      <div class="action-box">
-        <form action="territopple" method="get" id="create-form">
-          <h2 class="action-title">Create a new room</h2>
-          <input type="hidden" name="port" value="80">
-          <input type="hidden" name="d" id="room-create-dims" value="">
-          <div class="form-row">
-            <label for="room-create-t">Room type: </label>
-            <select name="t" id="room-create-t">
-              <option value="1">Public</option>
-              <option value="2">Private</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label for="room-create-topology">Topology: </label>
-            <select id="room-create-topology">
-                <!-- //// TOPOLOGY CONFIG POINT //// -->
-                <option data-fields="0" value="0" selected>Grid 2D</option>
-                <option data-fields="0" value="1">Horizontal Wrap 2D</option>
-                <option data-fields="0" value="2">Vertical Wrap 2D</option>
-                <option data-fields="0" value="3">Omni Wrap 2D</option>
-            </select>
-          </div>
-          <div id="dimensions-container">
-              <!-- //// TOPOLOGY CONFIG POINT //// -->
-              <div class="form-row dimensions show">
-                <label for="room-create-g2d-w">Width:</label>
-                <input type="number" id="room-create-g2d-w" value="5" min="1" max="36">
-                <label for="room-create-g2d-h">Height:</label>
-                <input type="number" id="room-create-g2d-h" value="5" min="1" max="36">
-              </div>
-          </div>
-          <div class="form-row">
-            <label for="room-create-p">Players:</label>
-            <input type="number" name="p" id="room-create-p" value="2" min="2" max="10">
-            <label for="room-create-s">Spectators: </label>
-            <select name="s" id="room-create-s">
-                <option value="1">allow</option>
-                <option value="2">deny</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <input type="button" value="Create a New Room" onclick="preSubmit();">
-          </div>
-        </form>
-      </div>
-      <div class="action-box">
-        <form action="territopple" method="get">
-          <h2 class="action-title">Join a Private Room</h2>
-          <input type="hidden" name="port" value="80">
-          <input type="hidden" name="t" value="0">
-          <div class="form-row">
-            <label for="private-join-g">Room ID:</label>
-            <input name="g" id="private-join-g">
-            <input type="submit" value="Join">
-          </div>
-        </form>
-      </div>
-      <div class="action-box">
-        <h2 class="action-title">Join a Public Room</h2>
-        <em id="fetchingMessage">Fetching rooms...</em>
-        <table id="roomTable" hidden="true">
-          <thead>
-            <th scope="col">Room ID</th>
-            <th scope="col">Topology</th>
-            <th scope="col">Status</th>
-            <th scope="col">Players</th>
-            <th scope="col">Capacity</th>
-            <th scope="col">Spectating</th>
-            <th scope="col">Spectate</th>
-          </thead>
-          <tbody id="roomRows">
-            
-          </tbody>
-        </table>
-      </div>
-      <script>
-        /**@type {HTMLDivElement} */
-        const dimscont = document.getElementById("dimensions-container");
-        /**@type {HTMLInputElement} */
-        const toptype = document.getElementById("room-create-topology");
-        /**@type {HTMLInputElement} */
-        const diminput = document.getElementById("room-create-dims");
-        toptype.onchange = () => {
-            document.querySelector(".dimensions.show").classList.remove("show");
-            dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
-        }
-        function preSubmit() {
-            /**@type {HTMLFormElement} */
-            const form = document.getElementById("create-form");
-            const list = [toptype.value];
-            //// TOPOLOGY CONFIG POINT ////
-            switch (toptype.value) {
-                case"3":
-                case"2":
-                case"1":
-                case"0":{
-                    list.push(document.getElementById("room-create-g2d-w").value);
-                    list.push(document.getElementById("room-create-g2d-h").value);
-                    break;
+        <div id="random-replay">
+            Just pretend that it's implemented.
+        </div>
+        <div id="contact-footer">
+            <!-- <input type="button" value="Contact Server Operator" onclick="document.getElementById('contact-modal').hidden=false;"> -->
+            <div>
+                <a onclick="document.getElementById('contact-modal').hidden=false;" class="button-link">Contact Server Operator</a>
+            </div>
+            <div>
+                <a onclick="document.getElementById('coming-soon-modal').hidden=false;" class="button-link">Want To Host Your Own Server?</a>
+            </div>
+            <div>
+                <a target="_blank" href="https://github.com/radicise/territopple" class="button-link">Check Out The GitHub!</a>
+                <a onclick="document.getElementById('coming-soon-modal').hidden=false;" class="button-link">About & Credits</a>
+            </div>
+            <!-- <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
+            <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
+            <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
+            <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
+            <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
+            <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a> -->
+        </div>
+        <div id="contact-modal" class="modal" hidden>
+            <!-- actual content -->
+            <div>
+                <input type="button" value="close" onclick="document.getElementById('contact-modal').hidden=true;">
+            </div>
+        </div>
+        <div id="coming-soon-modal" class="modal" hidden>
+            <div>
+                Coming Soon!<br><br>
+                <input type="button" value="close" onclick="document.getElementById('coming-soon-modal').hidden=true;">
+            </div>
+        </div>
+        <script src="/portno.js"></script>
+        <script>
+            const contact_modal = document.getElementById("contact-modal");
+            /**
+             * @param {string} nodename
+             * @param {Record<string,string>} props
+             * @returns {HTMLElement}
+             */
+            function makeNode(nodename, props) {
+                const node = document.createElement(nodename);
+                if (props) {
+                    if ("append" in props) {
+                        if (Array.isArray(props.append)) node.append(...props.append);
+                        else node.append(props.append);
+                        delete props["append"];
+                    }
+                    for (const k in props) {
+                        node[k] = props[k];
+                    }
+                }
+                return node;
+            }
+            /**
+             * @param {[string, string]} v
+             * @returns HTMLElement
+             */
+            function makeContact(v) {
+                switch (v[0]) {
+                    case "email":{
+                        const str = `mailto:${v[1]}`;
+                        return makeNode("li",{append:["email: ",makeNode("a",{href:str,textContent:v[1],className:"perma-blue"})]});
+                    }
+                    default:return makeNode("li",{textContent:`${v[0]}: ${v[1]}`});
                 }
             }
-            diminput.value = list.join(",");
-            form.submit();
-        }
-      </script>
-      <script>
-        if (new URL(location.href).searchParams.get("dev")) {
-            document.querySelector("input[name=\"w\"]").value = 2;
-            document.querySelector("input[name=\"h\"]").value = 2;
-        }
-      </script>
-      <script src="portno.js"></script>
-      <script src="index.js"></script>
+            fetch(`http://${document.location.hostname}:${game_port}/operator.json`).then(v => {
+                v.text().then(t => {
+                    const info = JSON.parse(t);
+                    let nodes = [];
+                    if (info.contact) {
+                        nodes.push(makeNode("p", {textContent:`Operator Name: ${info.contact.name}`}));
+                        nodes.push(makeNode("p", {append:["Contact Methods",makeNode("ul",{append:Object.entries(info.contact.methods||{}).map(v => makeContact(v))})]}));
+                        // nodes.push();
+                    } else {
+                        nodes.push(makeNode("p", {textContent:"no contact informal is available"}));
+                    }
+                    contact_modal.children[0].prepend(...nodes);
+                });
+            });
+        </script>
     </body>
 </html>
