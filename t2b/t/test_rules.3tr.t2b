@@ -1,0 +1,200 @@
+00 ; version = 0
+
+~SECTION
+~.conf
+;23 63 6f 6e 66 ; .conf
+
+07 ; length = 7
+~TGrid2D
+;;54 54 65 73 74 47 32 44 ; TTestG2D
+
+04 ; four invariants
+
+00 $00000110 ; 2d-grid 3d-grid
+00 00 ; no subtraction
+
+~SECTION
+~.code
+;2e 63 6f 64 65 ; .code
+
+00 ; constructor
+02 ; two parameters
+05 ~width ; bound as param 0
+06 ~height ; bound as param 1
+
+; set max neighbors to 4
+$000101-11 $0000-0001 04 ; MOV r0, 4
+$000101-10 $0000-0000 05 ; MOV MAXNEIGHBORS, r0
+
+; set this.width and this.height
+$000101-01 $0000-0000 02 ; MOV r0, DABS
+$000101-01 $0001-1000 ; MOV r1, *r0 ; load "width" into r1
+$000000-00 $0000-1110 ; ADD r0, 1
+$000101-01 $0010-1000 ; MOV r2, *r0 ; load "height" into r2
+$000101-01 $0000-0000 00 ; MOV r0, PABS
+$000101-01 $0011-1000 ; MOV r3, *r0 ; load width param into r3
+$000000-00 $0000-1110 ; ADD r0, 1
+$000101-01 $0100-1000 ; MOV r4, *r0 ; load height param into r4
+$000101-01 $1101-0000 03 ; MOV r13, THIS
+$000010-11 $1101-0001 $0011-0000 ; SET r13, r1, r3 ; this["width"] = width
+$000010-11 $1101-0010 $0100-0000 ; SET r13, r2, r4 ; this["height"] = height
+
+; set t_right, b_left, b_right
+$000010-00 $0100-0011 ; MUL r4, r3 ; width*height -> r4
+$000101-10 $0100-0000 04 ; MOV r4, TC
+$000101-01 $0000-0000 01 ; MOV r0, IABS
+$000001-00 $0100-1110 ; SUB r4, 1
+$000101-10 $0100-1000 ; MOV r4, *r0 ; move width*height-1 into b_right
+$000000-00 $0000-1110 ; ADD r0, 1
+$000001-00 $0100-0011 ; SUB r4, r3
+$000101-10 $0100-1000 ; MOV r4, *r0 ; move width*height-width-1 into b_left
+$000000-00 $0000-1110 ; ADD r0, 1
+$000000-00 $0000-1110 ; ADD r0, 1
+$000101-10 $0011-1000 ; MOV r3, *r0 ; move width into width
+$000001-00 $0000-1110 ; SUB r4, 1
+$000001-00 $0011-1110 ; SUB r3, 1
+$000101-10 $0011-1000 ; MOV r3, *r0 ; move width-1 into t_right
+
+$00011-111 $0000-0000 ; RET
+
+ff ; HLT
+
+
+01 ; getPositionOf
+
+; fetch params
+$000101-01 $0000-0000 00 ; MOV r0, PABS
+$000101-01 $0001-1000 ; MOV r1, *r0 ; load tindex param into r1
+$000000-00 $0000-1110 ; ADD r0, 1
+$000101-01 $0010-1000 ; MOV r2, *r0 ; load mode param into r2
+
+; fetch width
+$000101-01 $0000-0000 01 ; MOV r0, IABS
+$000000-10 $0000-0001 03 ; ADD r0, 3
+$000101-01 $0011-1000 ; MOV r3, *r0 ; load width into r3
+
+; validate mode
+$00101-001 $010-00001 ; SHR r2, 1 ; shift out the "any" bit
+$001000-11 $0010-0000 ; TEST r2
+$00011-010 $0000-0100 00 04 ; JNZ +4
+$000000-11 $1111-0000 ; APPEND 0 ; indicate error
+$00011-111 $0000-0000 ; RET
+$001000-10 $0010-0001 02 ; CMP r2, 2
+$00011-101 $0000-0100 ff f5 ; JG -11
+$000000-11 $0010-0000 ; APPEND r2 ; r2 has the index of the position class that should be used
+
+; calculate position
+$000101-00 $0100-0001 ; MOV r4, r1 ; move tindex into r4
+$000101-00 $0101-0011 ; MOV r5, r3 ; move width into r5
+$000011-00 $0100-0101 ; DIVMOD r4, r5
+$000000-11 $0101-0000 ; APPEND r5
+;;$000001-00 $0001-0101 ; SUB r1, r5 ; subtract x from tindex
+$000100-00 $0001-0011 ; IDIV r1, r3
+$000000-11 $0001-0000 ; APPEND r1
+$00011-111 $0000-0000 ; RET
+
+ff ; HLT
+
+
+02 ; getNeighbors
+
+; fetch tindex
+$000101-01 $0000-0000 00 ; MOV r0, PABS
+$000101-01 $0001-1000 ; MOV r1, *r0 ; load tindex param into r1
+
+; fetch height
+$000101-01 $0000-0000 02 ; MOV r0, DABS
+$000000-00 $0000-1110 ; ADD r0, 1
+$000101-01 $0010-1000 ; MOV r2, *r0 ; load "height" into r2
+$000101-01 $1101-0000 03 ; MOV r13, THIS
+$000001-11 $1101-0010 $0010-0000 ; GET r13, r2, r2 ; load this["height"] into r2
+$000001-00 $0010-1110 ; SUB r2, 1
+
+; fetch width
+$000101-01 $0000-0000 01 ; MOV r0, IABS
+$000000-10 $0000-0001 03 ; ADD r0, 3
+$000101-01 $0011-1000 ; MOV r3, *r0 ; load width into r3
+
+; calculate x and y
+$000101-00 $0100-0011 ; MOV r4, r3
+$000101-00 $0101-0001 ; MOV r5, r1
+$000011-00 $0101-0100 ; DIVMOD r5, r4
+$000101-00 $0101-0001 ; MOV r5, r1
+$000101-00 $0110-0011 ; MOV r6, r3
+$000100-00 $0101-0110 ; IDIV r5, r6
+; r4=x r5=y
+
+; prep neighbors
+$000101-00 $0111-0001 ; MOV r7, r1
+$000000-00 $0111-1110 ; ADD r7, 1
+$000101-00 $1000-0001 ; MOV r8, r1
+$000001-00 $1000-1110 ; SUB r8, 1
+$000101-00 $1001-0001 ; MOV r9, r1
+$000000-00 $1001-0011 ; ADD r9, r3
+$000101-00 $1010-0001 ; MOV r10, r1
+$000001-00 $1010-0011 ; SUB r10, r3
+
+$000001-00 $0011-1110 ; SUB r3, 1
+
+; push neighbors
+$001000-11 $0100-0000 ; TEST r4
+$00011-001 $0000-0100 00 02 ; JZ +2
+$000000-11 $1000-0000 ; APPEND r8
+$001000-00 $0100-0011 ; CMP r4, r3
+$00011-110 $0000-0100 00 02 ; JGE +2
+$000000-11 $0111-0000 ; APPEND r7
+$001000-11 $0101-0000 ; TEST r5
+$00011-001 $0000-0100 00 02 ; JZ +2
+$000000-11 $1010-0000 ; APPEND r10
+$001000-00 $0101-0010 ; CMP r5, r2
+$00011-110 $0000-0100 00 02 ; JGE +2
+$000000-11 $1001-0000 ; APPEND r9
+
+$00011-111 $0000-0000 ; RET
+
+ff ; HLT
+
+
+03 ; getRequiredBits
+
+; fetch tindex
+$000101-01 $0000-0000 00 ; MOV r0, PABS
+$000101-01 $0001-1000 ; MOV r1, *r0 ; load tindex param into r1
+
+; fetch corners
+$000101-01 $0000-0000 01 ; MOV r0, IABS
+$000101-01 $0010-1000 ; MOV r2, *r0 ; load b_right into r2
+$000000-00 $0000-1110 ; ADD r0, 1
+$000101-01 $0011-1000 ; MOV r3, *r0 ; load b_left into r3
+$000000-00 $0000-1110 ; ADD r0, 1
+$000101-01 $0100-1000 ; MOV r4, *r0 ; load t_right into r4
+
+; test corners
+$001000-11 $0001-0000 ; TEST r1
+$00011-010 $0000-0100 00 02 ; JNZ +2
+$00011-111 $1110-0000 ; RET 1
+$001000-00 $0001-0010 ; CMP r1, r2
+$00011-010 $0000-0100 00 02 ; JNE +2
+$00011-111 $1110-0000 ; RET 1
+$001000-00 $0001-0011 ; CMP r1, r3
+$00011-010 $0000-0100 00 02 ; JNE +2
+$00011-111 $1110-0000 ; RET 1
+$001000-00 $0001-0100 ; CMP r1, r4
+$00011-010 $0000-0100 00 02 ; JNE +2
+$00011-111 $1110-0000 ; RET 1
+
+; not a corner
+$00011-111 $0000-0001 02 ; RET 2
+
+ff ; HLT
+
+~SECTION
+~.data
+;2e 64 61 74 61 ; .data
+; format dimension string
+00 05 ; length = 5
+00 00 ~x 00 01 ; TGrid2D ${width}x${height}
+01 ; type = string
+05 ~width ; value = "width"
+01 ; type = string
+06 ~height ; value = "height"

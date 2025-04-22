@@ -73,7 +73,13 @@ fs.writeFileSync("www/portno.js", settings.APPEASEMENT ? `const game_port = ${se
 if (!fs.existsSync("replays")) {
     fs.mkdirSync("replays");
 }
+if (!fs.existsSync("operator.json")) {
+    fs.writeFileSync("operator.json", JSON.stringify({"contact":{"name":"unkown","methods":{}}}), {encoding:"utf-8"});
+}
 const _path = require("path");
+if (!fs.existsSync("www/operator.json")) {
+    fs.symlinkSync(_path.join(__dname, "operator.json"), _path.join(__dname, "www/operator.json"));
+}
 if (!fs.existsSync("www/replays")) {
     fs.symlinkSync(_path.join(__dname, "replays"), _path.join(__dname, "www/replays"));
 }

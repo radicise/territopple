@@ -7,11 +7,27 @@ exports.onRecordReplay = onRecordReplay;
 exports.onPlayerRemoved = onPlayerRemoved;
 exports.onMove = onMove;
 
+if (!fs.existsSync("gameid.bin")) {
+    fs.writeFileSync("gameid.bin", Buffer.alloc(8, 0));
+}
+
+/**
+ * @returns {Buffer}
+ */
+function allocGameId() {
+    const b = fs.readFileSync("gameid.bin");
+    const wb = Buffer.allocUnsafe(8);
+    wb.writeBigUInt64BE(b.readBigUInt64BE()+1);
+    fs.writeFileSync("gameid.bin", wb);
+    return b;
+}
+
 // const { topology } = require("./defs.js");
 const defs = require("./defs.js");
 const topology = defs.topology;
+const fingerprint = defs.fingerprint;
 
-const FORMAT_VERSION = 3;
+const FORMAT_VERSION = 4;
 
 /**
  * @param {number|BigInt} n
@@ -102,18 +118,28 @@ function onGameStarted(game, idstrategy, team_map) {
     }
     const topologyData = [];
     if (getFlag(game, 3, 1) === 1) {
-        throw new Error("not implemented");
+        topologyData.push(game.state.topology.originalData);
+        topologyData.push(Buffer.of(
+            0xfe,0xfe,0xfe,0xfe,0xfe,0xfe,0xfe,0xfe,0xfe,0xfe,0xfe,0xfe,
+            0xff,0x33,0x00,0x55,0x22,0x88,0x66,0x44
+        ));
     } else {
         const tid = topology.m.getTopologyId(game.state.topology);
         topologyData.push(...nbytes(tid, 2));
         switch (tid) {
-            case 0:{
+            case 0:case 1:case 2:case 3:{
                 topologyData.push(...nbytes(game.state.topology.width, 2));
             }
         }
     }
     // console.log(game.timestamp);
-    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.state.topology.tileCount, 4), game.players.length-1, ...((getFlag(game, 4, 1) === 1) ? [idstrategy, ...team_map] : []), ...topologyData, 0xf0, 0x0f));
+    game.buffer.push(Buffer.of(...nbytes(game.timestamp, 8), ...nbytes(game.state.topology.tileCount, 4), game.players.length-1, ...((getFlag(game, 4, 1) === 1) ? [idstrategy, ...team_map] : [])));
+    if (Buffer.isBuffer(topologyData[0])) {
+        game.buffer.push(...topologyData);
+    } else {
+        game.buffer.push(Buffer.of(topologyData));
+    }
+    game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint, 0xf0, 0x0f));
 }
 
 /**

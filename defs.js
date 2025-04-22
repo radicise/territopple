@@ -1,5 +1,8 @@
 const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 const crypto = require("crypto");
+const os = require("os");
+const fingerprint = crypto.hash("md5", os.hostname()+os.homedir()+os.machine(), "buffer");
+exports.fingerprint = fingerprint;
 const topology = new class{
     #m=null;
     set m(v){if(this.#m===null){this.#m=v;}}

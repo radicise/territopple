@@ -36,6 +36,9 @@ const data = text.split(' ').map(v => v.trim()).filter(v => v.length>0).map((v) 
     if (v[0] === '$') {
         return Number.parseInt(v.slice(1).split(/[+_\-]/g).join(''), 2);
     }
+    if (v[0] === '~') {
+        return v.slice(1).split("").map(v => v.charCodeAt(0));
+    }
     return Number.parseInt(v, 16);
-});
+}).flat();
 writeFileSync(wpath, Buffer.from(data));

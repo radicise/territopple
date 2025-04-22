@@ -1,5 +1,7 @@
 this document describes the format of the ".topl" territopple replay file
 
+ALIGNMENT BYTE is a padding byte inserted only if alignment is not even
+
 version 0:
 BYTE - version
 BYTE[8] - name of game (stored as indicies into the codeChars array)
@@ -124,5 +126,66 @@ SWITCH (TYPE):
             RESERVED
         11 ->:
             RESERVED
+2 -> TIMESTAMP: - update the timestamp because nothing happened for over 18 hours
+    BYTE[3] - delta time
+
+version 4:
+BYTE - version
+BYTE[8] - name of game (ASCII plain text)
+BYTE - flags <a-h> where a is MSB
+- a (TIMESTAMP) - includes timestamps // timestamps can get big, best to give option of disabling them
+- b+c (SIZE) - combine as a 2bit selector, 00 (tiny) is 32 & 7p max, 01 (medium) is 1024 & 63p max, 10 (large) is 2^16 & 255p max, 11 (huge) is 2^20 & 4095p max // allows further space savings
+- d (ORDER) - this flag is set if the turn order is NOT standard
+- e (CTOPOLOGY) - this flag is set if the topology chosen is NOT standard
+BYTE[8] - game start timestamp (ms since Jan 1, 1970 UTC) // this is nice and only adds constant cost
+BYTE[4] - tile count
+BYTE - player count
+IF (ORDER):
+    BYTE (STRATEGY) - order determination strategy - valid values are:
+    - 0 - each move has the player number recorded with it
+    - 1 - players go in standard order, but a team map is provided
+    BYTE (PADDING)
+    FOR EACH player:
+        BYTE - team assignment
+    IF (player count) is odd:
+        BYTE (PADDING)
+IF (CTOPOLOGY):
+    INLINE TopologyRules
+    BYTE[12] - 0xfe (repeat 12) - end marker
+    BYTE[8] - 0xff, 0x33, 0x00, 0x55, 0x22, 0x88, 0x66, 0x44 - end marker
+ELSE:
+    BYTE[2] (TOPOLOGY) - topology scheme - valid values are:
+    - 0 - 2d grid
+    - 1 - 2d hwrap grid
+    - 2 - 2d vwrap grid
+    - 3 - 2d bwrap grid
+    SWITCH (TOPOLOGY):
+        0,1,2,3 ->:
+            BYTE[2] - width (height is to be calculated as tile count / width)
+ALIGNMENT BYTE
+BYTE[8] - sequential game id
+BYTE[16] - unique server fingerprint, derived from hostname, home directory, and machine type
+-- garbage data between the timestamp and start of game is to be ignored, and does not make a topl invalid --
+BYTE[2] - 0xf0,0x0f - start of game data
+...EVENT
+BYTE[4] - 0xff,0xf0,0x0f,0xff - end of replay // allows multiple replays to be put into one file
+
+EVENT:
+BYTE (TYPE) - type of event
+IF (TIMESTAMP) set:
+    BYTE[2] - delta since previous timestamp (EXCEPTING if this is a TIMESTAMP event)
+SWITCH (TYPE):
+0 -> PLAYER ELIM: - player eliminated from turn order, reason not important
+    BYTE - player number
+1 -> PLAYER MOVE: - player moved
+    SWITCH (SIZE):
+        00 ->:
+            BYTE[1] - P(3),I(5)
+        01 ->:
+            BYTE[2] - P(6),I(10)
+        10 ->:
+            BYTE[3] - P(8),I(16)
+        11 ->:
+            BYTE[4] - P(12),I(20)
 2 -> TIMESTAMP: - update the timestamp because nothing happened for over 18 hours
     BYTE[3] - delta time

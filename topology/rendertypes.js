@@ -36,6 +36,68 @@ export class TypeConversionError extends Error {
  * @prop {RenderType[]} none acts as subtraction from some (eg. {some:["any"],none:["2d-circle"]} specifies all except 2d-circle)
  */
 
+const renderTypes = ["any","2d-grid","3d-grid","2d-disk","3d-disk","3d-sphere"];
+
+/**
+ * @param {RenderType} type
+ * @returns {number}
+ */
+export function renderType2Flags(type) {
+    if (!renderTypes.includes(type)) {
+        throw new TypeConversionError("type must be a valid render type");
+    }
+    return 1 << renderTypes.indexOf(type);
+}
+/**
+ * @param {number} flags
+ * @returns {RenderType}
+ */
+export function flags2RenderType(flags) {
+    return renderTypes[flags.toString(2).length-1];
+}
+
+/**
+ * @param {number} flags
+ * @returns {Object}
+ */
+export function flags2TilePosition(flags) {
+    return tps[flags.toString(2).length-1];
+}
+
+/**
+ * @param {RenderRestriction} rest
+ * @returns {[number,number]}
+ */
+export function renderRest2Flags(rest) {
+    return [rest.some.map(v => renderType2Flags(v)).reduce((p, c) => p | c, 0), rest.none.map(v => renderType2Flags(v)).reduce((p, c) => p | c, 0)];
+}
+/**
+ * @param {[number,number]} flags
+ * @returns {RenderRestriction}
+ */
+export function flags2RenderRest(flags) {
+    const r = {some:[], none:[]};
+    let s = flags[0];
+    let n = flags[1];
+    let i = 0;
+    while (s) {
+        if (s&1) {
+            r.some.push(renderTypes[i]);
+        }
+        i ++;
+        s = s >> 1;
+    }
+    i = 0;
+    while (n) {
+        if (n&1) {
+            r.none.push(renderTypes[i]);
+        }
+        i ++;
+        n = n >> 1;
+    }
+    return r;
+}
+
 function validateInteger(n) {
     if (isNaN(n) || !Number.isInteger(n)) {
         throw new InvariantViolationError("number must be an integer");
@@ -278,6 +340,8 @@ export class ValueError extends Error {
         this.name = "ValueError";
     }
 }
+
+const tps = [TP_Cart2D, TP_Cart3D, TP_Polar2D, TP_Polar3D];
 
 // exports.RenderType = this.RenderType;
 // exports.RenderRestriction = this.RenderRestriction;

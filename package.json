@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node proc_wrap.js zserver/userver.js",
-    "dev": "node proc_wrap.js zserver/userver.js --eval-stdin"
+    "dev": "node proc_wrap.js zserver/userver.js --eval-stdin",
+    "t3dbg": "node topology/rules/debug.js"
   },
   "name": "territopple",
   "version": "1.0.0",

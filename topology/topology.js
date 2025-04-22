@@ -6,7 +6,8 @@
  */
 
 // const { RenderType, RenderRestriction, TilePosition, TP_Cart2D, TP_Cart3D } = require("./rendertypes.js");
-import { TP_Cart2D, TP_Cart3D, ValueError } from "./rendertypes.js";
+import { TP_Cart2D, TP_Cart3D, ValueError, renderType2Flags, flags2RenderRest, flags2RenderType } from "./rendertypes.js";
+import { T3VM } from "./rules/runner.js";
 
 /**
  * @typedef {import("./rendertypes.js").RenderType} RenderType
@@ -553,5 +554,92 @@ export function exportDimensions(top) {
             return {x:top.width,y:top.height};
         }
     
+    }
+}
+
+/**
+ * custom topology defined with 3tr data
+ */
+export class TCustom extends Topology {
+    /**@type {T3VM} */
+    #vm;
+    /**
+     * @param {Record<string,number>} dimensions
+     * @param {Buffer|T3VM} t3r
+     */
+    constructor(dimensions, t3r) {
+        super(dimensions);
+        // VMs can be reused to avoid parsing the same data multiple times
+        if (t3r instanceof T3VM) {
+            this.#vm = t3r;
+        } else {
+            this.#vm = new T3VM(t3r);
+        }
+        this._rendrest = flags2RenderRest([this.#vm.conf.rsome, this.#vm.conf.rnone]);
+        this.dstr = this.#vm.fmtdstr;
+        const cpars = this.#vm.code.conparams;
+        for (let i = 0; i < cpars.length; i ++) {
+            this.dstr.replaceAll(`\0${String.fromCodePoint(i)}`, `${dimensions[cpars[i]]}`);
+        }
+        this.mem = [];
+        this.#vm.execute(0, this, new Array(cpars.length).map((_, i) => dimensions[cpars[i]]));
+    }
+    get originalData() {
+        return this.#vm.orig;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get dimensionString() {
+        return this.dstr;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     * @returns {RenderRestriction}
+     */
+    get renderRestrictions() {
+        return this._rendrest;
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get maxNeighbors() {
+        return this.mem[5];
+    }
+    /**
+     * @inheritdoc
+     * @readonly
+     */
+    get tileCount() {
+        return this.mem[4];
+    }
+    /**
+     * @inheritdoc
+     * {@link Topology.getPositionOf}
+     * @param {number} tindex
+     * @param {RenderType} mode
+     * @returns {TilePosition}
+     */
+    getPositionOf(tindex, mode) {
+        return this.#vm.execute(1, this, tindex, renderType2Flags(mode));
+    }
+    /**
+     * gets the neighbors of a tile
+     * @param {number} tindex tile index
+     * @returns {number[]}
+     */
+    getNeighbors(tindex) {
+        return this.#vm.execute(2, this, tindex);
+    }
+    /**
+     * @inheritdoc
+     * @param {number} tindex
+     * @returns {number}
+     */
+    getRequiredBits(tindex) {
+        return this.#vm.execute(3, this, tindex);
     }
 }

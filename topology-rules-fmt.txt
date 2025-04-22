@@ -1,0 +1,233 @@
+this document describes the format used to store the implementation of custom topologies (".tttr" or ".3tr").
+
+SSTR:
+BYTE - length
+BYTE[length]
+LSTR:
+BYTE[2] - length
+BYTE[length]
+
+all "SECTION" and "NAMED" blocks may be reordered, all "NAMED" blocks must remain within their specified "SECTION"
+
+version 0:
+BYTE - version
+
+// config
+SECTION .conf
+BYTE[7] b'SECTION'
+BYTE[5] b'.conf'
+//BYTE[5] - 0x2e, 0x63, 0x6f, 0x6e, 0x66
+
+SSTR - name - may be length zero to indicate an unnamed/anonymous implementation
+
+BYTE - invar count
+//BYTE[invar count] - invariant types - NUMBER=0 STRING=1
+
+// render restrictions
+BYTE[2] - SOME, flags, LSB maps to "any"
+BYTE[2] - NONE, flags, LSB maps to "any"
+
+// implementation
+SECTION .code
+BYTE[7] - b'SECTION'
+BYTE[5] - b'.code'
+//BYTE[5] - 0x2e, 0x63, 0x6f, 0x64, 0x65
+
+// constructor
+NAMED
+BYTE - 0
+BYTE - parameter count
+SSTR[parameter count] - parameter names // binds the given names to parameters in the order of declaration
+returns void
+BYTECODE
+
+// getPositionOf
+NAMED
+BYTE - 1
+automatically binds parameter 0 (tindex) as number
+automatically binds parameter 1 (mode) as 16bit flag set where LSB maps to "any"
+returns number[], ret[0] is the index into the tile position class list to use, ret[0]==0 indicates an error
+BYTECODE
+
+// getNeighbors
+NAMED
+BYTE - 2
+automatically binds parameter 0 (tindex) as number
+returns number[], an array of tile indicies that neighbor the given index
+BYTECODE
+
+// getRequiredBits
+NAMED
+BYTE - 3
+automatically binds parameter 0 (tindex) as number
+returns number, the number of bits required to store this tile's value
+BYTECODE
+
+// constant data
+SECTION .data
+BYTE[7] - b'SECTION'
+BYTE[5] - b'.data'
+//BYTE[5] - 0x2e, 0x64, 0x61, 0x74, 0x61
+
+LSTR - format string, any NUL byte shall be followed by the bound number of a constructor parameter
+-- becomes `${name} ${evalfmtstr}`
+...DATAVAR
+
+DATAVAR:
+BYTE - type - 0, 1, 2
+SWITCH (type) {
+    0 ->:
+        BYTE[4] - s64BE
+    1 ->:
+        SSTR - string
+    2 ->:
+        BYTE[8] - f64BE
+}
+
+
+BYTECODE:
+all code must end with a RET instruction
+the termination of bytecode is denoted with the HLT instruction
+
+RO indicates read only
+CW indicates constructor writeable
+RW indicates read write
+EO indicates extend only
+
+all code execution happens in the context of a topology class, therefore some fields are automatically bound
+auto-fields {
+    4: tc - tile count, RO+CW
+    5: max_neighbors - RO+CW
+    _: dstr - dimension string, this is set automatically based on the format string, and is not accessible
+}
+
+special memory addresses {
+    0: pabs - parameter address binding start, RO
+    1: iabs - invariant address binding start, RO
+    2: dabs - data address binding start, RO
+    3: this - the "this" object, RO+EO
+    6: stack - RO
+}
+
+GPRs - r0-r13
+r14 is always one
+r15 is always zero
+
+INSTRUCTION FORMAT:
+
+ADD/APPEND: 000000zz
+000000|00 | xxxx|yyyy -> ADD rx, ry -> rx + ry -> rx
+000000|01 | xxxx|yyyy | zzzzzzzz -> ADD rx, ry, mz -> rx + mz -> ry
+000000|10 | xxxx|llll | zzzz|zzzz*l -> ADD rx, iz -> rx + iz -> rx
+000000|11 | xxxx|0000 -> APPEND rx (onto return array)
+
+SUB/GET: 000001zz
+000001|00 | xxxx|yyyy -> SUB rx, ry -> rx - ry -> rx
+000001|01 | xxxx|yyyy | zzzzzzzz -> SUB rx, ry, mz -> rx - mz -> ry
+000001|10 | xxxx|llll | zzzz|zzzz*l -> SUB rx, iz -> rx - iz -> rx
+000001|11 | xxxx|yyyy | zzzz|0000 -> GET rx, ry, rz -> rx[ry] -> rz
+
+MUL/SET: 000010zz
+000010|00 | xxxx|yyyy -> MUL rx, ry -> rx * ry -> rx
+000010|01 | xxxx|yyyy | zzzzzzzz -> MUL rx, ry, mz -> rx * mz -> ry
+000010|10 | xxxx|llll | zzzz|zzzz*l -> MUL rx, iz -> rx * iz -> rx
+000010|11 | xxxx|yyyy | zzzz|0000 -> SET rx, ry, rz -> rz -> rx[ry]
+
+DIVMOD/PUSH: 000011zz
+000011|00 | xxxx|yyyy -> DIVMOD rx, ry -> rx / ry -> rx, rx % ry -> ry
+000011|01 | xxxx|yyyy | zzzzzzzz -> DIVMOD rx, ry, mz -> rx / mz -> rx, rx % mz -> ry
+000011|10 | xxxx|yyyy | 0000|llll | zzzz|zzzz*l -> DIVMOD rx, iz -> rx / iz -> rx, rx % iz -> ry
+000011|11 | xxxx|0000 -> PUSH rx onto stack
+
+IDIV/POP: 000100zz
+000100|00 | xxxx|yyyy -> IDIV rx, ry -> floor(rx / ry) -> rx, ceil(rx / ry) -> ry
+000100|01 | xxxx|yyyy | zzzzzzzz -> IDIV rx, ry, mz -> floor(rx / mz) -> rx, ceil(rx / mz) -> ry
+000100|10 | xxxx|yyyy | 0000|llll | zzzz|zzzz*l -> IDIV rx, iz -> floor(rx / iz) -> rx, ceil(rx / iz) -> ry
+000100|11 | xxxx|0000 -> POP rx from stack
+
+MOV: 000101zz
+000101|00 | xxxx|yyyy -> MOV rx, ry -> ry -> rx
+000101|01 | xxxx|1yyy -> MOV rx, ry -> *ry -> rx
+000101|01 | xxxx|0000 | zzzzzzzz -> MOV rx, mz -> mz -> rx
+000101|10 | xxxx|1yyy -> MOV rx, ry -> rx -> *ry
+000101|10 | xxxx|0000 | zzzzzzzz -> MOV mz, rx -> rx -> mz
+000101|11 | xxxx|llll | zzzz|zzzz*l -> MOV rx, iz -> iz -> rx
+
+JMP/RET: 00011zzz
+if r is set, the jump is relative
+if i is set, the next two bytes are read as a 2's compliment relative jump
+00011|000 | xxxx|ri00 -> JMP rx
+00011|001 | xxxx|ri00 -> JE/JZ rx
+00011|010 | xxxx|ri00 -> JNE/JNZ rx
+00011|011 | xxxx|ri00 -> JL rx
+00011|100 | xxxx|ri00 -> JLE rx
+00011|101 | xxxx|ri00 -> JG rx
+00011|110 | xxxx|ri00 -> JGE rx
+00011|111 | xxxx|0000 -> RET rx (if the function returns an array, the array is returned instead of rx)
+00011|111 | 0000|llll | zzzz|zzzz*l -> RET iz
+
+CMP/TEST: 001000zz
+001000|00 | xxxx|yyyy -> CMP rx, ry
+001000|01 | xxxx|0000 | zzzzzzzz -> CMP rx, mz
+001000|10 | xxxx|llll | zzzz|zzzz*l -> CMP rx, iz
+001000|11 | xxxx|0000 -> TEST rx
+
+SHIFT/AND/OR: 00101zzz
+00101|000 | xxx|zzzzz -> SHL rx, z
+00101|001 | xxx|zzzzz -> SHR rx, z
+00101|010 | xxxx|yyyy -> AND rx, ry -> rx & ry -> rx
+00101|011 | xxxx|0000 | zzzzzzzz -> AND rx, mz -> rx & mz -> rx
+00101|100 | xxxx|llll | zzzz|zzzz*l -> AND rx, iz -> rx & iz -> rx
+00101|101 | xxxx|yyyy -> OR rx, ry -> rx | ry -> rx
+00101|110 | xxxx|0000 | zzzzzzzz -> OR rx, mz -> rx | mz -> rx
+00101|111 | xxxx|llll | zzzz|zzzz*l -> OR rx, iz -> rx | iz -> rx
+
+HLT: 11111111
+
+supported operations:
+add/append -
+    -- r1.r2 -> r1
+    -- r1.r2.m -> r2
+    -- r1.r2.i -> r2
+    -- r1
+sub/get -
+    -- r1.r2 -> r1
+    -- r1.r2.m -> r2
+    -- r1.r2.i -> r2
+    -- r1.r2.r3 -> r3
+mul/set -
+    -- r1.r2 -> r1
+    -- r1.r2.m -> r2
+    -- r1.r2.i -> r2
+    -- r1.r2.r3
+divmod - float quotient and remainder - r1.r2, r1.r2.m, r1.r2.i -> r1, r2
+idiv - floordiv and ceildiv - r1.r2, r1.r2.m, r1.r2.i -> r1, r2
+mov -
+    -- r1.r2 -> r1
+    -- r1.m -> r1
+    -- r1.m -> m
+    -- r1.i -> r1
+jmp/ret -
+jmp,je/jz,jne/jnz,jl,jle,jg,jge,ret
+    -- r1
+    -- r1
+    -- r1
+    -- r1
+    -- r1
+    -- r1
+    -- r1
+    -- r1
+cmp/test -
+    -- r1.r2
+    -- r1.m
+    -- r1.i
+    -- r1
+shift/and/or -
+    -- r1.i5 (r0-r7 only)
+    -- r1.i5 (r0-r7 only)
+    -- r1.r2
+    -- r1.m
+    -- r1.i
+    -- r1.r2
+    -- r1.m
+    -- r1.i
