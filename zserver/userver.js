@@ -27,7 +27,7 @@ const SERVER_TOOL_FLAGS = {
     /**
      * determines whether replay files are actually written
      */
-    SAVE_REPLAYS: true
+    SAVE_REPLAYS: settings.REPLAYS.ENABLED
 };
 
 /**@type {Record<string, Game>} */
