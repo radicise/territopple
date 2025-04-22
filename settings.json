@@ -3,7 +3,7 @@
     "WEBPORT":80,
     "WEBCONTENT_DIR":"www",
     "APPEASEMENT": false,
-    "REJOIN_TIME": 5000,
+    "REJOIN_TIME": 500,
     "URL_MAP": {
         "": "/index.html",
         "/": "/index.html",
