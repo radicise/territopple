@@ -12,7 +12,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         return;
     }
     state.game.players[state.playerNum].dcon_timer = setTimeout(() => {
-        if (state.game.players[state.playerNum.dcon_timer] === null) {
+        if (state.game.players[state.playerNum] === null) {
             sock.terminate();
             return;
         }

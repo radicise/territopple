@@ -23,7 +23,7 @@ const SERVER_TOOL_FLAGS = {
     /**
      * forces SYS_DOWN and LOCAL_UP, and causes genCode to only return "TESTROOM"
      */
-    TEST_ROOM_ONLY: false,
+    TEST_ROOM_ONLY: true,
     /**
      * determines whether replay files are actually written
      */

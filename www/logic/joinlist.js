@@ -37,6 +37,9 @@ function makeButton(value) {
  * @returns {HTMLElement[]}
  */
 function makeJListActions(type, arg) {
+    const td = document.createElement("td");
+    td.scope = "col";
+    td.append(...(()=>{
     switch (type) {
         case "self":{
             return [];
@@ -75,6 +78,8 @@ function makeJListActions(type, arg) {
             return [b1];
         }
     }
+    })());
+    return td;
 }
 
 /**
@@ -86,7 +91,9 @@ function addJListSelf(n) {
     row.id = `JLIST-player-${n}`;
     row.append(makeTD(`${n} (self)`));
     row.append(makeTD(typeof n === "number" ? (n === game.hostNum ? "Host" : "Player") : "Spectator"));
-    row.append(...makeJListActions("self"));
+    // row.append(...makeJListActions("self"));
+    row.append(makeTD("--:--"));
+    row.append(makeJListActions("self"));
     joinedList.append(row);
 }
 /**
@@ -98,7 +105,9 @@ function addJListPlayer(n) {
     row.id = `JLIST-player-${n}`;
     row.append(makeTD(n));
     row.append(makeTD(n === game.hostNum ? "Host" : "Player"));
-    row.append(...makeJListActions("player", n));
+    row.append(makeTD("--:--"));
+    // row.append(...makeJListActions("player", n));
+    row.append(makeJListActions("player", n));
     joinedList.append(row);
     rescanHostOnly();
 }
@@ -119,7 +128,9 @@ function addJListSpectator(n) {
     row.scope = "row";
     row.append(makeTD(n));
     row.append(makeTD("Spectator"));
-    row.append(...makeJListActions("spectator", n));
+    row.append(makeTD(""));
+    // row.append(...makeJListActions("spectator", n));
+    row.append(makeJListActions("spectator", n));
     // const lspecs = joinedList.querySelectorAll(".spectator");
     joinedList.append(row);
     rescanHostOnly();
@@ -131,4 +142,14 @@ function removeJListSpectator(n) {
     const c = document.getElementById(`JLIST-spectator-${n}`);
     if (!c) return;
     joinedList.removeChild(c);
+}
+
+function setJListTime(n, v) {
+    const c = document.getElementById(`JLIST-player-${n}`);
+    if (!c) return;
+    c.children[2].textContent = formatTimer(v);
+}
+
+function formatTimer(v) {
+    return v===null?"--:--":`${Math.floor(v/60).toLocaleString({},{"minimumIntegerDigits":2})}:${(v%60).toLocaleString({},{"minimumIntegerDigits":2})}`;
 }

@@ -16,6 +16,7 @@ player:
     join (n [player num]: number, t [team id]: number, acc? [account id]: string)
     leave (n [player num]: number)
     spectate (n [player num]: number)
+    lose (n [player num]: number)
 
 game:
     add (id [game id]: string, game [game object]: Game)
@@ -25,6 +26,8 @@ game:
         move (n [tile num]: number, t [team num]: number)
     in:
         move (n [tile num]: number, p [player num]: number)
+    turn:
+        timeup (n [player num]: number, t [timer = true]: boolean)
 
 HANDLER ARGS:
     ~~error (code: number, data: string)~~

@@ -20,6 +20,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Config(g), () => {
             // sock.send(NetData.Bin.Board(state.game), {"binary":true});
         });
+        sock.send(NetData.Game.Rules(g));
         // sock.send(Buffer.of(10,10), {"binary":true});
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {
@@ -46,7 +47,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         if (state.spectating) {
             change("spectating");
         } else {
-            sock.send(NetData.Game.Turn(state.game.state.turn));
+            sock.send(NetData.Game.Turn(state.game.state.turn, false));
             change("play");
         }
     });

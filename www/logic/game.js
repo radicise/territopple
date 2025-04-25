@@ -10,7 +10,7 @@ const loadPromise = new Promise((res,) => {
 
 /**
  * @typedef Player
- * @type {{team:number,ready:boolean}}
+ * @type {{team:number,ready:boolean,time:number}}
  */
 
 class Game {
@@ -38,12 +38,69 @@ class Game {
         this.playerList = [];
         this.started = false;
         this.hostNum = null;
+        this.rules = null;
+        this.timer = 0;
+        this.timerid = null;
+        this.timertarget = null;
+        this.rules_loaded = false;
+    }
+    stopTimer() {
+        if (this.timerid) {
+            clearInterval(this.timerid);
+            this.timerid = null;
+        }
+        if (this.timertarget) {
+            if (this.rules.turnTime.style === "per turn") {
+                setJListTime(this.timertarget, null);
+                document.getElementById("turn-time").textContent = "Time: --:--";
+            }
+        }
+    }
+    runTimer(n) {
+        this.stopTimer();
+        this.timertarget = n;
+        this.timer = this.rules.turnTime.limit/1000;
+        if (this.timer) {
+            setJListTime(this.timertarget, this.timer);
+            this.timerid = setInterval(() => {
+                switch (this.rules.turnTime.style) {
+                    case "per turn":{
+                        if (this.timer) {
+                            this.timer --;
+                            setJListTime(this.timertarget, this.timer);
+                            if (ifmt.pln === this.timertarget)
+                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(this.timer)}`;
+                        } else {
+                            clearInterval(this.timerid);
+                            this.timerid = null;
+                        }
+                        break;
+                    }
+                    case "chess":{
+                        if (this.playerList[this.timertarget]?.time) {
+                            this.playerList[this.timertarget].time --;
+                            setJListTime(this.timertarget, this.playerList[this.timertarget].time);
+                            if (ifmt.pln === this.timertarget) {
+                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(this.playerList[this.timertarget].time)}`;
+                            }
+                        } else {
+                            clearInterval(this.timerid);
+                            this.timerid = null;
+                        }
+                        break;
+                    }
+                }
+            }, 1000);
+        }
     }
     /**
      * @param {import("../../topology/topology.js").TopologyParams} params
      * @param {number} players
      */
     async setConfig(params, players) {
+        if (!this.rules_loaded) {
+            await new Promise(r => {this.rules_loaded = r;});
+        }
         await loadPromise;
         this.topology = topology.m.makeTopology(params);
         // console.log(params);
@@ -60,6 +117,12 @@ class Game {
         let playerList = new Array(players+1).fill(null);
         for (let i = 0; i < this.playerList.length; i ++) {
             playerList[i] = this.playerList[i];
+            if (playerList[i]) {
+                playerList[i].time = this.rules.turnTime.limit/1000;
+                if (this.rules.turnTime.style === "chess") {
+                    setJListTime(i, playerList[i].time);
+                }
+            }
         }
         this.playerList = playerList;
         this.playerList[0] = {team:0};
@@ -122,6 +185,19 @@ class Game {
             }
         }
         this.updateBoard(boardold, teamboardold);
+    }
+    /**
+     * @param {number} n
+     */
+    losePlayer(n) {
+        console.log(n);
+        const team = this.playerList[n].team;
+        this.playerList[n].team = 0;
+        if (!this.playerList.some(v => v?.team === team)) {
+            const oldt = Array.from(this.teamboard);
+            this.teamboard.forEach((v, i, a) => {if(v === team)a[i]=0;});
+            this.updateBoard(this.board, oldt);
+        }
     }
     /**
      * @param {number[]} oldb

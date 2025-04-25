@@ -23,7 +23,7 @@ const { Game, HostingSettings } = require("../defs");
 
 /**
  * @typedef HandlerState
- * @type {{tag:string,game?:Game,playerNum?:number,spectating?:boolean,spectatorId?:string,accId?:string}}
+ * @type {{tag:string,game?:Game,playerNum:number,spectating?:boolean,spectatorId?:string,accId?:string}}
  */
 
 //, emit: (name: string, data?: DataRecord) => {void}, on: (name: string, cb: (data: DataRecord) => {void}) => {void}

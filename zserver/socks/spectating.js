@@ -16,6 +16,12 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     on("game:out:move", (data) => {
         sock.send(NetData.Game.Move(data["n"], data["t"]));
     });
+    on("game:turn:timeup", (data) => {
+        sock.send(NetData.Game.Timeup(data["n"]));
+    });
+    on("player:lose", (data) => {
+        sock.send(NetData.Player.Lose(data["n"]));
+    });
     on("player:spectate", (data) => {
         sock.send(NetData.Player.Spectate(data["n"], data["id"]));
     });

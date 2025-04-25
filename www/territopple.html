@@ -61,20 +61,30 @@
                   </div>
                 </fieldset>
 		<div id="row-container">
-            <div id="container-container"><div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd;--tile-font-size:32;"></div></div>
+            <div id="container-container">
+                <div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd;--tile-font-size:32;"></div>
+                <span id="underboard-container">
+                    <span id="underboard-left">
+                        <input type="button" id="pingbutton" value="ping">
+                        <input type="button" id="startbutton" value="start" class="FLAG-host-only">
+                    </span>
+                    <span id="underboard-right">
+                        <span id="turn-time">Time: --:--</span>
+                    </span>
+                </span>
+            </div>
             <!-- <div id="joined-list"></div> -->
             <table id="joined-table">
                 <thead>
                     <th scope="col">Local Id</th>
                     <th scope="col">Role</th>
+                    <th scope="col">Time</th>
                     <!-- column for buttons to kick/promote -->
                     <th scope="col">Actions</th>
                 </thead>
                 <tbody id="joined-list"></tbody>
             </table>
         </div>
-        <input type="button" id="pingbutton" value="ping">
-        <input type="button" id="startbutton" value="start" class="FLAG-host-only">
         <!-- <input type="button" id="readybutton" value="ready"> -->
         <div id="download-area" hidden>
             <input type="button" value="Download Replay">

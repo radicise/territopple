@@ -16,6 +16,13 @@ exports.loadPromise = new Promise((res,_) => {
     }, r => {throw new ReferenceError("could not load topology module");});
 });
 exports.topology = topology;
+const fs = require("fs");
+const _path = require("path");
+
+function TraceLog(v) {
+    fs.appendFileSync("tracelog.txt", `TRACELOG ${new Date()}\n${v}\n${new Error().stack}\n\n`);
+}
+
 /**
  * @typedef WS
  * @type {import("ws").WebSocket}
@@ -44,6 +51,46 @@ class Player {
         this.ready = false;
         /**@type {number} */
         this.dcon_timer = null;
+        /**@type {number} */
+        this.turn_timer = null;
+        /**@type {number} */
+        this.time_left = 0;
+    }
+    /**
+     * @param {Game} game
+     * @param {Function} cb
+     */
+    resetTimer(game, cb) {
+        if (this.turn_timer) {
+            switch (game.rules.turnTime.style) {
+                case "per turn":
+                    clearTimeout(this.turn_timer);
+                    break;
+                case "chess":
+                    clearInterval(this.turn_timer);
+                    break;
+            }
+            this.turn_timer = null;
+        }
+        if (!cb) return;
+        if (!game.rules.turnTime.limit) return;
+        switch (game.rules.turnTime.style) {
+            case "per turn":
+                this.turn_timer = setTimeout(cb, game.rules.turnTime.limit);
+                break;
+            case "chess":
+                this.turn_timer = setInterval(() => {
+                    if (this.time_left === 0) return;
+                    this.time_left --;
+                    if (this.time_left === 0) {
+                        // console.log("TIMEUP");
+                        clearInterval(this.turn_timer);
+                        this.turn_timer = null;
+                        cb();
+                    }
+                }, 1000);
+                break;
+        }
     }
     /**
      * regenerates the rejoin key, returns the new key for convenience
@@ -54,6 +101,16 @@ class Player {
         return this.rejoin_key;
     }
 }
+/**
+ * @typedef TurnTimerSettings
+ * @prop {"per turn"|"chess"} style style of turn timer
+ * @prop {number|null} limit null defines unlimited time
+ * @prop {"random"|"skip"|"lose"} penalty random move or skip turn
+ */
+/**
+ * @typedef GameRules
+ * @prop {TurnTimerSettings} turnTime
+ */
 /**
  * @typedef Stats
  * @prop {number} connected total alive connections
@@ -77,6 +134,7 @@ class Player {
  * @prop {boolean} public
  * @prop {boolean} observable
  * @prop {number} hostNum
+ * @prop {boolean} firstTurn
  */
 
 class Game {
@@ -102,24 +160,43 @@ class Game {
             owned: new Array(6).fill(0),
             move: -1,
             turn: -1,
+            // _turn: -1,
+            // get turn(){return this._turn;},
+            // set turn(v){TraceLog(v);this._turn = v;},
             state: 0,
             public: state.public,
             observable: state.observable,
-            hostNum: 0
+            hostNum: 0,
+            firstTurn: true
         };
         this.state.board = new Array(this.state.topology.tileCount).fill(1);
         this.state.teamboard = new Array(this.state.topology.tileCount).fill(0);
         this.state.owned[0] = this.state.topology.tileCount;
+        /**@type {GameRules} */
+        this.rules = {
+            turnTime: {
+                style: "per turn",
+                limit: null,
+                penalty: "random"
+            }
+        };
+        extend(this.rules, state.rules||{});
         /**@type {Buffer[]} */
         this.buffer = [];
         /**@type {number} */
         this.timestamp = null;
-        /**@type {(Player|null)[]} */
+        /**@type {Player[]} */
         this.players = [null];
         /**@type {Record<string,WS>} */
         this.spectators = {};
         /**@type {BigInt} */
         this.sort_key = null;
+    }
+    /**
+     * @param {GameRules} rules
+     */
+    addRules(rules) {
+        extend(this.rules, rules);
     }
     /**
      * kills all connections
@@ -153,6 +230,11 @@ class Game {
     }
     start() {
         this.state.state = 1;
+        if (this.rules.turnTime.style === "chess") {
+            for (let i = 0; i < this.players.length; i ++) {
+                if (this.players[i]) this.players[i].time_left = this.rules.turnTime.limit/1000;
+            }
+        }
         for (let i = 0; i < this.players.length; i ++) {
             if (this.players[i] !== null) {
                 this.state.turn = i;
@@ -166,6 +248,7 @@ class Game {
      * @returns {{win:boolean,turn:number}}
      */
     move(tile, player) {
+        this.firstTurn = false;
         const adds = [tile];
         const p = this.players[player];
         const tb = this.state.teamboard;
@@ -181,7 +264,7 @@ class Game {
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
                 if (this.state.owned[tb[t]] === 0) {
-                    this.players.forEach((v, i) => {if(v&&v.team===tb[t])onPlayerRemoved(this, i);});
+                    this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
                 }
                 this.state.owned[p.team] ++;
                 tb[t] = p.team;
@@ -214,14 +297,23 @@ class Game {
                 adds.push(...neighbors);
             }
         }
+        return this.nextPlayer();
+    }
+    nextPlayer() {
         let i = this.state.turn;
+        // console.log(`STATE: ${this.state}`);
+        // console.log(`TURN: ${this.state.turn}`);
+        // console.log(this.players);
         while (true) {
             i += 1;
             i = i % this.players.length;
             if (i === this.state.turn) {
                 return {win:true,turn:-1};
             }
-            if (this.players[i] !== null && (this.state.owned[0]||this.state.owned[this.players[i].team])) {
+            // if (this.players[i] !== null && (this.state.owned[0]||this.state.owned[this.players[i].team])) {
+            // console.log(`I: ${i}`);
+            // console.log(this.players[i]);
+            if (this.players[i] !== null && this.players[i].alive) {
                 this.state.turn = i;
                 break;
             }
@@ -347,8 +439,6 @@ class Game {
  * }}
  */
 
-const fs = require("fs");
-const _path = require("path");
 // const { onPlayerRemoved, onMove } = require("./replayHooks");
 const replayHooks = require("./replayHooks.js");
 const onPlayerRemoved = replayHooks.onPlayerRemoved;
@@ -429,6 +519,13 @@ class NetData {
          */
         static Ownid(playerNumber, team) {
             return this.Misc("ownid", {n:playerNumber, t:team});
+        }
+        /**
+         * @param {number} playerNum
+         * @returns {string}
+         */
+        static Lose(playerNum) {
+            return this.Misc("lose", {n:playerNum});
         }
     }
     static Spectator = class {
@@ -548,10 +645,11 @@ class NetData {
         }
         /**
          * @param {number} playerNum
+         * @param {boolean?} doTimer
          * @returns {string}
          */
-        static Turn(playerNum) {
-            return this.Misc("turn", {n:playerNum});
+        static Turn(playerNum, doTimer) {
+            return this.Misc("turn", {n:playerNum,t:doTimer??true});
         }
         /**
          * @returns {string}
@@ -603,6 +701,20 @@ class NetData {
          */
         static Reconnected() {
             return this.Misc("reconnected");
+        }
+        /**
+         * @param {Game} game
+         * @returns {string}
+         */
+        static Rules(game) {
+            return this.Misc("rules", game.rules);
+        }
+        /**
+         * @param {number} playerNum
+         * @returns {string}
+         */
+        static Timeup(playerNum) {
+            return this.Misc("timeup", {n:playerNum});
         }
     }
     static Bin = class {
@@ -763,6 +875,26 @@ function clear(tag) {
     }
 }
 
+class Random {
+    /**
+     * @param {number} lo
+     * @param {number} hi
+     * @param {number?} step
+     * @returns {number}
+     */
+    static range(lo, hi, step) {
+        return (Math.floor(Math.random()*((hi-lo)/(step||1)))*(step||1))+lo;
+    }
+    /**
+     * @template T
+     * @param {T[]} list
+     * @returns {T}
+     */
+    static choice(list) {
+        return list[this.range(0, list.length)];
+    }
+}
+
 class SecurityError extends Error {
     constructor(message) {
         super(message);
@@ -823,5 +955,6 @@ exports.SecurityError = SecurityError;
 exports.InvariantViolationError = InvariantViolationError;
 exports.TypeConversionError = TypeConversionError;
 exports.ValueError = ValueError;
+exports.Random = Random;
 exports.codeChars = codeChars;
 exports.settings = settings;

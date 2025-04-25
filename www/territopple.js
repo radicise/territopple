@@ -211,6 +211,7 @@ conn.addEventListener("open", async function(event) {
     });
 	// display("Connected");
     createBanner({type:"info",content:"Connected"});
+    let configed = false;
 	conn.addEventListener("message", async function(event) {
         if (typeof event.data !== "string") {
             // console.log(event.data);
@@ -219,7 +220,10 @@ conn.addEventListener("open", async function(event) {
             const dat = event.data;
             // dat.arrayBuffer().then((v) => {
             // })
-            dat.arrayBuffer().then((v) => {
+            dat.arrayBuffer().then(async (v) => {
+                if (!configed) {
+                    await new Promise(r => {configed = r;});
+                }
                 const arr = new Uint8Array(v);
                 let bypos = 1;
                 let bipos = 0;
@@ -249,12 +253,13 @@ conn.addEventListener("open", async function(event) {
                         const bleft = game.rows * (game.cols - 1) - 1;
                         const bright = bb.length - 1;
                         for (let i = 0; i < bb.length; i ++) {
-                            if (i === 0 || i === game.cols-1 || i === bleft || i === bright) {
-                                game.board[i] = consumebits(1) + 1;
-                                // console.log(`${i}: ${game.board[i]}`);
-                            } else {
-                                game.board[i] = consumebits(2) + 1;
-                            }
+                            game.board[i] = consumebits(game.topology.getRequiredBits(i)) + 1;
+                            // if (i === 0 || i === game.cols-1 || i === bleft || i === bright) {
+                            //     game.board[i] = consumebits(1) + 1;
+                            //     console.log(`${i}: ${game.board[i]}`);
+                            // } else {
+                            //     game.board[i] = consumebits(2) + 1;
+                            // }
                         }
                         let i = 0;
                         while (i < tb.length) {
@@ -354,10 +359,13 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:join":{
                 game.joinedPlayers ++;
-                game.playerList[data.payload["n"]] = {team:data.payload["t"]};
+                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null};
                 createBanner({type:"info",content:`Player ${data.payload['n']} has joined`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 if (ifmt.pln !== data.payload["n"]) addJListPlayer(data.payload["n"]);
+                if (game.rules?.turnTime?.style === "chess") {
+                    setJListTime(data.payload["n"], game.playerList[data.payload["n"]].time);
+                }
 				break;
             }
             case "player:leave":{
@@ -368,6 +376,10 @@ conn.addEventListener("open", async function(event) {
                 removeJListPlayer(data.payload["n"]);
 				break;
             }
+            case "player:lose":{
+                game.losePlayer(data.payload["n"]);
+                break;
+            }
             case "player:spectate":{
                 break;
             }
@@ -375,6 +387,7 @@ conn.addEventListener("open", async function(event) {
                 ifmt.pln = data.payload["n"];
                 ifmt.team = data.payload["t"];
                 game.joinedPlayers ++;
+                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null};
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
                 rescanHostOnly();
@@ -413,6 +426,12 @@ conn.addEventListener("open", async function(event) {
                     } else {
                         updScr("info", `Room ${game.ident}, Player ${ifmt.pln}`);
                     }
+                }
+                {
+                    const rstr = sessionStorage.getItem("game_rules");
+                    sessionStorage.removeItem("game_rules");
+                    if (rstr) conn.send(`{"type":"game:rules","payload":${rstr}}`);
+                    else conn.send("{\"type\":\"game:rules\",\"payload\":{}}");
                 }
                 break;
             }
@@ -458,6 +477,10 @@ conn.addEventListener("open", async function(event) {
                 document.getElementById("spherical-enable-bloom").onchange = () => {
                     window.postMessage({type:"3d-setbloom",enabled:document.getElementById("spherical-enable-bloom").checked});
                 }
+                if (configed) {
+                    configed();
+                }
+                configed = true;
                 break;
             }
             case "game:jlist":{
@@ -486,6 +509,9 @@ conn.addEventListener("open", async function(event) {
             case "game:turn":{
                 ifmt.turn = data.payload["n"];
                 updScr("status", `Player ${data.payload["n"]}'s turn`);
+                if (game.rules?.turnTime?.limit && data.payload["t"]) {
+                    game.runTimer(data.payload['n']);
+                }
                 // if (mess < 0) {
                 // }
                 // else {
@@ -512,6 +538,7 @@ conn.addEventListener("open", async function(event) {
             }
             case "game:win":{
                 ifmt.turn = 0;
+                game.stopTimer();
                 {
                     // let rmo = Math.floor(mess / cols);
                     // mess = mess % cols;
@@ -532,6 +559,18 @@ conn.addEventListener("open", async function(event) {
                     dl.download = `${ifmt.room}.topl`;
                     da.hidden = false;
                 }
+                break;
+            }
+            case "game:timeup":{
+                createBanner({type:"info",content:`player ${data.payload['n']} ran out of time`});
+                break;
+            }
+            case "game:rules":{
+                game.rules = data.payload;
+                if (game.rules_loaded) {
+                    game.rules_loaded();
+                }
+                game.rules_loaded = true;
                 break;
             }
         }

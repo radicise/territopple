@@ -1,4 +1,4 @@
-const { NetPayload, NetData } = require("../../defs.js");
+const { NetPayload, NetData, Random } = require("../../defs.js");
 const { onRecordReplay } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
@@ -12,10 +12,54 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Move(data["n"], data["t"]));
     });
     onall("game:win", (data) => {
-        sock.send(NetData.Game.Win(data["t"]))
+        sock.send(NetData.Game.Win(data["t"]));
+        state.game.players[state.playerNum]?.resetTimer(state.game, false);
+    });
+    onall("player:lose", (data) => {
+        sock.send(NetData.Player.Lose(data["n"]));
+    });
+    onall("game:turn:timeup", (data) => {
+        sock.send(NetData.Game.Timeup(data["n"]));
+        if (data["n"] !== state.playerNum) return;
+        switch (state.game.rules.turnTime.penalty) {
+            case "random":{
+                const t = state.game.players[state.playerNum].team;
+                messageL(`{"type":"game:move","payload":{"n":${Random.choice(state.game.state.teamboard.map((v, i) => (v===0||v===t)?i:null).filter(v => v !== null))}}}`);
+                break;
+            }
+            case "skip":{
+                emit("game:turn", {n:state.game.nextPlayer().turn});
+                break;
+            }
+            case "lose":{
+                state.game.players[state.playerNum].alive = false;
+                emit("player:lose", {n:state.playerNum});
+                if (state.game.players.filter(v => v&&v.alive).every((v, _, a) => v.team === a[0].team)) {
+                    if (globals.state.saveReplays) {
+                        onRecordReplay(state.game);
+                    } else {
+                        state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
+                    }
+                    emit("game:turn", {n:state.game.nextPlayer().turn,t:false});
+                    emit("game:win", {t:state.game.players[state.game.state.turn].team});
+                    state.game.state.state = 2;
+                } else {
+                    emit("game:turn", {n:state.game.nextPlayer().turn});
+                }
+                break;
+            }
+        }
     });
     onall("game:turn", (data) => {
-        sock.send(NetData.Game.Turn(data["n"]));
+        if (data["n"] === state.playerNum) {
+            state.game.players[state.playerNum].resetTimer(state.game, () => {
+                // console.log(`TIMEUP: ${state.playerNum}`);
+                emit("game:turn:timeup", {n:state.playerNum});
+            });
+        } else {
+            state.game.players[state.playerNum].resetTimer(state.game, false);
+        }
+        sock.send(NetData.Game.Turn(data["n"], data["t"]));
     });
     on("player:spectate", (data) => {
         sock.send(NetData.Player.Spectate(data["n"], data["id"]));

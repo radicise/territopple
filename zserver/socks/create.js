@@ -40,10 +40,18 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     state.spectating = false;
     state.game.state.hostNum = 1;
     emit("game:add", {id:useid,game:state.game});
-    })();
     sock.send(NetData.Player.Ownid(state.playerNum, 1));
     sock.send(NetData.Game.Roomid(state.game.ident));
-    change("waiting", {isHost:true});
+    messageL = (_data) => {
+        /**@type {NetPayload} */
+        const data = JSON.parse(_data);
+        if (data.type === "game:rules") {
+            state.game.addRules(data.payload);
+            change("waiting", {isHost:true});
+        }
+    }
+    sock.on("message", messageL);
+    })();
     return {messageL, closeL, errorL};
 };
 

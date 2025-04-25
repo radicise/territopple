@@ -47,7 +47,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Reconnected());
         sock.send(NetData.Game.Config(g), () => {
             sock.send(NetData.Bin.Board(g), () => {
-                sock.send(NetData.Game.Turn(game.state.turn));
+                sock.send(NetData.Game.Rules(g));
+                sock.send(NetData.Game.Turn(game.state.turn, !game.state.firstTurn));
                 change("play");
             });
         });
