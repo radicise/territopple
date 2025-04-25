@@ -429,6 +429,7 @@ conn.addEventListener("open", async function(event) {
                 }
                 {
                     const rstr = sessionStorage.getItem("game_rules");
+                    console.log(JSON.parse(rstr));
                     sessionStorage.removeItem("game_rules");
                     if (rstr) conn.send(`{"type":"game:rules","payload":${rstr}}`);
                     else conn.send("{\"type\":\"game:rules\",\"payload\":{}}");
@@ -544,8 +545,10 @@ conn.addEventListener("open", async function(event) {
                     // mess = mess % cols;
                     updScr("status", `Team ${data.payload['t']} won the game`);
                     displaySettings.highlightLastMove = false;
-                    container.parentElement.style.setProperty("--blink-dark", teamcols[data.payload["t"]]+"88");
-                    container.parentElement.classList.add("blink2");
+                    // container.parentElement.style.setProperty("--blink-dark", teamcols[data.payload["t"]]+"88");
+                    // container.parentElement.classList.add("blink2");
+                    container.style.setProperty("--blink-dark", teamcols[data.payload["t"]]+"88");
+                    container.classList.add("blink2");
                 }
                 {
                     /**@type {HTMLDivElement} */
