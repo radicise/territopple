@@ -83,7 +83,7 @@ lastMoveCheckbox.addEventListener("change", () => {
 })
 
 lastMoveColorPicker.addEventListener("change", () => {
-    container.style.setProperty("--tile-last-move", lastMoveColorPicker.value);
+    container.style.setProperty("--tile-last-move", lastMoveColorPicker.value+"1f");
 });
 
 volatileCheckbox.addEventListener("change", () => {
@@ -96,5 +96,5 @@ volatileCheckbox.addEventListener("change", () => {
 });
 
 volatileColorPicker.addEventListener("change", () => {
-    container.style.setProperty("--tile-volatile", volatileColorPicker.value);
+    container.style.setProperty("--tile-volatile", volatileColorPicker.value+"1f");
 });
