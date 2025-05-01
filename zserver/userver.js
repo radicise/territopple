@@ -260,7 +260,10 @@ if (!settings.APPEASEMENT) {
         next();
     });
     ex_server.get("/help(.html)?", (req, res) => {
-        res.sendFile(_path.resolve(__dname, "www/tutorial/tutorial.html"));
+        res.sendFile(_path.resolve(__dname, "www/help/help.html"));
+    });
+    ex_server.get("/replay(.html)?", (req, res) => {
+        res.sendFile(_path.resolve(__dname, "www/replay/replay.html"));
     });
     ex_server.use("/", express.static(_path.resolve(__dname, "www"), {extensions:["html"]}));
     ex_server.use("/replays", replayRouter);
