@@ -73,7 +73,8 @@ SWITCH (TYPE):
         00 ->:
             BYTE[2] - T(6),R(5),C(5) - player number, row, col
         01,10,11 ->:
-            PREPEND BYTE - player number
+            IF (ORDER):
+                PREPEND BYTE - player number
 
 version 3:
 BYTE - version
