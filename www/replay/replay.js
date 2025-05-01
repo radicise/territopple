@@ -5,9 +5,12 @@ const replayCont = document.getElementById("replay-area");
 /**@type {HTMLDivElement} */
 const gameBoard = document.getElementById("gameboard");
 
+/**@type {import("../logic/game").Game} */
+const game = new Game();
+
 // let symbs = ["!", "-", "+", "W", "█"];
-let symbs = ["!", "-", "+", "W", "&block;"];
-let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
+// let symbs = ["!", "-", "+", "W", "&block;"];
+// let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 
 /**
  * @typedef ReplayEvent
@@ -202,13 +205,14 @@ async function init_replay() {
         const cols = replay_data.width;
         const rows = replay_data.height;
         gameBoard.style.cssText = `--ncols:${cols};--nrows:${rows};`;
-        let baroa = "";
-        for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
-                baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\"><div>-</div></div>");
-            }
-        }
-        gameBoard.innerHTML = baroa;
+        await game.setConfig({"type":0,x:cols,y:rows},replay_data.players);
+        // let baroa = "";
+        // for (let i = 0; i < rows; i++) {
+        //     for (let j = 0; j < cols; j++) {
+        //         baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + "\"><div>-</div></div>");
+        //     }
+        // }
+        // gameBoard.innerHTML = baroa;
         // if (!render3d) {
         // }
     }
@@ -256,7 +260,7 @@ async function replay_step() {
                     }
                 }
             }
-            updateBoard(ev.move[0], ev.move[1], replay_turn);
+            // updateBoard(ev.move[0], ev.move[1], replay_turn);
             Display.status = `Player ${replay_turn} moved: ${formatMove(ev.move)}`;
             break;
         case 2:
