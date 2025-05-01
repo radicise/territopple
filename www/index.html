@@ -107,6 +107,8 @@
         </style>
     </head>
     <body>
+        <!-- <meta data-import="/components/display-settings.html" /> -->
+        <!-- <meta data-import="/components/display-settings.html" data-scripts="/displaycontrols.js" /> -->
         <!-- <div id="test"></div> -->
         <div id="splash-banner">
             <h1 id="splash-main">Territopple</h1>
@@ -115,7 +117,7 @@
             <input type="button" value="Play Online" onclick="location.href='/play-online'">
             <input type="button" value="Puzzles" disabled>
             <input type="button" value="Reference / Guide" onclick="location.href='/help'">
-            <input type="button" value="Watch Replay" disabled>
+            <input type="button" value="Watch Replay" onclick="location.href='/replay'" disabled>
         </div>
         <div id="random-replay">
             Coming Soon!
@@ -152,6 +154,7 @@
             </div>
         </div>
         <script src="/portno.js"></script>
+        <script src="/components/include.js"></script>
         <script>
             const contact_modal = document.getElementById("contact-modal");
             /**
