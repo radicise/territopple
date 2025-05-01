@@ -466,18 +466,6 @@ conn.addEventListener("open", async function(event) {
                 // await game.setConfig(topology.m.formatDimensions(dims), players);
                 await game.setConfig(dims, players);
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
-                /**@type {HTMLSelectElement} */
-                const bro = document.getElementById("board-rendering-option");
-                createBoard(game.topology, game.board, game.teamboard, Number(bro.value)-1);
-                flushUpdates();
-                bro.onchange = () => {
-                    createBoard(game.topology, game.board, game.teamboard, Number(bro.value)-1);
-                    flushUpdates();
-                    document.getElementById("spherical-bloom-enabled").hidden = (bro.value !== "3");
-                };
-                document.getElementById("spherical-enable-bloom").onchange = () => {
-                    window.postMessage({type:"3d-setbloom",enabled:document.getElementById("spherical-enable-bloom").checked});
-                }
                 if (configed) {
                     configed();
                 }

@@ -126,6 +126,18 @@ class Game {
         }
         this.playerList = playerList;
         this.playerList[0] = {team:0};
+        /**@type {HTMLSelectElement} */
+        const bro = document.getElementById("board-rendering-option");
+        createBoard(this.topology, this.board, this.teamboard, Number(bro.value)-1);
+        flushUpdates();
+        bro.onchange = () => {
+            createBoard(this.topology, this.board, this.teamboard, Number(bro.value)-1);
+            flushUpdates();
+            document.getElementById("spherical-bloom-enabled").hidden = (bro.value !== "3");
+        };
+        document.getElementById("spherical-enable-bloom").onchange = () => {
+            window.postMessage({type:"3d-setbloom",enabled:document.getElementById("spherical-enable-bloom").checked});
+        }
     }
     recalcDerived() {
         this.owned = new Array(6).fill(0);
@@ -244,3 +256,5 @@ class Game {
         }
     }
 }
+
+exports.Game = Game;
