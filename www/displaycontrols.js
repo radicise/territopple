@@ -71,6 +71,7 @@ hoverCheckbox.addEventListener("change", () => {
 
 hoverColorPicker.addEventListener("change", () => {
     container.style.setProperty("--tile-hover", hoverColorPicker.value+"1f");
+    localStorage.setItem("hoverColor", hoverColorPicker.value);
 });
 
 lastMoveCheckbox.addEventListener("change", () => {
@@ -84,6 +85,7 @@ lastMoveCheckbox.addEventListener("change", () => {
 
 lastMoveColorPicker.addEventListener("change", () => {
     container.style.setProperty("--tile-last-move", lastMoveColorPicker.value+"1f");
+    localStorage.setItem("lastMoveColor", lastMoveColorPicker.value);
 });
 
 volatileCheckbox.addEventListener("change", () => {
@@ -97,4 +99,22 @@ volatileCheckbox.addEventListener("change", () => {
 
 volatileColorPicker.addEventListener("change", () => {
     container.style.setProperty("--tile-volatile", volatileColorPicker.value+"1f");
+    localStorage.setItem("volatileColor", volatileColorPicker.value);
 });
+
+for (const [picker, checker, valueName, styleName] of [[hoverColorPicker, hoverCheckbox, "hoverColor", "--tile-hover"], [lastMoveColorPicker, lastMoveCheckbox, "lastMoveColor", "--tile-last-move"], [volatileColorPicker, volatileCheckbox, "volatileColor", "--tile-volatile"]]) {
+    const value = localStorage.getItem(valueName);
+    if (Boolean(value)) {
+        picker.value = value;
+        container.style.setProperty(styleName, value+"1f");
+    } else if (value === "false") {
+        checker.checked = false;
+        switch (valueName) {
+            case "hoverColor":container.classList.remove("tile-hover");break;
+            case "lastMoveColor":displaySettings.highlightLastMove = false;break;
+            case "volatileColor":container.classList.remove("volatiles");break;
+        }
+    } else {
+        localStorage.setItem(valueName, picker.value);
+    }
+}
