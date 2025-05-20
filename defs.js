@@ -263,7 +263,7 @@ class Game {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
-                if (this.state.owned[tb[t]] === 0) {
+                if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
                     this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
                 }
                 this.state.owned[p.team] ++;

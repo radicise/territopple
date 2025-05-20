@@ -86,6 +86,9 @@ if (!fs.existsSync("www/replays")) {
 if (!fs.existsSync("www/topology")) {
     fs.symlinkSync(_path.join(__dname, "topology"), _path.join(__dname, "www/topology"));
 }
+if (!fs.existsSync("www/three")) {
+    fs.symlinkSync(_path.join(__dname, "node_modules/three"), _path.join(__dname, "www/three"));
+}
 const CRASHLOG = _path.resolve(__dname, "crashlog.txt");
 if (!fs.existsSync(CRASHLOG)) {
     fs.writeFileSync(CRASHLOG, "", {encoding:"utf-8"});
@@ -163,6 +166,7 @@ if (!settings.APPEASEMENT) {
 
 const ws_server = new ws.Server({server: main_server});
 ws_server.on("connection", (sock, req) => {
+    // console.log("WS CONN");
     let params = null;
     try {
         const rurl = (new URL(`http://localhost${req.url}`));
