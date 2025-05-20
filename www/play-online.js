@@ -8,7 +8,8 @@ if (sessionStorage.getItem("error-store")) {
 sessionStorage.removeItem("rejoin_key");
 sessionStorage.removeItem("rejoin_g");
 sessionStorage.removeItem("rejoin_p");
-fetch(`http://${host}:${game_port}/serverlist`,
+fetch(`http://${host}/serverlist`,
+// fetch(`http://${host}:${game_port}/serverlist`,
       {
           method: "GET",
       })

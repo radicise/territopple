@@ -88,7 +88,8 @@ if (isNaN(port)) {
 	// port = 8300;
     port = null;
 }
-let host = document.location.hostname + ":" + game_port.toString();
+// let host = document.location.hostname + ":" + game_port.toString();
+let host = document.location.hostname + "/ws";
 
 if (document.getElementById("feature-3d")?.nodeName === "META") {
     window.alert("WARNING! Arbitrary code execution is ENABLED. If you are not a developer, immediately contact the server operator");

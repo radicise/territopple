@@ -2,7 +2,7 @@
     "GAMEPORT":81,
     "WEBPORT":80,
     "WEBCONTENT_DIR":"www",
-    "APPEASEMENT": false,
+    "APPEASEMENT": true,
     "REJOIN_TIME": 500,
     "URL_MAP": {
         "": "/index.html",

@@ -189,7 +189,7 @@
                     default:return makeNode("li",{textContent:`${v[0]}: ${v[1]}`});
                 }
             }
-            fetch(`http://${document.location.hostname}:${game_port}/operator.json`).then(v => {
+            fetch(`http://${document.location.hostname}/operator.json`).then(v => {
                 v.text().then(t => {
                     const info = JSON.parse(t);
                     let nodes = [];
