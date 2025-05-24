@@ -428,7 +428,11 @@ class Game {
  * @typedef HostingSettings
  * @type {{
  * GAMEPORT:number,
+ * DATAPORT:number,
  * WEBPORT:number,
+ * INTERNALPORT:number,
+ * ROOM_CODE_LENGTH:number,
+ * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
  * REJOIN_TIME:number,
  * APPEASEMENT:boolean,
  * WEBCONTENT_DIR:string,
@@ -939,11 +943,62 @@ function nbytes(n, c) {
 	return [n&0xffn,(n>>8n)&0xffn,(n>>16n)&0xffn,(n>>24n)&0xffn,(n>>32n)&0xffn,(n>>40n)&0xffn,(n>>48n)&0xffn,(n>>56n)&0xffn].map(v => Number(v)).slice(0, c).reverse();
 }
 
+/**
+ * @typedef JSONSchemeType
+ * @type {"number"|"boolean"|"string"|"any"}
+ */
+/**
+ * @typedef JSONScheme
+ * @type {{
+ * [key: string]: JSONScheme|JSONSchemeType|[JSONScheme|JSONSchemeType],
+ * "*"?:"any"
+ * }}
+ */
+
+/**
+ * validates the given JSON string against the provided scheme
+ * @param {object} obj
+ * @param {JSONScheme} scheme
+ * @returns {boolean}
+ */
+function validateJSONScheme(obj, scheme) {
+    try {
+        const allow_extensions = scheme["*"] === "any";
+        if (Object.keys(scheme).filter(v => !(v in obj)).some(v => !v.endsWith("?"))) {
+            return false;
+        }
+        for (const key in obj) {
+            if (key in scheme) {
+                if (typeof scheme[key] === "string") {
+                    if (typeof obj[key] !== scheme[key] && scheme[key] !== "any") {
+                        return false;
+                    }
+                } else if (Array.isArray(scheme[key])) {
+                    if (!Array.isArray(obj[key])) {
+                        return false;
+                    }
+                    if (!obj[key].every(v => (typeof scheme[key][0] === "object") ? validateJSONScheme(obj, scheme[key][0]) : (scheme[key][0] === "any" || typeof v === scheme[key][0]))) {
+                        return false;
+                    }
+                }
+            } else if (!allow_extensions) {
+                return false;
+            }
+        }
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 exports.extend = extend;
 exports.emit = emit;
 exports.on = on;
 exports.clear = clear;
 exports.nbytes = nbytes;
+exports.validateJSONScheme = validateJSONScheme;
+exports.JSONScheme = this.JSONScheme;
+exports.JSONSchemeType = this.JSONSchemeType;
 exports.HostingSettings = this.HostingSettings;
 exports.Game = Game;
 exports.NetData = NetData;

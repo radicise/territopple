@@ -52,11 +52,11 @@ const { Game, HostingSettings } = require("../defs");
  * @type {(tag: string) => void}
  */
 
-/**@type {SocketHandler} */
-let x = (sock,globals,{change, emit, on}) => {
-    on;
-    emit;
-};
+// /**@type {SocketHandler} */
+// let x = (sock,globals,{change, emit, on}) => {
+//     on;
+//     emit;
+// };
 
 exports.SocketHandler = this.SocketHandler;
 exports.TaggedEmitFunction = this.TaggedEmitFunction;
