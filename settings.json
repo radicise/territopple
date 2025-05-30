@@ -10,7 +10,7 @@
         "MAX_TURNAROUND": 125
     },
     "WEBCONTENT_DIR":"www",
-    "APPEASEMENT": true,
+    "APPEASEMENT": false,
     "REJOIN_TIME": 500,
     "URL_MAP": {
         "": "/index.html",
