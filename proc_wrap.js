@@ -38,6 +38,7 @@ i.on("line", (l) => {
             break;
         case "stop":
             i.close();
+            console.log("STOPPING");
             break;
         case "#child":
             passthrough = true;
