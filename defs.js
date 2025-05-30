@@ -144,6 +144,7 @@ class Game {
      * @param {{topology:import("./topology/topology.js").TopologyParams,public:boolean,observable:boolean}} state
      */
     constructor (ident, players, state) {
+        this.complexity = 1;
         /**@type {string} */
         this.ident = ident;
         /**@type {Stats} */
@@ -423,6 +424,7 @@ class Game {
         }
     }
 }
+exports.Game = Game;
 
 /**
  * @typedef HostingSettings
@@ -697,7 +699,7 @@ class NetData {
          */
         static JList(game) {
             const players = game.players.map((v, i) => v ? [i, v.team] : null).filter(v => v !== null);
-            const spectators = Object.keys(game.spectators)
+            const spectators = Object.keys(game.spectators);
             return this.Misc("jlist", {p:players,s:spectators});
         }
         /**
@@ -853,7 +855,7 @@ function emit(tag, name, data) {
 /**
  * @param {string} tag
  * @param {string} name
- * @param {(data: Record<string,unkown>, tag: string)=>void} cb
+ * @param {(data: {[key: string]: unknown, "#gameid":string}, tag: string)=>void} cb
  */
 function on(tag, name, cb) {
     if (name in EventRegistry) {
@@ -991,21 +993,61 @@ function validateJSONScheme(obj, scheme) {
     }
 }
 
+const __dname = process.cwd();
+
+/**
+ * @param {string} fpath
+ */
+function ensureFile(fpath) {
+    const parts = fpath.split(_path.sep);
+    // console.log(fpath);
+    // console.log(parts);
+    parts.slice(0, parts.length-1).forEach((v, i, a) => {
+        const seg = _path.join(...a.slice(0, i+1));
+        // console.log(seg);
+        // console.log(`${v} :: ${i} :: ${a}`);
+        if (!fs.existsSync(_path.join(__dname, seg))) {
+            fs.mkdirSync(_path.join(__dname, seg));
+        }
+    });
+    if (!fs.existsSync(_path.join(__dname, fpath))) {
+        fs.writeFileSync(_path.join(__dname, fpath), "");
+    }
+}
+
+/**
+ * @param {string} lpath
+ * @param {string} data
+ */
+function addLog(lpath, data) {
+    fs.appendFileSync(_path.join(__dname, lpath), data, {encoding:"utf-8"});
+}
+
+/**
+ * @param {string} lpath
+ */
+function logStamp(lpath) {
+    addLog(lpath, `\n\n${new Date()} - STARTUP\n\n`);
+}
+
+exports.__dname = __dname;
 exports.extend = extend;
+exports.ensureFile = ensureFile;
+exports.addLog = addLog;
+exports.logStamp = logStamp;
 exports.emit = emit;
 exports.on = on;
 exports.clear = clear;
 exports.nbytes = nbytes;
 exports.validateJSONScheme = validateJSONScheme;
-exports.JSONScheme = this.JSONScheme;
-exports.JSONSchemeType = this.JSONSchemeType;
-exports.HostingSettings = this.HostingSettings;
-exports.Game = Game;
+// exports.JSONScheme = this.JSONScheme;
+// exports.JSONSchemeType = this.JSONSchemeType;
+// exports.HostingSettings = this.HostingSettings;
 exports.NetData = NetData;
 exports.Player = Player;
-exports.Stats = this.Stats;
-exports.State = this.State;
-exports.NetPayload = this.NetPayload;
+// exports.Stats = this.Stats;
+// exports.State = this.State;
+// exports.NetPayload = this.NetPayload;
 exports.SecurityError = SecurityError;
 exports.InvariantViolationError = InvariantViolationError;
 exports.TypeConversionError = TypeConversionError;
