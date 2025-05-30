@@ -48,19 +48,19 @@ class TTColorPicker extends HTMLElement {
         let v = this.getAttribute("var") || "";
         this.shadowRoot.innerHTML = `
 	    <label for="${v}-color">${this.getAttribute("desc")}</label>
-	    <input type="color" id="${v}-color" value="${this.getAttribute('default') || '#000000'}">
+	    <input type="color" id="${v}-color" value="${localStorage.getItem(v) || this.getAttribute('default') || '#000000'}">
 	`;
+        let p = localStorage.getItem(v);
+        if (p != null) {
+            container.style.setProperty(`--${v}`, p+"1f");
+        } else if (this.hasAttribute("default")) {
+            container.style.setProperty(`--${v}`, this.getAttribute("default"));
+        }
         let colorPicker = this.shadowRoot.getElementById(`${v}-color`);
         colorPicker.addEventListener("change", () => {
             container.style.setProperty(`--${v}`, colorPicker.value+"1f");
             localStorage.setItem(v, colorPicker.value);
         });
-        let p = localStorage.getItem(v);
-        if (p) {
-            container.style.setProperty(`--${v}`, p);
-        } else if (this.hasAttribute("default")) {
-            container.style.setProperty(`--${v}`, this.getAttribute("default"));
-        }
     }
 }
 customElements.define("x-color-picker", TTColorPicker);
