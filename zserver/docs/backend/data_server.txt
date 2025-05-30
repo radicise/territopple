@@ -43,6 +43,18 @@ this file documents the endpoints of the data server
         SUCCESS: 200
         FAILURE: 404
     }
+    PATCH /room?id=${ROOMID} {
+        uses the JSON object provided in the request body to update room details
+        404 indicates that the room id does not exist
+        422 indicates that the JSON body is either malformed or missing required fields
+        BODY:
+        {
+            "playing":number,
+            "spectating":number
+        }
+        SUCCESS: 200
+        FAILURE: 404, 422
+    }
 }
 
 :DATAPORT {
