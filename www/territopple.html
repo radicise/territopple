@@ -35,7 +35,7 @@
                     <x-color-picker var="tile-hover" desc="Hover" default="#000000"></x-color-picker>
                     <br>
                     <!-- last move enabled/color -->
-                    <x-style-toggle var="last-move" default="true"></x-style-toggle>
+                    <x-style-toggle var="last-move-enabled" default="true"></x-style-toggle>
                     <x-color-picker var="tile-last-move" desc="Last move" default="#aaaaaa"></x-color-picker>
                     <br>
                     <!-- volatile enabled/color -->
@@ -59,7 +59,7 @@
                 </fieldset>
 		<div id="row-container">
             <div id="container-container">
-                <div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd;--tile-font-size:32;"></div>
+                <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--blink-dark:#ddd;--tile-font-size:32;"></div>
                 <span id="underboard-container">
                     <span id="underboard-left">
                         <input type="button" id="pingbutton" value="ping">
