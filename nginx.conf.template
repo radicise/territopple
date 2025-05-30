@@ -16,7 +16,7 @@ http {
         root /PATH/TO/TERRITOPPLE/DIRECTORY/www;
 
         location = /serverlist {
-            proxy_pass http://localhost:81;
+            proxy_pass http://localhost:82;
         }
         location = /ws/ {
             proxy_pass http://localhost:81;

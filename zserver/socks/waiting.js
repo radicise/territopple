@@ -45,7 +45,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         // sock.send("waiting:start");
         sock.send(NetData.Waiting.Start());
         if (state.spectating) {
-            change("spectating");
+            change("spectating", {waited:true});
         } else {
             sock.send(NetData.Game.Turn(state.game.state.turn, false));
             change("play");

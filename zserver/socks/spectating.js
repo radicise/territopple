@@ -7,9 +7,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let closeL;
     let errorL;
     (() => {
-    {
+    if (!args.waited) {
         const g = state.game;
-        sock.send(NetData.Game.Config(g.state.cols,g.state.rows,g.stats.maxPlayers,g.state.hostNum), () => {
+        sock.send(NetData.Game.Config(g), () => {
             sock.send(NetData.Bin.Board(g), {"binary":true});
         });
     }

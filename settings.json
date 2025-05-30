@@ -1,6 +1,14 @@
 {
     "GAMEPORT":81,
+    "DATAPORT":82,
     "WEBPORT":80,
+    "INTERNALPORT":5000,
+    "ROOM_CODE_LENGTH":8,
+    "WORKERS": {
+        "LIMIT": 4,
+        "MAX_CONNECTIONS": 1024,
+        "MAX_TURNAROUND": 125
+    },
     "WEBCONTENT_DIR":"www",
     "APPEASEMENT": true,
     "REJOIN_TIME": 500,

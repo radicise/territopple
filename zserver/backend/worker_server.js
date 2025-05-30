@@ -1,0 +1,207 @@
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const ws = require("ws");
+const socks = require("../socks/handlers.js");
+const { settings, validateJSONScheme, JSONScheme, Game, emit, on, clear, NetData, loadPromise, ensureFile, logStamp, addLog } = require("../../defs.js");
+const { GlobalState } = require("../types.js");
+const { PerformanceError } = require("./errors.js");
+
+const LOGGING = false;
+
+let CONNECTION_COUNT = 0;
+let MAX_TURN = 0;
+let COMPLEXITY = 0;
+
+let WORK_ID = null;
+
+/**@type {Record<string, Game>} */
+const games = {};
+
+/**@type {GlobalState} */
+const globals = {
+    MAX_DIM: 36,
+    MIN_DIM: 1,
+    MIN_PLAYERS: 2,
+    MAX_PLAYERS: 10,
+    games: games,
+    get saveReplays() {
+        return settings.REPLAYS.ENABLED;
+        // return SERVER_TOOL_FLAGS.SAVE_REPLAYS;
+    }
+};
+
+/**
+ * @param {string} id
+ */
+function updateDataServerStats(id) {
+    http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {"method":"PATCH"}, (res) => {}).end(JSON.stringify({playing:games[id].stats.playing,spectating:games[id].stats.spectating}));
+}
+function updateLoadFactors() {
+    process.send({factor_update:{connections:CONNECTION_COUNT,complexity:COMPLEXITY,turnaround:MAX_TURN}});
+}
+
+socks.setGlobals({state:globals, settings:settings}, emit, on, clear);
+on("main", "player:leave", (data) => {
+    /**@type {string} */
+    const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
+    games[gameid].removePlayer(data["n"]);
+    games[gameid].sendAll(NetData.Player.Leave(data["n"]));
+    CONNECTION_COUNT --;
+    if (games[gameid].stats.playing === 0) {
+        terminateGame(gameid);
+    } else {
+        updateDataServerStats(gameid);
+    }
+    updateLoadFactors();
+});
+on("main", "spectator:leave", (data) => {
+    /**@type {string} */
+    const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
+    games[gameid].removeSpectator(data["n"]);
+    CONNECTION_COUNT --;
+    games[gameid].sendAll(NetData.Spectator.Leave(data["n"]));
+    updateDataServerStats(gameid);
+    updateLoadFactors();
+});
+on("main", "player:join", (data) => {
+    const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
+    updateDataServerStats(gameid);
+});
+on("main", "spectator:join", (data) => {
+    const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
+    updateDataServerStats(gameid);
+});
+on("main", "waiting:need-promote", (data) => {
+    /**@type {string} */
+    const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
+    const n = games[gameid].getPromotion();
+    if (n === null) {
+        // games[gameid].sendAll(NetData.Game.Close());
+        // games[gameid].kill();
+        // delete games[gameid];
+        terminateGame(gameid);
+        return;
+    }
+    games[gameid].state.hostNum = n;
+    emit("main", "waiting:promote", {"#gameid":gameid,n});
+});
+on("main", "game:add", (data) => {
+    /**@type {Game} */
+    const game = data["game"];
+    games[data["id"]] = game;
+    // games[data["id"]].sort_key = GAME_COUNTER;
+    // GAME_COUNTER ++;
+    COMPLEXITY += game.complexity;
+    http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating}));
+});
+function terminateGame(id) {
+    // console.log(`${new Error().stack}`);
+    if (!(id in games)) return;
+    games[id].sendAll(NetData.Game.Close());
+    games[id].kill();
+    COMPLEXITY -= games[id].complexity;
+    http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {method:"DELETE"}).end();
+    delete games[id];
+}
+
+const wss = new ws.Server({noServer: true});
+
+process.once("message", (id) => {
+    WORK_ID = id;
+    const WCRASH = `logs/worker_server/${id}_crashes.txt`;
+    if (LOGGING) {
+        ensureFile(WCRASH);
+        logStamp(WCRASH);
+    }
+    loadPromise.then(v => {globals.topology = v;
+        process.on("message", (req, socket) => {
+            // if (globals.topology === undefined) {
+            //     socket.destroy();
+            //     return;
+            // }
+            if ("cmd" in req) {
+                if (process.argv.includes("--debug")) {
+                    try {
+                        console.log(eval(req.cmd));
+                    } catch (E) {
+                        console.error(E.stack);
+                    }
+                }
+                return;
+            }
+            const url = new URL("http://localhost"+req.url);
+            const connType = Number(url.searchParams.get("t"));
+            let state = {};
+            if (req.hid !== undefined) {
+                const capacity = Number(url.searchParams.get("p"));
+                if (CONNECTION_COUNT + capacity >= settings.WORKERS.MAX_CONNECTIONS) {
+                    process.send({hid:req.hid, v:false});
+                    return;
+                }
+                if (MAX_TURN >= settings.WORKERS.MAX_TURNAROUND) {
+                    process.send({hid:req.hid, v:false});
+                    return;
+                }
+                CONNECTION_COUNT += capacity;
+                process.send({hid:req.hid, v:true});
+                wss.handleUpgrade(req, socket, [], (sock) => {
+                    startPings(sock);
+                    http.request(`http://localhost:${settings.INTERNALPORT}/room-id`, {method:"GET"}, (res) => {
+                        let data = "";
+                        res.on("data", (chunk) => {data += chunk;});
+                        res.on("end", () => {
+                            try {
+                                if (res.statusCode === 503) {
+                                    socks.handle("error", sock, {data:"Unable to generate room code",redirect:"/play-online",store:"Unable to generate room code"}, state);
+                                    return;
+                                }
+                                socks.handle("create", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data}, state);
+                            } catch (E) {
+                                if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
+                            }
+                        });
+                    }).end();
+                });
+            } else {
+                wss.handleUpgrade(req, socket, [], (sock) => {
+                    try {
+                        const gid = url.searchParams.get("g");
+                        if (!(gid in games)) {
+                            socks.handle("error", sock, {data:"Game Not Found",redirect:"/play-online",store:"Game Not Found"}, state);
+                            return;
+                        }
+                        startPings(sock);
+                        if (connType === 3) {
+                            socks.handle("rejoin", sock, {"id":gid, "n":url.searchParams.get("i"), "key":url.searchParams.get("k")}, state);
+                            return;
+                        }
+                        socks.handle("join", sock, {"id":gid, "asSpectator":connType===4}, state);
+                    } catch (E) {
+                        if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
+                    }
+                });
+            }
+        });
+    });
+});
+
+/**
+ * @param {ws.WebSocket} sock
+ */
+function startPings(sock) {
+    const intId = setInterval(() => {
+        try {
+            sock.ping();
+        } catch {
+            clearInterval(intId);
+        }
+    }, 30000);
+    sock.on("close", () => {clearInterval(intId);});
+    sock.on("error", () => {clearInterval(intId);});
+}
