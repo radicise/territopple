@@ -39,8 +39,21 @@ function instanceWorker() {
     }
     const c = WORKER_COUNTER;
     WORKER_COUNTER ++;
-    const child = child_process.fork("worker_server.js");
+    const child = child_process.fork(__dirname+"/worker_server.js", process.argv.includes("--eval-stdin")?["--debug"]:[]);
     child.send(c);
+    let inactivate = false;
+    child.on("error", () => {
+        if (inactivate) return;
+        inactivate = true;
+        if (c in children) delete children[c];
+        http.request(`http://localhost:${settings.INTERNALPORT}/worker?id=${c}`, {method: "DELETE"}).end();
+    });
+    child.on("exit", () => {
+        if (inactivate) return;
+        inactivate = true;
+        if (c in children) delete children[c];
+        http.request(`http://localhost:${settings.INTERNALPORT}/worker?id=${c}`, {method: "DELETE"}).end();
+    });
     child.on("message", (msg) => {
         if (msg.factor_update !== undefined) {
             for (const k in msg.factor_update) {
@@ -112,7 +125,7 @@ async function handlePass(capacity, req, socket) {
             if (HANDOFF_COUNTER >= 65500) {
                 HANDOFF_COUNTER = 0;
             }
-            const resp = await new Promise(r => {handoff_waits[handoff_id] = r;worker.proc.send({hid:handoff_id, headers:req.headers, method:req.method}, socket)});
+            const resp = await new Promise(r => {handoff_waits[handoff_id] = r;worker.proc.send({hid:handoff_id, headers:req.headers, method:req.method, url: req.url}, socket)});
             if (!resp) {
                 if (worker.factor_update_notif === null) {
                     const p = new Promise(r => {worker.factor_update_notif = [p, r];});
@@ -129,9 +142,9 @@ async function handlePass(capacity, req, socket) {
 }
 
 server.on("upgrade", (req, socket) => {
-    const url = new URL("localhost"+req.url);
+    const url = new URL("http://localhost"+req.url);
     const connType = Number(url.searchParams.get("t"));
-    if (Number.isNaN(connType) || connType < 0 || connType > 3) {
+    if (Number.isNaN(connType) || connType < 0 || connType > 4) {
         connErr(req, socket, {data:"Connection Type Missing",redirect:"/play-online",store:"Connection Type Missing"});
         return;
     }
@@ -153,13 +166,77 @@ server.on("upgrade", (req, socket) => {
         /**@type {number} */
         let data = "";
         res.on("data", (chunk) => {data += chunk;});
-        data = Number(data);
-        if (!(data in children)) {
-            connErr(req, socket, {data:"Internal Failure",redirect:"/play-online",store:"Internal Failure"});
-            return;
-        }
-        children[data].proc.send({headers: req.headers, method: req.method}, socket);
+        res.on("end", () => {
+            data = Number(data);
+            if (!(data in children)) {
+                connErr(req, socket, {data:"Internal Failure",redirect:"/play-online",store:"Internal Failure"});
+                return;
+            }
+            children[data].proc.send({headers: req.headers, method: req.method, url: req.url}, socket);
+        });
     });
 });
 
 server.listen(settings.GAMEPORT);
+
+let selChild = null;
+
+process.stdin.on("data", (d) => {
+    const l = d.toString("utf-8");
+    const parts = l.split(/:|;/).map(v => v.trim());
+    const uparts = parts.map(v => v.toUpperCase());
+    const p1 = uparts[0];
+    switch (p1) {
+        case "CHILD":{
+            if (parts.length < 2) {
+                console.log("MALFORMED");
+                return;
+            }
+            if (uparts[1] === "SEL") {
+                if (parts.length < 3 || uparts[2] === "NULL") {
+                    selChild = null;
+                    return;
+                }
+                if (Number(parts[2]) in children) {
+                    selChild = Number(parts[2]);
+                } else {
+                    console.log("BAD CHILD NUM");
+                }
+                return;
+            }
+            if (Number(parts[1]) in children) {
+                children[Number(parts[1])].proc.send({cmd:l.slice(p1.length+parts[1].length+2)});
+            } else {
+                console.log("BAD CHILD NUM");
+            }
+            return;
+        }
+        case "UPDATE":{
+            selChild = null;
+            Object.entries(children).forEach(([s, v]) => {delete children[s];v.proc.kill();});
+            instanceWorker();
+            return;
+        }
+        default:{
+            if (process.argv.includes("--eval-stdin")) {
+                if (selChild !== null) {
+                    if (!(selChild in children)) {
+                        selChild = null;
+                        console.log("SELECTED CHILD EXITED");
+                        return;
+                    }
+                    children[selChild].proc.send({cmd:l});
+                    return;
+                }
+                try {
+                    console.log(eval(l));
+                } catch (E) {
+                    console.error(E.stack);
+                }
+            } else {
+                console.error("UNRECOGNIZED COMMAND");
+            }
+            return;
+        }
+    }
+});
