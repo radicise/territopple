@@ -52,14 +52,14 @@ class TTColorPicker extends HTMLElement {
 	`;
         let colorPicker = this.shadowRoot.getElementById(`${v}-color`);
         colorPicker.addEventListener("change", () => {
-            container.style.setProperty(`--{v}`, colorPicker.value+"1f");
+            container.style.setProperty(`--${v}`, colorPicker.value+"1f");
             localStorage.setItem(v, colorPicker.value);
         });
         let p = localStorage.getItem(v);
         if (p) {
-            container.style.setProperty(`--{v}`, p);
-        } else if (this.hasProperty("default")) {
-            container.style.setProperty(`--{v}`, this.getAttribute("default"));
+            container.style.setProperty(`--${v}`, p);
+        } else if (this.hasAttribute("default")) {
+            container.style.setProperty(`--${v}`, this.getAttribute("default"));
         }
     }
 }
@@ -78,7 +78,7 @@ class TTStyleToggle extends HTMLElement {
         this.shadowRoot.innerHTML = `
 	    <input type="checkbox" id="${v}-enabled" checked="${this.getAttribute('default') || true}">
 	`;
-        let checkbox = this.shadowRoot.getElementById(`${v}-color`);
+        let checkbox = this.shadowRoot.getElementById(`${v}-enabled`);
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 container.classList.add(v);
@@ -93,19 +93,19 @@ class TTStyleToggle extends HTMLElement {
 }
 customElements.define("x-style-toggle", TTStyleToggle);
 
-for (const [picker, checker, valueName, styleName] of [[hoverColorPicker, hoverCheckbox, "hoverColor", "--tile-hover"], [lastMoveColorPicker, lastMoveCheckbox, "lastMoveColor", "--tile-last-move"], [volatileColorPicker, volatileCheckbox, "volatileColor", "--tile-volatile"]]) {
-    const value = localStorage.getItem(valueName);
-    if (Boolean(value)) {
-        picker.value = value;
-        container.style.setProperty(styleName, value+"1f");
-    } else if (value === "false") {
-        checker.checked = false;
-        switch (valueName) {
-            case "hoverColor":container.classList.remove("tile-hover");break;
-            case "lastMoveColor":displaySettings.highlightLastMove = false;break;
-            case "volatileColor":container.classList.remove("volatiles");break;
-        }
-    } else {
-        localStorage.setItem(valueName, picker.value);
-    }
-}
+// for (const [picker, checker, valueName, styleName] of [[hoverColorPicker, hoverCheckbox, "hoverColor", "--tile-hover"], [lastMoveColorPicker, lastMoveCheckbox, "lastMoveColor", "--tile-last-move"], [volatileColorPicker, volatileCheckbox, "volatileColor", "--tile-volatile"]]) {
+//     const value = localStorage.getItem(valueName);
+//     if (Boolean(value)) {
+//         picker.value = value;
+//         container.style.setProperty(styleName, value+"1f");
+//     } else if (value === "false") {
+//         checker.checked = false;
+//         switch (valueName) {
+//             case "hoverColor":container.classList.remove("tile-hover");break;
+//             case "lastMoveColor":displaySettings.highlightLastMove = false;break;
+//             case "volatileColor":container.classList.remove("volatiles");break;
+//         }
+//     } else {
+//         localStorage.setItem(valueName, picker.value);
+//     }
+// }
