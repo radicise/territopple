@@ -29,21 +29,18 @@
                     <label for="settings-expand" id="settings-expand-label">Expand +</label>
                     <input type="checkbox" id="settings-expand" hidden></input>
                   </div>
-                  <div id="extra-display-settings" style="display: none">
+                  <div id="extra-display-settings" style="display: none">                    
                     <!-- hover enabled/color -->
-                    <input type="checkbox" id="hover-enabled" checked>
-                    <label for="hover-enabled">Hover</label>
-                    <input type="color" id="hover-color" value="#000000">
+                    <x-style-toggle var="tile-hover" default="true"></x-style-toggle>
+                    <x-color-picker var="tile-hover" desc="Hover" default="#000000"></x-color-picker>
                     <br>
                     <!-- last move enabled/color -->
                     <input type="checkbox" id="last-move-enabled" checked>
-                    <label for="last-move-enabled">Last move</label>
-                    <input type="color" id="last-move-color" value="#aaaaaa">
+                    <x-color-picker var="tile-last-move" desc="Last move" default="#aaaaaa"></x-color-picker>
                     <br>
                     <!-- volatile enabled/color -->
-                    <input type="checkbox" id="volatiles-enabled" checked>
-                    <label for="volatiles-enabled">Volatiles</label>
-                    <input type="color" id="volatiles-color" value="#dddddd">
+                    <x-style-toggle var="tile-volatile" default="true"></x-style-toggle>
+                    <x-color-picker var="tile-volatile" desc="Volatiles" default="#dddddd"></x-color-picker>
                     <br>
                     <!-- board rendering option -->
                     <label for="board-rendering-option">Board Rendering:</label>
@@ -109,7 +106,7 @@
         <script src="helpers/banners.js"></script>
 		<script src="logic/game.js"></script>
         <script src="logic/joinlist.js"></script>
-		<script src="territopple.js"></script>
+	<script src="territopple.js"></script>
         <script src="displaycontrols.js"></script>
 	</body>
 </html>
