@@ -118,7 +118,7 @@ th, tr, td {
 .container > svg > use.last-move {
     --lm-amt: var(--lm-contrib);
 }
-.container.last-move > div.last-move {
+.container.last-move-enabled > div.last-move {
     background: var(--tile-last-move);
 }
 
