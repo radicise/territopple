@@ -462,7 +462,8 @@ conn.addEventListener("open", async function(event) {
                 }
                 // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
                 rescanHostOnly();
-                document.getElementById("gameboard").style.cssText = `--ncols:${cols};--nrows:${rows};`;
+                document.getElementById("gameboard").style.setProperty("--ncols", cols);
+                document.getElementById("gameboard").style.setProperty("--nrows", rows);
                 ifmt.turn = 0;
                 // await game.setConfig(topology.m.formatDimensions(dims), players);
                 await game.setConfig(dims, players);
