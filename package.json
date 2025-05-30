@@ -9,7 +9,11 @@
   "scripts": {
     "start": "node proc_wrap.js zserver/userver.js",
     "dev": "node proc_wrap.js zserver/userver.js --eval-stdin",
-    "t3dbg": "node topology/rules/debug.js"
+    "t3dbg": "node topology/rules/debug.js",
+    "be-data": "node proc_wrap.js zserver/backend/data_server.js",
+    "be-mngr": "node proc_wrap.js zserver/backend/worker_manager.js",
+    "be-mngr-dev": "node proc_wrap.js zserver/backend/worker_manager.js --eval-stdin",
+    "be-data-dev": "node proc_wrap.js zserver/backend/data_server.js --eval-stdin"
   },
   "name": "territopple",
   "version": "1.0.0",
