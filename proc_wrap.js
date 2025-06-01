@@ -8,6 +8,7 @@ let child = null;
 function shutdown() {
     if (child !== null) {
         child.kill("SIGINT");
+        // child.kill("SIGKILL");
         child = null;
     }
 }
@@ -33,10 +34,14 @@ i.on("SIGINT", () => {
 let passthrough = false;
 i.on("line", (l) => {
     switch (l) {
+        case "kill":
+            process.exit(1);
+            break;
         case "rs":
             relaunch();
             break;
         case "stop":
+            shutdown();
             i.close();
             console.log("STOPPING");
             break;
