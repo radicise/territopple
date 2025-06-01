@@ -65,7 +65,7 @@ function makeJListActions(type, arg) {
             // b3.type = "button";
             const b3 = makeButton("ping");
             b3.onclick = () => {
-                createBanner({type:"info",content:"Ping is not available yet"});
+                pingPlayer(arg);
             };
             return [b1,b2,b3];
         }
