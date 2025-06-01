@@ -2,8 +2,9 @@
     "GAMEPORT":81,
     "DATAPORT":82,
     "WEBPORT":80,
-    "INTERNALPORT":5000,
+    "INTERNALPORT":5001,
     "ROOM_CODE_LENGTH":8,
+    "PING_INTERVAL":3000,
     "WORKERS": {
         "LIMIT": 4,
         "MAX_CONNECTIONS": 1024,

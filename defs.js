@@ -434,6 +434,7 @@ exports.Game = Game;
  * WEBPORT:number,
  * INTERNALPORT:number,
  * ROOM_CODE_LENGTH:number,
+ * PING_INTERVAL:number,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
  * REJOIN_TIME:number,
  * APPEASEMENT:boolean,
@@ -722,6 +723,13 @@ class NetData {
         static Timeup(playerNum) {
             return this.Misc("timeup", {n:playerNum});
         }
+    }
+    /**
+     * @param {string?} kind
+     * @returns {string}
+     */
+    static Ping(kind) {
+        return NetData.Misc("ping", {kind:kind??"default"});
     }
     static Bin = class {
         /**
