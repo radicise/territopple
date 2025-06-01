@@ -41,7 +41,7 @@ class TTColorPicker extends HTMLElement {
         if (p != null) {
             container.style.setProperty(`--${v}`, p+"1f");
         } else if (this.hasAttribute("default")) {
-            container.style.setProperty(`--${v}`, this.getAttribute("default"));
+            container.style.setProperty(`--${v}`, this.getAttribute("default")+"1f");
         }
         let colorPicker = this.shadowRoot.getElementById(`${v}-color`);
         colorPicker.addEventListener("change", () => {
