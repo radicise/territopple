@@ -179,13 +179,13 @@ server.on("upgrade", (req, socket) => {
 
 server.listen(settings.GAMEPORT);
 
-// process.on("SIGINT", () => {
-//     server.close();
-//     server.closeAllConnections();
-//     for (const id in children) {
-//         children[id].proc.kill("SIGKILL");
-//     }
-// });
+process.on("SIGINT", () => {
+    for (const id in children) {
+        children[id].proc.kill("SIGKILL");
+    }
+    server.close();
+    server.closeAllConnections();
+});
 
 let selChild = null;
 
