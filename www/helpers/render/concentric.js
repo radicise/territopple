@@ -1,3 +1,66 @@
+class TTConcentricTile extends HTMLElement {
+    static observedAttributes = ["rings", "color"];
+    #value;
+
+    constructor() {
+        super();
+        this.ready = false;
+        this.#value = 1;
+    }
+    get id() {
+        return this.getAttribute("id");
+    }
+    set id(v) {
+        this.setAttribute("id", v);
+    }
+    get color() {
+        return this.getAttribute("color");
+    }
+    set color(c) {
+        this.setAttribute("color", c);
+        this.style.setProperty("--color", c);
+    }
+    get value() {
+        return this.#value;
+    }
+    set value(v) {
+        this.#value = v;
+        let r = this;
+        for (let i = this.rings; i > 0; i --) {
+            if (i > v) {
+                r.classList.remove("con-active");
+            } else {
+                r.classList.add("con-active");
+            }
+            r = r.children[0];
+        }
+    }
+    connectedCallback() {
+        this.ready = true;
+        this.rings = Number(this.getAttribute("rings"));
+        if ((this.rings || 0) < 2) {
+            throw new Error("invalid ring count");
+        }
+        let p = this;
+        for (let i = 1; i < this.rings; i ++) {
+            const r = document.createElement("div");
+            p.appendChild(r);
+            p = r;
+        }
+        let r = this;
+        for (let i = this.rings; i > 0; i --) {
+            if (i > this.#value) {
+                r.classList.remove("con-active");
+            } else {
+                r.classList.add("con-active");
+            }
+            r = r.children[0];
+        }
+        this.color = this.color;
+    }
+}
+customElements.define("x-concentric-tile", TTConcentricTile);
+
 const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_settings } = (() => {
     const NS = "http://www.w3.org/2000/svg";
     /**@type {SVGSVGElement} */
@@ -166,23 +229,34 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         const cols = topo.width;
         g_rows = rows;
         g_cols = cols;
+        const gb = document.getElementById("gameboard");
         for (let r = 0; r < rows; r ++) {
             for (let c = 0; c < cols; c ++) {
                 const ct = r * cols + c;
-                const u = document.createElementNS(NS, "use");
-                u.setAttribute("href", `#fill-${getFill(r, c, board)}`);
-                // u.setAttribute("fill", teamcols[teamboard[ct]]+c_fill_tweak);
-                u.style.setProperty("--color", teamcols[teamboard[ct]]);
-                u.setAttribute("x", c * 10);
-                u.setAttribute("y", r * 10);
+                const u = document.createElement("x-concentric-tile");
+                const ne = topo.getNeighbors(ct).length;
+                u.setAttribute("rings", ne);
+                u.color = teamcols[teamboard[ct]];
+                u.value = board[ct];
+                if (board[ct] === ne) {
+                    u.classList.add("volatile");
+                }
                 u.id = `r${r}c${c}`;
-                SVG.appendChild(u);
+                gb.appendChild(u);
+                // const u = document.createElementNS(NS, "use");
+                // u.setAttribute("href", `#fill-${getFill(r, c, board)}`);
+                // // u.setAttribute("fill", teamcols[teamboard[ct]]+c_fill_tweak);
+                // u.style.setProperty("--color", teamcols[teamboard[ct]]);
+                // u.setAttribute("x", c * 10);
+                // u.setAttribute("y", r * 10);
+                // u.id = `r${r}c${c}`;
+                // SVG.appendChild(u);
             }
         }
         // SVG.setAttribute("width", cols * 10);
         // SVG.setAttribute("height", rows * 10);
-        SVG.setAttribute("viewBox", `0 0 ${cols*10} ${rows*10}`);
-        document.getElementById("gameboard").appendChild(SVG);
+        // SVG.setAttribute("viewBox", `0 0 ${cols*10} ${rows*10}`);
+        // document.getElementById("gameboard").appendChild(SVG);
     }
     /**
      * @param {TilePosition} pos
@@ -195,10 +269,12 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         const col = pos.x;
         /**@type {SVGUseElement} */
         const u = document.getElementById(`r${row}c${col}`);
+        u.color = teamcols[team];
+        u.value = val;
         // u.setAttribute("fill", teamcols[team]+c_fill_tweak);
-        u.style.setProperty("--color", teamcols[team]);
+        // u.style.setProperty("--color", teamcols[team]);
         // u.setAttribute("href", `#fill-${x[val-1]}`);
-        u.setAttribute("href", `#fill-${getFill(row, col, val)}`);
+        // u.setAttribute("href", `#fill-${getFill(row, col, val)}`);
     }
     /**
      * @param {TilePosition} pos

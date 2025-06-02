@@ -1,3 +1,4 @@
+/* @import url("./render-css/con.css"); */
 body {
     background-color: #ffffff;
     --blink-light: #fff;
@@ -85,7 +86,7 @@ th, tr, td {
     fill: color-mix(in srgb, color-mix(in srgb, var(--base) var(--main-contrib), var(--l-tile-hover) var(--hov-amt)), var(--tile-last-move) var(--lm-amt));
     /* fill: color-mix(in srgb, color-mix(in srgb, color-mix(in srgb, var(--tile-last-move) var(--lm-amt), var(--tile-hover) var(--hov-amt)), var(--tile-volatile) var(--vol-amt)), var(--base) var(--main-contrib)); */
 }
-.container > div {
+.container > div, .container > x-concentric-tile {
     color: #000000;
     display: flex;
     align-items: center;
@@ -99,15 +100,15 @@ th, tr, td {
 .container:hover {
     cursor: pointer;
 }
-.container.tile-hover > div:hover {
-    background: var(--tile-hover);
+.container.tile-hover > div:hover, .container.tile-hover > x-concentric-tile:hover {
+    background: var(--tile-hover) !important;
 }
 .container.tile-hover > svg > use:hover {
     /* fill: var(--tile-hover); */
     --hov-amt: var(--hov-contrib);
     --h-color: var(--color);
 }
-.container.volatiles > div.volatile {
+.container.volatiles > div.volatile, .container.volatiles > x-concentric-tile.volatile {
     background: var(--tile-volatile);
 }
 .container.volatiles > svg > use.volatile {
@@ -118,7 +119,7 @@ th, tr, td {
 .container > svg > use.last-move {
     --lm-amt: var(--lm-contrib);
 }
-.container.last-move-enabled > div.last-move {
+.container.last-move-enabled > div.last-move, .container.last-move-enabled > x-concentric-tile.last-move {
     background: var(--tile-last-move);
 }
 
@@ -152,4 +153,25 @@ svg#render {
 }
 .blink2 {
     animation: blink var(--blink-dur, 0.5s) linear var(--blink-count, 3) forwards;
+}
+
+x-concentric-tile {
+    --l-alpha-tweak: calc(2 / 3);
+}
+x-concentric-tile div {
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    border: solid 1px black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+x-concentric-tile div:not(:has(> *)) {
+    background: var(--color) !important;
+}
+.con-active {
+    /* background: var(--color) !important; */
+    /* background: var(--color); */
+    background: rgb(from var(--color) r g b / var(--l-alpha-tweak));
 }

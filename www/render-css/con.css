@@ -1,0 +1,39 @@
+x-concentric-tile {
+    --l-alpha-tweak: calc(2 / 3);
+    --tm-col: 0%;
+    --hov-col: 0%;
+    --vol-col: 0%;
+    --lm-col: 0%;
+    --f-color: color-mix(in srgb-linear, var(--color) var(--tm-col), color-mix(in srgb-linear, var(--tile-hover) var(--hov-col), color-mix(in srgb-linear, var(--tile-volatile) var(--vol-col), var(--tile-last-move) var(--lm-col)) calc(var(--vol-col) + var(--lm-col))) calc(var(--hov-col) + var(--vol-col) + var(--lm-col)));
+    background: var(--f-color);
+}
+x-concentric-tile.con-active {
+    --tm-col: 50%;
+}
+.container.tile-hover > x-concentric-tile:hover {
+    --hov-col: 10%;
+}
+.container.volatiles > x-concentric-tile.volatile {
+    --vol-col: 10%;
+}
+.container.last-move-enabled > x-concentric-tile.last-move {
+    --lm-col: 10%;
+}
+x-concentric-tile div {
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    /* background: transparent; */
+    border: solid 1px black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+x-concentric-tile div:not(:has(> *)) {
+    background: var(--color) !important;
+}
+.con-active {
+    /* background: var(--color) !important; */
+    /* background: var(--color); */
+    background: rgb(from var(--color) r g b / var(--l-alpha-tweak));
+}
