@@ -146,14 +146,14 @@
                             <!-- //// TOPOLOGY CONFIG POINT //// -->
                             <div class="form-row dimensions show">
                                 <label for="room-create-g2d-w">Width:</label>
-                                <input type="number" id="room-create-g2d-w" value="5" min="1" max="36">
+                                <input type="number" id="room-create-g2d-w" data-watch value="5" min="1" max="36">
                                 <label for="room-create-g2d-h">Height:</label>
-                                <input type="number" id="room-create-g2d-h" value="5" min="1" max="36">
+                                <input type="number" id="room-create-g2d-h" data-watch value="5" min="1" max="36">
                             </div>
                         </div>
                         <div class="form-row">
                             <label for="room-create-p">Players:</label>
-                            <input type="number" name="p" id="room-create-p" value="2" min="2" max="10">
+                            <input type="number" name="p" id="room-create-p" data-watch value="2" min="2" max="10">
                             <label for="room-create-s">Spectators: </label>
                             <select name="s" id="room-create-s">
                                 <option value="1">allow</option>
@@ -186,6 +186,20 @@
                                 <input type="number" id="room-rules-timers-limit-hours" min="0" max="99" value="0"> Hours <input type="number" id="room-rules-timers-limit-minutes" max="59" min="0" value="1"> Minutes <input type="number" id="room-rules-timers-limit-seconds" min="0" max="59" value="0"> Seconds
                             </div>
                             <script>
+                                document.querySelectorAll("input[data-watch]").forEach(v => {
+                                    v.addEventListener("change", () => {
+                                        if (v.min !== undefined) {
+                                            if (Number(v.value) < Number(v.min)) {
+                                                v.value = v.min;
+                                            }
+                                        }
+                                        if (v.max !== undefined) {
+                                            if (Number(v.value) > Number(v.max)) {
+                                                v.value = v.max;
+                                            }
+                                        }
+                                    });
+                                });
                                 /**@type {HTMLInputElement} */
                                 const room_rules_timers_enable = document.getElementById("room-rules-timers-enable");
                                 /**@type {HTMLSelectElement} */
@@ -221,7 +235,7 @@
         </div>
         <div class="action-box">
             <form action="territopple" method="get">
-                <h2 class="action-title">Join a Private Room</h2>
+                <h2 class="action-title">Join a Room</h2>
                 <input type="hidden" name="port" value="80">
                 <input type="hidden" name="t" value="0">
                 <div class="form-row">
@@ -290,9 +304,21 @@
             }
         </script>
         <script>
-            if (new URL(location.href).searchParams.get("dev")) {
-                document.querySelector("input[name=\"w\"]").value = 2;
-                document.querySelector("input[name=\"h\"]").value = 2;
+            {
+                // const w = document.querySelector("input[name=\"w\"]");
+                // const h = document.querySelector("input[name=\"h\"]");
+                const w = document.getElementById("room-create-g2d-w");
+                const h = document.getElementById("room-create-g2d-h");
+                switch (new URL(location.href).searchParams.get("dev")) {
+                    case "2big":
+                        w.value = 37;
+                        h.value = 37;
+                        break;
+                    default:
+                        w.value = 2;
+                        h.value = 2;
+                        break;
+                }
             }
         </script>
         <script src="portno.js"></script>

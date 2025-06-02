@@ -70,6 +70,15 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     on("spectator:join", (data) => {
         sock.send(NetData.Spectator.Join(data["n"]));
     });
+    let allow_ping = true;
+    onall("ping", (data) => {
+        if (data["n"] === state.playerNum) {
+            if (!allow_ping) return;
+            allow_ping = false;
+            sock.send(NetData.Ping(data["kind"]));
+            setTimeout(() => {allow_ping = true;}, globals.settings.PING_INTERVAL);
+        }
+    });
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
@@ -101,6 +110,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         emit("game:turn", {n:res.turn});
                     }
                 }
+                break;
+            }
+            case "ping":{
+                emit("ping", {n:data.payload.n,kind:data.payload.kind});
+                break;
             }
         }
     }

@@ -170,6 +170,9 @@ class Game {
             hostNum: 0,
             firstTurn: true
         };
+        if (this.state.topology.tileCount > settings.MAX_TILES) {
+            throw new PerfError("TOO MANY TILES");
+        }
         this.state.board = new Array(this.state.topology.tileCount).fill(1);
         this.state.teamboard = new Array(this.state.topology.tileCount).fill(0);
         this.state.owned[0] = this.state.topology.tileCount;
@@ -434,6 +437,7 @@ exports.Game = Game;
  * WEBPORT:number,
  * INTERNALPORT:number,
  * ROOM_CODE_LENGTH:number,
+ * PING_INTERVAL:number,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
  * REJOIN_TIME:number,
  * APPEASEMENT:boolean,
@@ -723,6 +727,13 @@ class NetData {
             return this.Misc("timeup", {n:playerNum});
         }
     }
+    /**
+     * @param {string?} kind
+     * @returns {string}
+     */
+    static Ping(kind) {
+        return NetData.Misc("ping", {kind:kind??"default"});
+    }
     static Bin = class {
         /**
          * @param {Game} game
@@ -933,6 +944,15 @@ class ValueError extends Error {
         this.name = "ValueError";
     }
 }
+class PerfError extends Error {
+    /**
+     * @param {string} message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "PerfError";
+    }
+}
 
 /**
  * @param {number|BigInt} n
@@ -1052,6 +1072,7 @@ exports.SecurityError = SecurityError;
 exports.InvariantViolationError = InvariantViolationError;
 exports.TypeConversionError = TypeConversionError;
 exports.ValueError = ValueError;
+exports.PerfError = PerfError;
 exports.Random = Random;
 exports.codeChars = codeChars;
 exports.settings = settings;

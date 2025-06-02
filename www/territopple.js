@@ -177,6 +177,14 @@ function promotePlayer(pNum) {
     if (!game.playerList[pNum]) return; // player doesn't exist
     conn.send(JSON.stringify({type:"waiting:promote",payload:{n:pNum}}));
 }
+
+/**
+ * @param {number} pNum
+ */
+function pingPlayer(pNum) {
+    conn.send(JSON.stringify({type:"ping",payload:{n:pNum}}));
+}
+
 function rescanHostOnly() {
     const dis = !(game.hostNum === ifmt.pln);
     document.querySelectorAll("input.FLAG-host-only").forEach(v => v.disabled = dis);
@@ -202,8 +210,9 @@ conn.addEventListener("open", async function(event) {
     //     conn.send(JSON.stringify({type:"waiting:setready",payload:{r:amready}}));
     // });
     document.getElementById("pingbutton").addEventListener("click", () => {
-        if (ifmt.turn === 0) return;
+        // if (ifmt.turn === 0) return;
         // conn.send(`ping`);
+        pingPlayer(ifmt.turn);
     });
     document.getElementById("startbutton").addEventListener("click", () => {
         if (!game.started && game.hostNum === ifmt.pln) {
@@ -287,6 +296,9 @@ conn.addEventListener("open", async function(event) {
         }
         /**@type {{type:string,payload:Record<string,any>}} */
         const data = JSON.parse(event.data);
+        if (!("type" in data && "payload" in data)) {
+            return;
+        }
         // console.log(data.type);
         switch (data.type) {
             // case "waiting:setready":{
@@ -564,6 +576,18 @@ conn.addEventListener("open", async function(event) {
                     game.rules_loaded();
                 }
                 game.rules_loaded = true;
+                break;
+            }
+            case "ping":{
+                const kind = data.payload.kind;
+                switch (kind) {
+                    default:
+                    case "flash":
+                        if (ifmt.turn) {
+                            queueAnimation(container, "blink", {"--blink-dark":"#ddd","--blink-dur":"0.25s"}, ["--blink-dur"]);
+                        }
+                        break;
+                }
                 break;
             }
         }

@@ -28,6 +28,7 @@ GAME TO CLIENT:
         reconnected ()
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
         timeup (n [player num]: number)
+    ping: (kind: string | null)
 
 BINARY GAME TO CLIENT:
     0:
@@ -54,3 +55,4 @@ CLIENT TO GAME:
     game:
         move (n [tile num]: number)
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
+    ping: (n [player num]: number, kind: string | null)

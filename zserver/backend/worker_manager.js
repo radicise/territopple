@@ -179,6 +179,14 @@ server.on("upgrade", (req, socket) => {
 
 server.listen(settings.GAMEPORT);
 
+// process.on("SIGINT", () => {
+//     server.close();
+//     server.closeAllConnections();
+//     for (const id in children) {
+//         children[id].proc.kill("SIGKILL");
+//     }
+// });
+
 let selChild = null;
 
 process.stdin.on("data", (d) => {

@@ -1,4 +1,4 @@
-const { NetPayload, NetData, Game } = require("../../defs.js");
+const { NetPayload, NetData, Game, PerfError } = require("../../defs.js");
 const { onGameCreated } = require("../../replayHooks.js");
 const { SocketHandler, GlobalState } = require("../types.js");
 
@@ -33,7 +33,16 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         change("error", {code:1,data:"Invalid Parameters"});
         return;
     }
-    state.game = new Game(useid, playerCapacity, {topology:dims,public:public,observable:allowSpectators});
+    try {
+        state.game = new Game(useid, playerCapacity, {topology:dims,public:public,observable:allowSpectators});
+    } catch (E) {
+        // console.log(E);
+        // console.log(E instanceof PerfError);
+        if (E instanceof PerfError) {
+            change("error", {data:"Not Cute",redirect:"/errors/no-create"});
+            return;
+        }
+    }
     onGameCreated(state.game, true, 1);
     state.game.addPlayer(sock);
     state.playerNum = 1;

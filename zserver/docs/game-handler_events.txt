@@ -29,6 +29,8 @@ game:
     turn:
         timeup (n [player num]: number, t [timer = true]: boolean)
 
+ping: (n [player num]: number, kind: string | null)
+
 HANDLER ARGS:
     ~~error (code: number, data: string)~~
     error (data: string, redirect?: string)

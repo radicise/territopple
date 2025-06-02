@@ -367,7 +367,7 @@ export function doVMOp(obj, op) {
         case 46:obj.regs[op[1]>>4] = obj.regs[op[1]>>4] | obj.mem[op[2]];break;
         case 47:obj.regs[op[1]>>4] = obj.regs[op[1]>>4] | fromBytes(op, 2, ((op[1]&15) + 1)/2);break;
 
-        case 255:return {a:"fault",m:"HACF"};
+        case 255:return {a:"fault",m:"HCF"};
     }
     return {a:"noop"};
 }

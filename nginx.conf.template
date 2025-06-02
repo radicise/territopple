@@ -33,6 +33,12 @@ http {
             #index index.html;
             try_files $uri $uri.html;
         }
+        location /errors {
+            location /errors/no-create {
+                rewrite ^/errors/no-create$ /errors/no_create.html;
+            }
+            try_files $uri $uri.html;
+        }
         location /help {
             index help.html;
         }
