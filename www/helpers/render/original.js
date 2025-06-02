@@ -28,6 +28,14 @@ function original_createBoard(topo, board, teamboard) {
         }
     }
     document.getElementById("gameboard").innerHTML = baroa;
+    for (let r = 0; r < rows; r ++) {
+        for (let c = 0; c < cols; c ++) {
+            const ct = r * cols + c;
+            if (board[ct] === topo.getNeighbors(ct).length) {
+                original_setVolatile({x:c,y:r}, true);
+            }
+        }
+    }
 }
 /**
  * @param {TilePosition} pos
