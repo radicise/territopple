@@ -1,16 +1,17 @@
 {
-    "GAMEPORT":81,
-    "DATAPORT":82,
-    "WEBPORT":80,
-    "INTERNALPORT":5001,
-    "ROOM_CODE_LENGTH":8,
-    "PING_INTERVAL":3000,
+    "GAMEPORT": 81,
+    "DATAPORT": 82,
+    "WEBPORT": 80,
+    "INTERNALPORT": 5001,
+    "ROOM_CODE_LENGTH": 8,
+    "PING_INTERVAL": 1500,
+    "MAX_TILES": 1296,
     "WORKERS": {
         "LIMIT": 4,
         "MAX_CONNECTIONS": 1024,
         "MAX_TURNAROUND": 125
     },
-    "WEBCONTENT_DIR":"www",
+    "WEBCONTENT_DIR": "www",
     "APPEASEMENT": false,
     "REJOIN_TIME": 500,
     "URL_MAP": {

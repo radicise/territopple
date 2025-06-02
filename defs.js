@@ -170,6 +170,9 @@ class Game {
             hostNum: 0,
             firstTurn: true
         };
+        if (this.state.topology.tileCount > settings.MAX_TILES) {
+            throw new PerfError("TOO MANY TILES");
+        }
         this.state.board = new Array(this.state.topology.tileCount).fill(1);
         this.state.teamboard = new Array(this.state.topology.tileCount).fill(0);
         this.state.owned[0] = this.state.topology.tileCount;
@@ -941,6 +944,15 @@ class ValueError extends Error {
         this.name = "ValueError";
     }
 }
+class PerfError extends Error {
+    /**
+     * @param {string} message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "PerfError";
+    }
+}
 
 /**
  * @param {number|BigInt} n
@@ -1060,6 +1072,7 @@ exports.SecurityError = SecurityError;
 exports.InvariantViolationError = InvariantViolationError;
 exports.TypeConversionError = TypeConversionError;
 exports.ValueError = ValueError;
+exports.PerfError = PerfError;
 exports.Random = Random;
 exports.codeChars = codeChars;
 exports.settings = settings;
