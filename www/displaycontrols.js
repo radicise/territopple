@@ -7,6 +7,8 @@ const extraSettings = document.getElementById("extra-display-settings");
 /**@type {HTMLInputElement} */
 const settingsCheckbox = document.getElementById("settings-expand");
 
+const ALPHA = "3f";
+
 function setTileSize() {
     container.style.setProperty("--tile-font-size", slider.value);
     window.dispatchEvent(new CustomEvent("gameboard-fresize"));
@@ -39,13 +41,13 @@ class TTColorPicker extends HTMLElement {
 	`;
         let p = localStorage.getItem(v);
         if (p != null) {
-            container.style.setProperty(`--${v}`, p+"1f");
+            container.style.setProperty(`--${v}`, p+ALPHA);
         } else if (this.hasAttribute("default")) {
-            container.style.setProperty(`--${v}`, this.getAttribute("default")+"1f");
+            container.style.setProperty(`--${v}`, this.getAttribute("default")+ALPHA);
         }
         let colorPicker = this.shadowRoot.getElementById(`${v}-color`);
         colorPicker.addEventListener("change", () => {
-            container.style.setProperty(`--${v}`, colorPicker.value+"1f");
+            container.style.setProperty(`--${v}`, colorPicker.value+ALPHA);
             localStorage.setItem(v, colorPicker.value);
         });
     }
