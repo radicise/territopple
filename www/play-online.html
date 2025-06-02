@@ -310,6 +310,7 @@
                 const w = document.getElementById("room-create-g2d-w");
                 const h = document.getElementById("room-create-g2d-h");
                 switch (new URL(location.href).searchParams.get("dev")) {
+                    case null:break;
                     case "2big":
                         w.value = 37;
                         h.value = 37;
