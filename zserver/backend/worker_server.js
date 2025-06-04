@@ -35,13 +35,16 @@ const globals = {
  * @param {string} id
  */
 function updateDataServerStats(id) {
-    http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {"method":"PATCH"}, (res) => {}).end(JSON.stringify({playing:games[id].stats.playing,spectating:games[id].stats.spectating}));
+    http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {"method":"PATCH"}, (res) => {}).end(JSON.stringify({playing:games[id].stats.playing,spectating:games[id].stats.spectating,phase:["wait","play","over"][games[id].state.state]}));
 }
 function updateLoadFactors() {
     process.send({factor_update:{connections:CONNECTION_COUNT,complexity:COMPLEXITY,turnaround:MAX_TURN}});
 }
 
 socks.setGlobals({state:globals, settings:settings}, emit, on, clear);
+on("main", "?phase", (data) => {
+    updateDataServerStats(data["#gameid"]);
+});
 on("main", "player:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];

@@ -41,8 +41,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                     }
                     emit("game:turn", {n:state.game.nextPlayer().turn,t:false});
-                    emit("game:win", {t:state.game.players[state.game.state.turn].team});
                     state.game.state.state = 2;
+                    emit("?phase");
+                    emit("game:win", {t:state.game.players[state.game.state.turn].team});
                 } else {
                     emit("game:turn", {n:state.game.nextPlayer().turn});
                 }
@@ -104,8 +105,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         } else {
                             state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                         }
-                        emit("game:win", {t:state.game.players[state.playerNum].team});
                         state.game.state.state = 2;
+                        emit("?phase");
+                        emit("game:win", {t:state.game.players[state.playerNum].team});
                     } else {
                         emit("game:turn", {n:res.turn});
                     }

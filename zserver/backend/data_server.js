@@ -29,7 +29,11 @@ logStamp(IERROR);
 logStamp(EXLOG);
 
 /**
- * @type {Record<string,{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint}|null>}
+ * @typedef {{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint,dbase:string,dparams:number,phase:"wait"|"play"|"over"}} GameInfo
+ */
+
+/**
+ * @type {Record<string,GameInfo|null>}
  */
 const gameInfo = {};
 
@@ -164,6 +168,7 @@ http.createServer((req, res) => {
                         log(IERROR, "ROOM ID POPULATED");
                         return;
                     }
+                    /**@type {GameInfo} */
                     let data = "";
                     req.on("data", (chunk) => {data += chunk;});
                     req.on("end", () => {
@@ -175,9 +180,12 @@ http.createServer((req, res) => {
                             log(IERROR, "MALFORMED JSON");
                             return;
                         }
+                        data.dbase = data.dstr.slice(0, data.dstr.lastIndexOf(" "));
+                        data.dparams = data.dstr.slice(data.dstr.lastIndexOf(" ")+1).split(/[^\d]/).map(v => Number(v));
                         data.playing = data.playing ?? 0;
                         data.spectating = data.spectating ?? 0;
                         data.sort_key = GAME_COUNTER;
+                        data.phase = "wait";
                         GAME_COUNTER ++;
                         gameInfo[id] = data;
                         res.writeHead(200).end();
@@ -213,7 +221,7 @@ http.createServer((req, res) => {
                     req.on("end", () => {
                         log(IACCESS, `BODY:\n${data}`);
                         data = JSON.parse(data);
-                        if (!validateJSONScheme(data, {"playing": "number","spectating": "number"})) {
+                        if (!validateJSONScheme(data, {"playing": "number","spectating": "number","phase": "string"})) {
                             res.writeHead(422).end();
                             afail();
                             log(IERROR, "MALFORMED JSON");
@@ -221,6 +229,7 @@ http.createServer((req, res) => {
                         }
                         gameInfo[id].playing = data.playing;
                         gameInfo[id].spectating = data.spectating;
+                        gameInfo[id].phase = data.phase;
                         res.writeHead(200).end();
                         agood();
                     });
@@ -266,24 +275,100 @@ function generateRoomCode() {
 }
 
 /**
+ * @param {FilterObj} filter
+ * @returns {boolean}
+ */
+function checkFilter(filter) {
+    if ("topo" in filter) {
+        if (filter.topo.length > 4) return false;
+    }
+    return true;
+}
+
+/**
  * proxied server
  * supports things like server list
  */
 http.createServer((req, res) => {
     const url = new URL("http://localhost"+req.url);
     if (url.pathname === "/serverlist") {
+        let filter = url.searchParams.get("filter");
+        // console.log(`FSTR: ${filter}`);
+        if (filter) {
+            filter = parseFilter(filter);
+            if (!checkFilter(filter)) {
+                res.writeHead(422).end();
+                return;
+            }
+        }
         res.writeHead(200, {"content-type":"application/json"});
-        res.end(formatServerList((Number(url.searchParams.get("page")) || 1) - 1));
+        res.end(formatServerList((Number(url.searchParams.get("page")) || 1) - 1, filter));
         return;
     }
 }).listen(settings.DATAPORT);
 
 /**
+ * @typedef FilterObj
+ * @type {{full:boolean,spectate:boolean,capacity:number|[number,number],phase:"wait"|"play"|"over",topo:[string|number|[number,number]][]}}
+ */
+
+/**
+ * @param {string} filter
+ * @returns {FilterObj}
+ */
+function parseFilter(filter) {
+    if (!filter) return true;
+    let f = {};
+    filter.split(";").map(sf => sf.split(":").map(
+        (v, i, a) => i===0?v:(
+            (a[0]==="full"||a[0]==="spectate")?v==="true"
+            :(a[0]==="phase"?v
+            :(a[0]==="capacity"?(v.includes(",")?v.split(",").map(w=>Number(w)):Number(v))
+            :(v.split(",").map(w => w.split(".").map((x, j) =>
+                j===0?x
+                :(x.includes("q")?x.split("q").map(y => Number(y)):Number(x))))))))
+    )).forEach(v => f[v[0]]=v[1]);
+    return f;
+}
+
+/**
+ * @param {GameInfo} v
+ * @param {FilterObj} filter
+ * @returns {boolean}
+ */
+function doFilter(v, filter) {
+    if (filter === true) return true;
+    // console.log(v);
+    for (const field in filter) {
+        switch (field) {
+            case "full":if((v.playing===v.capacity)!==filter.full)return false;break;
+            case "spectate":if(v.can_spectate!==filter.spectate)return false;break;
+            case "phase":if(v.phase!==filter.phase)return false;break;
+            case "capacity":if(typeof filter.capacity === "number"){if(v.capacity!==filter.capacity)return false;}else if(v.capacity < filter.capacity[0] || v.capacity > filter.capacity[1])return false;break;
+            case "topo":
+                if (!filter.topo.some(t =>
+                    t[0] === v.dbase&&(t.length === 1?true
+                    :t.slice(1).every((w, i) =>
+                        typeof w === "number"?v.dparams[i]===w
+                        :(v.dparams[i]>=w[0]&&v.dparams[i]<=w[1])
+                    ))
+                ))return false;break;
+            default:break;
+        }
+    }
+    return true;
+}
+
+/**
  * @param {number} page
+ * @param {FilterObj} filter
  * @returns {string}
  */
-function formatServerList(page) {
-    const arr = Object.entries(gameInfo).filter(v => v[1] !== null).filter(v => v[1].public).sort((a, b) => Number(a[1].sort_key - b[1].sort_key));
+function formatServerList(page, filter) {
+    // filter = parseFilter(filter);
+    // console.log("filter");
+    // console.log(filter);
+    const arr = Object.entries(gameInfo).filter(v => v[1] !== null).filter(v => v[1].public).sort((a, b) => Number(a[1].sort_key - b[1].sort_key)).filter(v => doFilter(v[1], filter));
     if (page < 0 || page*50 >= arr.length) {
         return "[]";
     }
@@ -294,7 +379,8 @@ function formatServerList(page) {
             playing:v[1].playing,
             spectating:v[1].spectating,
             dstr:v[1].dstr,
-            can_spectate:v[1].can_spectate
+            can_spectate:v[1].can_spectate,
+            phase:v[1].phase
         };
     }));
 }

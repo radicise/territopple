@@ -50,7 +50,8 @@ this file documents the endpoints of the data server
         BODY:
         {
             "playing":number,
-            "spectating":number
+            "spectating":number,
+            "phase":string
         }
         SUCCESS: 200
         FAILURE: 404, 422
@@ -58,9 +59,32 @@ this file documents the endpoints of the data server
 }
 
 :DATAPORT {
-    GET /serverlist?page=${PAGE ?? 1} {
-        gets up to 50 room records from the list of public servers, selected by page number
-        if page is invalid, an empty list will be returned
+    GET /serverlist?page=${PAGE ?? 1}&filter=${FILTER ?? null} {
+        WHERE:
+            PAGE is Integer >= 1
+            FILTER is Optional String of format: [FIELD]:[VALUE|RANGE];
+                WHERE:
+                    FIELD is one of ["capacity", "spectate", "full", "phase", "topo"]
+                    VALUE is SWITCH FIELD:
+                        "full", "spectate" -> Boolean
+                        "capacity" -> Number
+                        "phase" -> "wait", "play", "over"
+                        "topo" -> TOPOSPEC[,TOPOSPEC*]
+                            WHERE:
+                                TOPOSPEC is STRING[.[Integer | Integer[q]Integer]*]
+                    RANGE is SWITCH FIELD:
+                        "capacity" -> MIN,MAX is Number,Number
+                        default -> INVALID
+        gets up to 50 room records from the list of public servers, selected by page number, optionally filtered
+        if page or filter is invalid, an empty list will be returned
+        filter fields are used in the following manner:
+            "full" is true if the number of players is equal to the capacity AND none of the players are filler bots
+            "phase" is "wait" before the host starts, "over" when someone wins, and "play" otherwise
+            "capacity" is the player capacity
+            "spectate" is true if spectation is allowed
+            "topo" is the base part of the dimension string with the dimensions concatenated with "." as separator
+                - if the value contains only the base, dimensions are not matched against
+        422 indicates the data server is unwilling to process the given filter, request should be repeated with a less expensive filter
         BODY:
         [
             {
@@ -72,5 +96,7 @@ this file documents the endpoints of the data server
                 "can_spectate":boolean
             }
         ]
+        SUCCESS: 200
+        FAILURE: 422
     }
 }
