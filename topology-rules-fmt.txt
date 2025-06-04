@@ -69,7 +69,7 @@ BYTE[7] - b'SECTION'
 BYTE[5] - b'.data'
 //BYTE[5] - 0x2e, 0x64, 0x61, 0x74, 0x61
 
-LSTR - format string, any NUL byte shall be followed by the bound number of a constructor parameter
+LSTR - format string, any NUL byte shall be followed by the bound number of a constructor parameter, must not contain spaces, must not contain numeric characters
 -- becomes `${name} ${evalfmtstr}`
 ...DATAVAR
 
