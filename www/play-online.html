@@ -186,20 +186,6 @@
                                 <input type="number" id="room-rules-timers-limit-hours" min="0" max="99" value="0"> Hours <input type="number" id="room-rules-timers-limit-minutes" max="59" min="0" value="1"> Minutes <input type="number" id="room-rules-timers-limit-seconds" min="0" max="59" value="0"> Seconds
                             </div>
                             <script>
-                                document.querySelectorAll("input[data-watch]").forEach(v => {
-                                    v.addEventListener("change", () => {
-                                        if (v.min !== undefined) {
-                                            if (Number(v.value) < Number(v.min)) {
-                                                v.value = v.min;
-                                            }
-                                        }
-                                        if (v.max !== undefined) {
-                                            if (Number(v.value) > Number(v.max)) {
-                                                v.value = v.max;
-                                            }
-                                        }
-                                    });
-                                });
                                 /**@type {HTMLInputElement} */
                                 const room_rules_timers_enable = document.getElementById("room-rules-timers-enable");
                                 /**@type {HTMLSelectElement} */
@@ -323,6 +309,8 @@
             }
         </script>
         <script src="portno.js"></script>
+        <meta data-scripts="/components/utils/input/client_force_valid.js" />
+        <script src="/components/include.js"></script>
         <script src="play-online.js"></script>
     </body>
 </html>
