@@ -13,7 +13,7 @@
                         if (v.getAttribute("data-raw-attrs")) {
                             for (const a of v.getAttribute("data-raw-attrs").split(",")) {
                                 const al = a.split("=");
-                                htag.setAttribute(a[0], a[1]);
+                                htag.setAttribute(al[0], al[1]);
                             }
                         }
                         v.replaceWith(htag);
