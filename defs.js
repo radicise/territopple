@@ -482,6 +482,42 @@ class NetData {
     static Misc(type, data) {
         return JSON.stringify({type, payload:data??{}});
     }
+    static CONN = class {
+        /**
+         * @param {string} type
+         * @param {Record<string,any>?} data
+         * @returns {string}
+         */
+        static Misc(type, data) {
+            return NetData.Misc(`CONN:${type}`, data);
+        }
+        /**
+         * @returns {string}
+         */
+        static HOLD() {
+            return this.Misc("HOLD");
+        }
+        /**
+         * @returns {string}
+         */
+        static CONT() {
+            return this.Misc("CONT");
+        }
+        /**
+         * @param {string} P
+         * @param {string[]} D
+         * @returns {string}
+         */
+        static SWCH(P, D) {
+            return this.Misc("SWCH", {P, D});
+        }
+        /**
+         * @returns {string}
+         */
+        static DYNG() {
+            return this.Misc("DYNG");
+        }
+    }
     static Player = class {
         /**
          * @param {string} type

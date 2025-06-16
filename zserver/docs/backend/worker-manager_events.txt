@@ -1,0 +1,22 @@
+this file describes the events that are passed between the worker manager and each worker process, and the inital sequence of messages sent when a worker is started
+
+STARTUP:
+M->W: number (worker id)
+
+MANAGER TO WORKER:
+{cmd:string} - a command to execute, the worker MUST NEVER execute commands UNLESS argv includes "--debug"
+{hid:number, headers, method, url:string} - handoff with a handoff id, the worker may deny the handoff if it would overload the worker
+{headers, method, url:string} - handoff without an id, the worker MUST accept the handoff
+{switch:true} - worker must deny all future room creation requests
+{switch:false} - chooses a room that the worker is running and acts as though that room were the target of {switch:string}, worker sends a message containing the chosen room
+{switch:string} - worker MUST IMMEDIATELY send the CONN:HOLD event to all clients connected to the given room id
+{export:string} - give the serialized data of the specified room
+{import:Buffer} - unpack the serialized room data, send response when done
+{shift:string} - send the CONN:SWCH event to all clients with appropriate data
+
+WORKER TO MANAGER:
+{hid:number, v:boolean} - v is true if the handoff was accepted
+{factor_update:{connections:CONNECTION_COUNT,complexity:COMPLEXITY,turnaround:MAX_TURN}} - load factor update
+{import:string} - confirms the import of the given room is complete
+{export:string, data:Buffer} - room export data
+{switch:string} - response to {switch:false}

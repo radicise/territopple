@@ -1,4 +1,14 @@
 GAME TO CLIENT:
+    CONN: - connection notifications
+        HOLD () - signals that the server will DISCARD ALL EVENTS, clients should buffer events to prevent input dropping
+                - additionally, clients should make it clear to users that events are not being processed
+        CONT () - signals that the HOLD state is ended, clients should send the buffered events
+                - additionally, clients should make it clear to users that events are being processed
+        SWCH (P [switch params]: string, D [switch data]: string[])
+            - clients MUST IMMEDIATELY terminate the websocket and reconnect
+            - reconnection MUST use the provided parameter string, clients MUST append it directly after the '?' in the connection url
+            - when the new connection is open, clients MUST IMMEDIATELY send the switch data, sending one message per element
+        DYNG () - signals that the server is in the process of moving rooms to a different server
     waiting:
         promote (n [player num]: number)
         start (void)

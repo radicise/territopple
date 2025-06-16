@@ -41,21 +41,55 @@ let tagcount = 0;
  * @ param {(name: string, cb: (data: DataRecord) => void) => void} on
  */
 function handle(name, sock, args, state, __tag) {
+    let HOLDING = false;
+    let callbuf = null;
+    let cbuf = [];
+    let ebuf = [];
     let messageL;
     let closeL;
     let errorL;
     const genTag = __tag || `sock:handler:${tagcount++}`;
     state.tag = genTag;
+    let __ = () => {HOLDING = true;}
+    let ___ = () => {
+        HOLDING = false;
+        if (callbuf) {
+            if (messageL) sock.removeListener("message", messageL);
+            if (closeL) sock.removeListener("close", closeL);
+            if (errorL) sock.removeListener("error", errorL);
+            clear(genTag);
+            sock.removeListener("HOLD", __);
+            sock.removeListener("CONT", ___);
+            handle(callbuf[0], sock, callbuf[1], state, genTag);
+        } else {
+            ebuf.forEach(v => errorL(...v));
+            ebuf = [];
+            cbuf.forEach(v => closeL(...v));
+            cbuf = [];
+        }
+    }
+    sock.addEventListener("HOLD", __);
+    sock.addEventListener("CONT", ___);
     let m = handlers[name](sock, globals, {change:(name, args) => {
+        if (HOLDING) {
+            if (!callbuf) {
+                callbuf = [name, args];
+            }
+        }
         if (messageL) sock.removeListener("message", messageL);
         if (closeL) sock.removeListener("close", closeL);
         if (errorL) sock.removeListener("error", errorL);
         clear(genTag);
+        sock.removeListener("HOLD", __);
+        sock.removeListener("CONT", ___);
         handle(name, sock, args, state, genTag);
     }, emit:(name, data) => {data=data??{};data["#gameid"]=state.game?.ident??"!pregame";emit(genTag, name, data);}, onall:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident)cb(data, tag);});}, on:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident&&tag!==genTag)cb(data, tag);});}}, args||{}, state);
     messageL = m.messageL;
     closeL = m.closeL;
     errorL = m.errorL;
+    if (messageL) sock.on("message", (...a) => {if(!HOLDING)messageL(...a);});
+    if (errorL) sock.on("error", (...a) => {if(!HOLDING)errorL(...a);else ebuf.push(a);});
+    if (closeL) sock.on("close", (...a) => {if(!HOLDING)closeL(...a);else cbuf.push(a);});
     return genTag;
 }
 

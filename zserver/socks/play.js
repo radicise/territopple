@@ -86,11 +86,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     errorL = () => {
         change("dcon");
     };
-    sock.on("error", errorL);
     closeL = () => {
         change("dcon");
     };
-    sock.on("close", closeL);
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
@@ -120,7 +118,6 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             }
         }
     }
-    sock.on("message", messageL);
     })();
     return {messageL, closeL, errorL};
 };

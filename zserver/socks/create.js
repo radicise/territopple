@@ -59,7 +59,6 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             change("waiting", {isHost:true});
         }
     }
-    sock.on("message", messageL);
     })();
     return {messageL, closeL, errorL};
 };

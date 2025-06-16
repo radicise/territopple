@@ -14,6 +14,7 @@ let MAX_TURN = 0;
 let COMPLEXITY = 0;
 
 let WORK_ID = null;
+let DYING = false;
 
 /**@type {Record<string, Game>} */
 const games = {};
@@ -115,6 +116,14 @@ function terminateGame(id) {
 
 const wss = new ws.Server({noServer: true});
 
+/**
+ * @param {string} rid
+ */
+function hSwitch(rid) {
+    games[rid].sendAll(NetData.CONN.HOLD());
+    games[rid].players.forEach(p => p.conn.emit("HOLD"));
+}
+
 process.once("message", (id) => {
     WORK_ID = id;
     const WCRASH = `logs/worker_server/${id}_crashes.txt`;
@@ -138,10 +147,34 @@ process.once("message", (id) => {
                 }
                 return;
             }
+            if ("switch" in req) {
+                if (req.switch === true) {
+                    DYING = true;
+                    return;
+                }
+                if (req.switch === false) {
+                    const rid = Object.keys(games);
+                    hSwitch(rid);
+                    process.send({switch:rid});
+                    return;
+                }
+                hSwitch(req.switch);
+                return;
+            }
+            if ("import" in req) {
+                return;
+            }
+            if ("export" in req) {
+                return;
+            }
+            if ("shift" in req) {
+                return;
+            }
             const url = new URL("http://localhost"+req.url);
             const connType = Number(url.searchParams.get("t"));
             let state = {};
             if (req.hid !== undefined) {
+                if (DYING) {process.send({hid:req.hid, v:false});return;}
                 const capacity = Number(url.searchParams.get("p"));
                 if (CONNECTION_COUNT + capacity >= settings.WORKERS.MAX_CONNECTIONS) {
                     process.send({hid:req.hid, v:false});
@@ -174,6 +207,11 @@ process.once("message", (id) => {
             } else {
                 wss.handleUpgrade(req, socket, [], (sock) => {
                     try {
+                        if (DYING) {
+                            sock.send(NetData.CONN.DYNG());
+                            setTimeout(() => socks.handle("close", sock), 250);
+                            return;
+                        }
                         const gid = url.searchParams.get("g");
                         if (!(gid in games)) {
                             socks.handle("error", sock, {data:"Game Not Found",redirect:"/play-online",store:"Game Not Found"}, state);
