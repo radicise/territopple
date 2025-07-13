@@ -188,7 +188,7 @@ function immExit() {
     process.exit();
 }
 
-process.on("SIGINT", immExit());
+process.on("SIGINT", immExit);
 
 let selChild = null;
 
