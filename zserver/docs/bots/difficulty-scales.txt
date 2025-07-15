@@ -1,0 +1,111 @@
+This file describes difficulty scaling and how bots should have their difficulty rated.
+
+IMPORTANT NOTE:
+This file is a set of general guidelines. It is NOT a substitute for actual playtesting.
+No matter what features a bot may have, it MUST be assigned difficulty based on the results of actual games played against it.
+
+
+COMPOSITE DIFFICULTY SCORES:
+This rubric is to be used to determine a bot's general difficulty rating before playtesting assigns a final rating.
+Parts of this rubric require test games to ensure that bot logic functions as intended.
+
+Scores are notated in the following manners:
+x/y/z - tactics score of x, strategy score of y, computation score of z
+any of x, y, z may be '_' indicating that any partial score may be used
+any of x, y, z may be inequalities (eg. 1/1/<2)
+any of x, y, z may be ranges (eg. 1-4)
+
+xy/z - composite tactics/strategy score of xy, computation score of z
+any of xy, z may be '_'
+any of xy, z may be inequalities
+any of xy, z may be ranges
+The composite tactics/strategy score is obtained by the following formula:
+x + y*2
+
+The singular composite score is obtained by the following formula:
+floor((x + y*1.5 + 0.5) * sqrt(z) * 10)
+
+TACTICS:
+tactics are defined as algorithmic move sequences that apply to predetermined piece patterns
+0 is assigned for bots without tactics
+1 is assigned for basic tactics
+- Taking open corners
+- Corner defense
+- 1D stalemating
+2 is assigned for standard tactics
+- Doubling up
+- Blocking opponent doubling up
+3 is assigned for advanced tactics
+- Forced corner win
+- Avoiding opponent forced corner win
+- Extending sequence for opponent forced corner win
+
+STRATEGY:
+strategy is defined as heuristics based decision making styles
+0 is assigned for bots with trivial/no strategies
+- Topple whenever possible
+- Gain as much territory per turn as possible
+1 is assigned for bots with basic strategies
+- Don't make moves that give the opponent territory for free
+- Don't add pieces to tiles next to opponent volatiles
+2 is assigned for bots with standard strategies
+- Make moves specifically for purposes of attack/defense
+3 is assigned for bots with advanced strategies
+- Vihaan please define
+
+COMPUTATION:
+computation is defined as the computational bounds of the bot
+0 is assigned to bots that execute hard coded move sequences
+- A computation score of 0 definitionally causes all other partial scores to also be 0
+1 is assigned to bots that look only at the current board state
+X is assigned to all other bots, where X is the bot's maximum search depth
+
+
+
+BOT DIFFICULTY LEVELS:
+
+Trivial (0/0/0):
+easiest possible difficulty level, completely new players should have no trouble.
+this level is meant for tutorial bots (eg. those that execute preprogrammed moves only to demonstrate mechanics).
+it is recommended that tutorial bots always have at least a Beginner variant so they aren't wasted.
+EX: Terry Topple (Trivial)
+
+Beginner (0/0/1):
+a bit harder than trivial, but still easy, a player with a basic grasp of mechanics will find this appropriate.
+this is meant for early stage bots that have rudimentary algorithms for placement.
+EX: Terry Topple (Beginner), Constantine [the Conqueror] (Beginner)
+
+Competent (1/0/1):
+still basic, but a bit harder.
+this is meant for bots that incorporate basic tactics (eg. basic defensive structures).
+EX: Constantine [the Conqueror] (Competent)
+
+Moderate (2/0/1 or 1/1/1):
+less basic, but within reach of a player with a few wins under their belt.
+this is meant for bots that incorporate standard tactics (eg. doubling up).
+EX: Constantine [the Conqueror] (Moderate)
+
+Intermediate (2/1/2-3 or 3/0/2-3):
+starting to reach complex, winning is not within reach of a new player.
+this is meant for bots that incorporate standard tactics and basic strategy or advanced tactics and no strategy.
+EX: Constantine the Conqueror (Intermediate)
+
+Advanced (3/2/2-3):
+firmly in the realm of complex logic, winning will require effort by a skilled player.
+this is meant for bots that incorporate advanced tactics and standard strategy.
+EX: Constantine the Conqueror (Advanced)
+
+Expert (3/3/3-4):
+raising the bar even further, this requires serious effort by a skilled player.
+this is meant for bots that incorporate advanced tactics and advanced strategy.
+EX: Constantine the Conqueror (Expert)
+
+Master (3/3/6-10):
+winning now will require deep understanding of the game.
+this is meant for bots that have advanced tactics and strategy with augmented look-ahead.
+EX: Constantine the Conqueror (Master)
+
+Toppler (3/3/>10):
+these bots are not intended to be beaten.
+this is meant for bots that pull out all the stops.
+EX: Terry the Toppler (Toppler)
