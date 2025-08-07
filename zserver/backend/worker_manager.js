@@ -162,7 +162,7 @@ server.on("upgrade", (req, socket) => {
         connErr(req, socket, {data:"Missing Game ID",redirect:"/play-online",store:"Missing Game ID"});
         return;
     }
-    http.get(`https://localhost:${settings.INTERNALPORT}/worker?id=${id}`, (res) => {
+    http.get(`http://localhost:${settings.INTERNALPORT}/worker?id=${id}`, (res) => {
         /**@type {number} */
         let data = "";
         res.on("data", (chunk) => {data += chunk;});
