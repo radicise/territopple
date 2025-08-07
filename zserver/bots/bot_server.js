@@ -20,7 +20,7 @@ function connErr(request, socket, args) {
 }
 
 server = http.createServer((req, res) => {
-    // console.log(req.url);
+    console.log(req.url);
     const url = new URL("http://localhost"+req.url);
     const parts = url.pathname.split("/");
     if (!(url.searchParams.has("k") && url.searchParams.has("n"))) {
