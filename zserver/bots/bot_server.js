@@ -23,6 +23,7 @@ server = http.createServer((req, res) => {
     console.log(req.url);
     const url = new URL("http://localhost"+req.url);
     const parts = url.pathname.split("/");
+    console.log(parts);
     if (!(url.searchParams.has("k") && url.searchParams.has("n"))) {
         res.writeHead(400).end("Call a locksmith, 'cause you've got no key.");
         return;
