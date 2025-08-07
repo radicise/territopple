@@ -43,7 +43,7 @@ server = http.createServer((req, res) => {
         res.writeHead(404).end();
         return;
     }
-    connect(parts[2], url.searchParams.get("k"), url.searchParams.get("n"), rname);
+    connect(parts[s-1], url.searchParams.get("k"), url.searchParams.get("n"), rname);
     res.writeHead(200).end("Good Try!");
 });
 
