@@ -28,7 +28,7 @@ server = http.createServer((req, res) => {
         res.writeHead(400).end("Call a locksmith, 'cause you've got no key.");
         return;
     }
-    let s = 3;
+    let s = 2;
     // console.log(parts);
     // if (parts[s] === "bots") {
     //     s += 1;
