@@ -92,6 +92,7 @@ http.createServer((req, res) => {
                 }
                 case "/worker":{
                     const id = url.searchParams.get("id");
+                    console.log(id);
                     if (id === null || !(id in gameInfo) || gameInfo[id] === null) {
                         res.writeHead(404).end();
                         // log(IACCESS, "FAILURE");
