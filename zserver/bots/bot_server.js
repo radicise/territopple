@@ -549,6 +549,7 @@ function connect(gid, key, num, rname) {
 
 server.listen(settings.BOTPORT);
 
+if (!process.argv.includes("--no-in"))
 process.stdin.on("data", (d) => {
     const l = d.toString("utf-8");
     const parts = l.split(/:|;/).map(v => v.trim());
