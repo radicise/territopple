@@ -20,10 +20,10 @@ function connErr(request, socket, args) {
 }
 
 server = http.createServer((req, res) => {
-    console.log(req.url);
+    // console.log(req.url);
     const url = new URL("http://localhost"+req.url);
     const parts = url.pathname.split("/");
-    console.log(parts);
+    // console.log(parts);
     if (!(url.searchParams.has("k") && url.searchParams.has("n"))) {
         res.writeHead(400).end("Call a locksmith, 'cause you've got no key.");
         return;
@@ -38,7 +38,7 @@ server = http.createServer((req, res) => {
         return;
     }
     const rname = TTBot.resolve(parts[s], Number(parts[s+1]));
-    console.log(rname);
+    // console.log(rname);
     if (rname === undefined) {
         res.writeHead(404).end();
         return;
@@ -166,7 +166,7 @@ function connect(gid, key, num, rname) {
                     break;
                 }
                 case "error":{
-                    // console.log(data.payload);
+                    console.log(data.payload);
                     conn.close();
                     break;
                 }
