@@ -37,7 +37,7 @@ const globals = {
  * @param {string} id
  */
 function updateDataServerStats(id) {
-    http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {"method":"PATCH"}, (res) => {}).end(JSON.stringify({playing:games[id].stats.playing,spectating:games[id].stats.spectating,phase:["wait","play","over"][games[id].state.state]}));
+    http.request(`https://localhost:${settings.INTERNALPORT}/room?id=${id}`, {"method":"PATCH"}, (res) => {}).end(JSON.stringify({playing:games[id].stats.playing,spectating:games[id].stats.spectating,phase:["wait","play","over"][games[id].state.state]}));
 }
 function updateLoadFactors() {
     process.send({factor_update:{connections:CONNECTION_COUNT,complexity:COMPLEXITY,turnaround:MAX_TURN}});
@@ -59,7 +59,7 @@ on("main", "game:bot", (data) => {
     // }
     const key = crypto.randomBytes(64).toString("base64url");
     const n = games[data["#gameid"]].addBot(key);
-    const u = `http://localhost/bots/${data["#gameid"]}/${data.bot}?k=${key}${n}`;
+    const u = `https://localhost/bots/${data["#gameid"]}/${data.bot}?k=${key}${n}`;
     // console.log(u);
     // const req = http.request(u, {method:"GET",timeout:200})
     const req = http.get(u);
@@ -130,7 +130,7 @@ on("main", "game:add", (data) => {
     // games[data["id"]].sort_key = GAME_COUNTER;
     // GAME_COUNTER ++;
     COMPLEXITY += game.complexity;
-    http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating}));
+    http.request(`https://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating}));
 });
 function terminateGame(id) {
     // console.log(`${new Error().stack}`);
@@ -138,7 +138,7 @@ function terminateGame(id) {
     games[id].sendAll(NetData.Game.Close());
     games[id].kill();
     COMPLEXITY -= games[id].complexity;
-    http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {method:"DELETE"}).end();
+    http.request(`https://localhost:${settings.INTERNALPORT}/room?id=${id}`, {method:"DELETE"}).end();
     delete games[id];
 }
 
