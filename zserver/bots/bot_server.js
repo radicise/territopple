@@ -37,7 +37,7 @@ server = http.createServer((req, res) => {
         return;
     }
     const rname = TTBot.resolve(parts[s], Number(parts[s+1]));
-    // console.log(rname);
+    console.log(rname);
     if (rname === undefined) {
         res.writeHead(404).end();
         return;
