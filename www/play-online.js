@@ -86,7 +86,7 @@ function displayRooms(text) {
  * @param {object?} filter
  */
 function fetchRooms(page, filter) {
-    fetch(`http://${host}/serverlist?page=${page||1}${formatFilter(filter)}`, {method:"GET"})
+    fetch(`https://${host}/serverlist?page=${page||1}${formatFilter(filter)}`, {method:"GET"})
     .then((response) => {
         if (response.body === null) {
             console.log("Null response body");

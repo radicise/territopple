@@ -121,14 +121,14 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
     gameid = sessionStorage.getItem("rejoin_g");
     let pn = sessionStorage.getItem("rejoin_p");
     let rkey = sessionStorage.getItem("rejoin_key");
-    serv = `ws://${host}/?t=3&g=${gameid}&i=${pn}&k=${rkey}`;
+    serv = `wss://${host}/?t=3&g=${gameid}&i=${pn}&k=${rkey}`;
 } else {
     if (t > 0 && t < 3) {
         const allow_spectators = queries.get("s") ?? "1";
-        serv = `ws://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
+        serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
     } else {
         gameid = queries.get("g") ?? "g";
-        serv = `ws://${host}/?t=${t}&g=${gameid}`;
+        serv = `wss://${host}/?t=${t}&g=${gameid}`;
     }
 }
 
@@ -226,7 +226,7 @@ conn.addEventListener("open", async function(event) {
                 botspopup.hidden = false;
             }
         });
-        fetch(`http://${document.location.hostname}/bots`, {method:"GET"}).then((response) => {
+        fetch(`https://${document.location.hostname}/bots`, {method:"GET"}).then((response) => {
             if (response.body === null) {
                 console.log("Null response body");
                 return;
