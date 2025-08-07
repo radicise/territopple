@@ -227,7 +227,7 @@ class Game {
             this.spectators[k].terminate();
         }
         for (const p of this.players) {
-            if (p) {
+            if (p && p.conn) {
                 p.conn.terminate();
             }
         }
