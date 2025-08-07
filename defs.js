@@ -449,7 +449,7 @@ class Game {
     sendAll(message, exclude) {
         let i = 0;
         for (const p of this.players) {
-            if (p && i !== exclude) {
+            if (p && p.conn && i !== exclude) {
                 p.conn.send(message);
             }
             i ++;
