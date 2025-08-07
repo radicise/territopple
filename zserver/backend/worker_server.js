@@ -60,15 +60,15 @@ on("main", "game:bot", (data) => {
     const key = crypto.randomBytes(64).toString("base64url");
     const n = games[data["#gameid"]].addBot(key);
     const u = `http://localhost:${settings.BOTPORT}/${data["#gameid"]}/${data.bot}?k=${key}${n}`;
-    console.log(u);
+    // console.log(u);
     // const req = http.request(u, {method:"GET",timeout:200})
     const req = http.get(u);
     req.once("response", (res) => {
         res.on("error", () => {})
-        console.log(res.statusCode);
+        // console.log(res.statusCode);
     });
     req.on("error", (e) => {
-        console.log(e);
+        // console.log(e);
     });
 });
 on("main", "?phase", (data) => {

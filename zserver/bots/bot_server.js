@@ -54,18 +54,18 @@ server = http.createServer((req, res) => {
  * @param {string} rname
  */
 function connect(gid, key, num, rname) {
-    console.log("CONN");
-    console.log(gid);
+    // console.log("CONN");
+    // console.log(gid);
     let conn = new ws.WebSocket(`wss://territopple.net/ws/?t=5&g=${gid}&k=${key}&n=${num}`);
     conn.on("error", (e) => {
-        console.log(e);
+        // console.log(e);
         conn.terminate();
     });
     conn.on("close", () => {
-        console.log("CLOSED");
+        // console.log("CLOSED");
     });
     conn.on("open", async () => {
-        console.log("OPEN");
+        // console.log("OPEN");
         /**@type {TTBotInstance} */
         let bot = null;
         let ifmt = {};
@@ -167,7 +167,7 @@ function connect(gid, key, num, rname) {
                     break;
                 }
                 case "error":{
-                    console.log(data.payload);
+                    // console.log(data.payload);
                     conn.close();
                     break;
                 }
