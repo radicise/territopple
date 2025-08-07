@@ -20,6 +20,13 @@
 	</head>
 	<body>
 		<h1 style="width:fit-content;">Territopple, the Territory Toppling Game</h1>
+        <div id="bots-popup" hidden>
+            <div>
+                <!-- <p id="bots-popup-text"></p> -->
+                <!-- <div></div> -->
+                <input type="button" value="ok" onclick="document.getElementById('bots-popup').hidden=true;">
+            </div>
+        </div>
         <!-- <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize()"> -->
                 <fieldset id="display-settings">
                   <legend>Display Settings</legend>
@@ -64,6 +71,7 @@
                     <span id="underboard-left">
                         <input type="button" id="pingbutton" value="ping">
                         <input type="button" id="startbutton" value="start" class="FLAG-host-only">
+                        <input type="button" id="botbutton" value="bots" class="FLAG-host-only">
                     </span>
                     <span id="underboard-right">
                         <span id="turn-time">Time: --:--</span>

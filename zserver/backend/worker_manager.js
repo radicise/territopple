@@ -144,7 +144,7 @@ async function handlePass(capacity, req, socket) {
 server.on("upgrade", (req, socket) => {
     const url = new URL("http://localhost"+req.url);
     const connType = Number(url.searchParams.get("t"));
-    if (Number.isNaN(connType) || connType < 0 || connType > 4) {
+    if (Number.isNaN(connType) || connType < 0 || connType > 5) {
         connErr(req, socket, {data:"Connection Type Missing",redirect:"/play-online",store:"Connection Type Missing"});
         return;
     }

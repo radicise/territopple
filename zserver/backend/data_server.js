@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const DEFS = require("../../defs.js");
 const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog, logStamp } = DEFS;
 const { PerformanceError } = require("./errors.js");
+const { TTBot } = require("../bots/bots.js");
 
 // const __dname = process.cwd();
 
@@ -305,6 +306,12 @@ http.createServer((req, res) => {
         res.end(formatServerList((Number(url.searchParams.get("page")) || 1) - 1, filter));
         return;
     }
+    if (url.pathname === "/bots") {
+        res.writeHead(200, {"content-type":"application/json"});
+        res.end(JSON.stringify(TTBot.index));
+        return;
+    }
+    res.writeHead(404).end("bad path");
 }).listen(settings.DATAPORT);
 
 /**

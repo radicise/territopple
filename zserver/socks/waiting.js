@@ -107,6 +107,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             // case "waiting:setready":
             //     emit("waiting:setready", {n:state.playerNum,r:data.payload["r"]});
             //     break;
+            case "game:bot":
+                if (isHost) {
+                    emit("game:bot", {bot:data.payload["bot"]});
+                }
+                break;
             case "waiting:kick":
                 if (isHost) {
                     emit("waiting:kick", {n:data.payload["n"]});

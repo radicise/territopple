@@ -3,6 +3,7 @@
     "DATAPORT": 82,
     "WEBPORT": 80,
     "INTERNALPORT": 5001,
+    "BOTPORT": 5002,
     "ROOM_CODE_LENGTH": 8,
     "PING_INTERVAL": 1500,
     "MAX_TILES": 1296,
@@ -33,5 +34,6 @@
         "ENABLED": false,
         "TIMESTAMP": true,
         "COLLATE": false
-    }
+    },
+    "MAX_TEAMS": 6
 }

@@ -18,7 +18,9 @@ class Random {
      * @returns {T}
      */
     static pick(arr) {
-        return arr[this.randrange(0, arr.length)]
+        const i = this.randrange(0, arr.length);
+        // console.log(`I:${i}`);
+        return arr[i];
     }
 }
 
@@ -34,7 +36,7 @@ class DummyGame {
             this.owned = Array.from(game.owned);
             this.players = game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
             this.turn = game.turn;
-            this.win = game.win;
+            this.win = game.win ?? 0;
             return;
         }
         this.board = Array.from(game.state.board);
@@ -123,8 +125,8 @@ class TTBotInstance {
         this.#think = think;
         this.#pnum = pnum;
     }
-    think(game) {
-        return this.#think(this, new DummyGame(game));
+    think(game, _) {
+        return this.#think(this, new DummyGame(game, _));
     }
     /**
      * @readonly
@@ -236,7 +238,16 @@ const DIFF_LEVELS = {
      * @readonly
      * @returns {8}
      */
-    get TOPPLER() {return 8;}
+    get TOPPLER() {return 8;},
+    get 0(){return "Trivial"},
+    get 1(){return "Beginner"},
+    get 2(){return "Competent"},
+    get 3(){return "Moderate"},
+    get 4(){return "Intermediate"},
+    get 5(){return "Advanced"},
+    get 6(){return "Expert"},
+    get 7(){return "Master"},
+    get 8(){return "Toppler"}
 };
 
 Object.freeze(DIFF_LEVELS);
@@ -247,6 +258,7 @@ Object.freeze(DIFF_LEVELS);
  * @prop {string} disp display name
  * @prop {string} desc bot description / flavor text, supports \*italics* \*\*bold** \~strikethrough~ \_underline_ %mangled%
  * @prop {DIFFICULTY} diff bot difficulty rating
+ * @prop {boolean} indexable if the bot shows up in the bot index
  * @prop {object} prereq prerequisites to challenge this bot
  * @prop {number[]} prereq.achi required achievements to get
  * @prop {string[]} prereq.bots required bots to beat
@@ -259,16 +271,23 @@ const PERF_MODES = {
 
 
 class TTBot {
-    #name;#info;#cls;
+    #name;#short;#info;#cls;
     /**@type {Record<string, TTBot>} */
     static #reg = {};
+    /**@type {Record<string, string[]>} */
+    static #shorts = {};
+    /**@type {Record<string, string>} */
+    static #index = null;
     /**
      * @param {string} name name of the bot, only used internally
+     * @param {string} short_name name to bind the bot to for net requests
      * @param {BotInfo} info info about the bot
      * @param {ThinkFunction} think bot logic
      */
-    constructor(name, info, think) {
+    constructor(name, short_name, info, think) {
+        TTBot.#index = null;
         this.#name = name;
+        this.#short = short_name;
         const that = this;
         this.#cls = class extends TTBotInstance {
             constructor(pnum) {
@@ -277,6 +296,8 @@ class TTBot {
         };
         this.#info = info;
         TTBot.#reg[name] = this;
+        if (!(short_name in TTBot.#shorts)) TTBot.#shorts[short_name] = [];
+        TTBot.#shorts[short_name][info.diff] = name;
         Object.freeze(this.#info);
         Object.freeze(this);
     }
@@ -285,6 +306,11 @@ class TTBot {
      * @returns {string}
      */
     get name() {return this.#name;}
+    /**
+     * @readonly
+     * @returns {string}
+     */
+    get short_name() {return this.#short;}
     /**
      * @readonly
      * @returns {BotInfo}
@@ -305,9 +331,38 @@ class TTBot {
     static access(name) {
         return this.#reg[name];
     }
+    /**
+     * returns the full name of the bot with given short name and difficulty scale
+     * @param {string} short_name
+     * @param {number} diff
+     * @returns {string}
+     */
+    static resolve(short_name, diff) {
+        return this.#shorts[short_name][diff];
+    }
+    /**
+     * @readonly
+     * @returns {Record<string,string>}
+     */
+    static get index() {
+        if (this.#index === null) {
+            const ret = {};
+            for (const skey in this.#shorts) {
+                for (let i = 0; i < this.#shorts[skey].length; i ++) {
+                    const name = this.#shorts[skey][i];
+                    if (name === undefined) continue;
+                    if (!this.#reg[name].#info.indexable) continue;
+                    ret[`${this.#reg[name].#info.disp} (${DIFF_LEVELS[i]})`] = `${skey}/${i}`;
+                }
+            }
+            this.#index = Object.freeze(ret);
+        }
+        return this.#index;
+    }
 }
 
 exports.TTBot = TTBot;
+exports.TTBotInstance = TTBotInstance;
 exports.ThinkFunction = this.ThinkFunction;
 exports.BotInfo = this.BotInfo;
 exports.DIFFICULTY = this.DIFFICULTY;

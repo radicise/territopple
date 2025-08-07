@@ -219,6 +219,32 @@ conn.addEventListener("open", async function(event) {
             conn.send(JSON.stringify({type:"waiting:start",payload:{}}));
         }
     });
+    {
+        const botspopup = document.getElementById("bots-popup");
+        document.getElementById("botbutton").addEventListener("click", () => {
+            if (!game.started && game.hostNum === ifmt.pln) {
+                botspopup.hidden = false;
+            }
+        });
+        fetch(`http://${document.location.hostname}/bots`, {method:"GET"}).then((response) => {
+            if (response.body === null) {
+                console.log("Null response body");
+                return;
+            }
+            response.text().then((text) => {
+                const rec = JSON.parse(text);
+                for (const key in rec) {
+                    const b = document.createElement("input");
+                    b.type = "button";
+                    b.value = key;
+                    b.onclick = () => {
+                        conn.send(JSON.stringify({type:"game:bot",payload:{bot:rec[key]}}));
+                    };
+                    botspopup.children[0].prepend(b);
+                }
+            });
+        });
+    }
 	// display("Connected");
     createBanner({type:"info",content:"Connected"});
     let configed = false;

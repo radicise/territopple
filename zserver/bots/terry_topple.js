@@ -2,8 +2,9 @@ const { TTBot, ThinkFunction, BotInfo, DIFFICULTY, DIFF_LEVELS } = require("./co
 
 
 const _trivial_moves = [0,0];
-new TTBot("Terry Topple (Trivial)", {
+new TTBot("Terry Topple (Trivial)", "terry", {
     "desc":"Terry Topple loves seeing new players get into the game and wants to make the learning experience as smooth as possible.",
+    "indexable":false,
     "diff":DIFF_LEVELS.TRIVIAL,
     "disp":"Terry Topple",
     "prereq":{"achi":[],"bots":[]}

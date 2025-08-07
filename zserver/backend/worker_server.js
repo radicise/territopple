@@ -6,6 +6,7 @@ const socks = require("../socks/handlers.js");
 const { settings, validateJSONScheme, JSONScheme, Game, emit, on, clear, NetData, loadPromise, ensureFile, logStamp, addLog } = require("../../defs.js");
 const { GlobalState } = require("../types.js");
 const { PerformanceError } = require("./errors.js");
+const crypto = require("crypto");
 
 const LOGGING = false;
 
@@ -43,6 +44,33 @@ function updateLoadFactors() {
 }
 
 socks.setGlobals({state:globals, settings:settings}, emit, on, clear);
+on("main", "game:bot", (data) => {
+    // try {
+    //     new ws.WebSocket("ws://localhost", {port:settings.BOTPORT, path:data.bot}).on("open", (s) => {
+    //         try {
+    //             console.log("OPEN");
+    //             socks.handle("join", s, {"id":data["#gameid"],"asSpectator":false}, {});
+    //         } catch (E) {
+    //             console.log(E);
+    //         }
+    //     });
+    // } catch (E) {
+    //     console.log(E)
+    // }
+    const key = crypto.randomBytes(64).toString("base64url");
+    const n = games[data["#gameid"]].addBot(key);
+    const u = `http://localhost/bots/${data["#gameid"]}/${data.bot}?k=${key}${n}`;
+    // console.log(u);
+    // const req = http.request(u, {method:"GET",timeout:200})
+    const req = http.get(u);
+    req.once("response", (res) => {
+        res.on("error", () => {})
+        // console.log(res.statusCode);
+    });
+    req.on("error", (e) => {
+        // console.log(e);
+    });
+});
 on("main", "?phase", (data) => {
     updateDataServerStats(data["#gameid"]);
 });
@@ -220,6 +248,10 @@ process.once("message", (id) => {
                         startPings(sock);
                         if (connType === 3) {
                             socks.handle("rejoin", sock, {"id":gid, "n":url.searchParams.get("i"), "key":url.searchParams.get("k")}, state);
+                            return;
+                        }
+                        if (connType === 5) {
+                            socks.handle("botjoin", sock, {"id":gid, "n":url.searchParams.get("n"), "key":url.searchParams.get("k")}, state);
                             return;
                         }
                         socks.handle("join", sock, {"id":gid, "asSpectator":connType===4}, state);

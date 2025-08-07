@@ -55,6 +55,8 @@ class Player {
         this.turn_timer = null;
         /**@type {number} */
         this.time_left = 0;
+        /**@type {boolean} */
+        this.is_bot = false;
     }
     /**
      * @param {Game} game
@@ -195,6 +197,20 @@ class Game {
         this.spectators = {};
         /**@type {BigInt} */
         this.sort_key = null;
+    }
+    /**
+     * @param {string} key
+     * @returns {string}
+     */
+    addBot(key) {
+        if (this.stats.playing === this.stats.maxPlayers) {
+            return "";
+        }
+        const pN = this.findPlayerNum();
+        this.players[pN] = new Player(null, pN%settings.MAX_TEAMS);
+        this.players[pN].is_bot = true;
+        this.players[pN].rejoin_key = key;
+        return `&n=${pN}`;
     }
     /**
      * @param {GameRules} rules
@@ -354,6 +370,24 @@ class Game {
         // this.sendAll(NetData.Spectator.Leave(id));
     }
     /**
+     * @returns {number}
+     */
+    findPlayerNum() {
+        let pN = -1;
+        for (let i = 1; i < this.players.length; i ++) {
+            const cP = this.players[i];
+            if (cP === null) {
+                pN = i;
+                break;
+            }
+        }
+        this.stats.playing ++;
+        if (pN < 0) {
+            pN = this.stats.playing;
+        }
+        return pN;
+    }
+    /**
      * returns the player number
      * @param {WS} conn
      * @returns {number}
@@ -374,7 +408,7 @@ class Game {
             pN = this.stats.playing;
             this.players.push(p);
         }
-        p.team = pN;
+        p.team = pN%settings.MAX_TEAMS;
         this.stats.connected ++;
         // this.sendAll(NetData.Player.Join(pN), pN);
         p.conn.send(NetData.Key.Rejoin(p.rejoin_key));
@@ -402,7 +436,7 @@ class Game {
      */
     getPromotion() {
         for (let i = 0; i < this.players.length; i ++) {
-            if (this.players[i] !== null) {
+            if (this.players[i] !== null && !this.players[i].is_bot) {
                 return i;
             }
         }
@@ -436,6 +470,7 @@ exports.Game = Game;
  * DATAPORT:number,
  * WEBPORT:number,
  * INTERNALPORT:number,
+ * BOTPORT:number,
  * ROOM_CODE_LENGTH:number,
  * PING_INTERVAL:number,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
@@ -445,7 +480,8 @@ exports.Game = Game;
  * URL_MAP:Record<string,string>,
  * URL_MAP_GROUPS:Record<string,string[]>,
  * DEVOPTS:{expr_webpath:boolean},
- * REPLAYS:{ENABLED:boolean,TIMESTAMP:boolean,COLLATE:boolean}
+ * REPLAYS:{ENABLED:boolean,TIMESTAMP:boolean,COLLATE:boolean},
+ * MAX_TEAMS:number
  * }}
  */
 

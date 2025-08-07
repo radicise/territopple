@@ -13,7 +13,9 @@
     "be-data": "node proc_wrap.js zserver/backend/data_server.js",
     "be-mngr": "node proc_wrap.js zserver/backend/worker_manager.js",
     "be-mngr-dev": "node proc_wrap.js zserver/backend/worker_manager.js --eval-stdin",
-    "be-data-dev": "node proc_wrap.js zserver/backend/data_server.js --eval-stdin"
+    "be-data-dev": "node proc_wrap.js zserver/backend/data_server.js --eval-stdin",
+    "be-bots": "node proc_wrap.js zserver/bots/bot_server.js",
+    "be-bots-dev": "node proc_wrap.js zserver/bots/bot_server.js --eval-stdin"
   },
   "name": "territopple",
   "version": "1.0.0",

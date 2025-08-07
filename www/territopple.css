@@ -159,6 +159,31 @@ svg#render {
     animation: blink var(--blink-dur, 0.5s) linear var(--blink-count, 3) forwards;
 }
 
+#bots-popup {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10;
+    background-color: #88888888;
+}
+#bots-popup > div {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    background-color: #888888;
+    border: solid 2px white;
+}
+#bots-popup > div > * {
+    /* margin-left: 5px;
+    margin-right: 5px; */
+    margin: 5px;
+}
+
 x-concentric-tile {
     --l-alpha-tweak: calc(3 / 5);
     --bw: 0.5px;

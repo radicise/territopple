@@ -109,3 +109,8 @@ Toppler (3/3/>10):
 these bots are not intended to be beaten.
 this is meant for bots that pull out all the stops.
 EX: Terry the Toppler (Toppler)
+
+CHALLENGE:
+this is a modifier category for bots that cheat.
+EG. Caleb Clobber can place pieces on tiles owned by opponents
+Cal Zone acts as though he owns every tile in a radius around the tiles he actually owns, so you can't place pieces there, even if you own the tile
