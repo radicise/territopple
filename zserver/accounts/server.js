@@ -169,6 +169,8 @@ const public_server = http.createServer(async (req, res) => {
             // notimpl("account creation");
             // res.writeHead(501).end();
             if (url.pathname === "/with-code") {
+                console.log("WC");
+                console.log(body);
                 // VERIFY THAT CODE IS VALID
                 if (!(body in account_creation_info)) {
                     res.writeHead(500).end();
