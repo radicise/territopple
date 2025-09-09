@@ -179,6 +179,7 @@ const public_server = http.createServer(async (req, res) => {
                 try {
                     const info = account_creation_info[body];
                     clearTimeout(account_creation_info[body].timeoutid);
+                    delete info["timeoutid"];
                     delete account_creation_info[body];
                     await collection.insertOne(info);
                     res.writeHead(200).end(info.id);
