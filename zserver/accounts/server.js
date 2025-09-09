@@ -206,7 +206,9 @@ const public_server = http.createServer(async (req, res) => {
                     });
                     account_creation_info[code] = {id:data.id,name:data.name,email:data.email,pwdata:auth.makePwData(data.pw),timeoutid:setTimeout(()=>{delete account_creation_info[code];}, 600000)};
                     res.writeHead(200).end();
-                } catch {
+                } catch (/**@type {Error}*/E) {
+                    console.log(E);
+                    console.log(E.stack);
                     res.writeHead(503).end();
                 }
             }
