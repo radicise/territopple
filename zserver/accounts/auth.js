@@ -114,7 +114,7 @@ function makePassword(password, salt) {
 function makePwData(password) {
     const salt = randomBytes(32);
     password = password.normalize();
-    return Buffer.concat(salt, makePassword(Buffer.alloc(password.length, password, "utf8"), salt));
+    return Buffer.concat([salt, makePassword(Buffer.alloc(password.length, password, "utf8"), salt)]);
 }
 
 exports.saltedHash = saltedHash;
