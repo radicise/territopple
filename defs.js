@@ -471,6 +471,8 @@ exports.Game = Game;
  * WEBPORT:number,
  * INTERNALPORT:number,
  * BOTPORT:number,
+ * AUTHPORT:number,
+ * AUTHINTERNALPORT:number,
  * ROOM_CODE_LENGTH:number,
  * PING_INTERVAL:number,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
@@ -481,7 +483,9 @@ exports.Game = Game;
  * URL_MAP_GROUPS:Record<string,string[]>,
  * DEVOPTS:{expr_webpath:boolean},
  * REPLAYS:{ENABLED:boolean,TIMESTAMP:boolean,COLLATE:boolean},
- * MAX_TEAMS:number
+ * MAX_TEAMS:number,
+ * DB_CONFIG:{URI:string},
+ * MAIL_CONFIG:{HOST:string,BOT_USER:string,BOT_PASS:string}
  * }}
  */
 
@@ -1132,7 +1136,7 @@ exports.on = on;
 exports.clear = clear;
 exports.nbytes = nbytes;
 exports.validateJSONScheme = validateJSONScheme;
-// exports.JSONScheme = this.JSONScheme;
+exports.JSONScheme = this.JSONScheme;
 // exports.JSONSchemeType = this.JSONSchemeType;
 // exports.HostingSettings = this.HostingSettings;
 exports.NetData = NetData;

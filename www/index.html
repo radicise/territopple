@@ -125,6 +125,7 @@
         <div id="contact-footer">
             <!-- <input type="button" value="Contact Server Operator" onclick="document.getElementById('contact-modal').hidden=false;"> -->
             <div>
+                <a onclick="document.getElementById('cookie-modal').hidden=false;" class="button-link">Cookie Usage</a>
                 <a onclick="document.getElementById('contact-modal').hidden=false;" class="button-link">Contact Server Operator</a>
             </div>
             <div>
@@ -140,6 +141,12 @@
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a> -->
+        </div>
+        <div id="cookie-modal" class="modal" hidden>
+            <div>
+                We use cookies for authentication.<br><br>
+                <input type="button" value="close" onclick="document.getElementById('cookie-modal').hidden=true;">
+            </div>
         </div>
         <div id="contact-modal" class="modal" hidden>
             <!-- actual content -->
@@ -198,7 +205,7 @@
                         nodes.push(makeNode("p", {append:["Contact Methods",makeNode("ul",{append:Object.entries(info.contact.methods||{}).map(v => makeContact(v))})]}));
                         // nodes.push();
                     } else {
-                        nodes.push(makeNode("p", {textContent:"no contact informal is available"}));
+                        nodes.push(makeNode("p", {textContent:"no contact information is available"}));
                     }
                     contact_modal.children[0].prepend(...nodes);
                 });

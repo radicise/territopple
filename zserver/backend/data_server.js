@@ -259,7 +259,7 @@ function generateRoomCode() {
     let code = "";
     let c = 0;
     while (true) {
-        if (c > 500) {
+        if (c > 50) {
             throw new PerformanceError("room code generation");
         }
         c ++;
