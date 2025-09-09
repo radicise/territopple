@@ -181,6 +181,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
             } else {
                 try {
+                    console.log(body);
                     /**@type {{email:string}} */
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, accCreationScheme)) {
@@ -208,7 +209,6 @@ const public_server = http.createServer(async (req, res) => {
                     res.writeHead(200).end();
                 } catch (/**@type {Error}*/E) {
                     console.log(E);
-                    console.log(E.stack);
                     res.writeHead(503).end();
                 }
             }
