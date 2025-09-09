@@ -33,7 +33,7 @@ if (!(settings.MAIL_CONFIG?.HOST && settings.MAIL_CONFIG?.BOT_PASS && settings.M
 }
 const client = new mdb.MongoClient(settings.DB_CONFIG.URI);
 const db = client.db("accounts");
-const collection = db.collection("accounts");
+const collection = db.collection("basic-info");
 
 const mailtransport = nodemailer.createTransport({
     host: settings.MAIL_CONFIG.HOST,
@@ -180,7 +180,8 @@ const public_server = http.createServer(async (req, res) => {
                     delete account_creation_info[body];
                     await collection.insertOne(info);
                     res.writeHead(200).end(info.id);
-                } catch {
+                } catch (E) {
+                    console.log(E);
                     res.writeHead(500).end();
                 }
             } else {
