@@ -150,7 +150,7 @@ const public_server = http.createServer(async (req, res) => {
     const body = req.method === "GET"?"":await new Promise((r, s) => {
         let d = "";
         req.on("data", (data) => {d += data});
-        req.on("end", r);
+        req.on("end", ()=>r(d));
         req.on("error", s);
     });
     switch (req.method) {
