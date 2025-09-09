@@ -43,7 +43,10 @@ const mailtransport = nodemailer.createTransport({
         user: settings.MAIL_CONFIG.BOT_USER,
         pass: settings.MAIL_CONFIG.BOT_PASS
     },
-    requireTLS: false
+    requireTLS: false,
+    tls: {
+        rejectUnauthorized: false
+    }
 });
 
 let IREQNUM_CNT = 0;
