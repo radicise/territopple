@@ -199,7 +199,7 @@ const public_server = http.createServer(async (req, res) => {
                     const code = generateCreationCode();
                     const code_href = `https://territopple.net/account/do-create?code=${code}`;
                     await mailtransport.sendMail({
-                        from:`"Automation" <${settings.MAIL_CONFIG.BOT_USER}@${settings.MAIL_CONFIG.HOST}>`,
+                        from:`"Automation" <${settings.MAIL_CONFIG.BOT_USER}>`,
                         to: data.email,
                         subject: "Email Verification",
                         text: code_href,
