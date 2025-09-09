@@ -24,7 +24,7 @@
                 if ([email,id,disp,pw,cpw].some(v => !v.value) || pw.value !== cpw.value) {
                     return;
                 }
-                fetch("https://territopple.net/acc", {method:"PUT",body:JSON.stringify({"email":email.value,"id":id.value,"name":disp.value,"pw":pw.value})}).then(v => {
+                fetch("https://territopple.net/acc", {method:"PUT",headers:[["Content-Type","application/json"]],body:JSON.stringify({"email":email.value,"id":id.value,"name":disp.value,"pw":pw.value})}).then(v => {
                     if (v.status === 200) {
                         msg.textContent = "request sent, be sure to check your spam folder";
                     } else {

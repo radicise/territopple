@@ -6,7 +6,7 @@
     <body>
         <p>creating account, please wait</p>
         <script>
-            fetch("https://territopple.net/acc/with-code", {method:"PUT",body:(new URL(location.href)).searchParams.get("code")}).then((v) => {
+            fetch("https://territopple.net/acc/with-code", {method:"PUT",headers:[["Content-Type","application/json"]],body:(new URL(location.href)).searchParams.get("code")}).then((v) => {
                 if (v.status === 200) {
                     document.querySelector("p").textContent = "success, redirecting shortly";
                     v.body.getReader().read().then(v => console.log(v.value.toString()));
