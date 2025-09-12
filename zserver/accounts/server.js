@@ -191,18 +191,19 @@ const public_server = http.createServer(async (req, res) => {
         case "GET":{return;}
         case "POST":{
             if (url.pathname === "/acc/login") {
-                if (!validateJSONScheme(body, accLoginScheme)) {
+                const data = JSON.parse(body);
+                if (!validateJSONScheme(data, accLoginScheme)) {
                     res.writeHead(422).end();
                     return;
                 }
                 try {
                     /**@type {AccountRecord} */
-                    const doc = await collection.findOne({id:body.id});
+                    const doc = await collection.findOne({id:data.id});
                     if (doc === null) {
                         res.writeHead(404).end();
                         return;
                     }
-                    if (auth.verifyRecordPassword(doc.pwdata, body.pw)) {
+                    if (auth.verifyRecordPassword(doc.pwdata, data.pw)) {
                         res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`});
                         return;
                     } else {
