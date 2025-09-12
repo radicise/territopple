@@ -204,7 +204,7 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
-                        res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`});
+                        res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
                         return;
                     } else {
                         res.writeHead(403).end();
