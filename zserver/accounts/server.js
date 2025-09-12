@@ -316,6 +316,7 @@ class SessionManager {
         }
         const token = randomBytes(32).toString("base64url");
         this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, 1000*60*30)];
+        return token;
     }
     /**
      * verifies that the session token corresponds to the given account id
