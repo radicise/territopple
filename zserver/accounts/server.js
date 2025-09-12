@@ -204,7 +204,7 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
-                        res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`});
+                        res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`});
                         return;
                     } else {
                         res.writeHead(403).end();
@@ -311,6 +311,7 @@ class SessionManager {
      */
     static createSession(id) {
         if (id in this.#sessions) {
+            this.refreshSession(id);
             return this.#sessions[id][0];
         }
         const token = randomBytes(32).toString("base64url");
