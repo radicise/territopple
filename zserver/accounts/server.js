@@ -86,8 +86,8 @@ async function processPubFetch(req, res, url, log) {
     switch (resource) {
         case "/display-name":{
             try {
-                const v = (await collection.findOne({id:target})).project({name:1});
-                res.writeHead(200).end(v);
+                const v = (await collection.findOne({id:target})).name;
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({name:v}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
