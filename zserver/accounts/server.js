@@ -52,7 +52,7 @@ const mailtransport = nodemailer.createTransport({
 let IREQNUM_CNT = 0;
 let EREQNUM_CNT = 0;
 
-const ACC_PUB_PREFIX = "/pub";
+const ACC_PUB_PREFIX = "/acc/pub";
 
 class FatalError extends Error {
     /**
