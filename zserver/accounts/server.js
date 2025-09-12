@@ -82,6 +82,7 @@ async function processPubFetch(req, res, url, log) {
     const stripped = url.pathname.substring(ACC_PUB_PREFIX.length); // strip the public data path prefix
     const target = stripped.substring(1, stripped.indexOf("/", 1));
     const resource = stripped.substring(stripped.indexOf("/", 1));
+    console.log(`${target} , ${resource}`);
     switch (resource) {
         case "/display-name":{
             try {
