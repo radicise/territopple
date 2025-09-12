@@ -87,7 +87,8 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = (await collection.findOne({id:target})).project({name:1});
                 res.writeHead(200).end(v);
-            } catch {
+            } catch (E) {
+                console.log(E);
                 res.writeHead(404).end();
             }
             return;
