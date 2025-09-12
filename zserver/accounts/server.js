@@ -133,11 +133,15 @@ const accCreationScheme = {
     "pw": "string",
     "email": "string"
 };
-
 /**@type {JSONScheme} */
 const accLoginScheme = {
     "id": "string",
     "pw": "string"
+};
+/**@type {JSONScheme} */
+const accNameChangeScheme = {
+    "id": "string",
+    "name": "string"
 };
 
 /**
@@ -295,6 +299,32 @@ const public_server = http.createServer(async (req, res) => {
                     notimpl("password change");
                     res.writeHead(501).end();
                     return;
+                }
+                case "/acc/name": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, accNameChangeScheme)) {
+                        res.writeHead(400).end();
+                        return;
+                    }
+                    const p = req.headers.cookie.indexOf("sessionId");
+                    if (p === -1) {
+                        res.writeHead(403).end();
+                        return;
+                    }
+                    const e = req.headers.cookie.indexOf(";", p+10);
+                    if (!SessionManager.verifySession(req.headers.cookie.substring(p+10, e>0?e:undefined), data.id)) {
+                        res.writeHead(403).end();
+                        return;
+                    }
+                    try {
+                        await collection.updateOne({id:data.id}, {"$set":{name:data.name}});
+                        res.writeHead(200).end();
+                        return;
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end();
+                        return;
+                    }
                 }
             }
             return;
