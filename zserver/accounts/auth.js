@@ -117,6 +117,16 @@ function makePwData(password) {
     return Buffer.concat([salt, makePassword(Buffer.alloc(password.length, password, "utf8"), salt)]);
 }
 
+/**
+ * @param {Buffer} pwdata
+ * @param {string} password
+ * @returns {boolean}
+ */
+function verifyRecordPassword(pwdata, password) {
+    password = password.normalize();
+    return makePassword(Buffer.alloc(password.length, password, "utf8"), pwdata.subarray(0, 32)).equals(pwdata.subarray(32, 64));
+}
+
 exports.saltedHash = saltedHash;
 exports.makePassword = makePassword;
 exports.makePwData = makePwData;
@@ -124,3 +134,4 @@ exports.convertDataToHash = convertDataToHash;
 exports.verifyAccountPassword = verifyAccountPassword;
 exports.createQuickAuthToken = createQuickAuthToken;
 exports.verifyQuickAuthToken = verifyQuickAuthToken;
+exports.verifyRecordPassword = verifyRecordPassword;

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Territopple - Login</title>
+    </head>
+    <body>
+        <p id="msg"></p>
+        <div id="form-container">
+            <label for="cf-id">Account ID:</label><input type="text" id="cf-id"><br>
+            <label for="cf-pw">Password:</label><input type="password" id="cf-pw"><br>
+            <input type="button" value="Submit" id="cf-submit">
+        </div>
+        <script>
+            const id = document.getElementById("cf-id");
+            const pw = document.getElementById("cf-pw");
+            const msg = document.getElementById("msg");
+            document.getElementById("cf-submit").addEventListener("click", () => {
+                if ([id,pw].some(v => !v.value)) {
+                    return;
+                }
+                fetch("https://territopple.net/acc/login", {method:"POST",headers:[["Content-Type","application/json"]],body:JSON.stringify({"id":id.value,"pw":pw.value})}).then(v => {
+                    if (v.status === 200) {
+                        msg.textContent = "logged in, redirecting soon";
+                    } else {
+                        msg.textContent = "incorrect credentials";
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

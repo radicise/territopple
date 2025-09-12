@@ -65,6 +65,11 @@ class FatalError extends Error {
 }
 
 /**
+ * @typedef AccountRecord
+ * @type {{_id:mdb.ObjectId,id:string,name:string,email:string,pwdata:Buffer}}
+ */
+
+/**
  * processes the unsecured public data fetch operations
  * @param {http.IncomingMessage} req
  * @param {http.ServerResponse} res
@@ -102,6 +107,8 @@ async function processPubFetch(req, res, url, log) {
 
 /**@type {Record<string, object>} */
 let account_creation_info = {};
+/**@type {Record<string, {id:"email",v:string}>} */
+let info_update_info = {};
 
 /**
  * @returns {string}
@@ -124,6 +131,26 @@ const accCreationScheme = {
     "pw": "string",
     "email": "string"
 };
+
+/**@type {JSONScheme} */
+const accLoginScheme = {
+    "id": "string",
+    "pw": "string"
+};
+
+/**
+ * @param {string} email
+ * @param {string} code_href
+ */
+async function sendEmailVerification(email, code_href) {
+    await mailtransport.sendMail({
+        from:`"Automation" <${settings.MAIL_CONFIG.BOT_USER}>`,
+        to: email,
+        subject: "Email Verification",
+        text: code_href,
+        html: `<a href="${code_href}" target="_blank">${code_href}</a>`
+    });
+}
 
 // used to process requests for account management and public data fetching
 const public_server = http.createServer(async (req, res) => {
@@ -150,6 +177,7 @@ const public_server = http.createServer(async (req, res) => {
         res.writeHead(400).end();
         return;
     }
+    console.log(req.headers.cookie);
     // AUTHENTICATION NOT IMPLEMENTED
     const body = req.method === "GET"?"":await new Promise((r, s) => {
         let d = "";
@@ -158,7 +186,35 @@ const public_server = http.createServer(async (req, res) => {
         req.on("error", s);
     });
     switch (req.method) {
-        case "GET":{break;}
+        case "GET":{return;}
+        case "POST":{
+            if (url.pathname === "/acc/login") {
+                if (!validateJSONScheme(body, accLoginScheme)) {
+                    res.writeHead(422).end();
+                    return;
+                }
+                try {
+                    /**@type {AccountRecord} */
+                    const doc = await collection.findOne({id:body.id});
+                    if (doc === null) {
+                        res.writeHead(404).end();
+                        return;
+                    }
+                    if (auth.verifyRecordPassword(doc.pwdata, body.pw)) {
+                        res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`});
+                        return;
+                    } else {
+                        res.writeHead(403).end();
+                        return;
+                    }
+                } catch (E) {
+                    log(EERROR, E.toString());
+                    res.writeHead(500).end();
+                    return;
+                }
+            }
+            return;
+        }
         case "DELETE":{
             // VERIFY THAT SENDER IS LOGGED IN AS TARGET USER
             notimpl("account deletion");
@@ -225,12 +281,12 @@ const public_server = http.createServer(async (req, res) => {
         case "PATCH":{
             // VERIFY THAT SENDER IS LOGGED IN AS TARGET USER
             switch (url.pathname) {
-                case "/email": {
+                case "/acc/email": {
                     notimpl("email change");
                     res.writeHead(501).end();
                     return;
                 }
-                case "/password": {
+                case "/acc/password": {
                     notimpl("password change");
                     res.writeHead(501).end();
                     return;
@@ -243,16 +299,44 @@ const public_server = http.createServer(async (req, res) => {
 const internal_server = http.createServer((req, res) => {});
 
 class SessionManager {
+    /**@type {Record<string,[string,number]>} */
     static #sessions = {};
     /**
      * returns base64url encoded token
+     * @param {string} id account id to create the token for
      * @returns {string}
      */
-    static createSession() {
+    static createSession(id) {
+        if (id in this.#sessions) {
+            return this.#sessions[id][0];
+        }
         const token = randomBytes(32).toString("base64url");
-        this.#sessions[token] = Buffer.alloc(1);
+        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, 1000*60*30)];
     }
-    static verifySession() {}
+    /**
+     * verifies that the session token corresponds to the given account id
+     * @param {string} token
+     * @param {string} id
+     * @returns {boolean}
+     */
+    static verifySession(token, id) {
+        if (!(id in this.#sessions)) return;
+        return this.#sessions[id][0] === token;
+    }
+    /**
+     * @param {string} id
+     */
+    static refreshSession(id) {
+        if (!(id in this.#sessions)) return;
+        clearTimeout(this.#sessions[id][1]);
+        this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, 1000*60*30);
+    }
+    /**
+     * @param {string} id
+     */
+    static #expireToken(id) {
+        delete this.#sessions[id];
+    }
 }
 
 public_server.listen(settings.AUTHPORT);
