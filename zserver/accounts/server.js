@@ -66,7 +66,7 @@ class FatalError extends Error {
 
 /**
  * @typedef AccountRecord
- * @type {{_id:mdb.ObjectId,id:string,name:string,email:string,pwdata:Buffer}}
+ * @type {{_id:mdb.ObjectId,id:string,name:string,email:string,pwdata:mdb.Binary}}
  */
 
 /**
@@ -203,7 +203,7 @@ const public_server = http.createServer(async (req, res) => {
                         res.writeHead(404).end();
                         return;
                     }
-                    if (auth.verifyRecordPassword(doc.pwdata, data.pw)) {
+                    if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
                         res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`});
                         return;
                     } else {
