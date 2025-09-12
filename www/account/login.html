@@ -21,8 +21,16 @@
                 fetch("https://territopple.net/acc/login", {method:"POST",headers:[["Content-Type","application/json"]],body:JSON.stringify({"id":id.value,"pw":pw.value})}).then(v => {
                     if (v.status === 200) {
                         msg.textContent = "logged in, redirecting soon";
-                    } else {
+                    } else if (v.status === 403) {
                         msg.textContent = "incorrect credentials";
+                    } else if (v.status === 500) {
+                        msg.textContent = "server error";
+                    } else if (v.status === 422) {
+                        msg.textContent = "bad JSON";
+                    } else if (v.status === 400) {
+                        msg.textContent = "sec fail";
+                    } else if (v.status === 404) {
+                        msg.textContent = "account not found";
                     }
                 });
             });
