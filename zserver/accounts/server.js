@@ -173,9 +173,9 @@ const public_server = http.createServer(async (req, res) => {
         await processPubFetch(req, res, url, log);
         return;
     }
+    console.log(req.headers["content-type"]);
+    console.log(req.headers["sec-fetch-site"]);
     if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
-        console.log(req.headers["content-type"]);
-        console.log(req.headers["sec-fetch-site"]);
         res.writeHead(400).end();
         return;
     }
