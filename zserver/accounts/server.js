@@ -194,8 +194,10 @@ const public_server = http.createServer(async (req, res) => {
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
     log(EACCESS, `${req.method} - ${url}`);
-    if (url.hash) {
+    if (url.pathname === "/acc/dbg") {
         SessionManager.debug();
+        res.writeHead(200).end();
+        return;
     }
     // relative paths are never acceptabile
     if (url.pathname.includes(".")) {
