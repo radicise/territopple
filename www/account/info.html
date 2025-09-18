@@ -17,6 +17,7 @@
                 sendID = loc.searchParams.get("id");
             }
             fetch(`https://territopple.net/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
+                console.log(v);
                 if (v.status === 403) {
                     document.getElementById("acc-id").textContent = "unauthorized";
                     return;
