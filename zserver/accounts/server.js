@@ -80,10 +80,35 @@ async function processPubFetch(req, res, url, log) {
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
     const stripped = url.pathname.substring(ACC_PUB_PREFIX.length); // strip the public data path prefix
-    const target = stripped.substring(1, stripped.indexOf("/", 1));
+    let target = stripped.substring(1, stripped.indexOf("/", 1));
+    let self = false;
+    if (target === "%40self") {
+        self = true;
+        const p = req.headers.cookie.indexOf("sessionId");
+        if (p === -1) {
+            res.writeHead(403).end();
+            return;
+        }
+        const e = req.headers.cookie.indexOf(";", p+10);
+        target = SessionManager.getAccountId(req.headers.cookie.substring(p+10, e>0?e:undefined));
+        if (!target) {
+            res.writeHead(403).end();
+            return;
+        }
+    }
     const resource = stripped.substring(stripped.indexOf("/", 1));
     console.log(`${target} , ${resource}`);
     switch (resource) {
+        case "/info": {
+            try {
+                const v = await collection.findOne({id:target});
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined}));
+            } catch (E) {
+                console.log(E);
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/display-name":{
             try {
                 const v = (await collection.findOne({id:target})).name;
@@ -349,6 +374,13 @@ class SessionManager {
         const token = randomBytes(32).toString("base64url");
         this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, 1000*60*30)];
         return token;
+    }
+    /**
+     * @param {string} sessionid
+     * @returns {string}
+     */
+    static getAccountId(sessionid) {
+        return this.#sessions[sessionid][0];
     }
     /**
      * verifies that the session token corresponds to the given account id

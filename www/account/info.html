@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Account Info - Territopple</title>
+    </head>
+    <body>
+        <div>
+            ID: <span id="acc-id">...</span><br>
+            Name: <span id="acc-name">...</span><br>
+            Email: <span id="acc-email">...</span>
+        </div>
+        <script>
+            const loc = new URL(location.href);
+            let sendID = "%40self";
+            if (loc.searchParams.get("id")) {
+                // document.getElementById("acc-id").textContent = loc.searchParams.get("id");
+                sendID = loc.searchParams.get("id");
+            }
+            fetch(`https://territopple.net/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
+                if (v.status === 403) {
+                    document.getElementById("acc-id").textContent = "unauthorized";
+                    return;
+                }
+                v = JSON.parse(v.body);
+                document.getElementById("acc-id").textContent = v.id;
+                document.getElementById("acc-name").textContent = v.name;
+                document.getElementById("acc-email").textContent = v.email ?? "unavailable";
+            });
+        </script>
+    </body>
+</html>
