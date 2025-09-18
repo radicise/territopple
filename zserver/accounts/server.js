@@ -194,6 +194,9 @@ const public_server = http.createServer(async (req, res) => {
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
     log(EACCESS, `${req.method} - ${url}`);
+    if (url.hash) {
+        SessionManager.debug();
+    }
     // relative paths are never acceptabile
     if (url.pathname.includes(".")) {
         log(EREJECT, "used relative paths");
@@ -406,6 +409,9 @@ class SessionManager {
      */
     static #expireToken(id) {
         delete this.#sessions[id];
+    }
+    static debug() {
+        console.log(this.#sessions);
     }
 }
 
