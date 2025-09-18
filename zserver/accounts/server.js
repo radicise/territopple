@@ -90,6 +90,7 @@ async function processPubFetch(req, res, url, log) {
             return;
         }
         const e = req.headers.cookie.indexOf(";", p+10);
+        console.log(req.headers.cookie.substring(p+10, e>0?e:undefined));
         target = SessionManager.getAccountId(req.headers.cookie.substring(p+10, e>0?e:undefined));
         if (!target) {
             res.writeHead(403).end();
