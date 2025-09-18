@@ -22,10 +22,12 @@
                     document.getElementById("acc-id").textContent = "unauthorized";
                     return;
                 }
-                v = JSON.parse(v.body);
-                document.getElementById("acc-id").textContent = v.id;
-                document.getElementById("acc-name").textContent = v.name;
-                document.getElementById("acc-email").textContent = v.email ?? "unavailable";
+                // v = JSON.parse(v.text);
+                v.json().then(j => {
+                    document.getElementById("acc-id").textContent = j.id;
+                    document.getElementById("acc-name").textContent = j.name;
+                    document.getElementById("acc-email").textContent = j.email ?? "unavailable";
+                });
             });
         </script>
     </body>
