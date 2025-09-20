@@ -483,7 +483,7 @@ class SessionManager {
         console.log(this.#sessions);
     }
     static save() {
-        fs.writeFileSync(path.join(process.env.HOME, "sessions.json"), JSON.stringify({"s":Object.entries(this.#sessions).map(v => [v[0], v[1][1]]),"e":Object.entries(account_creation_info)}));
+        fs.writeFileSync(path.join(process.env.HOME, "sessions.json"), JSON.stringify({"s":Object.entries(this.#sessions).map(v => [v[0], v[1][0]]),"e":Object.entries(account_creation_info).forEach(v => v.timeoutid = null)}));
         process.exit(1);
     }
     static load() {
@@ -491,8 +491,9 @@ class SessionManager {
         if (!fs.existsSync(p)) return;
         const o = JSON.parse(fs.readFileSync(p));
         fs.unlinkSync(p);
-        for (const k in o.e) {
-            account_creation_info[k] = o.e[k];
+        for (const l of o.e) {
+            const k = l[0];
+            account_creation_info[k] = l[1];
             account_creation_info[k].timeoutid = setTimeout(()=>{delete account_creation_info[k];}, ACC_CREAT_TIMEOUT);
         }
         for (const l of o.s) {
