@@ -203,6 +203,7 @@ process.once("message", (id) => {
             let gameid;
             let acc;
             let state = {};
+            console.log(req.headers.cookie);
             const p = req.headers.cookie?.indexOf("sessionId");
             if (p && p !== -1) {
                 const e = req.headers.cookie.indexOf(";", p+10);
