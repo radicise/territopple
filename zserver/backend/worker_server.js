@@ -205,7 +205,7 @@ process.once("message", (id) => {
             let state = {};
             console.log(req.headers.cookie);
             const p = req.headers.cookie?.indexOf("sessionId");
-            if (p && p !== -1) {
+            if (p !== undefined && p !== -1) {
                 const e = req.headers.cookie.indexOf(";", p+10);
                 const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
                 http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${id}`, (res) => {
