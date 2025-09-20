@@ -152,7 +152,7 @@ function removeJListPlayer(n) {
  */
 function addJListSpectator(n) {
     const row = document.createElement("tr");
-    row.id = `JLIST-spectator-${n}`;
+    row.id = `JLIST-spectator-${n[0]}`;
     row.scope = "row";
     row.append(makeTD(`${n[0]} (${n[1]??"Guest"})`));
     row.append(makeTD("Spectator"));
