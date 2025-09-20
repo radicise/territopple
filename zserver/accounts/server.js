@@ -14,6 +14,8 @@ const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
 
+fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
+
 const ACC_CREAT_TIMEOUT = 600000;
 const SESS_TIMEOUT = 1000*60*30;
 
