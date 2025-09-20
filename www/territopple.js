@@ -199,6 +199,9 @@ function rescanHostOnly() {
 
 // let nonstrdata = null;
 
+/**@type {Record<string,string|null>} */
+const spectating = {};
+
 // /**@type {HTMLInputElement} */
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
@@ -345,6 +348,7 @@ conn.addEventListener("open", async function(event) {
                     if (typeof n === "number") {
                         setJListPlayerAccount(n, a);
                     } else {
+                        spectating[n] = a;
                         setJListSpectatorAccount(n, a);
                     }
                 }
@@ -427,8 +431,8 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:leave":{
                 game.joinedPlayers --;
+                createBanner({type:"info",content:`Player ${data.payload['n']} (${game.playerList[data.payload["n"]].accId??"Guest"}) has left`});
                 game.playerList[data.payload["n"]] = null;
-                createBanner({type:"info",content:`Player ${data.payload['n']} has left`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 removeJListPlayer(data.payload["n"]);
 				break;
@@ -457,11 +461,13 @@ conn.addEventListener("open", async function(event) {
             }
             case "spectator:join":{
                 addJListSpectator([data.payload["n"], null]);
+                spectating[data.payload["n"]] = null;
                 createBanner({type:"info",content:`Spectator ${data.payload['n']} has joined`});
                 break;
             }
             case "spectator:leave":{
-                createBanner({type:"info",content:`Spectator ${data.payload['n']} has left`});
+                createBanner({type:"info",content:`Spectator ${data.payload['n']} (${spectating[data.payload["n"]]??"Guest"}) has left`});
+                delete spectating[data.payload["n"]];
                 removeJListSpectator(data.payload["n"]);
                 break;
             }
@@ -544,6 +550,7 @@ conn.addEventListener("open", async function(event) {
                     addJListPlayer(p);
                 }
                 for (const s of sl) {
+                    spectating[s[0]] = s[1];
                     addJListSpectator(s);
                 }
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
