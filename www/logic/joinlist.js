@@ -135,7 +135,7 @@ function addJListPlayer(n) {
     row.append(makeTD(n === game.hostNum ? "Host" : "Player"));
     row.append(makeTD("--:--"));
     // row.append(...makeJListActions("player", n));
-    row.append(makeJListActions("player", n));
+    row.append(makeJListActions("player", n[0]));
     joinedList.append(row);
     rescanHostOnly();
 }
@@ -158,7 +158,7 @@ function addJListSpectator(n) {
     row.append(makeTD("Spectator"));
     row.append(makeTD(""));
     // row.append(...makeJListActions("spectator", n));
-    row.append(makeJListActions("spectator", n));
+    row.append(makeJListActions("spectator", n[0]));
     // const lspecs = joinedList.querySelectorAll(".spectator");
     joinedList.append(row);
     rescanHostOnly();
