@@ -3,6 +3,8 @@
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "express-ws": "^5.0.2",
+    "mongodb": "6.18",
+    "nodemailer": "^7.0.6",
     "three": "^0.173.0",
     "ws": "^8.18.0"
   },
@@ -15,7 +17,8 @@
     "be-mngr-dev": "node proc_wrap.js zserver/backend/worker_manager.js --eval-stdin",
     "be-data-dev": "node proc_wrap.js zserver/backend/data_server.js --eval-stdin",
     "be-bots": "node zserver/bots/bot_server.js --no-in",
-    "be-bots-dev": "node proc_wrap.js zserver/bots/bot_server.js --eval-stdin"
+    "be-bots-dev": "node proc_wrap.js zserver/bots/bot_server.js --eval-stdin",
+    "ac-serv": "node zserver/accounts/server.js"
   },
   "name": "territopple",
   "version": "1.0.0",

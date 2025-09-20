@@ -10,7 +10,7 @@ const loadPromise = new Promise((res,) => {
 
 /**
  * @typedef Player
- * @type {{team:number,ready:boolean,time:number}}
+ * @type {{team:number,ready:boolean,time:number,accId:string|null}}
  */
 
 class Game {
@@ -257,4 +257,4 @@ class Game {
     }
 }
 
-//exports.Game = Game;
+// exports.Game = Game;

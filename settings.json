@@ -4,6 +4,8 @@
     "WEBPORT": 80,
     "INTERNALPORT": 5001,
     "BOTPORT": 5002,
+    "AUTHPORT": 83,
+    "AUTHINTERNALPORT": 5003,
     "ROOM_CODE_LENGTH": 8,
     "PING_INTERVAL": 1500,
     "MAX_TILES": 1296,
@@ -35,5 +37,13 @@
         "TIMESTAMP": true,
         "COLLATE": false
     },
-    "MAX_TEAMS": 6
+    "MAX_TEAMS": 6,
+    "DB_CONFIG": {
+        "URI": null
+    },
+    "MAIL_CONFIG": {
+        "HOST": null,
+        "BOT_USER": null,
+        "BOT_PASS": null
+    }
 }

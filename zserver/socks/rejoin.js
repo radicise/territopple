@@ -7,6 +7,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let closeL;
     let errorL;
     (() => {
+    if (args["acc"]) {
+        state.accId = args["acc"];
+    }
     /**@type {string} */
     const id = args.id;
     const pnum = Number.parseInt(args.n);

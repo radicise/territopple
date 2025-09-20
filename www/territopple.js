@@ -199,6 +199,9 @@ function rescanHostOnly() {
 
 // let nonstrdata = null;
 
+/**@type {Record<string,string|null>} */
+const spectating = {};
+
 // /**@type {HTMLInputElement} */
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
@@ -332,6 +335,25 @@ conn.addEventListener("open", async function(event) {
             //     //
             //     break;
             // }
+            case "account:found": {
+                const n = data.payload["n"];
+                /**@type {string} */
+                const a = data.payload["a"];
+                if (typeof n === "number") {
+                    game.playerList[n].accId = a;
+                }
+                if (n === ifmt.pln) {
+                    setJListSelfAccount(n, a);
+                } else {
+                    if (typeof n === "number") {
+                        setJListPlayerAccount(n, a);
+                    } else {
+                        spectating[n] = a;
+                        setJListSpectatorAccount(n, a);
+                    }
+                }
+                break;
+            }
             case "waiting:promote":{
                 if (game.hostNum) {
                     const c = document.getElementById(`JLIST-player-${game.hostNum}`);
@@ -398,10 +420,10 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:join":{
                 game.joinedPlayers ++;
-                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null};
+                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null,accId:null};
                 createBanner({type:"info",content:`Player ${data.payload['n']} has joined`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
-                if (ifmt.pln !== data.payload["n"]) addJListPlayer(data.payload["n"]);
+                if (ifmt.pln !== data.payload["n"]) addJListPlayer([data.payload["n"], data.payload["t"], null]);
                 if (game.rules?.turnTime?.style === "chess") {
                     setJListTime(data.payload["n"], game.playerList[data.payload["n"]].time);
                 }
@@ -409,8 +431,8 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:leave":{
                 game.joinedPlayers --;
+                createBanner({type:"info",content:`Player ${data.payload['n']} (${game.playerList[data.payload["n"]].accId??"Guest"}) has left`});
                 game.playerList[data.payload["n"]] = null;
-                createBanner({type:"info",content:`Player ${data.payload['n']} has left`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 removeJListPlayer(data.payload["n"]);
 				break;
@@ -438,12 +460,14 @@ conn.addEventListener("open", async function(event) {
                 break;
             }
             case "spectator:join":{
-                addJListSpectator(data.payload["n"]);
+                addJListSpectator([data.payload["n"], null]);
+                spectating[data.payload["n"]] = null;
                 createBanner({type:"info",content:`Spectator ${data.payload['n']} has joined`});
                 break;
             }
             case "spectator:leave":{
-                createBanner({type:"info",content:`Spectator ${data.payload['n']} has left`});
+                createBanner({type:"info",content:`Spectator ${data.payload['n']} (${spectating[data.payload["n"]]??"Guest"}) has left`});
+                delete spectating[data.payload["n"]];
                 removeJListSpectator(data.payload["n"]);
                 break;
             }
@@ -513,19 +537,20 @@ conn.addEventListener("open", async function(event) {
                 break;
             }
             case "game:jlist":{
-                /**@type {[number, number][]} */
+                /**@type {[number, number, string|null][]} */
                 const pl = data.payload["p"];
-                /**@type {string[]} */
+                /**@type {[string,string|null][]} */
                 const sl = data.payload["s"];
                 for (const p of pl) {
                     if (ifmt.pln) {
                         if (p[0] === ifmt.pln) continue;
                     }
                     game.joinedPlayers ++;
-                    game.playerList[p[0]] = {team:p[1]};
-                    addJListPlayer(p[0]);
+                    game.playerList[p[0]] = {team:p[1],accId:p[2]};
+                    addJListPlayer(p);
                 }
                 for (const s of sl) {
+                    spectating[s[0]] = s[1];
                     addJListSpectator(s);
                 }
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
