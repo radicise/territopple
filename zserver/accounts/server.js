@@ -500,11 +500,13 @@ class SessionManager {
             this.#inverse_map[l[1]] = l[0];
         }
     }
+    static {
+        process.on("SIGINT", SessionManager.save);
+        process.on("SIGTERM", SessionManager.save);
+    }
 }
 SessionManager.load();
 
-process.on("SIGINT", SessionManager.save);
-process.on("SIGTERM", SessionManager.save);
 
 public_server.listen(settings.AUTHPORT);
 internal_server.listen(settings.AUTHINTERNALPORT);
