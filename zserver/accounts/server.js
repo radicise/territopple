@@ -11,6 +11,11 @@ const auth = require("./auth.js");
 const http = require("http");
 const { ensureFile, addLog, logStamp, settings, validateJSONScheme, JSONScheme } = require("../../defs.js");
 const mdb = require("mongodb");
+const fs = require("fs");
+const path = require("path");
+
+const ACC_CREAT_TIMEOUT = 600000;
+const SESS_TIMEOUT = 1000*60*30;
 
 const EACCESS = "logs/accounts/access.txt";
 const EREJECT = "logs/accounts/rejected.txt";
@@ -197,11 +202,11 @@ const public_server = http.createServer(async (req, res) => {
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
     log(EACCESS, `${req.method} - ${url}`);
-    if (url.pathname === "/acc/dbg") {
-        SessionManager.debug();
-        res.writeHead(200).end();
-        return;
-    }
+    // if (url.pathname === "/acc/dbg") {
+    //     SessionManager.debug();
+    //     res.writeHead(200).end();
+    //     return;
+    // }
     // relative paths are never acceptabile
     if (url.pathname.includes(".")) {
         log(EREJECT, "used relative paths");
@@ -308,10 +313,10 @@ const public_server = http.createServer(async (req, res) => {
                         res.writeHead(422).end();
                         return;
                     }
-                    if (!data.email.endsWith("@territopple.net")) {
-                        res.writeHead(200).end();
-                        return;
-                    }
+                    // if (!data.email.endsWith("@territopple.net")) {
+                    //     res.writeHead(200).end();
+                    //     return;
+                    // }
                     if ((await collection.findOne({id:data.id})) !== null) {
                         res.writeHead(422).end();
                         return;
@@ -334,7 +339,7 @@ const public_server = http.createServer(async (req, res) => {
                         pwdata:auth.makePwData(data.pw),
                         level:0,
                         priv_level:0,
-                        timeoutid:setTimeout(()=>{delete account_creation_info[code];}, 600000)
+                        timeoutid:setTimeout(()=>{delete account_creation_info[code];}, ACC_CREAT_TIMEOUT)
                     };
                     res.writeHead(200).end();
                 } catch (/**@type {Error}*/E) {
@@ -438,7 +443,7 @@ class SessionManager {
             return this.#sessions[id][0];
         }
         const token = this.#generateToken();
-        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, 1000*60*30)];
+        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT)];
         this.#inverse_map[token] = id;
         return token;
     }
@@ -465,7 +470,7 @@ class SessionManager {
     static refreshSession(id) {
         if (!(id in this.#sessions)) return;
         clearTimeout(this.#sessions[id][1]);
-        this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, 1000*60*30);
+        this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT);
     }
     /**
      * @param {string} id
@@ -477,7 +482,29 @@ class SessionManager {
     static debug() {
         console.log(this.#sessions);
     }
+    static save() {
+        fs.writeFileSync(path.join(path.resolve("~"), "sessions.json"), JSON.stringify({"s":Object.entries(this.#sessions).map(v => [v[0], v[1][1]]),"e":Object.entries(account_creation_info)}));
+        process.exit(1);
+    }
+    static load() {
+        const p = path.join(path.resolve("~"), "sessions.json");
+        if (!fs.existsSync(p)) return;
+        const o = JSON.parse(fs.readFileSync(p));
+        fs.unlinkSync(p);
+        for (const k in o.e) {
+            account_creation_info[k] = o.e[k];
+            account_creation_info[k].timeoutid = setTimeout(()=>{delete account_creation_info[k];}, ACC_CREAT_TIMEOUT);
+        }
+        for (const l of o.s) {
+            this.#sessions[l[0]] = [l[1], setTimeout(()=>{this.#expireToken(l[0]);}, SESS_TIMEOUT)];
+            this.#inverse_map[l[1]] = l[0];
+        }
+    }
 }
+SessionManager.load();
+
+process.on("SIGINT", SessionManager.save);
+process.on("SIGTERM", SessionManager.save);
 
 public_server.listen(settings.AUTHPORT);
 internal_server.listen(settings.AUTHINTERNALPORT);
