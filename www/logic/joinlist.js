@@ -130,7 +130,7 @@ function addJListSelf(n) {
 function addJListPlayer(n) {
     const row = document.createElement("tr");
     row.scope = "row";
-    row.id = `JLIST-player-${n}`;
+    row.id = `JLIST-player-${n[0]}`;
     row.append(makeTD(`${n[0]} (${n[2]??"Guest"}) - ${n[1]}`));
     row.append(makeTD(n === game.hostNum ? "Host" : "Player"));
     row.append(makeTD("--:--"));
