@@ -16,10 +16,13 @@ const EACCESS = "logs/accounts/access.txt";
 const EREJECT = "logs/accounts/rejected.txt";
 const ESENSITIVE = "logs/accounts/sensitive.txt"; // used to log sensitive operations (eg. account creation, password change)
 const EERROR = "logs/accounts/error.txt";
+const IACCESS = "logs/accounts/iaccess.txt";
+ensureFile(IACCESS);
 ensureFile(EACCESS);
 ensureFile(EREJECT);
 ensureFile(ESENSITIVE);
 ensureFile(EERROR);
+logStamp(IACCESS);
 logStamp(EACCESS);
 logStamp(EREJECT);
 logStamp(ESENSITIVE);
@@ -225,7 +228,15 @@ const public_server = http.createServer(async (req, res) => {
         req.on("error", s);
     });
     switch (req.method) {
-        case "GET":{return;}
+        case "GET":{
+            switch (url.pathname) {
+                case "/acc/play-auth-token": {
+                    res.writeHead(404).end();
+                    return;
+                }
+            }
+            return;
+        }
         case "POST":{
             if (url.pathname === "/acc/login") {
                 const data = JSON.parse(body);
@@ -242,6 +253,11 @@ const public_server = http.createServer(async (req, res) => {
                     }
                     if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
                         res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
+                        try {
+                            await collection.updateOne({id:data.id}, {"$set":{last_online:Date.now()}});
+                        } catch (E) {
+                            console.log(E);
+                        }
                         return;
                     } else {
                         res.writeHead(403).end();
@@ -309,7 +325,17 @@ const public_server = http.createServer(async (req, res) => {
                         text: code_href,
                         html: `<a href="${code_href}" target="_blank">${code_href}</a>`
                     });
-                    account_creation_info[code] = {id:data.id,name:data.name,email:data.email,pwdata:auth.makePwData(data.pw),timeoutid:setTimeout(()=>{delete account_creation_info[code];}, 600000)};
+                    account_creation_info[code] = {
+                        cdate:Date.now(),
+                        last_online:Date.now(),
+                        id:data.id,
+                        name:data.name,
+                        email:data.email,
+                        pwdata:auth.makePwData(data.pw),
+                        level:0,
+                        priv_level:0,
+                        timeoutid:setTimeout(()=>{delete account_creation_info[code];}, 600000)
+                    };
                     res.writeHead(200).end();
                 } catch (/**@type {Error}*/E) {
                     console.log(E);
@@ -362,7 +388,29 @@ const public_server = http.createServer(async (req, res) => {
         }
     }
 });
-const internal_server = http.createServer((req, res) => {});
+const internal_server = http.createServer((req, res) => {
+    const url = new URL("http://localhost"+req.url);
+    const TIME = new Date();
+    const REQNUM = IREQNUM_CNT ++;
+    /**@type {(p: string, d: string) => void} */
+    const log = (p, d) => {addLog(p, `${TIME} - ${REQNUM} - ${d}\n`)};
+    // /**@type {(op:string)=>void} */
+    // const notimpl = (op)=>{log(IREJECT, `${op} not implemented`);};
+    log(IACCESS, `${req.method} - ${url}`);
+    if (req.method !== "GET") {
+        res.writeHead(405).end();
+        return;
+    }
+    if (url.pathname === "/resolve-session") {
+        const id = SessionManager.getAccountId(url.searchParams.get("id"));
+        if (id) {
+            res.writeHead(200).end(id);
+        } else {
+            res.writeHead(404).end();
+        }
+        return;
+    }
+});
 
 class SessionManager {
     /**@type {Record<string,[string,number]>} */
@@ -437,11 +485,15 @@ public_server.on("error", async (err) => {
     if (err instanceof FatalError) {
         await client.close();
         throw err;
+    } else {
+        console.log(err);
     }
 });
 internal_server.on("error", async (err) => {
     if (err instanceof FatalError) {
         await client.close();
         throw err;
+    } else {
+        console.log(err);
     }
 });

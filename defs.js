@@ -57,6 +57,8 @@ class Player {
         this.time_left = 0;
         /**@type {boolean} */
         this.is_bot = false;
+        /**@type {string} */
+        this.accId = null;
     }
     /**
      * @param {Game} game
@@ -103,6 +105,10 @@ class Player {
         return this.rejoin_key;
     }
 }
+/**
+ * @typedef Spectator
+ * @type {{sock:WS,accId?:string}}
+ */
 /**
  * @typedef TurnTimerSettings
  * @prop {"per turn"|"chess"} style style of turn timer
@@ -193,10 +199,25 @@ class Game {
         this.timestamp = null;
         /**@type {Player[]} */
         this.players = [null];
-        /**@type {Record<string,WS>} */
+        /**@type {Record<string,Spectator>} */
         this.spectators = {};
         /**@type {BigInt} */
         this.sort_key = null;
+    }
+    /**
+     * @param {number|string} entid
+     * @param {string} accid
+     */
+    updateAccountId(entid, accid) {
+        if (typeof entid === "string") {
+            if (entid in this.spectators) {
+                this.spectators[entid].accId = accid;
+            }
+        } else {
+            if (this.players[entid]) {
+                this.players[entid].accId = accid;
+            }
+        }
     }
     /**
      * @param {string} key
@@ -224,7 +245,7 @@ class Game {
      */
     kill() {
         for (const k in this.spectators) {
-            this.spectators[k].terminate();
+            this.spectators[k].sock.terminate();
         }
         for (const p of this.players) {
             if (p && p.conn) {
@@ -351,7 +372,7 @@ class Game {
             id = crypto.randomBytes(8).toString("base64url");
         }
         // this.sendAll(NetData.Spectator.Join(id));
-        this.spectators[id] = conn;
+        this.spectators[id] = {sock:conn,accId:null};
         this.stats.spectating ++;
         this.stats.connected ++;
         return id;
@@ -456,7 +477,7 @@ class Game {
         }
         for (const s in this.spectators) {
             if (s !== exclude) {
-                this.spectators[s].send(message);
+                this.spectators[s].sock.send(message);
             }
         }
     }
@@ -556,6 +577,24 @@ class NetData {
          */
         static DYNG() {
             return this.Misc("DYNG");
+        }
+    }
+    static Account = class {
+        /**
+         * @param {string} type
+         * @param {Record<string,any>?} data
+         * @returns {string}
+         */
+        static Misc(type, data) {
+            return NetData.Misc(`account:${type}`, data);
+        }
+        /**
+         * @param {number|string} id
+         * @param {string} acc
+         * @returns {string}
+         */
+        static Found(id, acc) {
+            return this.Misc("found", {n:id, a:acc});
         }
     }
     static Player = class {
@@ -778,8 +817,8 @@ class NetData {
          * @returns {string}
          */
         static JList(game) {
-            const players = game.players.map((v, i) => v ? [i, v.team] : null).filter(v => v !== null);
-            const spectators = Object.keys(game.spectators);
+            const players = game.players.map((v, i) => v ? [i, v.team, v.accId] : null).filter(v => v !== null);
+            const spectators = Object.keys(game.spectators).map(v => [v, game.spectators[v].accId]);
             return this.Misc("jlist", {p:players,s:spectators});
         }
         /**

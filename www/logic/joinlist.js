@@ -83,13 +83,41 @@ function makeJListActions(type, arg) {
 }
 
 /**
+ * @param {number} n
+ * @param {string} a
+ */
+function setJListPlayerAccount(n, a) {
+    const c = document.getElementById(`JLIST-player-${n}`);
+    if (!c) return;
+    c.children[0].textContent = `${n} (${a}) - ${game.playerList[n].team}`;
+}
+/**
+ * @param {string} n
+ * @param {string} a
+ */
+function setJListSpectatorAccount(n, a) {
+    const c = document.getElementById(`JLIST-spectator-${n}`);
+    if (!c) return;
+    c.children[0].textContent = `${n} (${a})`;
+}
+/**
+ * @param {number|string} n
+ * @param {string} a
+ */
+function setJListSelfAccount(n, a) {
+    const c = document.getElementById(`JLIST-player-${n}`);
+    if (!c) return;
+    c.children[0].textContent = `${n} (${a}) [self]`
+}
+
+/**
  * @param {number|string} n
  */
 function addJListSelf(n) {
     const row = document.createElement("tr");
     row.scope = "row";
     row.id = `JLIST-player-${n}`;
-    row.append(makeTD(`${n} (self)`));
+    row.append(makeTD(`${n} (Guest) [self]`));
     row.append(makeTD(typeof n === "number" ? (n === game.hostNum ? "Host" : "Player") : "Spectator"));
     // row.append(...makeJListActions("self"));
     row.append(makeTD("--:--"));
@@ -97,13 +125,13 @@ function addJListSelf(n) {
     joinedList.append(row);
 }
 /**
- * @param {number} n
+ * @param {[number,number,string|null]} n
  */
 function addJListPlayer(n) {
     const row = document.createElement("tr");
     row.scope = "row";
     row.id = `JLIST-player-${n}`;
-    row.append(makeTD(n));
+    row.append(makeTD(`${n[0]} (${n[2]??"Guest"}) - ${n[1]}`));
     row.append(makeTD(n === game.hostNum ? "Host" : "Player"));
     row.append(makeTD("--:--"));
     // row.append(...makeJListActions("player", n));
@@ -120,13 +148,13 @@ function removeJListPlayer(n) {
     joinedList.removeChild(c);
 }
 /**
- * @param {string} n
+ * @param {[string,string|null]} n
  */
 function addJListSpectator(n) {
     const row = document.createElement("tr");
     row.id = `JLIST-spectator-${n}`;
     row.scope = "row";
-    row.append(makeTD(n));
+    row.append(makeTD(`${n[0]} (${n[1]??"Guest"})`));
     row.append(makeTD("Spectator"));
     row.append(makeTD(""));
     // row.append(...makeJListActions("spectator", n));

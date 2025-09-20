@@ -24,6 +24,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let closeL;
     let errorL;
     (() => {
+    if (args["acc"]) {
+        state.accId = args["acc"];
+    }
     const public = args["type"] === 1;
     const dims = getDims(args["dims"], globals.state);
     const playerCapacity = Number.parseInt(args["players"]);

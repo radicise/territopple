@@ -332,6 +332,24 @@ conn.addEventListener("open", async function(event) {
             //     //
             //     break;
             // }
+            case "account:found": {
+                const n = data.payload["n"];
+                /**@type {string} */
+                const a = data.payload["a"];
+                if (typeof n === "number") {
+                    game.playerList[n].accId = a;
+                }
+                if (n === ifmt.pln) {
+                    setJListSelfAccount(n, a);
+                } else {
+                    if (typeof n === "number") {
+                        setJListPlayerAccount(n, a);
+                    } else {
+                        setJListSpectatorAccount(n, a);
+                    }
+                }
+                break;
+            }
             case "waiting:promote":{
                 if (game.hostNum) {
                     const c = document.getElementById(`JLIST-player-${game.hostNum}`);
@@ -513,17 +531,17 @@ conn.addEventListener("open", async function(event) {
                 break;
             }
             case "game:jlist":{
-                /**@type {[number, number][]} */
+                /**@type {[number, number, string|null][]} */
                 const pl = data.payload["p"];
-                /**@type {string[]} */
+                /**@type {[string,string|null][]} */
                 const sl = data.payload["s"];
                 for (const p of pl) {
                     if (ifmt.pln) {
                         if (p[0] === ifmt.pln) continue;
                     }
                     game.joinedPlayers ++;
-                    game.playerList[p[0]] = {team:p[1]};
-                    addJListPlayer(p[0]);
+                    game.playerList[p[0]] = {team:p[1],accId:p[2]};
+                    addJListPlayer(p);
                 }
                 for (const s of sl) {
                     addJListSpectator(s);

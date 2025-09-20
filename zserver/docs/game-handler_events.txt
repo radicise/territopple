@@ -1,6 +1,9 @@
 ALL HANDLERS AUTOMATICALLY ADD "#gameid" TO THEIR EMITTED DATA, POPULATED WITH THEIR GAME ID
 ALL HANDLERS WILL ONLY RECIEVE EMISSIONS IF THE EMITTED DATA CONTAINS A "#gameid" PROPERTY THAT MATCHES THEIR GAME ID
 
+account:
+    found (n [player num | spectator id]: number | string, a [account id]: string)
+
 waiting:
     start (void)
     promote (n [player num]: number)
@@ -34,8 +37,8 @@ ping: (n [player num]: number, kind: string | null)
 HANDLER ARGS:
     ~~error (code: number, data: string)~~
     error (data: string, redirect?: string)
-    join (id [game id]: string, asSpectator: boolean)
+    join (id [game id]: string, asSpectator: boolean, acc? [account id]: string)
     leave (isHost: boolean)
     waiting (isHost: boolean)
-    create (type [conn type]: number, width: string, height: string, players: string, id [game id to use]: string)
-    rejoin (id [game id]: string, n [player num]: string, key [rejoin key]: string)
+    create (type [conn type]: number, width: string, height: string, players: string, id [game id to use]: string, acc? [account id]: string)
+    rejoin (id [game id]: string, n [player num]: string, key [rejoin key]: string, acc? [account id]: string)
