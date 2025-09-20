@@ -367,6 +367,18 @@ const internal_server = http.createServer((req, res) => {});
 class SessionManager {
     /**@type {Record<string,[string,number]>} */
     static #sessions = {};
+    /**@type {Record<string, string>} */
+    static #inverse_map = {};
+    /**
+     * @returns {string}
+     */
+    static #generateToken() {
+        let t;
+        do {
+            t = randomBytes(32).toString("base64url");
+        } while (t in this.#inverse_map);
+        return t;
+    }
     /**
      * returns base64url encoded token
      * @param {string} id account id to create the token for
@@ -377,8 +389,9 @@ class SessionManager {
             this.refreshSession(id);
             return this.#sessions[id][0];
         }
-        const token = randomBytes(32).toString("base64url");
+        const token = this.#generateToken();
         this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, 1000*60*30)];
+        this.#inverse_map[token] = id;
         return token;
     }
     /**
@@ -386,7 +399,7 @@ class SessionManager {
      * @returns {string}
      */
     static getAccountId(sessionid) {
-        return this.#sessions[sessionid][0];
+        return this.#inverse_map[sessionid];
     }
     /**
      * verifies that the session token corresponds to the given account id
@@ -410,6 +423,7 @@ class SessionManager {
      * @param {string} id
      */
     static #expireToken(id) {
+        delete this.#inverse_map[this.#sessions[id][0]];
         delete this.#sessions[id];
     }
     static debug() {
