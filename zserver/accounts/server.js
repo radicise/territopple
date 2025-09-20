@@ -419,9 +419,9 @@ const internal_server = http.createServer((req, res) => {
 
 class SessionManager {
     /**@type {Record<string,[string,number]>} */
-    static #sessions = {};
+    static sessions = {};
     /**@type {Record<string, string>} */
-    static #inverse_map = {};
+    static inverse_map = {};
     /**
      * @returns {string}
      */
@@ -429,7 +429,7 @@ class SessionManager {
         let t;
         do {
             t = randomBytes(32).toString("base64url");
-        } while (t in this.#inverse_map);
+        } while (t in this.inverse_map);
         return t;
     }
     /**
@@ -438,13 +438,13 @@ class SessionManager {
      * @returns {string}
      */
     static createSession(id) {
-        if (id in this.#sessions) {
+        if (id in this.sessions) {
             this.refreshSession(id);
-            return this.#sessions[id][0];
+            return this.sessions[id][0];
         }
         const token = this.#generateToken();
-        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT)];
-        this.#inverse_map[token] = id;
+        this.sessions[id] = [token,setTimeout(()=>{this.expireToken(id);}, SESS_TIMEOUT)];
+        this.inverse_map[token] = id;
         return token;
     }
     /**
@@ -452,7 +452,7 @@ class SessionManager {
      * @returns {string}
      */
     static getAccountId(sessionid) {
-        return this.#inverse_map[sessionid];
+        return this.inverse_map[sessionid];
     }
     /**
      * verifies that the session token corresponds to the given account id
@@ -461,29 +461,29 @@ class SessionManager {
      * @returns {boolean}
      */
     static verifySession(token, id) {
-        if (!(id in this.#sessions)) return;
-        return this.#sessions[id][0] === token;
+        if (!(id in this.sessions)) return;
+        return this.sessions[id][0] === token;
     }
     /**
      * @param {string} id
      */
     static refreshSession(id) {
-        if (!(id in this.#sessions)) return;
-        clearTimeout(this.#sessions[id][1]);
-        this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT);
+        if (!(id in this.sessions)) return;
+        clearTimeout(this.sessions[id][1]);
+        this.sessions[id][1] = setTimeout(()=>{this.expireToken(id);}, SESS_TIMEOUT);
     }
     /**
      * @param {string} id
      */
-    static #expireToken(id) {
-        delete this.#inverse_map[this.#sessions[id][0]];
-        delete this.#sessions[id];
+    static expireToken(id) {
+        delete this.inverse_map[this.sessions[id][0]];
+        delete this.sessions[id];
     }
     static debug() {
-        console.log(this.#sessions);
+        console.log(this.sessions);
     }
     static save() {
-        fs.writeFileSync(path.join(path.resolve("~"), "sessions.json"), JSON.stringify({"s":Object.entries(this.#sessions).map(v => [v[0], v[1][1]]),"e":Object.entries(account_creation_info)}));
+        fs.writeFileSync(path.join(path.resolve("~"), "sessions.json"), JSON.stringify({"s":Object.entries(this.sessions).map(v => [v[0], v[1][1]]),"e":Object.entries(account_creation_info)}));
         process.exit(1);
     }
     static load() {
@@ -496,16 +496,14 @@ class SessionManager {
             account_creation_info[k].timeoutid = setTimeout(()=>{delete account_creation_info[k];}, ACC_CREAT_TIMEOUT);
         }
         for (const l of o.s) {
-            this.#sessions[l[0]] = [l[1], setTimeout(()=>{this.#expireToken(l[0]);}, SESS_TIMEOUT)];
-            this.#inverse_map[l[1]] = l[0];
+            this.sessions[l[0]] = [l[1], setTimeout(()=>{this.expireToken(l[0]);}, SESS_TIMEOUT)];
+            this.inverse_map[l[1]] = l[0];
         }
-    }
-    static {
-        process.on("SIGINT", SessionManager.save);
-        process.on("SIGTERM", SessionManager.save);
     }
 }
 SessionManager.load();
+process.on("SIGINT", SessionManager.save);
+process.on("SIGTERM", SessionManager.save);
 
 
 public_server.listen(settings.AUTHPORT);
