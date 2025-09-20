@@ -207,7 +207,7 @@ process.once("message", (id) => {
             if (p !== -1) {
                 const e = req.headers.cookie.indexOf(";", p+10);
                 const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
-                http.get(`127.0.0.1:${settings.AUTHINTERNALPORT}/resolve-session?id=${id}`, (res) => {
+                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${id}`, (res) => {
                     if (res.statusCode !== 200) {
                         return;
                     }
