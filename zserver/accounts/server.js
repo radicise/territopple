@@ -483,7 +483,9 @@ class SessionManager {
         console.log(this.#sessions);
     }
     static save() {
-        fs.writeFileSync(path.join(process.env.HOME, "sessions.json"), JSON.stringify({"s":Object.entries(this.#sessions).map(v => [v[0], v[1][0]]),"e":Object.entries(account_creation_info).forEach(v => v[1].timeoutid = null)}));
+        const o = {"s":Object.entries(this.#sessions).map(v => [v[0], v[1][0]]),"e":Object.entries(account_creation_info)};
+        o.e.forEach(v => v[1].timeoutid = null);
+        fs.writeFileSync(path.join(process.env.HOME, "sessions.json"), JSON.stringify(o));
         process.exit(1);
     }
     static load() {
