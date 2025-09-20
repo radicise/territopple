@@ -487,7 +487,7 @@ class SessionManager {
         process.exit(1);
     }
     static load() {
-        const p = path.join("~", "sessions.json");
+        const p = path.join(process.env.HOME, "sessions.json");
         if (!fs.existsSync(p)) return;
         const o = JSON.parse(fs.readFileSync(p));
         fs.unlinkSync(p);
