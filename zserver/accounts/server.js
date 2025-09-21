@@ -88,7 +88,7 @@ class FatalError extends Error {
  */
 async function processPubFetch(req, res, url, log) {
     if (url.pathname === "/acc/pub/logout") {
-        res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'; Expires=Thu, 1 Jan 1970 23:59:59 GMT; Max-Age=0"}).end();
+        res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'; Expires=Thu, 1 Jan 1970 23:59:59 GMT; Max-Age=120"}).end();
         return;
     }
     /**@type {(op:string)=>void} */
