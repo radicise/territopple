@@ -26,6 +26,15 @@
                     document.getElementById("acc-id").textContent = "unauthorized";
                     return;
                 }
+                if (sendID === "%40self") {
+                    const b = document.createElement("input");
+                    b.type = "button";
+                    b.value = "logout";
+                    b.onclick = () => {
+                        fetch("https://territopple/acc/pub/logout", {method:"GET"}).then(() => {location.reload();});
+                    }
+                    document.insertBefore(document.querySelector("script"), b);
+                }
                 // v = JSON.parse(v.text);
                 v.json().then(j => {
                     document.getElementById("acc-id").textContent = j.id;
