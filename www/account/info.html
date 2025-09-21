@@ -31,9 +31,9 @@
                     b.type = "button";
                     b.value = "logout";
                     b.onclick = () => {
-                        fetch("https://territopple/acc/pub/logout", {method:"GET"}).then(() => {location.reload();});
+                        fetch("https://territopple.net/acc/pub/logout", {method:"GET"}).then(() => {location.reload();});
                     }
-                    document.getElementById("acc").appendChild(b);
+                    document.getElementById("acc").append(document.createElement("br"), b);
                 }
                 // v = JSON.parse(v.text);
                 v.json().then(j => {
