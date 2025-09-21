@@ -103,6 +103,7 @@ function extractSessionId(cookie) {
 async function processPubFetch(req, res, url, log) {
     if (url.pathname === "/acc/pub/logout") {
         SessionManager.deleteToken(extractSessionId(req.headers.cookie));
+        res.writeHead(200).end();
         // res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'"}).end();
         return;
     }
