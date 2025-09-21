@@ -28,7 +28,7 @@
                 }
                 // v = JSON.parse(v.text);
                 v.json().then(j => {
-                    if (sendID === "%40self" || sendID === j.id) {
+                    if (sendID === "%40self" || sendID === j.rid) {
                         const b = document.createElement("input");
                         b.type = "button";
                         b.value = "logout";

@@ -112,6 +112,7 @@ async function processPubFetch(req, res, url, log) {
     //     }
     // }
     let self = false;
+    let rid;
     if (req.headers.cookie) {
         const p = req.headers.cookie.indexOf("sessionId");
         if (p === -1 && target === "%40self") {
@@ -120,6 +121,7 @@ async function processPubFetch(req, res, url, log) {
         }
         const e = req.headers.cookie.indexOf(";", p+10);
         const me = SessionManager.getAccountId(req.headers.cookie.substring(p+10, e>0?e:undefined));
+        rid = me;
         if (target === "%40self") {
             if (!me) {
                 res.writeHead(403).end();
@@ -149,7 +151,7 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = await collection.findOne({id:target});
                 v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction}));
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction,rid}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
