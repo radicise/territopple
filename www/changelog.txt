@@ -1,3 +1,6 @@
+# Sep 21, 2025
+updated credits
+
 # Sep 20, 2025
 added changelog
 released accounts
