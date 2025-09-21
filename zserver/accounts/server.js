@@ -88,27 +88,47 @@ class FatalError extends Error {
  */
 async function processPubFetch(req, res, url, log) {
     if (url.pathname === "/acc/pub/logout") {
-        res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'; Expires=Thu, 1 Jan 1970 23:59:59 GMT; Max-Age=120"}).end();
+        res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'"}).end();
         return;
     }
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
     const stripped = url.pathname.substring(ACC_PUB_PREFIX.length); // strip the public data path prefix
     let target = stripped.substring(1, stripped.indexOf("/", 1));
+    // let self = false;
+    // if (target === "%40self") {
+    //     self = true;
+    //     const p = req.headers.cookie.indexOf("sessionId");
+    //     if (p === -1) {
+    //         res.writeHead(403).end();
+    //         return;
+    //     }
+    //     const e = req.headers.cookie.indexOf(";", p+10);
+    //     console.log(req.headers.cookie.substring(p+10, e>0?e:undefined));
+    //     target = SessionManager.getAccountId(req.headers.cookie.substring(p+10, e>0?e:undefined));
+    //     if (!target) {
+    //         res.writeHead(403).end();
+    //         return;
+    //     }
+    // }
     let self = false;
-    if (target === "%40self") {
-        self = true;
+    if (req.headers.cookie) {
         const p = req.headers.cookie.indexOf("sessionId");
-        if (p === -1) {
+        if (p === -1 && target === "%40self") {
             res.writeHead(403).end();
             return;
         }
         const e = req.headers.cookie.indexOf(";", p+10);
-        console.log(req.headers.cookie.substring(p+10, e>0?e:undefined));
-        target = SessionManager.getAccountId(req.headers.cookie.substring(p+10, e>0?e:undefined));
-        if (!target) {
-            res.writeHead(403).end();
-            return;
+        const me = SessionManager.getAccountId(req.headers.cookie.substring(p+10, e>0?e:undefined));
+        if (target === "%40self") {
+            if (!me) {
+                res.writeHead(403).end();
+                return;
+            }
+            target = me;
+        }
+        if (target === me) {
+            self = true;
         }
     }
     const resource = stripped.substring(stripped.indexOf("/", 1));
