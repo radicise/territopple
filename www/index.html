@@ -109,22 +109,13 @@
                 align-content: center;
                 text-align: center;
             }
-            div#account-name {
-                position: absolute;
-                right: 0px;
-                top: 0px;
-                margin-right: 5px;
-                margin-top: 5px;
-            }
         </style>
     </head>
     <body>
         <!-- <meta data-import="/components/display-settings.html" /> -->
         <!-- <meta data-import="/components/display-settings.html" data-scripts="/displaycontrols.js" /> -->
         <!-- <div id="test"></div> -->
-        <div id="account-name">
-            <a href="/account/login" target="_self">Guest</a>
-        </div>
+        <meta data-import="/components/accounts/disp.html" />
         <div id="splash-banner">
             <h1 id="splash-main">Territopple</h1>
         </div>
@@ -252,13 +243,6 @@
                     }
                     contact_modal.children[0].prepend(...nodes);
                 });
-            });
-            fetch(`https://${document.location.hostname}/acc/pub/%40self/info`).then(v => {
-                if (v.status === 200) {
-                    v.json().then(j => {
-                        document.getElementById("account-name").children[0].textContent = j.name;
-                    });
-                }
             });
         </script>
     </body>
