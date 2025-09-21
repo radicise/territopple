@@ -4,6 +4,11 @@
         <script src="/_icons.js"></script>
         <title>Home - Territopple</title>
         <style>
+            ul.credit-list {
+                list-style: none outside;
+                margin-top: 0.25em;
+                padding-left: 0.75em;
+            }
             div.modal {
                 position: absolute;
                 left: 0px;
@@ -104,12 +109,22 @@
                 align-content: center;
                 text-align: center;
             }
+            div#account-name {
+                position: absolute;
+                right: 0px;
+                top: 0px;
+                margin-right: 5px;
+                margin-top: 5px;
+            }
         </style>
     </head>
     <body>
         <!-- <meta data-import="/components/display-settings.html" /> -->
         <!-- <meta data-import="/components/display-settings.html" data-scripts="/displaycontrols.js" /> -->
         <!-- <div id="test"></div> -->
+        <div id="account-name">
+            <a href="/account/login" target="_self">Guest</a>
+        </div>
         <div id="splash-banner">
             <h1 id="splash-main">Territopple</h1>
         </div>
@@ -133,7 +148,7 @@
             </div>
             <div>
                 <a target="_blank" href="https://github.com/radicise/territopple" class="button-link">Check Out The GitHub!</a>
-                <a onclick="document.getElementById('coming-soon-modal').hidden=false;" class="button-link">About & Credits</a>
+                <a onclick="document.getElementById('credits-modal').hidden=false;" class="button-link">About & Credits</a>
             </div>
             <!-- <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
@@ -141,6 +156,34 @@
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a> -->
+        </div>
+        <div id="credits-modal" class="modal" hidden>
+            <div>
+                <div style="max-height: 60vh;overflow-y: scroll;">
+                    Territopple is inspired by the game Culture by Secret Lab Pty. Ltd.<br><br>
+                    Logo / Tab Icon:<br>
+                    <ul class="credit-list"><li>Vihaan Jim</li></ul>
+                    Direction:<br>
+                    <ul class="credit-list"><li>Andrew Rivera</li></ul>
+                    Programming:<br>
+                    <ul class="credit-list">
+                        <li>Tristan Schartman</li>
+                        <li>Andrew Rivera</li>
+                        <li>Vihaan Jim</li>
+                    </ul>
+                    Systems Testing:<br>
+                    <ul class="credit-list">
+                        <li>Tristan Schartman</li>
+                    </ul>
+                    Gameplay Testing:<br>
+                    <ul class="credit-list">
+                        <li>Andrew 'Ready Player One' Rivera</li>
+                        <li>Vihaan 'That Was Not The Move' Jim</li>
+                        <li>Tristan 'It'll Be Fine' Schartman</li>
+                    </ul>
+                </div><br>
+                <input type="button" value="close" onclick="document.getElementById('credits-modal').hidden=true;">
+            </div>
         </div>
         <div id="cookie-modal" class="modal" hidden>
             <div>
@@ -209,6 +252,13 @@
                     }
                     contact_modal.children[0].prepend(...nodes);
                 });
+            });
+            fetch(`https://${document.location.hostname}/acc/pub/info?id=%40self`).then(v => {
+                if (v.status === 200) {
+                    v.json().then(j => {
+                        document.getElementById("account-name").children[0].textContent = j.name;
+                    });
+                }
             });
         </script>
     </body>
