@@ -253,7 +253,7 @@
                     contact_modal.children[0].prepend(...nodes);
                 });
             });
-            fetch(`https://${document.location.hostname}/acc/pub/info?id=%40self`).then(v => {
+            fetch(`https://${document.location.hostname}/acc/pub/%40self/info`).then(v => {
                 if (v.status === 200) {
                     v.json().then(j => {
                         document.getElementById("account-name").children[0].textContent = j.name;
