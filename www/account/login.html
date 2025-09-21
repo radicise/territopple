@@ -13,6 +13,11 @@
         </div>
         <p>Don't have an account? <a href="/account/create" target="_self">create one</a> or <a href="/" target="_self">return home</a>.</p>
         <script>
+            fetch("https://territopple.net/acc/pub/logged-in", {method:"GET"}).then(v => {
+                if (v.status === 200) {
+                    location.href = "/";
+                }
+            });
             const id = document.getElementById("cf-id");
             const pw = document.getElementById("cf-pw");
             const msg = document.getElementById("msg");

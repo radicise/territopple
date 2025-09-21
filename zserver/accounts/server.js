@@ -107,6 +107,13 @@ async function processPubFetch(req, res, url, log) {
         // res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'"}).end();
         return;
     }
+    if (url.pathname === "/acc/pub/logged-in") {
+        if (SessionManager.getAccountId(extractSessionId(req.headers.cookie))) {
+            res.writeHead(200).end();
+        } else {
+            res.writeHead(400).end();
+        }
+    }
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
     const stripped = url.pathname.substring(ACC_PUB_PREFIX.length); // strip the public data path prefix
