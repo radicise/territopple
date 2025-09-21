@@ -30,8 +30,8 @@
                 v.json().then(j => {
                     document.getElementById("acc-id").textContent = j.id;
                     document.getElementById("acc-name").textContent = j.name;
-                    document.getElementById("acc-cdate").textContent = new Date(j.cdate).toLocaleDateString();
-                    document.getElementById("acc-lo").textContent = new Date(j.last_online).toLocaleDateString();
+                    document.getElementById("acc-cdate").textContent = new Date(j.cdate).toString();
+                    document.getElementById("acc-lo").textContent = new Date(j.last_online).toString();
                     document.getElementById("acc-lvl").textContent = j.level;
                     document.getElementById("acc-email").textContent = j.email ?? "unavailable";
                     if (j.sanction !== null) {
