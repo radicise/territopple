@@ -28,6 +28,7 @@
                 fetch("https://territopple.net/acc/login", {method:"POST",headers:[["Content-Type","application/json"]],body:JSON.stringify({"id":id.value,"pw":pw.value})}).then(v => {
                     if (v.status === 200) {
                         msg.textContent = "logged in, redirecting soon";
+                        location.href = "/account/info";
                     } else if (v.status === 403) {
                         msg.textContent = "incorrect credentials";
                     } else if (v.status === 500) {
