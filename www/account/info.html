@@ -5,7 +5,7 @@
         <title>Account Info - Territopple</title>
     </head>
     <body>
-        <div>
+        <div id="acc">
             ID: <span id="acc-id">...</span><br>
             Name: <span id="acc-name">...</span><br>
             Joined: <span id="acc-cdate">...</span><br>
@@ -34,6 +34,9 @@
                     document.getElementById("acc-lo").textContent = new Date(j.last_online).toLocaleDateString();
                     document.getElementById("acc-lvl").textContent = j.level;
                     document.getElementById("acc-email").textContent = j.email ?? "unavailable";
+                    if (j.sanction !== null) {
+                        document.getElementById("acc").append(`Sanction: ${j.sanction}`);
+                    }
                 });
             });
         </script>
