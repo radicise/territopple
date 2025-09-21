@@ -113,6 +113,7 @@ async function processPubFetch(req, res, url, log) {
         } else {
             res.writeHead(400).end();
         }
+        return;
     }
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
