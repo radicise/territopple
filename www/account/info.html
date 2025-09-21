@@ -33,7 +33,7 @@
                     b.onclick = () => {
                         fetch("https://territopple/acc/pub/logout", {method:"GET"}).then(() => {location.reload();});
                     }
-                    document.insertBefore(document.querySelector("script"), b);
+                    document.body.insertBefore(document.querySelector("script"), b);
                 }
                 // v = JSON.parse(v.text);
                 v.json().then(j => {
