@@ -125,7 +125,7 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = await collection.findOne({id:target});
                 v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,created:v.cdate,last_online:v.last_online,level:v.level}));
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,created:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
