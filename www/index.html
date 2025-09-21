@@ -136,6 +136,7 @@
             </div>
             <div>
                 <a onclick="document.getElementById('coming-soon-modal').hidden=false;" class="button-link">Want To Host Your Own Server?</a>
+                <a onclick="document.getElementById('changelog-modal').hidden=false;" class="button-link">Changelog</a>
             </div>
             <div>
                 <a target="_blank" href="https://github.com/radicise/territopple" class="button-link">Check Out The GitHub!</a>
@@ -179,6 +180,32 @@
                 </div><br>
                 <input type="button" value="close" onclick="document.getElementById('credits-modal').hidden=true;">
             </div>
+        </div>
+        <div id="changelog-modal" class="modal" hidden>
+            <div style="max-height: 60vh;overflow-y: scroll;">
+                <p></p>
+                <br>
+                <input type="button" value="close" onclick="document.getElementById('changelog-modal').hidden=true;">
+            </div>
+            <script>
+                fetch("https://territopple.net/changelog.txt", {method:"GET"}).then(v => {
+                    v.text().then(t => {
+                        const p = document.getElementById("changelog-modal").children[0].children[0];
+                        t.split("\n").forEach(v => {
+                            const l = v.trim();
+                            if (l.length) {
+                                if (l[0] === "#") {
+                                    const h = document.createElement("h3");
+                                    h.textContent = l.substring(1);
+                                    p.append(h);
+                                } else {
+                                    p.append(l, document.createElement("br"));
+                                }
+                            }
+                        });
+                    });
+                });
+            </script>
         </div>
         <div id="cookie-modal" class="modal" hidden>
             <div>
