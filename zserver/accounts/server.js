@@ -110,10 +110,22 @@ async function processPubFetch(req, res, url, log) {
     const resource = stripped.substring(stripped.indexOf("/", 1));
     console.log(`${target} , ${resource}`);
     switch (resource) {
+        case "/sanction": {
+            try {
+                const v = await collection.findOne({id:target});
+                v._id;
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction));
+            } catch (E) {
+                console.log(E);
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/info": {
             try {
                 const v = await collection.findOne({id:target});
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined}));
+                v._id;
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,created:v.cdate,last_online:v.last_online,level:v.level}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
@@ -194,6 +206,14 @@ async function sendEmailVerification(email, code_href) {
     });
 }
 
+/**
+ * @param {string} id
+ * @returns {string}
+ */
+function makeSessionCookie(id) {
+    return `sessionId=${id}; Same-Site=Lax; Secure; Http-Only; Path=/`;
+}
+
 // used to process requests for account management and public data fetching
 const public_server = http.createServer(async (req, res) => {
     const url = new URL("http://localhost"+req.url);
@@ -259,7 +279,8 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
-                        res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
+                        // res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
+                        res.writeHead(200, {"Set-Cookie":makeSessionCookie(SessionManager.createSession(data.id))}).end();
                         try {
                             await collection.updateOne({id:data.id}, {"$set":{last_online:Date.now()}});
                         } catch (E) {
@@ -301,7 +322,7 @@ const public_server = http.createServer(async (req, res) => {
                     delete info["timeoutid"];
                     delete account_creation_info[body];
                     await collection.insertOne(info);
-                    res.writeHead(200).end(info.id);
+                    res.writeHead(200, {"Set-Cookie":makeSessionCookie(SessionManager.createSession(info.id))}).end(info.id);
                 } catch (E) {
                     console.log(E);
                     res.writeHead(500).end();
@@ -341,6 +362,7 @@ const public_server = http.createServer(async (req, res) => {
                         pwdata:auth.makePwData(data.pw),
                         level:0,
                         priv_level:0,
+                        sanction:null,
                         timeoutid:setTimeout(()=>{delete account_creation_info[code];}, ACC_CREAT_TIMEOUT)
                     };
                     res.writeHead(200).end();
@@ -408,14 +430,16 @@ const internal_server = http.createServer((req, res) => {
         res.writeHead(405).end();
         return;
     }
-    if (url.pathname === "/resolve-session") {
-        const id = SessionManager.getAccountId(url.searchParams.get("id"));
-        if (id) {
-            res.writeHead(200).end(id);
-        } else {
-            res.writeHead(404).end();
+    switch (url.pathname) {
+        case "/resolve-session":{
+            const id = SessionManager.getAccountId(url.searchParams.get("id"));
+            if (id) {
+                res.writeHead(200).end(id);
+            } else {
+                res.writeHead(404).end();
+            }
+            return;
         }
-        return;
     }
 });
 

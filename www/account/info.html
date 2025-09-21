@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <script src="/_icons.js"></script>
         <title>Account Info - Territopple</title>
     </head>
     <body>
         <div>
             ID: <span id="acc-id">...</span><br>
             Name: <span id="acc-name">...</span><br>
+            Joined: <span id="acc-cdate">...</span><br>
+            Last Online: <span id="acc-lo">...</span><br>
+            Level: <span id="acc-lvl">...</span><br>
             Email: <span id="acc-email">...</span>
         </div>
         <script>
@@ -26,6 +30,9 @@
                 v.json().then(j => {
                     document.getElementById("acc-id").textContent = j.id;
                     document.getElementById("acc-name").textContent = j.name;
+                    document.getElementById("acc-cdate").textContent = new Date(j.cdate).toLocaleDateString();
+                    document.getElementById("acc-lo").textContent = new Date(j.last_online).toLocaleDateString();
+                    document.getElementById("acc-lvl").textContent = j.level;
                     document.getElementById("acc-email").textContent = j.email ?? "unavailable";
                 });
             });
