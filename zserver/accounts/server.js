@@ -80,6 +80,20 @@ class FatalError extends Error {
  */
 
 /**
+ * @param {string} cookie
+ * @returns {string|null}
+ */
+function extractSessionId(cookie) {
+    if (!cookie) return null;
+    const p = cookie.indexOf("sessionId");
+    if (p === -1) {
+        return null;
+    }
+    const e = cookie.indexOf(";", p+10);
+    return cookie.substring(p+10, e>0?e:undefined);
+}
+
+/**
  * processes the unsecured public data fetch operations
  * @param {http.IncomingMessage} req
  * @param {http.ServerResponse} res
@@ -88,7 +102,8 @@ class FatalError extends Error {
  */
 async function processPubFetch(req, res, url, log) {
     if (url.pathname === "/acc/pub/logout") {
-        res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'"}).end();
+        SessionManager.deleteToken(extractSessionId(req.headers.cookie));
+        // res.writeHead(200,{"Set-Cookie":"sessionId=none; Secure; Same-Site=Lax; Http-Only; Path='/'"}).end();
         return;
     }
     /**@type {(op:string)=>void} */
@@ -523,6 +538,13 @@ class SessionManager {
         if (!(id in this.#sessions)) return;
         clearTimeout(this.#sessions[id][1]);
         this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT);
+    }
+    /**
+     * @param {string} token
+     */
+    static deleteToken(token) {
+        if (!(token in this.#inverse_map)) return;
+        this.#expireToken(this.#inverse_map[token]);
     }
     /**
      * @param {string} id
