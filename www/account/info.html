@@ -26,17 +26,17 @@
                     document.getElementById("acc-id").textContent = "unauthorized";
                     return;
                 }
-                if (sendID === "%40self") {
-                    const b = document.createElement("input");
-                    b.type = "button";
-                    b.value = "logout";
-                    b.onclick = () => {
-                        fetch("https://territopple.net/acc/pub/logout", {method:"GET"}).then(() => {return;location.reload();});
-                    }
-                    document.getElementById("acc").append(document.createElement("br"), b);
-                }
                 // v = JSON.parse(v.text);
                 v.json().then(j => {
+                    if (sendID === "%40self" || sendID === j.id) {
+                        const b = document.createElement("input");
+                        b.type = "button";
+                        b.value = "logout";
+                        b.onclick = () => {
+                            fetch("https://territopple.net/acc/pub/logout", {method:"GET"}).then(() => {return;location.reload();});
+                        }
+                        document.getElementById("acc").append(document.createElement("br"), b);
+                    }
                     document.getElementById("acc-id").textContent = j.id;
                     document.getElementById("acc-name").textContent = j.name;
                     document.getElementById("acc-cdate").textContent = new Date(j.cdate).toString();
