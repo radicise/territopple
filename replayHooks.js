@@ -56,11 +56,14 @@ function formatMoveData(game, tile) {
         // default:
         //     return Buffer.of(...nbytes(row, 2), ...nbytes(col, 2));
         case 0:
-            return Buffer.from(nbytes(tile, 2));
+            return Buffer.from(nbytes(tile, 1));
         case 1:
-            return Buffer.from(nbytes(tile, 3));
+            return Buffer.from(nbytes(tile, 2));
         case 2:
+            return Buffer.from(nbytes(tile, 3));
             // return Buffer.of((row & 0xf00)>>8, row & 0xff, (col & 0xf00)>>8, col & 0xff);
+        case 3:
+            return Buffer.from(nbytes(tile, 4));
         default:
             // return Buffer.of(...nbytes(row, 2), ...nbytes(col, 2));
             throw new Error("reserved");
@@ -219,10 +222,24 @@ function onMove(game, tile, id) {
     }
     let md = formatMoveData(game, tile);
     if (game.idstrategy === 0) {
-        if (getFlag(game, 6, 2) === 0) {
-            md[0] = (id << 2) | md[0];
-        } else {
-            game.buffer.push(Buffer.of(id));
+        // if (getFlag(game, 6, 2) === 0) {
+        //     md[0] = (id << 2) | md[0];
+        // } else {
+        //     game.buffer.push(Buffer.of(id));
+        // }
+        switch (getFlag(game, 6, 2)) {
+            case 0:
+                md[0] = (md[0] & 0x1f) | (id<<5);
+                break;
+            case 1:
+                md[0] = (md[0] & 3) | (id<<2);
+                break;
+            case 2:
+                md[0] = id;
+                break;
+            case 3:
+                md[0] = (id >> 4);
+                md[1] = (md[1] & 0xf) | ((id & 0xf) << 4);
         }
     }
     game.buffer.push(md);
