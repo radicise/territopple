@@ -86,7 +86,7 @@ export class ReplayParser {
      */
     constructor(replay_data) {
         /**@type {ConsumableBytes} */
-        this.raw_data = ConsumableBytes(replay_data);
+        this.raw_data = new ConsumableBytes(replay_data);
         /**@type {number} */
         const version = this.raw_data.peek(1);
         if (!version in PARSERS) {
