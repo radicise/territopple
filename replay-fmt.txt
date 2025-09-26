@@ -179,7 +179,7 @@ SWITCH (TYPE):
 0 -> PLAYER ELIM: - player eliminated from turn order, reason not important
     BYTE - player number
 1 -> PLAYER MOVE: - player moved
-    SWITCH (SIZE):
+    SWITCH (SIZE): NOTE: P bits are tile bits if ORDER is unset
         00 ->:
             BYTE[1] - P(3),I(5)
         01 ->:
