@@ -103,7 +103,7 @@ let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
         let s;
         if (name !== "_") {
             s = document.createElement("script");
-            s.src = `helpers/render/${name}.js`;
+            s.src = `/helpers/render/${name}.js`;
         } else {
             s = document.getElementById("SCRIPT-r3d");
         }
