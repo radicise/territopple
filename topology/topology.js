@@ -81,6 +81,12 @@ export class Topology {
      * @returns {number}
      */
     getRequiredBits(tindex) {}
+    /**
+     * formats the given tile index into a human readable move
+     * @param {number} tindex
+     * @returns {string}
+     */
+    formatMove(tindex) {}
 }
 
 /**
@@ -183,6 +189,13 @@ export class TGrid2D extends Topology {
         }
         return 2;
     }
+    /**
+     * @param {number} tindex
+     * @returns {string}
+     */
+    formatMove(tindex) {
+        return `${tindex%this.width+1}x${Math.floor(tindex/this.width)+1}`;
+    }
 }
 
 export class THWrap2D extends Topology {
@@ -278,6 +291,13 @@ export class THWrap2D extends Topology {
     getRequiredBits(tindex) {
         return 2;
     }
+    /**
+     * @param {number} tindex
+     * @returns {string}
+     */
+    formatMove(tindex) {
+        return `${tindex%this.width+1}x${Math.floor(tindex/this.width)+1}`;
+    }
 }
 export class TVWrap2D extends Topology {
     /**
@@ -371,6 +391,13 @@ export class TVWrap2D extends Topology {
      */
     getRequiredBits(tindex) {
         return 2;
+    }
+    /**
+     * @param {number} tindex
+     * @returns {string}
+     */
+    formatMove(tindex) {
+        return `${tindex%this.width+1}x${Math.floor(tindex/this.width)+1}`;
     }
 }
 export class TBWrap2D extends Topology {
@@ -469,6 +496,13 @@ export class TBWrap2D extends Topology {
      */
     getRequiredBits(tindex) {
         return 2;
+    }
+    /**
+     * @param {number} tindex
+     * @returns {string}
+     */
+    formatMove(tindex) {
+        return `${tindex%this.width+1}x${Math.floor(tindex/this.width)+1}`;
     }
 }
 
