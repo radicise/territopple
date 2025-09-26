@@ -66,7 +66,7 @@ class Replayer {
         if (files.length !== 1) return alert("must select a file");
         files[0].arrayBuffer().then(v => {
             try {
-                this.parser = parser.ReplayParser(new Uint8Array(v));
+                this.parser = new parser.ReplayParser(new Uint8Array(v));
                 this.topo = topology.makeTopology(topology.formatDimensions([this.parser.header.topology_id, ...this.parser.header.topology_data.params]));
                 this.init_replay();
                 this.broken = false;
