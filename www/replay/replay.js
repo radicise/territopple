@@ -72,6 +72,7 @@ class Replayer {
                 this.broken = false;
             } catch (E) {
                 alert(E.message);
+                console.error(E);
                 this.broken = true;
             }
         });
