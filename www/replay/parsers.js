@@ -93,7 +93,7 @@ export class ReplayParser {
             throw new Error("invalid version");
         }
         /**@type {AParser} */
-        this.parser = PARSERS[version](this.raw_data);
+        this.parser = new PARSERS[version](this.raw_data);
     }
     /**
      * @returns {ReplayHeader}
