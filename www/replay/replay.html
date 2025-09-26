@@ -30,6 +30,15 @@
         </div>
         <input type="file" id="replay-upload" multiple="false"><input type="button" value="load" onclick="load_replay()">
         <!-- <script src="/soldemo.js"></script> -->
+         <script type="importmap">
+            {
+                "imports": {
+                    "three": "/three/build/three.module.js",
+                    "three/addons/": "/three/examples/jsm/",
+                    "topology/": "/topology/"
+                }
+            }
+        </script>
         <script src="/components/include.js"></script>
         <script src="/replay/replay.js" type="module"></script>
     </body>
