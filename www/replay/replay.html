@@ -39,6 +39,14 @@
                 }
             }
         </script>
+        <script>
+            function load_replay() {
+                window.postMessage({type:"replay-load"});
+            }
+            function replay_step() {
+                window.postMessage({type:"replay-step"});
+            }
+        </script>
         <script src="/components/include.js"></script>
         <script src="/replay/replay.js" type="module"></script>
     </body>

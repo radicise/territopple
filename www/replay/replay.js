@@ -167,5 +167,12 @@ class Replayer {
     }
 }
 
-const load_replay = Replayer.load_replay;
-const replay_step = Replayer.step_replay;
+// const load_replay = Replayer.load_replay;
+// const replay_step = Replayer.step_replay;
+window.addEventListener("message", (ev) => {
+    if (ev.data.type === "replay-load") {
+        Replayer.load_replay();
+    } else if (ev.data.type === "replay-step") {
+        Replayer.step_replay();
+    }
+});
