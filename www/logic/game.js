@@ -137,7 +137,7 @@ class Game {
         };
         document.getElementById("spherical-enable-bloom").onchange = () => {
             window.postMessage({type:"3d-setbloom",enabled:document.getElementById("spherical-enable-bloom").checked});
-        }
+        };
     }
     recalcDerived() {
         this.owned = new Array(6).fill(0);
