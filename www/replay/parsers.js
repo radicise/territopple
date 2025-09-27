@@ -140,7 +140,7 @@ function fromBytes(b, _) {
     for (let i = b.length-1; i >= 0; i --) {
         acc |= BigInt(b[i])<<BigInt(8*(b.length-i-1));
     }
-    if (_) return acc;
+    // if (_) return acc;
     return Number(acc);
 }
 /**
