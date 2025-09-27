@@ -203,10 +203,13 @@ class Game {
         this.spectators = {};
         /**@type {BigInt} */
         this.sort_key = null;
+        // this.__ended = false;
     }
     get buffer() {
-        console.log(new Error("TRACER"));
-        console.log(this._buffer);
+        // if (this.__ended) return [];
+        if (this.state.state === 2) return [];
+        // console.log(new Error("TRACER"));
+        // console.log(this._buffer);
         return this._buffer;
     }
     set buffer(v) {
