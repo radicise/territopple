@@ -436,7 +436,7 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:leave":{
                 game.joinedPlayers --;
-                createBanner({type:"info",content:`Player ${data.payload['n']} (${game.playerList[data.payload["n"]].accId??"Guest"}) has left`});
+                createBanner({type:"info",content:`Player ${data.payload['n']} (${game.playerList[data.payload["n"]]?.accId??"Guest"}) has left`});
                 game.playerList[data.payload["n"]] = null;
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 removeJListPlayer(data.payload["n"]);
