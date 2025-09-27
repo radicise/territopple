@@ -140,7 +140,7 @@ function onGameStarted(game, idstrategy, team_map) {
     if (Buffer.isBuffer(topologyData[0])) {
         game.buffer.push(...topologyData);
     } else {
-        game.buffer.push(Buffer.of(topologyData));
+        game.buffer.push(Buffer.from(topologyData));
     }
     game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint, 0xf0, 0x0f));
 }
