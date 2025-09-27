@@ -22,7 +22,7 @@ export class ConsumableBytes {
     consume = (count) => {
         console.log(`CONSUMING ${count} BYTES`);
         if (this._pos >= this._bytes.length) throw new Error("DATA ALL GONE");
-        if ((count ?? 1) <= 1 === 1) {
+        if ((count ?? 1) <= 1) {
             console.log(this._bytes[this._pos]);
             return this._bytes[this._pos++];
         }
