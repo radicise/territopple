@@ -286,7 +286,7 @@ conn.addEventListener("open", async function(event) {
                 const kind = arr[0];
                 switch (kind) {
                     case 1:{
-                        download_res(dat);
+                        download_res(new Blob([arr.slice(1)]));
                         return;
                     }
                     case 0:{
