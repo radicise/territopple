@@ -102,7 +102,9 @@ class Replayer {
         const ev = this.parser.nextEvent();
         if (ev === null) {
             // alert("End Of File");
-            document.querySelector('input[type="button"][value="step"]').enabled = false;
+            /**@type {HTMLInputElement} */
+            const stepbtn = document.getElementById("replay-step");
+            stepbtn.disabled = true;
             return;
         }
         switch (ev.type) {
