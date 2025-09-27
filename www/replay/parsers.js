@@ -192,7 +192,7 @@ class Version4 {
             if (this.header.order_strategy !== 0) {
                 throw new Error("standard order not supported yet");
             }
-            data.consume();
+            // data.consume();
             this.header.team_table = [];
             for (let i = 0; i < this.header.player_count; i ++) {
                 this.header.team_table.push(data.consume());

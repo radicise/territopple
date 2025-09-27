@@ -145,7 +145,7 @@ IF (ORDER):
     BYTE (STRATEGY) - order determination strategy - valid values are:
     - 0 - each move has the player number recorded with it
     - 1 - players go in standard order, but a team map is provided
-    BYTE (PADDING)
+    ~~BYTE (PADDING)~~
     FOR EACH player:
         BYTE - team assignment
     IF (player count) is odd:
