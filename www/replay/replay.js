@@ -153,7 +153,7 @@ class Replayer {
                 this.state.owned[tb[t]] --;
                 this.state.owned[team] ++;
                 tb[t] = team;
-                if (this.owned[team] === bb.length) {
+                if (this.state.owned[team] === bb.length) {
                     break;
                 }
             }
@@ -175,5 +175,7 @@ window.addEventListener("message", (ev) => {
         Replayer.load_replay();
     } else if (ev.data.type === "replay-step") {
         Replayer.step_replay();
+    } else if (ev.data.type === "replay-command") {
+        console.log(eval(ev.data.cmd));
     }
 });

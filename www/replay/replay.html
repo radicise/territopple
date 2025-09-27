@@ -46,6 +46,9 @@
             function replay_step() {
                 window.postMessage({type:"replay-step"});
             }
+            function exec(cmd) {
+                window.postMessage({type:"replay-command",cmd:cmd});
+            }
         </script>
         <script src="/components/include.js"></script>
         <script src="/replay/replay.js" type="module"></script>
