@@ -40,6 +40,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     } else {
                         state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                     }
+                    state.game.__ended = state.game.buffer.length;
                     emit("game:turn", {n:state.game.nextPlayer().turn,t:false});
                     state.game.state.state = 2;
                     emit("?phase");
@@ -105,9 +106,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         if (globals.state.saveReplays) {
                             onRecordReplay(state.game);
                         } else {
-                            console.log("end buffer");
+                            // console.log("end buffer");
                             state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                         }
+                        state.game.__ended = state.game.buffer.length;
                         state.game.state.state = 2;
                         emit("?phase");
                         emit("game:win", {t:state.game.players[state.playerNum].team,d:settings.REPLAYS.ENABLED});

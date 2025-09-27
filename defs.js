@@ -194,7 +194,8 @@ class Game {
         };
         extend(this.rules, state.rules||{});
         /**@type {Buffer[]} */
-        this._buffer = [];
+        this.buffer = [];
+        // this._buffer = [];
         /**@type {number} */
         this.timestamp = null;
         /**@type {Player[]} */
@@ -204,18 +205,19 @@ class Game {
         /**@type {BigInt} */
         this.sort_key = null;
         // this.__ended = false;
+        this.__ended = 0;
     }
-    get buffer() {
-        // if (this.__ended) return [];
-        if (this.state.state === 2) return [];
-        // console.log(new Error("TRACER"));
-        // console.log(this._buffer);
-        return this._buffer;
-    }
-    set buffer(v) {
-        // throw new Error("setting buffer?");
-        this._buffer = v;
-    }
+    // get buffer() {
+    //     // if (this.__ended) return [];
+    //     if (this.state.state === 2) return [];
+    //     // console.log(new Error("TRACER"));
+    //     // console.log(this._buffer);
+    //     return this._buffer;
+    // }
+    // set buffer(v) {
+    //     // throw new Error("setting buffer?");
+    //     this._buffer = v;
+    // }
     /**
      * @param {number|string} entid
      * @param {string} accid
@@ -311,20 +313,20 @@ class Game {
         // const tcol = tile % w;
         // const trow = (tile-tcol)/w;
         // onMove(this, trow, tcol, player);
-        console.log("move recorded");
+        // console.log("move recorded");
         onMove(this, tile, player);
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
-                    console.log("team eliminated");
+                    // console.log("team eliminated");
                     this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
                 }
                 this.state.owned[p.team] ++;
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
-                    console.log("win returned");
+                    // console.log("win returned");
                     return {win:true,turn:-1};
                 }
             }
@@ -870,7 +872,7 @@ class NetData {
          * @returns {Buffer}
          */
         static Replay(game) {
-            return Buffer.concat([Buffer.of(1), Buffer.concat(game.buffer)]);
+            return Buffer.concat([Buffer.of(1), Buffer.concat(game.buffer.slice(0, game.__ended))]);
         }
         /**
          * @param {Game} game
