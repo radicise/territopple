@@ -105,6 +105,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         if (globals.state.saveReplays) {
                             onRecordReplay(state.game);
                         } else {
+                            console.log("end buffer");
                             state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                         }
                         state.game.state.state = 2;

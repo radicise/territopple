@@ -299,17 +299,20 @@ class Game {
         // const tcol = tile % w;
         // const trow = (tile-tcol)/w;
         // onMove(this, trow, tcol, player);
+        console.log("move recorded");
         onMove(this, tile, player);
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
+                    console.log("team eliminated");
                     this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
                 }
                 this.state.owned[p.team] ++;
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
+                    console.log("win returned");
                     return {win:true,turn:-1};
                 }
             }
