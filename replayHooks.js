@@ -183,7 +183,7 @@ function onRecordReplay(game, options) {
  * MUST be called whenever a player is removed from the turn order for ANY reason
  */
 function onPlayerRemoved(game, playerNum) {
-    console.log(new Error("TRACING"));
+    // console.log(new Error("TRACING"));
     // if (game.buffer[0][9] & (1<<7)) {
     if (getFlag(game, 7, 1)) {
 		const ntime = Date.now();
