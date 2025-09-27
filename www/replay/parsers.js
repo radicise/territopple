@@ -197,9 +197,9 @@ class Version4 {
             for (let i = 0; i < this.header.player_count; i ++) {
                 this.header.team_table.push(data.consume());
             }
-            if (this.header.player_count%2 !== 0) {
-                data.consume();
-            }
+            // if (this.header.player_count%2 !== 0) {
+            //     data.consume();
+            // }
         }
         this.header.topology_data = {params:[]};
         if (this.header.CTOPOLOGY) {
@@ -215,7 +215,12 @@ class Version4 {
         }
         this.header.game_sid = fromBytes(data.consume(8), true);
         this.header.server_id = [...data.consume(16)].map((v,i) => v.toString(16).padStart(2,"0")+((i+1)%4===0)?"-":"").join("");
+        let c = 0;
         while (true) { // find start of events
+            if (c++ >= 4) {
+                console.log(data._bytes);
+                throw new Error("RUNAWAY LOOP");
+            }
             if (cmpLists(data.consume(2), [0xf0,0x0f])) {
                 break;
             }
