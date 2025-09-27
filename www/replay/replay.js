@@ -125,7 +125,8 @@ class Replayer {
                     return;
                 }
                 console.log(ev.player);
-                this.doMove(this.parser.header.team_table[ev.player], ev.tile);
+                this.doMove(this.parser.header.team_table[ev.player-1], ev.tile);
+                Display.turn = `Player ${this.state.turn}`;
                 Display.status = `Player ${this.state.turn} moved: ${this.topo.formatMove(ev.tile)}`;
                 break;
             }
