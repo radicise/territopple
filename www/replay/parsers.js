@@ -219,6 +219,7 @@ class Version4 {
         while (true) { // find start of events
             if (c++ >= 4) {
                 console.log(data._bytes);
+                console.log(this.header);
                 throw new Error("RUNAWAY LOOP");
             }
             if (cmpLists(data.consume(2), [0xf0,0x0f])) {
