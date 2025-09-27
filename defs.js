@@ -322,6 +322,9 @@ class Game {
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
                     // console.log("team eliminated");
                     this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
+                    if (tb[t] === 0) {
+                        this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){onPlayerRemoved(this, i);v.alive=false;}});
+                    }
                 }
                 this.state.owned[p.team] ++;
                 tb[t] = p.team;
