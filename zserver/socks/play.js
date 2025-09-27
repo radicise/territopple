@@ -94,7 +94,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         const data = JSON.parse(_data);
         switch (data.type) {
             case "game:download":{
-                sock.send(NetData.Bin.Replay(game));
+                sock.send(NetData.Bin.Replay(state.game));
                 break;
             }
             case "game:move":{
