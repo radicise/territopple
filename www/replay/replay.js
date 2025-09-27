@@ -92,7 +92,7 @@ class Replayer {
         Display.status = "Before Start";
         Display.turn = "Player 1";
         Display.time = parser.formatTime(new Date(this.state.timestamp), 0);
-        Display.info = `Game ${this.parser.header.name} (${this.topo.dimensionString} & ${this.parser.header.player_count})`;
+        Display.info = `Game ${this.parser.header.name} (${this.topo.dimensionString}, ${this.parser.header.player_count} Players)`;
         replayCont.hidden = false;
     }
     static step_replay() {
@@ -126,7 +126,7 @@ class Replayer {
                 }
                 // console.log(ev.player);
                 this.doMove(this.parser.header.team_table[ev.player-1], ev.tile);
-                Display.turn = `Player ${this.state.turn}`;
+                Display.turn = ["Neutral","Red","Blue","Magenta","Teal","Yellow"].map((v,i)=>[v,i]).filter(v=>this.state.owned[v[1]]).map(v => `${v[0]}: ${this.state.owned[v[1]]}`).join(", ");
                 Display.status = `Player ${this.state.turn} moved: ${this.topo.formatMove(ev.tile)}`;
                 break;
             }
