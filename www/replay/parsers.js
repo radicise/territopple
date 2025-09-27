@@ -20,15 +20,15 @@ export class ConsumableBytes {
      * }}
      */
     consume = (count) => {
-        console.log(`CONSUMING ${count} BYTES`);
+        // console.log(`CONSUMING ${count} BYTES`);
         if (this._pos >= this._bytes.length) throw new Error("DATA ALL GONE");
         if ((count ?? 1) <= 1) {
-            console.log(this._bytes[this._pos]);
+            // console.log(this._bytes[this._pos]);
             return this._bytes[this._pos++];
         }
         const s = this._bytes.slice(this._pos, this._pos+count);
         this._pos += count;
-        console.log(s);
+        // console.log(s);
         return s;
     }
     // /**
