@@ -106,6 +106,7 @@ class Replayer {
             /**@type {HTMLInputElement} */
             const stepbtn = document.getElementById("replay-step");
             stepbtn.disabled = true;
+            Display.info = "End Of Replay";
             return;
         }
         switch (ev.type) {
