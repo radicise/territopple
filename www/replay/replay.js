@@ -124,7 +124,7 @@ class Replayer {
                     this.broken = true;
                     return;
                 }
-                console.log(ev.player);
+                // console.log(ev.player);
                 this.doMove(this.parser.header.team_table[ev.player-1], ev.tile);
                 Display.turn = `Player ${this.state.turn}`;
                 Display.status = `Player ${this.state.turn} moved: ${this.topo.formatMove(ev.tile)}`;
@@ -177,7 +177,8 @@ window.addEventListener("message", (ev) => {
         Replayer.load_replay();
     } else if (ev.data.type === "replay-step") {
         Replayer.step_replay();
-    } else if (ev.data.type === "replay-command") {
-        console.log(eval(ev.data.cmd));
     }
+    // else if (ev.data.type === "replay-command") {
+    //     console.log(eval(ev.data.cmd));
+    // }
 });
