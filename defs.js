@@ -209,7 +209,8 @@ class Game {
         return this._buffer;
     }
     set buffer(v) {
-        throw new Error("setting buffer?");
+        // throw new Error("setting buffer?");
+        this._buffer = v;
     }
     /**
      * @param {number|string} entid
