@@ -167,7 +167,7 @@ function setup(topo, board, teamboard) {
 function updateBoard(oldb, oldt) {
     for (let i = 0,l=__runi_topo.tileCount; i < l; i ++) {
         if ((oldb[i] !== __runi_board[i]) || (oldt[i] !== __runi_teamboard[i])) {
-            const p = this.topology.getPositionOf(i, "2d-grid");
+            const p = __runi_topo.getPositionOf(i, "2d-grid");
             updateTile(p, __runi_teamboard[i], __runi_board[i]);
             setVolatile(p, __runi_board[i] === __runi_topo.getNeighbors(i).length);
         }
