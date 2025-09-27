@@ -247,7 +247,7 @@ http.createServer((req, res) => {
     }
 }).listen(settings.INTERNALPORT);
 
-const codeArr = new Uint16Array(settings.ROOM_CODE_LENGTH);
+const codeArr = new Uint8Array(settings.ROOM_CODE_LENGTH);
 
 /**
  * generates a room code, the generated code is guaranteed to not already be in use
@@ -265,9 +265,9 @@ function generateRoomCode() {
         }
         c ++;
         crypto.getRandomValues(codeArr);
-        codeArr[0] = (day>>16)&0xff;
-        codeArr[1] = (day>>8)&0xff;
-        codeArr[2] = day&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-1] = (day>>16)&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-2] = (day>>8)&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-3] = day&0xff;
         for (let i = settings.ROOM_CODE_LENGTH; i; i --) {
             code += codeChars[codeArr[i - 1] % codeChars.length];
         }
