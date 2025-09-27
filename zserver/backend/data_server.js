@@ -258,12 +258,16 @@ const codeArr = new Uint16Array(settings.ROOM_CODE_LENGTH);
 function generateRoomCode() {
     let code = "";
     let c = 0;
+    const day = Math.floor(Date.now()/86400000)-20358;
     while (true) {
         if (c > 50) {
             throw new PerformanceError("room code generation");
         }
         c ++;
         crypto.getRandomValues(codeArr);
+        codeArr[0] = (day>>16)&0xff;
+        codeArr[1] = (day>>8)&0xff;
+        codeArr[2] = day&0xff;
         for (let i = settings.ROOM_CODE_LENGTH; i; i --) {
             code += codeChars[codeArr[i - 1] % codeChars.length];
         }
