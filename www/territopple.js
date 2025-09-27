@@ -251,6 +251,7 @@ conn.addEventListener("open", async function(event) {
 	// display("Connected");
     createBanner({type:"info",content:"Connected"});
     let configed = false;
+    let download_res = null;
 	conn.addEventListener("message", async function(event) {
         if (typeof event.data !== "string") {
             // console.log(event.data);
@@ -284,6 +285,10 @@ conn.addEventListener("open", async function(event) {
                 };
                 const kind = arr[0];
                 switch (kind) {
+                    case 1:{
+                        download_res(dat);
+                        return;
+                    }
                     case 0:{
                         const bb = game.board;
                         const tb = game.teamboard;
@@ -610,8 +615,26 @@ conn.addEventListener("open", async function(event) {
                     const db = da.firstElementChild;
                     /**@type {HTMLAnchorElement} */
                     const dl = da.lastElementChild;
-                    db.onclick = ()=>{dl.click();db.onclick = undefined;};
-                    dl.href = `/replays/${ifmt.room}.topl`;
+                    db.onclick = ()=>{
+                        db.onclick = undefined;
+                        if (data.payload["d"]) {
+                            dl.href = `/replays/${ifmt.room}.topl`;
+                            dl.click();
+                        } else {
+                            const p = new Promise(r => download_res = r);
+                            conn.send('{"type":"game:download","payload":{}}');
+                            p.then(v => {
+                                dl.href = window.URL.createObjectURL(v);
+                                dl.click();
+                                setTimeout(()=>{window.URL.revokeObjectURL(dl.href);}, 1500);
+                            });
+                            // fetch(`https://territopple.net/replays/download/${ifmt.room}`, {method:"GET"}).then(v => v.blob().then(b => {
+                            //     dl.href = window.URL.createObjectURL(b);
+                            //     dl.click();
+                            //     setTimeout(()=>{window.URL.revokeObjectURL(dl.href);}, 1500);
+                            // }));
+                        }
+                    };
                     dl.download = `${ifmt.room}.topl`;
                     da.hidden = false;
                 }

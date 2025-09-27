@@ -854,6 +854,13 @@ class NetData {
          * @param {Game} game
          * @returns {Buffer}
          */
+        static Replay(game) {
+            return Buffer.concat(game.buffer);
+        }
+        /**
+         * @param {Game} game
+         * @returns {Buffer}
+         */
         static Board(game) {
             /**@type {bigint[]} */
             let d = [];

@@ -1,4 +1,4 @@
-const { NetPayload, NetData, Random } = require("../../defs.js");
+const { NetPayload, NetData, Random, settings } = require("../../defs.js");
 const { onRecordReplay } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
@@ -93,6 +93,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
         switch (data.type) {
+            case "game:download":{
+                sock.send(NetData.Bin.Replay(game));
+                break;
+            }
             case "game:move":{
                 if (state.game.validateMove(data.payload["n"], state.playerNum)) {
                     emit("game:out:move", {"n":data.payload["n"],"t":state.game.players[state.playerNum].team});
@@ -105,7 +109,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         }
                         state.game.state.state = 2;
                         emit("?phase");
-                        emit("game:win", {t:state.game.players[state.playerNum].team});
+                        emit("game:win", {t:state.game.players[state.playerNum].team,d:settings.REPLAYS.ENABLED});
                     } else {
                         emit("game:turn", {n:res.turn});
                     }
