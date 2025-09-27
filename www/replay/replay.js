@@ -94,6 +94,7 @@ class Replayer {
         Display.time = parser.formatTime(new Date(this.state.timestamp), 0);
         Display.info = `Game ${this.parser.header.name} (${this.topo.dimensionString}, ${this.parser.header.player_count} Players)`;
         replayCont.hidden = false;
+        document.getElementById("replay-step").disabled = false;
     }
     static step_replay() {
         if (this.broken) {
