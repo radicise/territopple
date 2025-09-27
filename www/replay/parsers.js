@@ -182,8 +182,8 @@ class Version4 {
         const flags = this.data.consume();
         this.header.TIMESTAMP = (flags>>7) !== 0;
         this.header.SIZE = (flags>>5)&3;
-        this.header.ORDER = (flags>>4) !== 0;
-        this.header.CTOPOLOGY = (flags>>3) !== 0;
+        this.header.ORDER = ((flags>>4)&1) !== 0;
+        this.header.CTOPOLOGY = ((flags>>3)&1) !== 0;
         this.header.start_time = fromBytes(data.consume(8), true);
         this.header.tile_count = fromBytes(data.consume(4));
         this.header.player_count = data.consume();
