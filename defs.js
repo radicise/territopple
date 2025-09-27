@@ -194,7 +194,7 @@ class Game {
         };
         extend(this.rules, state.rules||{});
         /**@type {Buffer[]} */
-        this.buffer = [];
+        this._buffer = [];
         /**@type {number} */
         this.timestamp = null;
         /**@type {Player[]} */
@@ -203,6 +203,13 @@ class Game {
         this.spectators = {};
         /**@type {BigInt} */
         this.sort_key = null;
+    }
+    get buffer() {
+        console.log(new Error("TRACER"));
+        return this._buffer;
+    }
+    set buffer(v) {
+        throw new Error("setting buffer?");
     }
     /**
      * @param {number|string} entid
