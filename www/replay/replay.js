@@ -78,7 +78,7 @@ class Replayer {
         });
     }
     static init_replay() {
-        this.state.board = new Uint8Array(this.topo.tileCount).fill(0);
+        this.state.board = new Uint8Array(this.topo.tileCount).fill(1);
         this.state.teamboard = new Uint8Array(this.topo.tileCount).fill(0);
         this.state.last_move = -1;
         this.state.turn = -1;
