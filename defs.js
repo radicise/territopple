@@ -855,7 +855,7 @@ class NetData {
          * @returns {Buffer}
          */
         static Replay(game) {
-            return Buffer.concat(game.buffer);
+            return Buffer.concat(Buffer.of(1), Buffer.concat(game.buffer));
         }
         /**
          * @param {Game} game
