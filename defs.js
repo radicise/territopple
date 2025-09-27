@@ -206,6 +206,7 @@ class Game {
     }
     get buffer() {
         console.log(new Error("TRACER"));
+        console.log(this._buffer);
         return this._buffer;
     }
     set buffer(v) {
