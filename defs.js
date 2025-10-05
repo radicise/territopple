@@ -514,6 +514,7 @@ exports.Game = Game;
  * BOTPORT:number,
  * AUTHPORT:number,
  * AUTHINTERNALPORT:number,
+ * PUZZLEPORT:number,
  * ROOM_CODE_LENGTH:number,
  * PING_INTERVAL:number,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
