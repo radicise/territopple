@@ -106,7 +106,7 @@ export class TGrid2D extends Topology {
         this.tc = this.width * this.height;
         this.dstr = `Grid2D ${this.width}x${this.height}`;
         this.#tright = this.width - 1;
-        this.#bleft = this.width*this.height-this.width - 1;
+        this.#bleft = this.width*this.height-this.width;
         this.#bright = this.width*this.height - 1;
     }
     /**
