@@ -9,8 +9,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     (() => {
     if (!args.waited) {
         const g = state.game;
-        sock.send(NetData.Game.Config(g), () => {
-            sock.send(NetData.Bin.Board(g), {"binary":true});
+        sock.send(NetData.Game.Rules(g), () => {
+            sock.send(NetData.Game.Config(g), () => {
+                sock.send(NetData.Bin.Board(g), {"binary":true});
+            });
         });
     }
     on("game:out:move", (data) => {
