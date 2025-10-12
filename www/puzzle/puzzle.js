@@ -77,5 +77,8 @@ function populateVariantInfo() {
 }
 
 function populateSandwich(sandwich) {
+    const dims = topology.exportDimensions(puzzleinfo.topology);
+    targetSandwichE.style.setProperty("--nrows", dims.y);
+    targetSandwichE.style.setProperty("--cols", dims.x);
     targetSandwichE.hidden = false;
 }

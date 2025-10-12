@@ -8,6 +8,7 @@ import { version0 as boardv0 } from "./board.mjs";
  * author:string,
  * created:number,
  * topology_rules:{file:string,id:number,topo:never},
+ * topology:import("../../topology/topology").Topology,
  * TPC:number,
  * TPARAMS:number[],
  * PC:number,
