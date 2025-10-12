@@ -12,7 +12,7 @@ const modcache = {};
 
 /**
  * @typedef ParserFunction
- * @type {(stream:Uint8Array,context:ParserContext)}
+ * @type {(stream:Uint8Array,context:ParserContext)=>any}
  */
 
 class ParserClass {
@@ -42,13 +42,13 @@ class ParserClass {
  * loads a parser function
  * @param {string} m module name
  * @param {string} p parser name
- * @returns {ParserFunction}
+ * @returns {Promise<ParserFunction>}
  */
 function getParserFunction(m, p) {
     return new Promise((res, rej) => {
         if (m in modcache) {
             return res(modcache[m][p]);
         }
-        import(`/helpers/comparse/${m}.js`).then(mod => {modcache[m] = mod;res(mod[p]);}).catch(e => rej(e));
+        import(`/helpers/comparse/${m}.mjs`).then(mod => {modcache[m] = mod;res(mod[p]);}).catch(e => rej(e));
     });
 }

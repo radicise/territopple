@@ -141,9 +141,13 @@ FOR VI IN 0..VC {
     }
 
     STR[2] - variant specific info
+    STR[1] - variant name (50 characters max)
+    IF (len(variant name) IS 0) {
+        INTERPRET: variant name IS "Standard"
+    }
     BYTE - hint count (HC)
     FOR HI IN 0..HC {
-        STR[1] - hint text
+        STR[2] - hint text
         IF (len(hint text) IS 0) {
             BYTE - player num
             BYTE - turn number

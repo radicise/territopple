@@ -2,9 +2,28 @@ import { ConsumableBytes, topology, consumeNStr, readNByteNum } from "./_utils.m
 import { version0 as boardv0 } from "./board.mjs";
 
 /**
+ * @typedef {{
+ * version:number,
+ * name:string,
+ * author:string,
+ * created:number,
+ * topology_rules:{file:string,id:number,topo:never},
+ * TPC:number,
+ * TPARAMS:number[],
+ * PC:number,
+ * TEAMS:number[],
+ * TURNS:number[],
+ * initial_board:[number[],number[]],
+ * info_str:string,
+ * VC:number,
+ * variants:{CPC:number,CPS:number[],MOV_RESTRICT:number,GOAL_ID:number,ORDER:number[],target_state:[number[],number[]],TURN_FLAGS:number,BOTS:string[],MC:number,MOVES:{id:number,turn_no:number,tindex:number}[],info_str:string,var_name:string,HC:number,hints:{text:string,turn_no:number,pnum:number,tindex:number}[]}[]
+ * }} PuzzleInfo
+ */
+
+/**
  * @param {Uint8Array} stream
  * @param {{}} context
- * @returns {object}
+ * @returns {PuzzleInfo}
  */
 export function version0(stream, context) {
     const buf = new ConsumableBytes(stream);
@@ -72,10 +91,14 @@ export function version0(stream, context) {
         // console.log(readNByteNum(buf, 2));
         // buf._pos -= 2;
         v.info_str = consumeNStr(buf, 2);
+        v.var_name = consumeNStr(buf, 1);
+        if (v.var_name.length === 0) {
+            v.var_name = "Standard";
+        }
         v.HC = buf.consume(1);
         v.hints = [];
         for (let j = 0; j < v.HC; j ++) {
-            v.hints[j] = {text:consumeNStr(buf, 1)};
+            v.hints[j] = {text:consumeNStr(buf, 2)};
             if (v.hints[j].text.length === 0) {
                 v.hints[j].pnum = buf.consume(1);
                 v.hints[j].turn_no = buf.consume(1);

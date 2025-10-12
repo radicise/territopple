@@ -3,10 +3,85 @@
     <head>
         <script src="/_icons.js"></script>
         <title>Puzzles Territopple</title>
+        <link rel="stylesheet" type="text/css" href="../territopple.css" />
+        <style>
+            #pane-container {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            #opt-info {
+                /* width: 30vw; */
+                display: flex;
+            }
+            #opt-info-left {
+                margin-right: 1em;
+            }
+        </style>
     </head>
     <body>
-        <div id="play-area">
-            <meta data-import="/components/game-render/all.html" />
+        <div id="pane-container">
+            <div id="play-area">
+                <meta data-import="/components/game-render/all.html" />
+                <div id="container-container">
+    <div id="gameboard" class="container tile-hover volatiles" style="--blink-dark:#ddd;--tile-font-size:32;"></div>
+    <span id="underboard-container">
+        <span id="underboard-left">
+            <input type="button" id="pingbutton" value="ping">
+            <input type="button" id="startbutton" value="start" class="FLAG-host-only">
+        </span>
+        <span id="underboard-right">
+            <span id="turn-time">Time: --:--</span>
+        </span>
+    </span>
+</div>
+            </div>
+            <div id="opt-info">
+                <div id="opt-info-left">
+                <div id="info-header">
+                    <p>
+                        Name: <span id="puzzle-name">Nonsense</span><br>
+                        Author: <span id="puzzle-author">TS</span><br>
+                        Created: <span id="puzzle-creation">Jan 1, 1999</span><br>
+                        Topology: <span id="puzzle-topology">TGrid2D</span><br>
+                        Variants: <span id="variant-count">2</span>
+                    </p>
+                    <!-- <p>Name: <span id="puzzle-name">Nonsense</span></p>
+                    <p>Author: <span id="puzzle-author">TS</span></p> -->
+                </div>
+                <div id="var-info-area">
+                    <div id="var-select"></div>
+                    <div id="var-info">
+                        <p>
+                            Name: <span id="var-name">Win</span><br>
+                            Controlled Players: <span id="var-cps">1</span><br>
+                            Moves: <span id="var-movres">Unlimited</span><br>
+                            Goal: <span id="var-goal">Win</span><br>
+                            Info:<br>
+                            <span id="var-info">yadda<br>yadda</span>
+                            <!-- <p id="var-info">yadda yadda.</p> -->
+                        </p>
+                        <div id="goal-info">
+                            <div style="display:none;" hidden></div>
+                            <div style="display:none;" hidden></div>
+                            <div hidden></div>
+                            <div hidden></div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div id="info-area">
+                    <p>
+                        Description:<br>
+                        <span id="long-description">yadda<br>yadda</span><br><br>
+                        Player Count: <span id="pc">2</span><br>
+                        Team Assignments:<br>
+                        <span id="player-teams">1<br>2</span><br><br>
+                        Turn Order:<br>
+                        <span id="player-order">1<br>2</span>
+                    </p>
+                </div>
+            </div>
         </div>
         <script type="importmap">
             {
