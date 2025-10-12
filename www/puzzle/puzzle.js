@@ -29,7 +29,7 @@ let puzzleinfo;
 (async () => {
     topology = await import("topology/topology.js");
     parsePuzzle = await getParserFunction("puzzle", "version0");
-    puzzleinfo = parsePuzzle(await (await fetch(`/puzzles/${puzzle_id}.tpzl`, {method:"GET"})).bytes());
+    puzzleinfo = parsePuzzle(await (await fetch(`/puzs/${puzzle_id}.tpzl`, {method:"GET"})).bytes());
     // if (urlqueries.has("referred_puzzle")) {}
 })();
 
