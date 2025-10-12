@@ -14,6 +14,7 @@ let topology;
 let parsePuzzle;
 /**@type {HTMLSelectElement} */
 const varsel = document.getElementById("var-sel");
+varsel.addEventListener("change", () => {populateVariantInfo();});
 
 
 // everything after "/puzzle/"
@@ -67,5 +68,6 @@ function populateVariantInfo() {
     document.getElementById("var-movres").textContent = vari.MOV_RESTRICT===0?"Unlimited":vari.MOV_RESTRICT;
     document.getElementById("var-goal").textContent = ["Win","Lose","Force","Reach"][vari.GOAL_ID];
     document.getElementById("var-info").replaceChildren(...replaceNewlines(vari.info_str));
+    console.log("populated");
 }
 
