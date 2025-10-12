@@ -114,6 +114,7 @@ FOR VI IN 0..VC {
         CASE (2) {
             BYTE[PC] - order
             INTERPRET: goal is to eliminate players/teams in the given order
+            NOTE: order is not required to contain all player numbers, in this case, the end is padded with zeros, all players not within the list do not need to be eliminated
         }
         case (3) {
             INLINE BOARD
