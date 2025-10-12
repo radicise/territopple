@@ -36,8 +36,8 @@ let puzzleinfo;
     document.getElementById("variant-count").textContent = puzzleinfo.VC;
     document.getElementById("long-description").textContent = puzzleinfo.info_str;
     document.getElementById("player-count").textContent = puzzleinfo.PC;
-    document.getElementById("player-teams").replaceChildren(puzzleinfo.TEAMS.map(String).join("\\\n\\").split("\\").map(v => v==="\n"?document.createElement("br"):v));
-    document.getElementById("player-order").replaceChildren(puzzleinfo.TURNS.map(String).join("\\\n\\").split("\\").map(v => v==="\n"?document.createElement("br"):v));
+    document.getElementById("player-teams").replaceChildren(...puzzleinfo.TEAMS.map(String).join("\\\n\\").split("\\").map(v => v==="\n"?document.createElement("br"):v));
+    document.getElementById("player-order").replaceChildren(...puzzleinfo.TURNS.map(String).join("\\\n\\").split("\\").map(v => v==="\n"?document.createElement("br"):v));
     // if (urlqueries.has("referred_puzzle")) {}
 })();
 
