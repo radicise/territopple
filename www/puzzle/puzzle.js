@@ -30,6 +30,14 @@ let puzzleinfo;
     topology = await import("topology/topology.js");
     parsePuzzle = await getParserFunction("puzzle", "version0");
     puzzleinfo = parsePuzzle(await (await fetch(`/puzs/${puzzle_id}.tpzl`, {method:"GET"})).bytes());
+    document.getElementById("puzzle-name").textContent = puzzleinfo.name;
+    document.getElementById("puzzle-author").textContent = puzzleinfo.author;
+    document.getElementById("puzzle-creation").textContent = new Date(puzzleinfo.created).toLocaleString();
+    document.getElementById("variant-count").textContent = puzzleinfo.VC;
+    document.getElementById("long-description").textContent = puzzleinfo.info_str;
+    document.getElementById("player-count").textContent = puzzleinfo.PC;
+    document.getElementById("player-teams").replaceChildren(puzzleinfo.TEAMS.map(String).join("\\\n\\").split("\\").map(v => v==="\n"?document.createElement("br"):v));
+    document.getElementById("player-order").replaceChildren(puzzleinfo.TURNS.map(String).join("\\\n\\").split("\\").map(v => v==="\n"?document.createElement("br"):v));
     // if (urlqueries.has("referred_puzzle")) {}
 })();
 
