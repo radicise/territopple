@@ -7,9 +7,10 @@
 // const loadPromise = new Promise((res,) => {
 //     import("topology/topology.js").then(r => {topology.m = r;res(r);},r => {throw new Error("could not load topology module");});
 // });
+/**@typedef {import("../helpers/comparse/puzzle.mjs").PuzzleInfo} PuzzleInfo */
 /**@type {typeof import("../../topology/topology.js")} */
 let topology;
-/**@type {(stream:Uint8Array,context:never)=>import("../helpers/comparse/puzzle.mjs").PuzzleInfo} */
+/**@type {(stream:Uint8Array,context:never)=>PuzzleInfo} */
 let parsePuzzle;
 
 
@@ -22,9 +23,13 @@ if (puzzle_id.length === 0) {
 }
 console.log(puzzle_id);
 
+/**@type {PuzzleInfo} */
+let puzzleinfo;
+
 (async () => {
     topology = await import("topology/topology.js");
     parsePuzzle = await getParserFunction("puzzle", "version0");
+    puzzleinfo = parsePuzzle(await (await fetch(`/puzzles/${puzzle_id}.tpzl`, {method:"GET"})).bytes());
     // if (urlqueries.has("referred_puzzle")) {}
 })();
 
