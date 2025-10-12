@@ -14,7 +14,7 @@ let topology;
 let parsePuzzle;
 /**@type {HTMLSelectElement} */
 const varsel = document.getElementById("var-sel");
-varsel.addEventListener("change", () => {populateVariantInfo();});
+varsel.addEventListener("change", () => {curr_variant=Number(varsel.value);populateVariantInfo();});
 
 
 // everything after "/puzzle/"
