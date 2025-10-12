@@ -18,6 +18,7 @@
     "be-data-dev": "node proc_wrap.js zserver/backend/data_server.js --eval-stdin",
     "be-bots": "node zserver/bots/bot_server.js --no-in",
     "be-bots-dev": "node proc_wrap.js zserver/bots/bot_server.js --eval-stdin",
+    "be-puzs": "node proc_wrap.js zserver/backend/puzzle_server.js --no-in",
     "ac-serv": "node zserver/accounts/server.js"
   },
   "name": "territopple",
