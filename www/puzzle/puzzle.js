@@ -67,7 +67,7 @@ function populateVariantInfo() {
     document.getElementById("var-cps").textContent = vari.CPS;
     document.getElementById("var-movres").textContent = vari.MOV_RESTRICT===0?"Unlimited":vari.MOV_RESTRICT;
     document.getElementById("var-goal").textContent = ["Win","Lose","Force","Reach"][vari.GOAL_ID];
-    document.getElementById("var-info").replaceChildren(...replaceNewlines(vari.info_str));
+    document.getElementById("var-details").replaceChildren(...replaceNewlines(vari.info_str));
     console.log("populated");
 }
 
