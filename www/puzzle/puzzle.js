@@ -71,6 +71,9 @@ function populateVariantInfo() {
     document.getElementById("var-movres").textContent = vari.MOV_RESTRICT===0?"Unlimited":vari.MOV_RESTRICT;
     document.getElementById("var-goal").textContent = ["Win","Lose","Force","Reach"][vari.GOAL_ID];
     document.getElementById("var-details").replaceChildren(...replaceNewlines(vari.info_str));
+    if (vari.GOAL_ID === 3) {
+        populateSandwich(vari.target_state);
+    }
 }
 
 function populateSandwich(sandwich) {
