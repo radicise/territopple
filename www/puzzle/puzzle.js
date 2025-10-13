@@ -80,6 +80,7 @@ let movehist = null;
         if (event.button !== 0) return;
         if (gameboard.style.getPropertyValue("--disabled") === "1") return;
         if (!puzzle_started) return;
+        console.log("click");
         if (event.target?.nodeName === "CANVAS") {
             window.postMessage({type:"3d-resolveclick",x:event.clientX,y:event.clientY});
             return;
@@ -99,6 +100,7 @@ let movehist = null;
             return;
         }
         mes = (mes * topology.exportDimensions(puzzleinfo.topology).x) + meg;
+        console.log(mes);
         if ((puzzle.teamboard[mes]) && (puzzle.teamboard[mes] != puzzleinfo.TEAMS[puzzle.turn])) {
             return;
         }
