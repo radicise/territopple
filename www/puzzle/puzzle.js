@@ -19,15 +19,11 @@ varsel.addEventListener("change", () => {curr_variant=Number(varsel.value);popul
 /**@type {HTMLDivElement} */
 const targetSandwichE = document.getElementById("target-sandwich");
 /**@type {HTMLDivElement} */
-const gameboard = document.getElementById("gameboard");
+let gameboard;
 /**@type {HTMLInputElement} */
-const startButton = document.getElementById("startbutton");
+let startButton;
 /**@type {HTMLInputElement} */
-const pingButton = document.getElementById("pingbutton");
-startButton.disabled = true;
-pingButton.disabled = true;
-pingButton.value = "next";
-document.getElementById("turn-time").hidden = true;
+let pingButton;
 
 
 // everything after "/puzzle/"
@@ -51,6 +47,14 @@ let puzzle = null;
 let movehist = null;
 
 (async () => {
+    await INCLUDE_FINISHED;
+    gameboard = document.getElementById("gameboard")
+    startButton = document.getElementById("startbutton")
+    pingButton = document.getElementById("pingbutton");
+    startButton.disabled = true;
+    pingButton.disabled = true;
+    pingButton.value = "next";
+    document.getElementById("turn-time").hidden = true;
     topology = await import("topology/topology.js");
     parsePuzzle = await getParserFunction("puzzle", "version0");
     puzzleinfo = parsePuzzle(await (await fetch(`/puzs/${puzzle_id}.tpzl`, {method:"GET"})).bytes());

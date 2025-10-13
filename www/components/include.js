@@ -1,3 +1,5 @@
+/**@type {Promise<void>} */
+let INCLUDE_FINISHED = null;
 {
     let iters = 0;
     async function replaceImports() {
@@ -69,5 +71,8 @@
             tags = document.querySelectorAll("meta[data-import], meta[data-scripts], meta[data-raw-tag]");
         }
     }
-    replaceImports();
+    INCLUDE_FINISHED = new Promise(async (r) => {
+        await replaceImports();
+        r();
+    });
 }
