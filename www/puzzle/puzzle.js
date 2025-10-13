@@ -99,7 +99,7 @@ let movehist = null;
             return;
         }
         mes = (mes * topology.exportDimensions(puzzleinfo.topology).x) + meg;
-        if ((game.teamboard[mes]) && (game.teamboard[mes] != puzzleinfo.TEAMS[puzzle.turn])) {
+        if ((puzzle.teamboard[mes]) && (puzzle.teamboard[mes] != puzzleinfo.TEAMS[puzzle.turn])) {
             return;
         }
         doMove(mes);
@@ -110,7 +110,7 @@ let movehist = null;
             case "3d-clickresolve":{
                 const index = ev.data.index;
                 if (index === -1) return;
-                if (game.teamboard[index] !== puzzleinfo.TEAMS[puzzle.turn] && game.teamboard[index] !== 0) return;
+                if (puzzle.teamboard[index] !== puzzleinfo.TEAMS[puzzle.turn] && puzzle.teamboard[index] !== 0) return;
                 doMove(index);
                 break;
             }
