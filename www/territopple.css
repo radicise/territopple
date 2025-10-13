@@ -16,7 +16,7 @@ body {
 #board-zoom {
     vertical-align: middle;
 }
-#container-container {
+#container-container, .container-container {
     width: fit-content;
     /* border: solid black 2px; */
     overflow: hidden;

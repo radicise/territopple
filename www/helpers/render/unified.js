@@ -72,8 +72,13 @@ let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
          * @returns {void}
          */
         function createBoard(topology, board, teamboard, choice) {
+            if (topology === null) {
+                methods[3][renderchoice]();
+                renderchoice = null;
+                return;
+            }
             if ((choice ?? false) !== false) {
-                if (choice !== renderchoice) {
+                if (choice !== renderchoice && renderchoice !== null) {
                     methods[3][renderchoice]();
                 }
                 renderchoice = choice;

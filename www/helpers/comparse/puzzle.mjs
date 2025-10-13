@@ -2,6 +2,10 @@ import { ConsumableBytes, topology, consumeNStr, readNByteNum } from "./_utils.m
 import { version0 as boardv0 } from "./board.mjs";
 
 /**
+ * @typedef {{CPC:number,CPS:number[],MOV_RESTRICT:number,GOAL_ID:number,ORDER:number[],target_state:[number[],number[]],TURN_FLAGS:number,BOTS:string[],MC:number,MOVES:Record<number,{id:number,turn_no:number,tindex:number,relto:number|false}>[],info_str:string,var_name:string,HC:number,hints:{text:string,turn_no:number,pnum:number,tindex:number}[]}} VariantInfo
+ */
+
+/**
  * @typedef {{
  * version:number,
  * name:string,
@@ -17,7 +21,7 @@ import { version0 as boardv0 } from "./board.mjs";
  * initial_board:[number[],number[]],
  * info_str:string,
  * VC:number,
- * variants:{CPC:number,CPS:number[],MOV_RESTRICT:number,GOAL_ID:number,ORDER:number[],target_state:[number[],number[]],TURN_FLAGS:number,BOTS:string[],MC:number,MOVES:{id:number,turn_no:number,tindex:number}[],info_str:string,var_name:string,HC:number,hints:{text:string,turn_no:number,pnum:number,tindex:number}[]}[]
+ * variants:VariantInfo[]
  * }} PuzzleInfo
  */
 
@@ -82,9 +86,20 @@ export function version0(stream, context) {
         if (v.TURN_FLAGS & 0x80) {
             v.MC = readNByteNum(buf, 2);
             // console.log(v.MC);
-            v.MOVES = [];
+            v.MOVES = new Array(puzzle.PC+1).fill(null);
+            const MOVES = [];
             for (let j = 0; j < v.MC; j ++) {
-                v.MOVES[j] = {id:buf.consume(1),turn_no:buf.consume(1),tindex:readNByteNum(buf, 2)};
+                const move = {id:buf.consume(1),turn_no:buf.consume(1),tindex:readNByteNum(buf, 2),relto:false};
+                v.MOVES[move.id] = {};
+                if (move.turn_no === 0) {
+                    move.relto = -(move.tindex&0x0f);
+                    move.turn_no = move.tindex>>8;
+                    move.tindex = -(move.tindex&0xf0);
+                }
+                MOVES[j] = move;
+            }
+            for (const move of MOVES) {
+                v.MOVES[move.id][move.turn_no] = move;
             }
         }
         // console.log(v);

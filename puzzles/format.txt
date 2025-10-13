@@ -96,6 +96,7 @@ U16[TPC] - topology parameters
 BYTE - player count (PC)
 BYTE[PC] - team assignments
 BYTE[PC] - turn order
+NOTE: players may be omitted from the turn order, indicating that they do not play moves, these player ids are replaced by 0 in the turn order
 INLINE BOARD - initial state
 STR[3] - Puzzle info
 BYTE - variant count (VC)
@@ -127,6 +128,7 @@ FOR VI IN 0..VC {
         STR[1] - bot short name (used to request a botjoin)
         NOTE: length zero indicates no bot
         NOTE: the name "puzzlebot" indicates the bot specified in "puzzlebot_specs.txt"
+        NOTE: compliant parsers MUST output the list of bots with all player controlled player ids set to null
     }
     IF (A) {
         U16 - move count (MC)
@@ -135,7 +137,7 @@ FOR VI IN 0..VC {
             BYTE - turn number (1 indexed)
             BYTE[2] - tile index
             IF (turn number IS 0) {
-                INTERPRET: tile index high byte is turn number, low byte incidates: high nybble is player number N-low, tile index is tile index used by player N-low high turns in the past
+                INTERPRET: tile index high byte is turn number, low byte incidates: low nybble is player number N-low, tile index is tile index used by player N-low high nybble turns in the past
             }
         }
         NOTE: if at any point one of the preset moves is impossible, the puzzle has been failed
