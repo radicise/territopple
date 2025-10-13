@@ -51,7 +51,6 @@ let movehist = null;
     gameboard = document.getElementById("gameboard")
     startButton = document.getElementById("startbutton")
     pingButton = document.getElementById("pingbutton");
-    startButton.disabled = true;
     pingButton.disabled = true;
     pingButton.value = "next";
     document.getElementById("turn-time").hidden = true;
