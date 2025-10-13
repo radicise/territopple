@@ -77,6 +77,46 @@ let movehist = null;
         if (variantinfo.CPS.includes(puzzle.turn)) return;
         doMove(puzzleinfo.TEAMS[puzzle.turn], getNPCMove());
     });
+    gameboard.addEventListener("mouseup", (event) => {
+        if (event.button !== 0) return;
+        if (gameboard.style.getPropertyValue("--disabled") === "1") return;
+        if (!puzzle_started) return;
+        if (event.target?.nodeName === "CANVAS") {
+            window.postMessage({type:"3d-resolveclick",x:event.clientX,y:event.clientY});
+            return;
+        }
+        let d = event.target.id;
+        if (d.substring(0, 1) != "r") {
+            return;
+        }
+        let mes = d.substring(1);
+        mes = mes.split("c");
+        if (mes.length != 2) {
+            return;
+        }
+        let meg = parseInt(mes[1]);
+        mes = parseInt(mes[0]);
+        if (isNaN(mes) || isNaN(meg)) {
+            return;
+        }
+        mes = (mes * cols) + meg;
+        if ((game.teamboard[mes]) && (game.teamboard[mes] != puzzleinfo.TEAMS[puzzle.turn])) {
+            return;
+        }
+        doMove(mes);
+        return;
+    });
+    window.addEventListener("message", (ev) => {
+        switch (ev.data.type) {
+            case "3d-clickresolve":{
+                const index = ev.data.index;
+                if (index === -1) return;
+                if (game.teamboard[index] !== puzzleinfo.TEAMS[puzzle.turn] && game.teamboard[index] !== 0) return;
+                doMove(index);
+                break;
+            }
+        }
+    });
     // if (urlqueries.has("referred_puzzle")) {}
 })();
 
@@ -140,47 +180,6 @@ function doMove(team, tile) {
         break;
     }
 }
-
-gameboard.addEventListener("mouseup", (event) => {
-    if (event.button !== 0) return;
-    if (gameboard.style.getPropertyValue("--disabled") === "1") return;
-    if (!puzzle_started) return;
-    if (event.target?.nodeName === "CANVAS") {
-        window.postMessage({type:"3d-resolveclick",x:event.clientX,y:event.clientY});
-        return;
-    }
-    let d = event.target.id;
-    if (d.substring(0, 1) != "r") {
-        return;
-    }
-    let mes = d.substring(1);
-    mes = mes.split("c");
-    if (mes.length != 2) {
-        return;
-    }
-    let meg = parseInt(mes[1]);
-    mes = parseInt(mes[0]);
-    if (isNaN(mes) || isNaN(meg)) {
-        return;
-    }
-    mes = (mes * cols) + meg;
-    if ((game.teamboard[mes]) && (game.teamboard[mes] != puzzleinfo.TEAMS[puzzle.turn])) {
-        return;
-    }
-    doMove(mes);
-    return;
-});
-window.addEventListener("message", (ev) => {
-    switch (ev.data.type) {
-        case "3d-clickresolve":{
-            const index = ev.data.index;
-            if (index === -1) return;
-            if (game.teamboard[index] !== puzzleinfo.TEAMS[puzzle.turn] && game.teamboard[index] !== 0) return;
-            doMove(index);
-            break;
-        }
-    }
-});
 
 function startPuzzle() {
     setup(puzzleinfo.topology, puzzleinfo.initial_board[0], puzzleinfo.initial_board[1]);
