@@ -98,7 +98,7 @@ let movehist = null;
         if (isNaN(mes) || isNaN(meg)) {
             return;
         }
-        mes = (mes * cols) + meg;
+        mes = (mes * topology.exportDimensions(puzzleinfo.topology).x) + meg;
         if ((game.teamboard[mes]) && (game.teamboard[mes] != puzzleinfo.TEAMS[puzzle.turn])) {
             return;
         }
