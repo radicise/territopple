@@ -199,7 +199,7 @@ function startPuzzle() {
         last_move: -1
     };
     puzzle.players[0] = false;
-    for (let i = 0; i < puzzle.teamboard.length; i ++) owned[puzzle.teamboard[i]] ++;
+    for (let i = 0; i < puzzle.teamboard.length; i ++) puzzle.owned[puzzle.teamboard[i]] ++;
     movehist = new Array(puzzleinfo.PC+1).fill(0).map(_ => [-1]);
 }
 function stopPuzzle() {}
