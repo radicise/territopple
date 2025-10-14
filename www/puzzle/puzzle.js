@@ -17,7 +17,7 @@ let parsePuzzle;
 const varsel = document.getElementById("var-sel");
 varsel.addEventListener("change", () => {document.getElementById("goal-info").children[curr_variant].hidden=true;curr_variant=Number(varsel.value);populateVariantInfo();});
 /**@type {HTMLDivElement} */
-const targetSandwichE = document.getElementById("target-sandwich");
+const targetSandwichE = document.getElementById("sandwich");
 /**@type {HTMLDivElement} */
 let gameboard;
 /**@type {HTMLInputElement} */
