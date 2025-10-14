@@ -105,7 +105,7 @@ let movehist = null;
             console.log("bad");
             return;
         }
-        doMove(mes);
+        doMove(puzzleinfo.TEAMS[puzzle.turn], mes);
         return;
     });
     window.addEventListener("message", (ev) => {
@@ -114,7 +114,7 @@ let movehist = null;
                 const index = ev.data.index;
                 if (index === -1) return;
                 if (puzzle.teamboard[index] !== puzzleinfo.TEAMS[puzzle.turn] && puzzle.teamboard[index] !== 0) return;
-                doMove(index);
+                doMove(puzzleinfo.TEAMS[puzzle.turn], index);
                 break;
             }
         }
