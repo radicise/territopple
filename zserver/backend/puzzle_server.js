@@ -35,6 +35,11 @@ const collection = db.collection("index");
             fs.readFile(path.join(DEFS.__dname, "puzzles", n), (err, data) => {
                 if (err) return;
                 const info = version0(data);
+                let goals = 0;
+                for (const vari of info.variants) {
+                    goals |= (1<<vari.GOAL_ID);
+                    if (goals === 15) break;
+                }
                 index.push({filename:n.substring(0, n.length-5),variants:info.VC,has:goals,players:info.PC,dims:info.TPARAMS,author:info.author,name:info.name,topology:info.topology_rules.id??-1,description:info.info_str});
             });
         });
