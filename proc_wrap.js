@@ -25,11 +25,11 @@ function relaunch() {
         console.log(`ERROR: ${err}`);
     });
     if (process.argv.includes("--auto-restart")) {
-        // child.on("exit", (code, signal) => {
-        //     if (signal) return;
-        //     if (code === 0) return;
-        //     relaunch();
-        // });
+        child.on("exit", (code, signal) => {
+            if (signal) return;
+            if (code === 0) return;
+            relaunch();
+        });
     }
 }
 

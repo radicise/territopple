@@ -19,7 +19,7 @@
     "be-bots": "node zserver/bots/bot_server.js --no-in --auto-restart",
     "be-bots-dev": "node proc_wrap.js zserver/bots/bot_server.js --eval-stdin",
     "be-puzs": "node proc_wrap.js zserver/backend/puzzle_server.js --no-in --auto-restart",
-    "ac-serv": "node proc_wrap.js zserver/accounts/server.js --no-in"
+    "ac-serv": "node proc_wrap.js zserver/accounts/server.js --no-in --auto-restart"
   },
   "name": "territopple",
   "main": "main.js",
