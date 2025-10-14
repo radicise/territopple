@@ -32,8 +32,10 @@ const collection = db.collection("index");
         const index = [];
         await Promise.all(fs.readdirSync(path.join(DEFS.__dname, "puzzles")).map((n) => {
             new Promise(resolve => {
+                console.log(n);
                 if (!n.endsWith(".tpzl")) return;
                 fs.readFile(path.join(DEFS.__dname, "puzzles", n), (err, data) => {
+                    console.log(err);
                     if (err) return resolve();
                     const info = version0(data);
                     let goals = 0;
