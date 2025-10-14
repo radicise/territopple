@@ -54,6 +54,7 @@ let movehist = null;
     pingButton.disabled = true;
     pingButton.value = "next";
     document.getElementById("turn-time").hidden = true;
+    debugger;
     topology = await import("topology/topology.js");
     parsePuzzle = await getParserFunction("puzzle", "version0");
     puzzleinfo = parsePuzzle(await (await fetch(`/puzs/${puzzle_id}.tpzl`, {method:"GET"})).bytes());
