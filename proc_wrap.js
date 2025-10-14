@@ -21,6 +21,9 @@ function relaunch() {
     child.stderr.on("data", (data) => {
         console.log(`error: ${data}`);
     });
+    child.on("error", (err) => {
+        console.log(`ERROR: ${err}`);
+    });
     if (process.argv.includes("--auto-restart")) {
         // child.on("exit", (code, signal) => {
         //     if (signal) return;
