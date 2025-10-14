@@ -30,8 +30,8 @@ const collection = db.collection("index");
     process.on("SIGUSR1", async () => {
         /**@type {FilterRecord[]} */
         const index = [];
-        await Promise.all(fs.readdirSync(path.join(DEFS.__dname, "puzzles")).map((n) => {
-            new Promise(resolve => {
+        await Promise.allSettled(fs.readdirSync(path.join(DEFS.__dname, "puzzles")).map((n) => {
+            return new Promise(resolve => {
                 console.log(n);
                 if (!n.endsWith(".tpzl")) return resolve();
                 fs.readFile(path.join(DEFS.__dname, "puzzles", n), (err, data) => {
