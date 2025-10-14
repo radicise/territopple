@@ -5,6 +5,8 @@ const DEFS = require("../../defs.js");
 const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog, logStamp } = DEFS;
 const mdb = require("mongodb");
 
+fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "puzs.pid"), process.pid.toString());
+
 const INDEXLOG = "logs/puzzles/index.txt";
 ensureFile(INDEXLOG);
 logStamp(INDEXLOG);
