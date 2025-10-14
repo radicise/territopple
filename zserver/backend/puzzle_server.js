@@ -8,8 +8,14 @@ const mdb = require("mongodb");
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "puzs.pid"), process.pid.toString());
 
 const INDEXLOG = "logs/puzzles/index.txt";
+const ERRORLOG = "logs/puzzles/error.txt";
+const INFOLOG = "logs/puzzles/info.txt";
 ensureFile(INDEXLOG);
+ensureFile(ERRORLOG);
+ensureFile(INFOLOG);
 logStamp(INDEXLOG);
+logStamp(ERRORLOG);
+logStamp(INFOLOG);
 
 if (!fs.existsSync("www/puzs")) {
     fs.symlinkSync(path.join(DEFS.__dname, "puzzles"), path.join(DEFS.__dname, "www", "puzs"));
@@ -62,7 +68,8 @@ const collection = db.collection("index");
                             /**@type {FilterRecord[]} */
                             const arr = (await collection.find().limit(20).sort({"_id":1,"name":1,"__special_priority":1}).toArray());
                             res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(arr));
-                        } catch {
+                        } catch (E) {
+                            addLog(ERRORLOG, `${E}`);
                             res.writeHead(503).end();
                         }
                         return;
@@ -95,4 +102,5 @@ const collection = db.collection("index");
     });
     
     server.listen(settings.PUZZLEPORT);
+    addLog(INFOLOG, `listeninf on port ${settings.PUZZLEPORT}`);
 })();
