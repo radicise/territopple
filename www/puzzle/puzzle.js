@@ -17,6 +17,8 @@ let parsePuzzle;
 const varsel = document.getElementById("var-sel");
 varsel.addEventListener("change", () => {document.getElementById("goal-info").children[curr_variant].hidden=true;curr_variant=Number(varsel.value);populateVariantInfo();});
 /**@type {HTMLDivElement} */
+const targetSandwichContE = document.getElementById("target-sandwich");
+/**@type {HTMLDivElement} */
 const targetSandwichE = document.getElementById("sandwich");
 /**@type {HTMLDivElement} */
 let gameboard;
@@ -249,6 +251,6 @@ function populateSandwich(sandwich) {
     const dims = topology.exportDimensions(puzzleinfo.topology);
     targetSandwichE.style.setProperty("--nrows", dims.y);
     targetSandwichE.style.setProperty("--cols", dims.x);
-    targetSandwichE.hidden = false;
     createStaticBoard(targetSandwichE, puzzleinfo.topology, sandwich[0], sandwich[1]);
+    targetSandwichContE.hidden = false;
 }
