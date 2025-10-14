@@ -231,7 +231,7 @@ function populateVariantInfo() {
         return a.replaceAll("\n", "\\\n\\").split("\\").map(v => v==="\n"?document.createElement("br"):v);
     }
     const vari = puzzleinfo.variants[curr_variant];
-    targetSandwichE.hidden = true;
+    targetSandwichContE.hidden = true;
     document.getElementById("var-name").textContent = vari.var_name;
     document.getElementById("var-cps").textContent = vari.CPS;
     document.getElementById("var-movres").textContent = vari.MOV_RESTRICT===0?"Unlimited":vari.MOV_RESTRICT;
