@@ -66,7 +66,7 @@ const collection = db.collection("index");
                     case "/puz/list": {
                         try {
                             /**@type {FilterRecord[]} */
-                            const arr = (await collection.find().limit(20).sort({"_id":1,"name":1,"__special_priority":1}).toArray());
+                            const arr = (await collection.find().limit(20).sort({"_id":1,"name":1,"__special_priority":1}).project({_id:0}).toArray());
                             res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(arr));
                         } catch (E) {
                             addLog(ERRORLOG, `${E}`);
