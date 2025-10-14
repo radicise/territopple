@@ -30,19 +30,22 @@ const collection = db.collection("index");
     process.on("SIGUSR1", async () => {
         /**@type {FilterRecord[]} */
         const index = [];
-        fs.readdirSync(path.join(DEFS.__dname, "puzzles")).forEach((n) => {
-            if (!n.endsWith(".tpzl")) return;
-            fs.readFile(path.join(DEFS.__dname, "puzzles", n), (err, data) => {
-                if (err) return;
-                const info = version0(data);
-                let goals = 0;
-                for (const vari of info.variants) {
-                    goals |= (1<<vari.GOAL_ID);
-                    if (goals === 15) break;
-                }
-                index.push({filename:n.substring(0, n.length-5),variants:info.VC,has:goals,players:info.PC,dims:info.TPARAMS,author:info.author,name:info.name,topology:info.topology_rules.id??-1,description:info.info_str});
+        await Promise.all(fs.readdirSync(path.join(DEFS.__dname, "puzzles")).map((n) => {
+            new Promise(resolve => {
+                if (!n.endsWith(".tpzl")) return;
+                fs.readFile(path.join(DEFS.__dname, "puzzles", n), (err, data) => {
+                    if (err) return resolve();
+                    const info = version0(data);
+                    let goals = 0;
+                    for (const vari of info.variants) {
+                        goals |= (1<<vari.GOAL_ID);
+                        if (goals === 15) break;
+                    }
+                    index.push({filename:n.substring(0, n.length-5),variants:info.VC,has:goals,players:info.PC,dims:info.TPARAMS,author:info.author,name:info.name,topology:info.topology_rules.id??-1,description:info.info_str});
+                    resolve();
+                });
             });
-        });
+        }));
         const resp = await collection.bulkWrite(index.map(v => {return {updateOne:{filter:{filename:v.filename},update:v,upsert:true}};}));
         addLog(INDEXLOG, `INDEXED\nupdated: ${resp.modifiedCount}\ninserted: ${resp.insertedCount}\nerrors: ${resp.getWriteErrors().length}`);
     });
