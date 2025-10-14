@@ -3,35 +3,83 @@ const fs = require("fs");
 const path = require("path");
 const DEFS = require("../../defs.js");
 const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog, logStamp } = DEFS;
+const mdb = require("mongodb");
+
+const INDEXLOG = "logs/puzzles/index.txt";
+ensureFile(INDEXLOG);
+logStamp(INDEXLOG);
 
 if (!fs.existsSync("www/puzs")) {
     fs.symlinkSync(path.join(DEFS.__dname, "puzzles"), path.join(DEFS.__dname, "www", "puzs"));
 }
+if (!settings.DB_CONFIG?.URI) {
+    throw new Error("no database uri");
+}
+const client = new mdb.MongoClient(settings.DB_CONFIG.URI);
+const db = client.db("puzzles");
+const collection = db.collection("index");
 
-const server = http.createServer((req, res) => {
-    const url = new URL("http://localhost"+req.url);
-    switch (req.method) {
-        case "GET": {
-            switch (url.pathname) {
-                case "/puz/list": {
-                    res.writeHead(503).end();
-                    return;
-                }
-                case "/puz/info": {
-                    res.writeHead(503).end();
-                    return;
-                }
-                default: {
-                    res.writeHead(404).end();
-                    return;
+/**
+ * @typedef {{filename:string,variants:number,has:number,players:number,dims:number[],author:string,name:string,__special_priority:number,topology:number|null,description:string}} FilterRecord
+ */
+
+(async()=>{
+    const version0 = (await import("../../www/helpers/comparse/puzzle.mjs")).version0;
+    process.on("SIGUSR1", async () => {
+        /**@type {FilterRecord[]} */
+        const index = [];
+        fs.readdirSync(path.join(DEFS.__dname, "puzzles")).forEach((n) => {
+            if (!n.endsWith(".tpzl")) return;
+            fs.readFile(path.join(DEFS.__dname, "puzzles", n), (err, data) => {
+                if (err) return;
+                const info = version0(data);
+                index.push({filename:n.substring(0, n.length-5),variants:info.VC,has:goals,players:info.PC,dims:info.TPARAMS,author:info.author,name:info.name,topology:info.topology_rules.id??-1,description:info.info_str});
+            });
+        });
+        const resp = await collection.bulkWrite(index.map(v => {return {updateOne:{filter:{filename:v.filename},update:v,upsert:true}};}));
+        addLog(INDEXLOG, `INDEXED\nupdated: ${resp.modifiedCount}\ninserted: ${resp.insertedCount}\nerrors: ${resp.getWriteErrors().length}`);
+    });
+    const server = http.createServer(async (req, res) => {
+        const url = new URL("http://localhost"+req.url);
+        switch (req.method) {
+            case "GET": {
+                switch (url.pathname) {
+                    case "/puz/list": {
+                        try {
+                            /**@type {FilterRecord[]} */
+                            const arr = (await collection.find().limit(20).sort({"_id":1,"name":1,"__special_priority":1}).toArray());
+                            res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(arr));
+                        } catch {
+                            res.writeHead(503).end();
+                        }
+                        return;
+                    }
+                    case "/puz/info": {
+                        res.writeHead(503).end();
+                        return;
+                    }
+                    default: {
+                        res.writeHead(404).end();
+                        return;
+                    }
                 }
             }
+            case "POST": {
+                res.writeHead(503).end();
+                if (true) return;
+                const puz = url.pathname.substring(5);
+                const puzpath = path.join(DEFS.__dname, "puzzles", `${puz}.tpzl`);
+                if (!puz || !fs.existsSync(puzpath)) return res.writeHead(404).end();
+                const body = await new Promise((r, s) => {
+                    let d = "";
+                    req.on("data", (data) => {d += data});
+                    req.on("end", ()=>r(d));
+                    req.on("error", s);
+                });
+                return;
+            }
         }
-        case "POST": {
-            res.writeHead(503).end();
-            return;
-        }
-    }
-});
-
-server.listen(settings.PUZZLEPORT);
+    });
+    
+    server.listen(settings.PUZZLEPORT);
+})();
