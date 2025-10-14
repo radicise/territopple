@@ -49,7 +49,7 @@ const collection = db.collection("index");
             });
         }));
         const resp = await collection.bulkWrite(index.map(v => {return {replaceOne:{filter:{filename:v.filename},replacement:v,upsert:true}};}));
-        addLog(INDEXLOG, `INDEXED\nupdated: ${resp.modifiedCount}\ninserted: ${resp.insertedCount}\nerrors: ${resp.getWriteErrors().length}`);
+        addLog(INDEXLOG, `INDEXED\nupdated: ${resp.modifiedCount}\ninserted: ${resp.insertedCount}\nupserted: ${resp.upsertedCount}\nerrors: ${resp.getWriteErrors().length}\n`);
     });
     const server = http.createServer(async (req, res) => {
         const url = new URL("http://localhost"+req.url);
