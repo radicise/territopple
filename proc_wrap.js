@@ -1,9 +1,6 @@
 const { spawn } = require("child_process");
 const rl = require("readline");
 
-console.error(process.argv);
-
-
 /**@type {import("child_process").ChildProcessWithoutNullStreams} */
 let child = null;
 
@@ -25,11 +22,11 @@ function relaunch() {
         console.log(`error: ${data}`);
     });
     if (process.argv.includes("--auto-restart")) {
-        child.on("exit", (code, signal) => {
-            if (signal) return;
-            if (code === 0) return;
-            relaunch();
-        });
+        // child.on("exit", (code, signal) => {
+        //     if (signal) return;
+        //     if (code === 0) return;
+        //     relaunch();
+        // });
     }
 }
 
