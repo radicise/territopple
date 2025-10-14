@@ -33,7 +33,7 @@ const collection = db.collection("index");
         await Promise.all(fs.readdirSync(path.join(DEFS.__dname, "puzzles")).map((n) => {
             new Promise(resolve => {
                 console.log(n);
-                if (!n.endsWith(".tpzl")) return;
+                if (!n.endsWith(".tpzl")) return resolve();
                 fs.readFile(path.join(DEFS.__dname, "puzzles", n), (err, data) => {
                     console.log(err);
                     if (err) return resolve();
