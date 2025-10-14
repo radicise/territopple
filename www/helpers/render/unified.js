@@ -179,3 +179,24 @@ function updateBoard(oldb, oldt) {
     }
     flushUpdates();
 }
+
+/**
+ * creates a static, unreferenceable board with the given element
+ * @param {HTMLDivElement} container
+ * @param {Topology} topo
+ * @param {number[]} board
+ * @param {number[]} teamboard
+ */
+function createStaticBoard(container, topo, board, teamboard) {
+    const gameboard = document.getElementById("gameboard");
+    gameboard.id = "";
+    const oid = container.id;
+    container.id = "gameboard";
+    /**@type {HTMLSelectElement} */
+    const bro = document.getElementById("board-rendering-option");
+    const value = Number(bro.value)-1;
+    createBoard(topo, board, teamboard, value>1?0:value);
+    container.childNodes.forEach(v => v.id = "");
+    container.id = oid;
+    gameboard.id = "gameboard";
+}

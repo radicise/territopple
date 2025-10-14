@@ -250,4 +250,5 @@ function populateSandwich(sandwich) {
     targetSandwichE.style.setProperty("--nrows", dims.y);
     targetSandwichE.style.setProperty("--cols", dims.x);
     targetSandwichE.hidden = false;
+    createStaticBoard(targetSandwichE, puzzleinfo.topology, sandwich[0], sandwich[1]);
 }
