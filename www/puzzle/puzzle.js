@@ -15,7 +15,7 @@ let topology;
 let parsePuzzle;
 /**@type {HTMLSelectElement} */
 const varsel = document.getElementById("var-sel");
-varsel.addEventListener("change", () => {curr_variant=Number(varsel.value);populateVariantInfo();});
+varsel.addEventListener("change", () => {document.getElementById("goal-info").children[curr_variant].hidden=true;curr_variant=Number(varsel.value);populateVariantInfo();});
 /**@type {HTMLDivElement} */
 const targetSandwichE = document.getElementById("target-sandwich");
 /**@type {HTMLDivElement} */
@@ -214,8 +214,8 @@ function populatePuzzleInfo() {
     document.getElementById("variant-count").textContent = puzzleinfo.VC;
     document.getElementById("long-description").textContent = puzzleinfo.info_str;
     document.getElementById("player-count").textContent = puzzleinfo.PC;
-    document.getElementById("player-teams").replaceChildren(...insertBrs(puzzleinfo.TEAMS.map(String)));
-    document.getElementById("player-order").replaceChildren(...insertBrs(puzzleinfo.TURNS.map(String)));
+    document.getElementById("player-teams").replaceChildren(...insertBrs(puzzleinfo.TEAMS.filter(v=>v).map(String)));
+    document.getElementById("player-order").replaceChildren(...insertBrs(puzzleinfo.TURNS.filter(v=>v).map(String)));
     varsel.replaceChildren(...(new Array(puzzleinfo.VC).fill(0)).map((_,i)=>{const n = document.createElement("option");n.value=i;n.textContent=(i+1);return n;}));
     varsel.value = "0";
     populateVariantInfo();
@@ -235,6 +235,11 @@ function populateVariantInfo() {
     document.getElementById("var-movres").textContent = vari.MOV_RESTRICT===0?"Unlimited":vari.MOV_RESTRICT;
     document.getElementById("var-goal").textContent = ["Win","Lose","Force","Reach"][vari.GOAL_ID];
     document.getElementById("var-details").replaceChildren(...replaceNewlines(vari.info_str));
+    const ginfo = document.getElementById("goal-info").children[curr_variant];
+    ginfo.hidden = false;
+    if (vari.GOAL_ID === 2) {
+        ginfo.replaceChildren("Eliminate In This Order:", document.createElement("br"), ...replaceNewlines(vari.ORDER.filter(v=>v).map(String).join("\n")));
+    }
     if (vari.GOAL_ID === 3) {
         populateSandwich(vari.target_state);
     }
