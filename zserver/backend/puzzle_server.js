@@ -48,7 +48,7 @@ const collection = db.collection("index");
                 });
             });
         }));
-        const resp = await collection.bulkWrite(index.map(v => {return {replaceOne:{filter:{filename:v.filename},update:v,upsert:true}};}));
+        const resp = await collection.bulkWrite(index.map(v => {return {replaceOne:{filter:{filename:v.filename},replacement:v,upsert:true}};}));
         addLog(INDEXLOG, `INDEXED\nupdated: ${resp.modifiedCount}\ninserted: ${resp.insertedCount}\nerrors: ${resp.getWriteErrors().length}`);
     });
     const server = http.createServer(async (req, res) => {
