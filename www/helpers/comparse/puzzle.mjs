@@ -56,8 +56,8 @@ export function version0(stream, context) {
         }
     }
     puzzle.PC = buf.consume(1);
-    puzzle.TEAMS = [...new Array(puzzle.PC)].map(() => buf.consume(1));
-    puzzle.TURNS = [...new Array(puzzle.PC)].map(() => buf.consume(1));
+    puzzle.TEAMS = [0, ...new Array(puzzle.PC).fill(0).map(() => buf.consume(1))];
+    puzzle.TURNS = new Array(puzzle.PC).fill(0).map(() => buf.consume(1));
     puzzle.initial_board = boardv0(stream.slice(buf._pos+1), {flags:buf.consume(1),topo:puzzle.topology});
     buf._pos += puzzle.initial_board[2];
     // console.log(`${buf._pos-puzzle.initial_board[2]}->${buf._pos}`);

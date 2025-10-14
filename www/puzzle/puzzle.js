@@ -64,12 +64,12 @@ let movehist = null;
             variantinfo = puzzleinfo.variants[curr_variant];
             startPuzzle();
             startButton.value = "stop";
-            varsel.disabled = true;
         } else {
             stopPuzzle();
             startButton.value = "start";
-            varsel.disabled = false;
         }
+        varsel.disabled = puzzle_started;
+        pingButton.disabled = !puzzle_started;
     });
     pingButton.addEventListener("click", () => {
         if (!puzzle_started) return;
@@ -102,6 +102,7 @@ let movehist = null;
         mes = (mes * topology.exportDimensions(puzzleinfo.topology).x) + meg;
         console.log(mes);
         if ((puzzle.teamboard[mes]) && (puzzle.teamboard[mes] != puzzleinfo.TEAMS[puzzle.turn])) {
+            console.log("bad");
             return;
         }
         doMove(mes);
@@ -183,6 +184,9 @@ function doMove(team, tile) {
 }
 
 function startPuzzle() {
+    const dims = topology.exportDimensions(puzzleinfo.topology);
+    gameboard.style.setProperty("--nrows", dims.y);
+    gameboard.style.setProperty("--ncols", dims.x);
     setup(puzzleinfo.topology, puzzleinfo.initial_board[0], puzzleinfo.initial_board[1]);
     puzzle = {
         owned: new Array(6).fill(0),
@@ -196,7 +200,7 @@ function startPuzzle() {
     };
     puzzle.players[0] = false;
     puzzle.owned[0] = puzzleinfo.topology.tileCount;
-    movehist = new Array(puzzleinfo.PC+1).fill(null).map(_ => [-1]);
+    movehist = new Array(puzzleinfo.PC+1).fill(0).map(_ => [-1]);
 }
 function stopPuzzle() {}
 
