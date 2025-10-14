@@ -187,7 +187,6 @@ function startPuzzle() {
     const dims = topology.exportDimensions(puzzleinfo.topology);
     gameboard.style.setProperty("--nrows", dims.y);
     gameboard.style.setProperty("--ncols", dims.x);
-    setup(puzzleinfo.topology, puzzleinfo.initial_board[0], puzzleinfo.initial_board[1]);
     puzzle = {
         owned: new Array(6).fill(0),
         board: Uint8Array.from(puzzleinfo.initial_board[0]),
@@ -198,6 +197,7 @@ function startPuzzle() {
         turnindex: 0,
         last_move: -1
     };
+    setup(puzzleinfo.topology, puzzle.board, puzzle.teamboard);
     puzzle.players[0] = false;
     for (let i = 0; i < puzzle.teamboard.length; i ++) puzzle.owned[puzzle.teamboard[i]] ++;
     movehist = new Array(puzzleinfo.PC+1).fill(0).map(_ => [-1]);
