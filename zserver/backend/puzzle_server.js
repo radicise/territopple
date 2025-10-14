@@ -102,5 +102,5 @@ const collection = db.collection("index");
     });
     
     server.listen(settings.PUZZLEPORT);
-    addLog(INFOLOG, `listeninf on port ${settings.PUZZLEPORT}`);
+    addLog(INFOLOG, `listening on port ${settings.PUZZLEPORT}`);
 })();
