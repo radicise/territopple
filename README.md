@@ -1,4 +1,7 @@
-Territopple is a multiplayer strategy game based on the game Culture by Secret Lab Pty. Ltd..
+Territopple is a multiplayer strategy game based on the game Culture by Secret Lab Pty. Ltd..  
+  
+Playable at [territopple.net](https://territopple.net)
+
 # Contents
 - [Gameplay](https://github.com/radicise/territopple?tab=readme-ov-file#gameplay)
 - [Computer-based Game Interface](https://github.com/radicise/territopple?tab=readme-ov-file#computer-based-game-interface)

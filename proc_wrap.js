@@ -15,13 +15,20 @@ function shutdown() {
 
 function relaunch() {
     shutdown();
-    child = spawn("node", process.argv.slice(2));
+    child = spawn("node", process.argv.slice(3));
     child.stdout.on("data", (data) => {
         console.log(`data: ${data}`);
     });
     child.stderr.on("data", (data) => {
         console.log(`error: ${data}`);
     });
+    if (process.argv.includes("--auto-restart")) {
+        child.on("exit", (code, signal) => {
+            if (signal) return;
+            if (code === 0) return;
+            relaunch();
+        });
+    }
 }
 
 const i = rl.createInterface({input:process.stdin,output:process.stdout});

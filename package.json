@@ -1,36 +1,33 @@
 {
   "dependencies": {
-    "ejs": "^3.1.10",
-    "express": "^4.21.2",
-    "express-ws": "^5.0.2",
+    "ejs": "3.1.10",
+    "express": "4.21.2",
+    "express-ws": "5.0.2",
     "mongodb": "6.18",
-    "nodemailer": "^7.0.6",
-    "three": "^0.173.0",
-    "ws": "^8.18.0"
+    "nodemailer": "7.0.6",
+    "three": "0.173.0",
+    "ws": "8.18.0"
   },
   "scripts": {
     "start": "node proc_wrap.js zserver/userver.js",
     "dev": "node proc_wrap.js zserver/userver.js --eval-stdin",
     "t3dbg": "node topology/rules/debug.js",
-    "be-data": "node zserver/backend/data_server.js --no-in",
-    "be-mngr": "node zserver/backend/worker_manager.js --no-in",
+    "be-data": "node zserver/backend/data_server.js --no-in --auto-restart",
+    "be-mngr": "node zserver/backend/worker_manager.js --no-in --auto-restart",
     "be-mngr-dev": "node proc_wrap.js zserver/backend/worker_manager.js --eval-stdin",
     "be-data-dev": "node proc_wrap.js zserver/backend/data_server.js --eval-stdin",
-    "be-bots": "node zserver/bots/bot_server.js --no-in",
+    "be-bots": "node zserver/bots/bot_server.js --no-in --auto-restart",
     "be-bots-dev": "node proc_wrap.js zserver/bots/bot_server.js --eval-stdin",
-    "be-puzs": "node proc_wrap.js zserver/backend/puzzle_server.js --no-in",
-    "ac-serv": "node zserver/accounts/server.js"
+    "be-puzs": "node proc_wrap.js zserver/backend/puzzle_server.js --no-in --auto-restart",
+    "ac-serv": "node proc_wrap.js zserver/accounts/server.js --no-in --auto-restart"
   },
   "name": "territopple",
-  "version": "1.0.0",
-  "description": "...",
   "main": "main.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/radicise/territopple.git"
   },
   "author": "...",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/radicise/territopple/issues"
   },
