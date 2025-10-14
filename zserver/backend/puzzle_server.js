@@ -87,7 +87,7 @@ const collection = db.collection("index");
             case "POST": {
                 res.writeHead(503).end();
                 if (true) return;
-                const puz = url.pathname.substring(5);
+                const puz = url.pathname.substring(4);
                 const puzpath = path.join(DEFS.__dname, "puzzles", `${puz}.tpzl`);
                 if (!puz || !fs.existsSync(puzpath)) return res.writeHead(404).end();
                 const body = await new Promise((r, s) => {
