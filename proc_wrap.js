@@ -1,6 +1,8 @@
 const { spawn } = require("child_process");
 const rl = require("readline");
 
+console.log(process.argv);
+
 
 /**@type {import("child_process").ChildProcessWithoutNullStreams} */
 let child = null;
