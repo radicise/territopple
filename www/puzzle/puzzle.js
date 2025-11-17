@@ -52,8 +52,8 @@ let elimorder = null;
 
 (async () => {
     await INCLUDE_FINISHED;
-    gameboard = document.getElementById("gameboard")
-    startButton = document.getElementById("startbutton")
+    gameboard = document.getElementById("gameboard");
+    startButton = document.getElementById("startbutton");
     pingButton = document.getElementById("pingbutton");
     pingButton.disabled = true;
     pingButton.value = "next";

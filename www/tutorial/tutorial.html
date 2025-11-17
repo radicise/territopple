@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Territopple Tutorial</title>
+        <link rel="stylesheet" type="text/css" href="../territopple.css" />
+        <style>
+            #content-area {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            #message-area-container {
+                display: flex;
+                flex-direction: column;
+            }
+            #message-area {
+                overflow-y: scroll;
+                background: #555;
+                border-radius: 5px;
+                border: solid black 2px;
+                width: 30vw;
+                display: flex;
+                flex-direction: column;
+                align-items: end;
+                height: 80vh;
+            }
+            #message-area * {
+                margin-top: 0.5em;
+                margin-bottom: 0px;
+                background: dimgray;
+                border: solid 2px black;
+                border-radius: 4px;
+                max-width: 18vw;
+                width: fit-content;
+                margin-right: 1vw;
+                padding: 0.5em;
+                padding-top: 0.25em;
+                padding-bottom: 0.25em;
+                color: #bbb;
+                animation: pop-in 0.25s cubic-bezier(0.445, 0.05, 0.55, 0.95) 0s 1 forwards;
+            }
+            #tutorial-next {
+                align-self: right;
+            }
+            .highlight {
+                border: solid 2px orange;
+            }
+            @keyframes pop-in {
+                from {
+                    transform: translateY(100%) scale(0);
+                }
+                to {
+                    transform: translateY(0%) scale(1);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <a href="/" target="_self">Home</a>
+        <div id="content-area">
+            <div id="play-area">
+                <meta data-import="/components/game-render/all.html" />
+            </div>
+            <div id="message-area-container">
+                <div id="message-area">
+                    <!-- <p>test</p> -->
+                </div>
+                <input type="button" value="Next" id="tutorial-next">
+            </div>
+            <!-- <input type="button" value="add message" onclick="document.getElementById('message-area').append((()=>{const d = document.createElement('p');d.textContent='test';return d;})());"> -->
+        </div>
+        <script src="/tutorial/tutorial.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "/three/build/three.module.js",
+                    "three/addons/": "/three/examples/jsm/",
+                    "topology/": "/topology/"
+                }
+            }
+        </script>
+        <script src="/components/include.js"></script>
+    </body>
+</html>
