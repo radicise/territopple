@@ -7,6 +7,7 @@ const sequence = [
     {m:[0,0,1],w:true},
     {m:[0,0,1],w:true},
     {m:[0,2,1],w:true},
+    {m:[0,3,2],w:true},
     {m:[0,4,2],w:true},
     // actual tutorial
     {t:"Welcome to the tutorial!\nHere you will learn the basics of how Territopple is played."},
@@ -62,6 +63,8 @@ const info = {
             const p = document.createElement("p");
             p.textContent = item.t;
             messageArea.appendChild(p);
+            p.scrollIntoView({"behavior":"smooth"});
+            messageArea.scrollBy({"behavior":"smooth","top":p.clientHeight});
         }
         if (item.m) {
             doMove(item.m[2], item.m[0]*5+item.m[1]);
