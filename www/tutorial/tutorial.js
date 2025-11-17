@@ -30,7 +30,7 @@ const sequence = [
     {m:[0,2,1],w:true},
     {t:"Nice! That covers most of the basics, but here are a couple other things you should know about."},
     {t:"Teams are eliminated when they have no valid moves (eg. they own no tiles and all tiles are claimed).\nYou win when you are the only team remaining."},
-    {t:"This is the ping button, it pings the player who's turn it is. In a real game, you can also ping specific players through the Joined List on the right hand side of the screen.",h:"#pingbutton"},
+    {t:"This is the ping button, it pings the active player. In a real game, you can also ping specific players through the Joined List on the right hand side of the screen.",h:"#pingbutton"},
     {t:"This is the start button, it starts the game, but it won't do anything if you aren't the host.",h:"#startbutton"},
     {t:"This is your remaining time, this is for the Turn Timer rules, in a real game, you can see all players' remaining time via the Joined List on the right hand side of the screen.",h:"#turn-time"},
     {t:"That's all, enjoy playing Territopple!",w:{c:"#home-link"}}
