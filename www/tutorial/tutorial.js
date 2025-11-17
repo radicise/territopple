@@ -64,7 +64,7 @@ const info = {
             p.textContent = item.t;
             messageArea.appendChild(p);
             p.scrollIntoView({"behavior":"smooth"});
-            messageArea.scrollBy({"behavior":"smooth","top":50});
+            messageArea.scrollBy({"behavior":"smooth","top":-50});
         }
         if (item.m) {
             doMove(item.m[2], item.m[0]*5+item.m[1]);
