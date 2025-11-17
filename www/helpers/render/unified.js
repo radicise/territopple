@@ -160,6 +160,7 @@ function setup(topo, board, teamboard) {
         flushUpdates();
         document.getElementById("spherical-bloom-enabled").hidden = (bro.value !== "3");
     };
+    document.getElementById("spherical-bloom-enabled").hidden = (bro.value !== "3");
     document.getElementById("spherical-enable-bloom").onchange = () => {
         window.postMessage({type:"3d-setbloom",enabled:document.getElementById("spherical-enable-bloom").checked});
     };
