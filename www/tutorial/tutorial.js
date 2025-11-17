@@ -28,7 +28,7 @@ const sequence = [
     {t:"When a tile has exactly as many pieces on it as it has neighbors, it's called a Volatile.\nWhen tiles topple onto Volatiles, the Volatiles also topple.\nAdjacent Volatiles form Volatile chains."},
     {t:"Here's one, go ahead and set it off.",h:["#r0c2","#r0c3"],w:{c:"#r0c2"}},
     {m:[0,2,1],w:true},
-    {t:"Nice! That covers most of the basics, but here are a couple others things you should know about."},
+    {t:"Nice! That covers most of the basics, but here are a couple other things you should know about."},
     {t:"Teams are eliminated when they have no valid moves (eg. they own no tiles and all tiles are claimed).\nYou win when you are the only team remaining."},
     {t:"This is the ping button, it pings the player who's turn it is. In a real game, you can also ping specific players through the Joined List on the right hand side of the screen.",h:"#pingbutton"},
     {t:"This is the start button, it starts the game, but it won't do anything if you aren't the host.",h:"#startbutton"},
