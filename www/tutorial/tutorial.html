@@ -50,6 +50,9 @@
             .highlight {
                 outline: solid 2px orange;
             }
+            .click-here {
+                outline-color: lime;
+            }
             @keyframes pop-in {
                 from {
                     transform: translateY(100%) scale(0);
@@ -61,7 +64,7 @@
         </style>
     </head>
     <body>
-        <a href="/" target="_self">Home</a>
+        <a href="/" target="_self" id="home-link">Home</a>
         <div id="content-area">
             <div id="play-area">
                 <meta data-import="/components/game-render/all.html" />

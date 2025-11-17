@@ -33,7 +33,7 @@ const sequence = [
     {t:"This is the ping button, it pings the player who's turn it is. In a real game, you can also ping specific players through the Joined List on the right hand side of the screen.",h:"#pingbutton"},
     {t:"This is the start button, it starts the game, but it won't do anything if you aren't the host.",h:"#startbutton"},
     {t:"This is your remaining time, this is for the Turn Timer rules, in a real game, you can see all players' remaining time via the Joined List on the right hand side of the screen.",h:"#turn-time"},
-    {t:"That's all, enjoy playing Territopple!"}
+    {t:"That's all, enjoy playing Territopple!",w:{c:"home-link"}}
 ];
 
 const info = {
@@ -88,10 +88,15 @@ const info = {
             if (item.w.c) {
                 continuePromise = new Promise(r => {
                     const that = () => {
+                        if (nextButton.disabled) {
+                            document.querySelector(item.w.c).classList.remove("highlight","click-here");
+                        }
                         document.querySelector(item.w.c).removeEventListener("click", that);
                         r();
                     };
-                    document.querySelector(item.w.c).addEventListener("click", that);
+                    const e = document.querySelector(item.w.c);
+                    e.addEventListener("click", that);
+                    e.classList.add("highlight","click-here");
                 });
             }
         }
