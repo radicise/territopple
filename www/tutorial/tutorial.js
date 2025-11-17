@@ -96,7 +96,9 @@ const info = {
                     };
                     const e = document.querySelector(item.w.c);
                     e.addEventListener("click", that);
-                    e.classList.add("highlight","click-here");
+                    if (nextButton.disabled) {
+                        e.classList.add("highlight","click-here");
+                    }
                 });
             }
         }
