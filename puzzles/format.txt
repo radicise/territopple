@@ -93,6 +93,9 @@ IF (len(topology rules) IS 0) {
 }
 BYTE - topology param count (TPC)
 U16[TPC] - topology parameters
+BYTE - team count (NNTC)
+NOTE: NNTC may not be 0 or 255
+NOTE: NNTC does not count the neutral team, as it is always present
 BYTE - player count (PC)
 BYTE[PC] - team assignments
 BYTE[PC] - turn order
@@ -113,9 +116,10 @@ FOR VI IN 0..VC {
             INTERPRET: goal is to lose
         }
         CASE (2) {
-            BYTE[PC] - order
-            INTERPRET: goal is to eliminate players/teams in the given order
-            NOTE: order is not required to contain all player numbers, in this case, the end is padded with zeros, all players not within the list do not need to be eliminated
+            BYTE[NNTC] - order
+            INTERPRET: goal is to eliminate teams in the given order
+            INTERPRET: order[i] is a team number which must be eliminated before this team
+            NOTE: order is not required to indicate that all or all but one teams must be eliminated, teams that should not be eliminated are to use their own team number, teams that may optionally be eliminated are to use 255 as the requirement number
         }
         case (3) {
             INLINE BOARD

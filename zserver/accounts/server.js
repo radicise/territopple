@@ -13,11 +13,12 @@ const { ensureFile, addLog, logStamp, settings, validateJSONScheme, JSONScheme }
 const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
+const { AppealRejectionRecord, SanctionRecord, AccountRecord } = require("./types.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
 
-const ACC_CREAT_TIMEOUT = 600000;
-const SESS_TIMEOUT = 1000*60*30;
+const ACC_CREAT_TIMEOUT = settings.ACC?.CREATE_TO ?? 600000;
+const SESS_TIMEOUT = settings.ACC?.SESSION_TO ?? 1000*60*30;
 
 const EACCESS = "logs/accounts/access.txt";
 const EREJECT = "logs/accounts/rejected.txt";
@@ -44,6 +45,7 @@ if (!(settings.MAIL_CONFIG?.HOST && settings.MAIL_CONFIG?.BOT_PASS && settings.M
 const client = new mdb.MongoClient(settings.DB_CONFIG.URI);
 const db = client.db("accounts");
 const collection = db.collection("basic-info");
+const priv_groups = db.collection("priv-groups");
 
 const mailtransport = nodemailer.createTransport({
     host: settings.MAIL_CONFIG.HOST,
@@ -75,8 +77,8 @@ class FatalError extends Error {
 }
 
 /**
- * @typedef AccountRecord
- * @type {{_id:mdb.ObjectId,id:string,name:string,email:string,pwdata:mdb.Binary}}
+ * @\typedef AccountRecord
+ * @\type {{_id:mdb.ObjectId,id:string,name:string,email:string,pwdata:mdb.Binary}}
  */
 
 /**
@@ -186,6 +188,16 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = (await collection.findOne({id:target})).name;
                 res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({name:v}));
+            } catch (E) {
+                console.log(E);
+                res.writeHead(404).end();
+            }
+            return;
+        }
+        case "/solved":{
+            try {
+                const v = (await collection.findOne({id:target})).solved;
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({solved:v}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
@@ -467,7 +479,7 @@ const public_server = http.createServer(async (req, res) => {
         }
     }
 });
-const internal_server = http.createServer((req, res) => {
+const internal_server = http.createServer(async (req, res) => {
     const url = new URL("http://localhost"+req.url);
     const TIME = new Date();
     const REQNUM = IREQNUM_CNT ++;
@@ -476,18 +488,79 @@ const internal_server = http.createServer((req, res) => {
     // /**@type {(op:string)=>void} */
     // const notimpl = (op)=>{log(IREJECT, `${op} not implemented`);};
     log(IACCESS, `${req.method} - ${url}`);
-    if (req.method !== "GET") {
-        res.writeHead(405).end();
-        return;
-    }
     switch (url.pathname) {
+        case "/session-keepalive":{
+            if (req.method !== "GET") {
+                res.writeHead(405).end();
+                return;
+            }
+            if (SessionManager.refreshSession(url.searchParams.get("id"))) {
+                res.writeHead(200).end();
+            } else {
+                res.writeHead(404).end();
+            }
+            return;
+        }
+        case "/get-privs":{
+            if (req.method !== "GET") {
+                res.writeHead(405).end();
+                return;
+            }
+            const id = SessionManager.getAccountId(url.searchParams.get("id"));
+            if (id) {
+                try {
+                    /**@type {AccountRecord} */
+                    const rec = await collection.findOne({id});
+                    if (!rec) {
+                        res.writeHead(404).end();
+                        return;
+                    }
+                    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+                    res.writeHead(200).end((rec.priv_level | groups.reduce((pv, cv) => pv | cv, 0)).toString());
+                } catch (E) {
+                    console.log(E);
+                    res.writeHead(500).end();
+                }
+            } else {
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/resolve-session":{
+            if (req.method !== "GET") {
+                res.writeHead(405).end();
+                return;
+            }
             const id = SessionManager.getAccountId(url.searchParams.get("id"));
             if (id) {
                 res.writeHead(200).end(id);
             } else {
                 res.writeHead(404).end();
             }
+            return;
+        }
+        case "/add-completed-puzzle":{
+            if (req.method !== "PATCH") {
+                res.writeHead(405).end();
+                return;
+            }
+            const id = SessionManager.getAccountId(url.searchParams.get("id"));
+            const pzvid = Number(url.searchParams.get("pzvid") ?? "NaN");
+            if (isNaN(pzvid) ) {
+                res.writeHead(400).end();
+            }
+            if (!id) {
+                res.writeHead(401).end();
+                return;
+            }
+            const upd = {$bit:{}};
+            upd["$bit"]["solved.$"] = {or:pzvid};
+            if ((await collection.updateOne({id:id,solved:{$not:{$elemMatch:{$mod:[0x04000000,pzvid&0x03ffffff]}}}}, {$addToSet:{solved:pzvid}})).matchedCount) res.writeHead(200).end();
+            else if ((await collection.updateOne({id:id,solved:{$elemMatch:{$mod:[0x04000000,pzvid&0x03ffffff]}}, upd}))) res.writeHead(200).end();
+            // const upd = {};
+            // upd[`solved.${puz}`] = mdb.Int32(1<<variant);
+            // if ((await collection.updateOne({id:id}, {$inc:upd})).modifiedCount) res.writeHead(200).end();
+            else res.writeHead(500).end();
             return;
         }
     }
@@ -544,9 +617,10 @@ class SessionManager {
      * @param {string} id
      */
     static refreshSession(id) {
-        if (!(id in this.#sessions)) return;
+        if (!(id in this.#sessions)) return false;
         clearTimeout(this.#sessions[id][1]);
         this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT);
+        return true;
     }
     /**
      * @param {string} token

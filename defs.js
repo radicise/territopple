@@ -527,7 +527,8 @@ exports.Game = Game;
  * REPLAYS:{ENABLED:boolean,TIMESTAMP:boolean,COLLATE:boolean},
  * MAX_TEAMS:number,
  * DB_CONFIG:{URI:string},
- * MAIL_CONFIG:{HOST:string,BOT_USER:string,BOT_PASS:string}
+ * MAIL_CONFIG:{HOST:string,BOT_USER:string,BOT_PASS:string},
+ * ACC:{CREATE_TO:number,SESSION_TO:number}
  * }}
  */
 

@@ -43,10 +43,12 @@ let curr_variant = 0;
 /**@type {VariantInfo} */
 let variantinfo;
 let puzzle_started = false;
-/**@type {{owned:number[],board:Uint8Array,teamboard:Uint8Array,players:boolean[],turns:number[],turn:number,turnindex:number,last_move:number}} */
+/**@type {{owned:number[],board:Uint8Array,teamboard:Uint8Array,players:boolean[],turns:number[],turn:number,turnindex:number,last_move:number,ended:boolean,moves:number[],totalmoves:number}} */
 let puzzle = null;
 /**@type {number[][]} */
 let movehist = null;
+/**@type {number[]} */
+let elimorder = null;
 
 (async () => {
     await INCLUDE_FINISHED;
@@ -60,6 +62,17 @@ let movehist = null;
     parsePuzzle = await getParserFunction("puzzle", "version0");
     puzzleinfo = parsePuzzle(await (await fetch(`/puzs/${puzzle_id}.tpzl`, {method:"GET"})).bytes());
     populatePuzzleInfo();
+    async function submitSolution() {
+        let b = "";
+        b += curr_variant.toString(16).padStart(2, "0");
+        b += puzzle.totalmoves.toString(16).padStart(8, "0");
+        b += JSON.stringify(puzzle.moves);
+        const res = (await fetch(`territopple.net/puz/verify?puz=${puzzle_id}`,{method:"POST",body:b}));
+        if (res.status === 200) {
+            return true;
+        }
+        return false;
+    }
     startButton.addEventListener("click", () => {
         puzzle_started = !puzzle_started;
         if (puzzle_started) {
@@ -150,7 +163,9 @@ function getNPCMove() {
 }
 
 function doMove(team, tile) {
+    puzzle.totalmoves ++;
     puzzle.last_move = tile;
+    puzzle.moves.push(tile);
     const adds = [tile];
     const bb = puzzle.board;
     const tb = puzzle.teamboard;
@@ -160,9 +175,17 @@ function doMove(team, tile) {
         const t = adds.pop();
         if (tb[t] !== team) {
             puzzle.owned[tb[t]] --;
+            if (puzzle.owned[0] === 0 && puzzle.owned[tb[t]] === 0) {
+                puzzle.players.forEach((v, i) => {if(v&&v.team===tb[t]){puzzle.players[i]=false;elimorder.push(i)}});
+                if (tb[t] === 0) {
+                    puzzle.players.forEach((v, i) => {if(v&&puzzle.owned[v.team]===0){puzzle.players[i]=false;elimorder.push(i)}});
+                }
+            }
             puzzle.owned[team] ++;
             tb[t] = team;
             if (puzzle.owned[team] === bb.length) {
+                puzzle.ended = true;
+                puzzle_started = false;
                 break;
             }
         }
@@ -197,12 +220,16 @@ function startPuzzle() {
         turns: new Array(puzzleinfo.PC+1).fill(1),
         turn: puzzleinfo.TURNS[0],
         turnindex: 0,
-        last_move: -1
+        last_move: -1,
+        ended: false,
+        moves: [],
+        totalmoves: 0
     };
     setup(puzzleinfo.topology, puzzle.board, puzzle.teamboard);
     puzzle.players[0] = false;
     for (let i = 0; i < puzzle.teamboard.length; i ++) puzzle.owned[puzzle.teamboard[i]] ++;
     movehist = new Array(puzzleinfo.PC+1).fill(0).map(_ => [-1]);
+    elimorder = [];
 }
 function stopPuzzle() {}
 

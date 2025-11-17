@@ -15,6 +15,7 @@ import { version0 as boardv0 } from "./board.mjs";
  * topology:import("../../topology/topology").Topology,
  * TPC:number,
  * TPARAMS:number[],
+ * NNTC:number,
  * PC:number,
  * TEAMS:number[],
  * TURNS:number[],
@@ -55,6 +56,7 @@ export function version0(stream, context) {
             puzzle.topology = topology.makeTopology(topology.formatDimensions([puzzle.topology_rules.id, ...puzzle.TPARAMS]));
         }
     }
+    puzzle.NNTC = buf.consume(1);
     puzzle.PC = buf.consume(1);
     puzzle.TEAMS = [0, ...new Array(puzzle.PC).fill(0).map(() => buf.consume(1))];
     puzzle.TURNS = new Array(puzzle.PC).fill(0).map(() => buf.consume(1));
@@ -72,7 +74,7 @@ export function version0(stream, context) {
         v.MOV_RESTRICT = buf.consume(1);
         v.GOAL_ID = buf.consume(1);
         switch (v.GOAL_ID) {
-            case 2:{v.ORDER = [...new Array(puzzle.PC)].map(() => buf.consume(1));break;}
+            case 2:{v.ORDER = [...new Array(puzzle.NNTC)].map(() => buf.consume(1));break;}
             case 3:{v.target_state = boardv0(stream.slice(buf._pos+1), {flags:buf.consume(1),topo:puzzle.topology});buf._pos += v.target_state[2];break;}
             default:break;
         }
