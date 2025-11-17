@@ -45,6 +45,8 @@ const info = {
 
 (async () => {
     await INCLUDE_FINISHED;
+    /**@type {HTMLInputElement} */
+    const nextButton = document.getElementById("tutorial-next");
     // this is done to reduce complexity of click detection
     document.getElementById("board-rendering-option").children[2].disabled = true;
     gameboard = document.getElementById("gameboard");
@@ -78,6 +80,7 @@ const info = {
         }
         if (!item.w) {
             item.w = {c:"#tutorial-next"};
+            nextButton.disabled = false;
         }
         if (item.w === true) {
             continuePromise = Promise.resolve();
@@ -95,10 +98,11 @@ const info = {
     }
     while (seqInd < sequence.length) {
         await continuePromise;
+        nextButton.disabled = true;
         executeItem(sequence[seqInd]);
         seqInd ++;
     }
-    document.getElementById("tutorial-next").disabled = true;
+    nextButton.disabled = true;
 })();
 
 function doMove(team, tile) {
