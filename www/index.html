@@ -191,7 +191,7 @@
             <script>
                 fetch("https://territopple.net/changelog.txt", {method:"GET"}).then(v => {
                     v.text().then(t => {
-                        const p = document.getElementById("changelog-modal").children[0].children[0];
+                        const p = document.getElementById("changelog-modal").children[0].children[1];
                         t.split("\n").forEach(v => {
                             const l = v.trim();
                             if (l.length) {
