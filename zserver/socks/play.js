@@ -84,10 +84,15 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
+    let mutexflag = false;
     errorL = () => {
+        if (mutexflag) return;
+        mutexflag = true;
         change("dcon");
     };
     closeL = () => {
+        if (mutexflag) return;
+        mutexflag = true;
         change("dcon");
     };
     messageL = (_data) => {

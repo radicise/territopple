@@ -10,7 +10,7 @@ const crypto = require("crypto");
 
 const LOGF = `logs/worker/${process.pid}.txt`;
 
-const LOGGING = true;
+const LOGGING = false;
 
 let log = (s) => {};
 if (LOGGING) {
