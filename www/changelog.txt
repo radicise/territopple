@@ -3,6 +3,8 @@ fixed the bug where players leaving a room when the game finished were double-co
 changed the tutorial highlighting to make click targets more obvious
 added autoplay to replay viewer
 changed the default rendering mode to concentric
+made a minor update to the way room select displays spectate links
+added a refresh button to room select
 
 # Nov 18, 2025 (Alpha 1.4.4)
 fixed an issue with concentric rendering looking cursed when not at default zoom
