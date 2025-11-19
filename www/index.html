@@ -96,6 +96,17 @@
             }
         </style>
         <style>
+            div#changelog-modal > div p {
+                margin-top: 0px;
+                max-height: calc(80svh - 2em - 10px);
+                overflow-y: scroll;
+            }
+            div#changelog-modal > div p h3 {
+                margin-top: 0.5em;
+                margin-bottom: 0.5em;
+            }
+        </style>
+        <style>
             div#random-replay {
                 --size: 65svmin;
                 width: var(--size);
@@ -202,9 +213,9 @@
         <div id="changelog-modal" class="modal" hidden>
             <div style="max-height: 80svh;">
                 <span style="display:flex;flex-direction:column;align-items:end;">
-                    <input type="button" value="close" style="width:fit-content;" onclick="document.getElementById('changelog-modal').hidden=true;">
+                    <input type="button" value="close" style="width:fit-content;position:absolute;" onclick="document.getElementById('changelog-modal').hidden=true;">
                 </span>
-                <p style="max-height:calc(80svh - 3em - 10px);overflow-y:scroll;"></p>
+                <p></p>
                 <!-- <br> -->
             </div>
             <script>
