@@ -8,6 +8,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     if (state.spectating || state.game.state.state === 2) {
+        if (state.spectating) {
+            if (!state.game.spectators[state.spectatorId]) return;
+        } else {
+            if (!state.game.players[state.playerNum]) return;
+        }
         change("leave");
         return;
     }
