@@ -1,6 +1,6 @@
 <fieldset id="display-settings">
     <legend>Display Settings</legend>
-    <div>
+    <div style="margin-bottom:0.5em;">
       <label for="board-zoom">Zoom</label>
       <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize();window.dispatchEvent(new CustomEvent('gameboard-fresize'));">
       <label for="settings-expand" id="settings-expand-label">Expand +</label>
@@ -10,17 +10,17 @@
       <!-- hover enabled/color -->
       <input type="checkbox" id="hover-enabled" checked>
       <label for="hover-enabled">Hover</label>
-      <input type="color" id="hover-color" value="#000000">
+      <input type="color" id="hover-color" value="#000000" style="margin-bottom:0.5em;">
       <br>
       <!-- last move enabled/color -->
       <input type="checkbox" id="last-move-enabled" checked>
       <label for="last-move-enabled">Last move</label>
-      <input type="color" id="last-move-color" value="#aaaaaa">
+      <input type="color" id="last-move-color" value="#aaaaaa" style="margin-bottom:0.5em;">
       <br>
       <!-- volatile enabled/color -->
       <input type="checkbox" id="volatiles-enabled" checked>
       <label for="volatiles-enabled">Volatiles</label>
-      <input type="color" id="volatiles-color" value="#dddddd">
+      <input type="color" id="volatiles-color" value="#dddddd" style="margin-bottom:0.5em;">
       <br>
       <!-- board rendering option -->
       <label for="board-rendering-option">Board Rendering:</label>
@@ -31,7 +31,7 @@
           <!-- <option value="3" selected>spherical</option> -->
           <option value="3">spherical</option>
       </select>
-      <div id="spherical-bloom-enabled">
+      <div id="spherical-bloom-enabled" style="margin-top:0.5em;">
           <label for="spherical-enable-bloom">Bloom Enabled</label>
           <input type="checkbox" id="spherical-enable-bloom" checked>
       </div>
