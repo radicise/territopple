@@ -204,7 +204,7 @@
                                     p.append(h);
                                     if (flag) {
                                         flag = false;
-                                        document.getElementById("splash-main").textContent = `Territopple (${l.substring(l.indexOf('('), l.indexOf(')'))})`;
+                                        document.getElementById("splash-main").textContent = `Territopple (${l.substring(l.indexOf('(')+1, l.indexOf(')'))})`;
                                     }
                                 } else {
                                     p.append(l, document.createElement("br"));
