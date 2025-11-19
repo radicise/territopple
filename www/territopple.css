@@ -186,7 +186,7 @@ svg#render {
 
 x-concentric-tile {
     --l-alpha-tweak: calc(3 / 5);
-    --bw: 0.5px;
+    --bw: 1px;
     border: solid var(--bw) black;
     width: calc(1.5em - var(--bw) * 2);
     height: calc(1.5em - var(--bw) * 2);
