@@ -12,6 +12,7 @@ body {
     float: right;
     user-select: none;
     cursor: pointer;
+    margin-left: 0.5em;
 }
 #board-zoom {
     vertical-align: middle;
