@@ -87,7 +87,7 @@ on("main", "player:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
     if (!(gameid in games)) return;
-    log(`GAME ${gameid}, player:leave\n${data}\n${new Error().stack}`);
+    log(`GAME ${gameid}, player:leave\n${JSON.stringify(data)}\n${new Error().stack}`);
     games[gameid].removePlayer(data["n"]);
     games[gameid].sendAll(NetData.Player.Leave(data["n"]));
     CONNECTION_COUNT --;
