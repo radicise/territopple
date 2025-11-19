@@ -16,7 +16,7 @@ let log = (s) => {};
 if (LOGGING) {
     ensureFile(LOGF);
     logStamp(LOGF);
-    log = (s) => {addLog(LOGF, `${new Date()} - ${s}`);};
+    log = (s) => {addLog(LOGF, `${new Date()} - ${s}\n`);};
 }
 
 let CONNECTION_COUNT = 0;
@@ -87,7 +87,7 @@ on("main", "player:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
     if (!(gameid in games)) return;
-    log(`GAME ${gameid}, player:leave ${data["n"]}\n${new Error().stack}`);
+    log(`GAME ${gameid}, player:leave\n${data}\n${new Error().stack}`);
     games[gameid].removePlayer(data["n"]);
     games[gameid].sendAll(NetData.Player.Leave(data["n"]));
     CONNECTION_COUNT --;
