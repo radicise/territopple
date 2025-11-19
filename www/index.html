@@ -175,10 +175,10 @@
         <script>
             {
                 const wm = document.getElementById("welcome-modal");
-                if (sessionStorage.getItem("needs-welcome") === null) {
+                if (localStorage.getItem("needs-welcome") === null) {
                     wm.hidden = false;
                 }
-                sessionStorage.setItem("needs-welcome", "false");
+                localStorage.setItem("needs-welcome", "false");
             }
         </script>
         <div id="credits-modal" class="modal" hidden>
