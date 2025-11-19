@@ -1,4 +1,6 @@
 await new Promise(r => {const that = () => {window.removeEventListener("message", that);r();};window.addEventListener("message", that);});
+document.getElementById("pingbutton").disabled = true;
+document.getElementById("pingbutton").value = "back";
 /**@type {typeof import("../topology/topology.js")} */
 const topology = await import("topology/topology.js");
 /**@type {typeof import("../../www/replay/parsers.js")} */
@@ -10,6 +12,9 @@ const fileSelection = document.getElementById("replay-upload");
 const replayCont = document.getElementById("replay-area");
 /**@type {HTMLDivElement} */
 const gameBoard = document.getElementById("gameboard");
+/**@type {HTMLInputElement} */
+const autopp = document.getElementById("startbutton");
+autopp.value = "play";
 
 const Display = (()=>{
     /**@type {HTMLParagraphElement} */
@@ -175,6 +180,30 @@ class Replayer {
         updateBoard(oldb, oldt);
     }
 }
+
+let autoplaying = false;
+let autoplayintid = 0;
+const autoplayinterval = 2;
+let autoplayspeedS = 1;
+/**@type {HTMLInputElement} */
+const autoplaySpeed = document.getElementById("autoplay-speed");
+autoplaySpeed.addEventListener("change", () => {autoplayspeedS = Number(autoplaySpeed.value)});
+
+function autoplay() {
+    if (!autoplaying) return;
+    autoplayintid = setTimeout(autoplay, 1000*autoplayinterval/autoplayspeedS);
+}
+
+autopp.addEventListener("click", () => {
+    autoplaying = !autoplaying;
+    autopp.value = autoplaying ? "pause" : "play";
+    document.getElementById("replay-step").disabled = autoplaying;
+    if (autoplaying) {
+        autoplayintid = setTimeout(autoplay, 1000*autoplayinterval/autoplayspeedS);
+    } else {
+        clearTimeout(autoplayintid);
+    }
+});
 
 // const load_replay = Replayer.load_replay;
 // const replay_step = Replayer.step_replay;
