@@ -1,3 +1,7 @@
+# Nov 18, 2025 (Alpha 1.4.4)
+fixed an issue with concentric rendering looking cursed when not at default zoom
+increased session timeout to one day
+
 # Nov 18, 2025 (Alpha 1.4.3)
 updated the tutorial to make it easier to read
 added some space between the 'reset zoom' button and 'Expand +' button
