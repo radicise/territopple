@@ -185,7 +185,7 @@ class Replayer {
 
 let autoplaying = false;
 let autoplayintid = 0;
-const autoplayinterval = 2;
+const autoplayinterval = 0.5;
 let autoplayspeedS = 1;
 /**@type {HTMLInputElement} */
 const autoplaySpeed = document.getElementById("autoplay-speed");
