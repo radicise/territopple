@@ -117,7 +117,7 @@
         <!-- <div id="test"></div> -->
         <meta data-import="/components/accounts/disp.html" />
         <div id="splash-banner">
-            <h1 id="splash-main">Territopple (Alpha 1.4.0)</h1>
+            <h1 id="splash-main">Territopple (...)</h1>
         </div>
         <div id="play-options">
             <input type="button" value="Play Online" onclick="location.href='/play-online'">
@@ -194,6 +194,7 @@
                 fetch("https://territopple.net/changelog.txt", {method:"GET"}).then(v => {
                     v.text().then(t => {
                         const p = document.getElementById("changelog-modal").children[0].children[1];
+                        let flag = true;
                         t.split("\n").forEach(v => {
                             const l = v.trim();
                             if (l.length) {
@@ -201,6 +202,10 @@
                                     const h = document.createElement("h3");
                                     h.textContent = l.substring(1);
                                     p.append(h);
+                                    if (flag) {
+                                        flag = false;
+                                        document.getElementById("splash-main").textContent = `Territopple (${l.substring(l.indexOf('('), l.indexOf(')'))})`;
+                                    }
                                 } else {
                                     p.append(l, document.createElement("br"));
                                 }
