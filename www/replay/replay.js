@@ -39,7 +39,7 @@ const Display = (()=>{
 
 /**
  * @typedef GameState
- * @type {{board:Uint8Array,teamboard:Uint8Array,last_move:number,turn:number,timestamp:number,players:number[],owned:number[],moveno:number}}
+ * @type {{board:Uint8Array,teamboard:Uint8Array,last_move:number,turn:number,timestamp:number,players:number[],owned:number[],moveno:number,pos:number}}
  */
 
 /**
@@ -67,6 +67,8 @@ class Replayer {
         owned:null,
         /**@type {number} */
         moveno:null,
+        /**@type {number} */
+        pos:null,
     };
     /**@type {GameState[]} */
     static state_cache = [];
@@ -77,7 +79,7 @@ class Replayer {
     /**@type {boolean} */
     static broken = false;
     static push_state() {
-        this.state_cache.push({board:Uint8Array.from(this.state.board),teamboard:Uint8Array.from(this.state.teamboard),last_move:this.state.last_move,turn:this.state.turn,timestamp:this.state.timestamp,players:Array.from(this.state.players),owned:Array.from(this.state.owned),moveno:this.state.moveno});
+        this.state_cache.push({board:Uint8Array.from(this.state.board),teamboard:Uint8Array.from(this.state.teamboard),last_move:this.state.last_move,turn:this.state.turn,timestamp:this.state.timestamp,players:Array.from(this.state.players),owned:Array.from(this.state.owned),moveno:this.state.moveno,pos:this.state.pos});
     }
     static load_replay() {
         const files = fileSelection.files;
@@ -105,6 +107,7 @@ class Replayer {
         this.state.owned = new Array(6).fill(0);
         this.state.owned[0] = this.topo.tileCount;
         this.state.moveno = 0;
+        this.state.pos = this.parser.tell();
         const dims = topology.exportDimensions(this.topo);
         gameBoard.style.cssText = `--ncols:${dims.x};--nrows:${dims.y};`
         setup(this.topo, this.state.board, this.state.teamboard);
