@@ -189,10 +189,19 @@ const autoplayinterval = 2;
 let autoplayspeedS = 1;
 /**@type {HTMLInputElement} */
 const autoplaySpeed = document.getElementById("autoplay-speed");
-autoplaySpeed.addEventListener("change", () => {autoplayspeedS = Number(autoplaySpeed.value)});
+autoplaySpeed.addEventListener("change", () => {
+    autoplayspeedS = Number(autoplaySpeed.value);
+    if (autoplaying) {
+        clearTimeout(autoplayintid);
+        autoplayintid = setTimeout(autoplay, 1000*autoplayinterval/autoplayspeedS);
+    }
+});
 
 function autoplay() {
     if (!autoplaying) return;
+    if (Replayer.done) {
+        autopp.click();
+    }
     Replayer.step_replay();
     autoplayintid = setTimeout(autoplay, 1000*autoplayinterval/autoplayspeedS);
 }
