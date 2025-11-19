@@ -1,3 +1,6 @@
+# Nov 18, 2025 (Alpha 1.4.2)
+added welcome modal
+
 # Nov 18, 2025 (Alpha 1.4.1)
 changed how the account profile and login links are displayed
 made a few changes that should make the mobile experience better
