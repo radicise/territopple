@@ -99,6 +99,18 @@ export class ReplayParser {
         this.parser = new PARSERS[version](this.raw_data);
     }
     /**
+     * @returns {number}
+     */
+    tell() {
+        return this.raw_data._pos;
+    }
+    /**
+     * @param {number} pos
+     */
+    seek(pos) {
+        this.raw_data._pos = pos;
+    }
+    /**
      * @returns {ReplayHeader}
      */
     get header() {

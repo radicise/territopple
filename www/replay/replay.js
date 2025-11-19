@@ -38,6 +38,11 @@ const Display = (()=>{
 })();
 
 /**
+ * @typedef GameState
+ * @type {{board:Uint8Array,teamboard:Uint8Array,last_move:number,turn:number,timestamp:number,players:number[],owned:number[],moveno:number}}
+ */
+
+/**
  * replay logic
  */
 class Replayer {
@@ -59,14 +64,21 @@ class Replayer {
          */
         players:null,
         /**@type {number[]} */
-        owned:null
+        owned:null,
+        /**@type {number} */
+        moveno:null,
     };
+    /**@type {GameState[]} */
+    static state_cache = [];
     /**@type {import("../topology/topology.js").Topology} */
     static topo;
     /**@type {import("../../www/replay/parsers.js").ReplayParser} */
     static parser;
     /**@type {boolean} */
     static broken = false;
+    static push_state() {
+        this.state_cache.push({board:Uint8Array.from(this.state.board),teamboard:Uint8Array.from(this.state.teamboard),last_move:this.state.last_move,turn:this.state.turn,timestamp:this.state.timestamp,players:Array.from(this.state.players),owned:Array.from(this.state.owned),moveno:this.state.moveno});
+    }
     static load_replay() {
         const files = fileSelection.files;
         if (files.length !== 1) return alert("must select a file");
@@ -92,6 +104,7 @@ class Replayer {
         this.state.players = new Array(this.parser.header.player_count).fill(true);
         this.state.owned = new Array(6).fill(0);
         this.state.owned[0] = this.topo.tileCount;
+        this.state.moveno = 0;
         const dims = topology.exportDimensions(this.topo);
         gameBoard.style.cssText = `--ncols:${dims.x};--nrows:${dims.y};`
         setup(this.topo, this.state.board, this.state.teamboard);
@@ -136,6 +149,10 @@ class Replayer {
                     alert("Standard Order Not Supported Yet");
                     this.broken = true;
                     return;
+                }
+                this.state.moveno ++;
+                if (Math.log2(this.state.moveno) >= this.state_cache.length) {
+                    this.push_state();
                 }
                 // console.log(ev.player);
                 this.doMove(this.parser.header.team_table[ev.player-1], ev.tile);
