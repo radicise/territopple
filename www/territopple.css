@@ -193,8 +193,8 @@ x-concentric-tile {
     height: calc(1.5em - var(--bw) * 2);
 }
 x-concentric-tile div {
-    width: calc(100% - 12px);
-    height: calc(100% - 12px);
+    width: min(90%, calc(100% - 12px));
+    height: min(90%, calc(100% - 12px));
     border: solid 1px black;
     display: flex;
     align-items: center;
