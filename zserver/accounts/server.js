@@ -18,7 +18,7 @@ const { AppealRejectionRecord, SanctionRecord, AccountRecord } = require("./type
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
 
 const ACC_CREAT_TIMEOUT = settings.ACC?.CREATE_TO ?? 600000;
-const SESS_TIMEOUT = settings.ACC?.SESSION_TO ?? 1000*60*30;
+const SESS_TIMEOUT = settings.ACC?.SESSION_TO ?? 1000*60*60*24;
 
 const EACCESS = "logs/accounts/access.txt";
 const EREJECT = "logs/accounts/rejected.txt";
