@@ -103,6 +103,7 @@ class Replayer {
         document.getElementById("replay-step").disabled = false;
     }
     static step_replay() {
+        if (this.done) return;
         if (this.broken) {
             return alert("BROKEN FILE");
         }
@@ -112,6 +113,7 @@ class Replayer {
             /**@type {HTMLInputElement} */
             const stepbtn = document.getElementById("replay-step");
             stepbtn.disabled = true;
+            this.done = true;
             Display.info = "End Of Replay";
             return;
         }
@@ -191,6 +193,7 @@ autoplaySpeed.addEventListener("change", () => {autoplayspeedS = Number(autoplay
 
 function autoplay() {
     if (!autoplaying) return;
+    Replayer.step_replay();
     autoplayintid = setTimeout(autoplay, 1000*autoplayinterval/autoplayspeedS);
 }
 
