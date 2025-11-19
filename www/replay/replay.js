@@ -154,9 +154,10 @@ class Replayer {
                     return;
                 }
                 this.state.moveno ++;
-                if (Math.log2(this.state.moveno) >= this.state_cache.length) {
-                    this.push_state();
-                }
+                // TODO: implement logic that culls the state cache
+                // if (Math.log2(this.state.moveno) >= this.state_cache.length) {
+                //     this.push_state();
+                // }
                 // console.log(ev.player);
                 this.doMove(this.parser.header.team_table[ev.player-1], ev.tile);
                 Display.turn = ["Neutral","Red","Blue","Magenta","Teal","Yellow"].map((v,i)=>[v,i]).filter(v=>this.state.owned[v[1]]).map(v => `${v[0]}: ${this.state.owned[v[1]]}`).join(", ");
