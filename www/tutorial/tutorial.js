@@ -12,7 +12,7 @@ const sequence = [
     // actual tutorial
     {t:"Welcome to the tutorial!\nHere you will learn the basics of how Territopple is played."},
     {t:"Please note that this tutorial only covers the TGrid2D topology (the most commonly used).\nWe urge you to keep in mind that other topologies may not have edges or corners!"},
-    {t:"These are the display settings.\nClick here to show them.",h:"#settings-expand-label",w:{c:"#settings-expand-label"}},
+    {t:"These are the display settings.\nClick the button highlighted in green to show them.",h:"#settings-expand-label",w:{c:"#settings-expand-label"}},
     {t:"You can use the board zoom if you have trouble seeing the individual tiles.",h:"#board-zoom"},
     {t:"Here you can change the colors of and disable the various highlights. Pick options that make things visible without cluttering your view.\nThe highlight options you pick will be saved in your browser, so you don't have to fiddle with them every time you start a new game.",h:["#hover-color","#last-move-color","#volatiles-color"]},
     {t:"Last, and most importantly, is the Board Rendering Option. This allows you to choose a different way of viewing the board, which can make things easier to understand.\nWe highly recommend that new players choose the Concentric option.\nGo ahead and try changing the rendering mode!",h:"#board-rendering-option"},
@@ -33,7 +33,8 @@ const sequence = [
     {t:"This is the ping button, it pings the active player. In a real game, you can also ping specific players through the Joined List on the right hand side of the screen.",h:"#pingbutton"},
     {t:"This is the start button, it starts the game, but it won't do anything if you aren't the host.",h:"#startbutton"},
     {t:"This is your remaining time, this is for the Turn Timer rules, in a real game, you can see all players' remaining time via the Joined List on the right hand side of the screen.",h:"#turn-time"},
-    {t:"That's all, enjoy playing Territopple!",w:{c:"#home-link"}}
+    {t:"Finally, if you'd like more information about all the rendering modes, please check out the Reference."},
+    {t:"Okay, that's all, enjoy playing Territopple!",w:{c:"#home-link"}}
 ];
 
 const info = {
