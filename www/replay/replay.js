@@ -1,3 +1,4 @@
+await new Promise(r => {const that = () => {window.removeEventListener("message", that);r();};window.addEventListener("message", that);});
 /**@type {typeof import("../topology/topology.js")} */
 const topology = await import("topology/topology.js");
 /**@type {typeof import("../../www/replay/parsers.js")} */

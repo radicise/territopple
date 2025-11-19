@@ -79,7 +79,7 @@ on("main", "player:leave", (data) => {
     const gameid = data["#gameid"];
     if (!(gameid in games)) return;
     games[gameid].removePlayer(data["n"]);
-    // games[gameid].sendAll(NetData.Player.Leave(data["n"]));
+    games[gameid].sendAll(NetData.Player.Leave(data["n"]));
     CONNECTION_COUNT --;
     if (games[gameid].stats.playing === 0) {
         terminateGame(gameid);
@@ -94,7 +94,7 @@ on("main", "spectator:leave", (data) => {
     if (!(gameid in games)) return;
     games[gameid].removeSpectator(data["n"]);
     CONNECTION_COUNT --;
-    // games[gameid].sendAll(NetData.Spectator.Leave(data["n"]));
+    games[gameid].sendAll(NetData.Spectator.Leave(data["n"]));
     updateDataServerStats(gameid);
     updateLoadFactors();
 });

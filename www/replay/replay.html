@@ -52,6 +52,9 @@
             // }
         </script>
         <script src="/components/include.js"></script>
-        <script src="/replay/replay.js?rev=2" type="module"></script>
+        <script>
+            (async () => {await INCLUDE_FINISHED;window.postMessage("include-finished");})();
+        </script>
+        <script src="/replay/replay.js?rev=3" type="module"></script>
     </body>
 </html>
