@@ -150,6 +150,23 @@
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a> -->
         </div>
+        <div id="welcome-modal" class="modal" hidden>
+            <div>
+                Hi there! You don't seem to have visited Territopple before.<br>
+                We recommend that all mobile users view the site in landscape orientation, and that all players start with the tutorial.<br>
+                Happy toppling!<br>
+                <input type="button" value="close" onclick="document.getElementById('welcome-modal').hidden=true;">
+            </div>
+        </div>
+        <script>
+            {
+                const wm = document.getElementById("welcome-modal");
+                if (sessionStorage.getItem("needs-welcome") === null) {
+                    wm.hidden = false;
+                }
+                sessionStorage.setItem("needs-welcome", "false");
+            }
+        </script>
         <div id="credits-modal" class="modal" hidden>
             <div>
                 <div style="max-height: 60vh;overflow-y: scroll;">
