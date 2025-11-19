@@ -1,5 +1,6 @@
 # Nov 18, 2025 (Alpha 1.4.2)
 added welcome modal
+update how the changelog modal is displayed
 
 # Nov 18, 2025 (Alpha 1.4.1)
 changed how the account profile and login links are displayed
