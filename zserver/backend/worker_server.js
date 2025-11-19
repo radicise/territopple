@@ -8,7 +8,16 @@ const { GlobalState } = require("../types.js");
 const { PerformanceError } = require("./errors.js");
 const crypto = require("crypto");
 
-const LOGGING = false;
+const LOGF = `logs/worker/${process.pid}.txt`;
+
+const LOGGING = true;
+
+let log = (s) => {};
+if (LOGGING) {
+    ensureFile(LOGF);
+    logStamp(LOGF);
+    log = (s) => {addLog(LOGF, `${new Date()} - ${s}`);};
+}
 
 let CONNECTION_COUNT = 0;
 let MAX_TURN = 0;
@@ -78,6 +87,7 @@ on("main", "player:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
     if (!(gameid in games)) return;
+    log(`GAME ${gameid}, player:leave ${data["n"]}\n${new Error().stack}`);
     games[gameid].removePlayer(data["n"]);
     games[gameid].sendAll(NetData.Player.Leave(data["n"]));
     CONNECTION_COUNT --;
