@@ -74,6 +74,7 @@ const info = {
             doMove(item.m[2], item.m[0]*5+item.m[1]);
         }
         document.querySelectorAll(".highlight").forEach(v => v.classList.remove("highlight"));
+        document.querySelector(".click-here").classList.remove("click-here");
         if (item.h) {
             if (typeof item.h === "string") {
                 item.h = [item.h];
