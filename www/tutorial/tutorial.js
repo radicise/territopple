@@ -62,7 +62,7 @@ const info = {
     setup(info.topology, info.board, info.teamboard);
     let seqInd = 0;
     let continuePromise = Promise.resolve();
-    function executeItem(item) {
+    async function executeItem(item) {
         if (item.t) {
             const p = document.createElement("p");
             p.textContent = item.t;
@@ -75,6 +75,7 @@ const info = {
         }
         document.querySelectorAll(".highlight").forEach(v => v.classList.remove("highlight"));
         document.querySelectorAll(".click-here").forEach(v => v.classList.remove("click-here"));
+        await new Promise(r => {setTimeout(r, 0)});
         if (item.h) {
             if (typeof item.h === "string") {
                 item.h = [item.h];
@@ -109,7 +110,7 @@ const info = {
     while (seqInd < sequence.length) {
         await continuePromise;
         nextButton.disabled = true;
-        executeItem(sequence[seqInd]);
+        await executeItem(sequence[seqInd]);
         seqInd ++;
     }
     nextButton.disabled = true;
