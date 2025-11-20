@@ -91,6 +91,9 @@ function displayRooms(text) {
  * @param {object?} filter
  */
 function fetchRooms(page, filter) {
+    document.getElementById("roomTable").hidden = true;
+    document.getElementById("fetchingMessage").hidden = false;
+    document.getElementById("fetchingMessage").textContent = "Fetching rooms...";
     fetch(`https://${host}/serverlist?page=${page||1}${formatFilter(filter)}`, {method:"GET"})
     .then((response) => {
         if (response.body === null) {
