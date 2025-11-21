@@ -1,3 +1,6 @@
+# Nov 20, 2025 (Alpha 1.4.6)
+updated tutorial again
+
 # Nov 19, 2025 (Alpha 1.4.5)
 fixed the bug where players leaving a room when the game finished were double-counted
 changed the tutorial highlighting to make click targets more obvious
