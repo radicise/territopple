@@ -11,6 +11,7 @@ const sequence = [
     {m:[0,4,2],w:true},
     // actual tutorial
     {t:"Welcome to the tutorial!\nHere you will learn the basics of how Territopple is played."},
+    {t:"This tutorial is still actively being developed. If you have any feedback or suggestions, please send them to feedback@territopple.net!"},
     {t:"Please note that this tutorial only covers the TGrid2D topology (the most commonly used).\nWe urge you to keep in mind that other topologies may not have edges or corners!"},
     {t:"These are the display settings.\nClick the button highlighted in green to show them.",h:"#settings-expand-label",w:{c:"#settings-expand-label"}},
     {t:"You can use the board zoom if you have trouble seeing the individual tiles.",h:"#board-zoom"},
