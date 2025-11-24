@@ -6,7 +6,7 @@ fetch(`https://${document.location.hostname}/acc/pub/%40self/info`).then(v => {
             document.getElementById("account-name").children[1].children[0].href = "/account/info";
         });
     } else {
-        document.getElementById("account-name").children[0].textContent = "Guest";
+        document.getElementById("account-name").children[0].textContent = "Guest ";
         document.getElementById("account-name").children[1].children[0].textContent = "login";
     }
 });
