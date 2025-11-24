@@ -12,6 +12,14 @@ BANNER_CONTAINER.id = "helper-banner-container";
 // BANNER_CONTAINER.classList.add("helper-banner-container");
 document.body.appendChild(BANNER_CONTAINER);
 
+{
+    const tt = document.getElementById("title-text");
+    BANNER_CONTAINER.style.setProperty("--banner-min-left", tt.clientWidth + (window.screen.width/10));
+    window.addEventListener("resize", () => {
+        BANNER_CONTAINER.style.setProperty("--banner-min-left", tt.clientWidth + (window.screen.width/10));
+    });
+}
+
 /**
  * creates a new banner
  * @param {object} options

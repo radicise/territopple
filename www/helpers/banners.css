@@ -32,6 +32,7 @@ body > div#helper-banner-container > .helper-banner-base {
         grid-template-rows: 1fr;
         align-items: center;
         margin-bottom: 1px;
+        max-width: 20vw;
 }
 body > div#helper-banner-container > .helper-banner-fade {
         animation: helper_banner_fadeout 5s linear forwards;

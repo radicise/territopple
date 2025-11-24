@@ -3,6 +3,9 @@ body {
     background-color: #ffffff;
     --blink-light: #fff;
 }
+#title-text {
+    max-width: 80vw;
+}
 #display-settings {
     margin-bottom: 10px;
     max-width: 500px;
