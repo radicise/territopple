@@ -2,7 +2,7 @@
 /**@type {HTMLTableSectionElement} */
 const listTable = document.getElementById("member-list").children[1];
 /**@type {HTMLInputElement} */
-const searchText = document.getElementById("search-text");
+const searchText = document.getElementById("search-entry");
 /**@type {HTMLInputElement} */
 const searchButton = document.getElementById("search-button");
 
