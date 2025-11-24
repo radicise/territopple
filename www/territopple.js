@@ -1,12 +1,12 @@
-{
-    const tmp = document.body.children[0].clientLeft+document.body.children[0].clientWidth;
-    document.body.style.setProperty("--banner-min-left", (window.innerWidth - tmp)/2 + tmp);
-    window.addEventListener("resize", () => {
-        // document.body.style.setProperty("--banner-min-left", document.body.children[0].clientLeft+document.body.children[0].clientWidth);
-        const tmp = document.body.children[0].clientLeft+document.body.children[0].clientWidth;
-    document.body.style.setProperty("--banner-min-left", (window.innerWidth - tmp)/2 + tmp);
-    });
-}
+// {
+//     const tmp = document.body.children[0].clientLeft+document.body.children[0].clientWidth;
+//     document.body.style.setProperty("--banner-min-left", (window.innerWidth - tmp)/2 + tmp);
+//     window.addEventListener("resize", () => {
+//         // document.body.style.setProperty("--banner-min-left", document.body.children[0].clientLeft+document.body.children[0].clientWidth);
+//         const tmp = document.body.children[0].clientLeft+document.body.children[0].clientWidth;
+//     document.body.style.setProperty("--banner-min-left", (window.innerWidth - tmp)/2 + tmp);
+//     });
+// }
 
 var dbg = 1;
 // let symbs = ["!", "-", "+", "W", "&block;"];
