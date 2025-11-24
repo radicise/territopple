@@ -38,7 +38,7 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
     const peval = async (tile, depth, gstate) => {
         await new Promise(r => setTimeout(r, 0));
         if (depth === 0 || timeup) {
-            return gstate.owned[gamestate.players[that.pnum].team];
+            return gstate.owned[gamestate.players[that.pnum].team]-(gstate.topology.tileCount-gstate.owned[0]-gstate.owned[gamestate.players[that.pnum].team]);
         }
         // const myturn = state.turn === that.pnum;
         const state = gstate.move(tile);
