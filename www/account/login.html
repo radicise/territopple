@@ -11,7 +11,7 @@
             <label for="cf-pw">Password:</label><input type="password" id="cf-pw"><br>
             <input type="button" value="Submit" id="cf-submit">
         </div>
-        <p>Don't have an account? <a href="/account/create" target="_self">create one</a> or <a href="/" target="_self">return home</a>.</p>
+        <p>Don't have an account? <a href="/account/create" target="_self">create one</a> or <a href="/" target="_self">return home</a>.<br>Forgot password? <a href="/account/password-reset" target="_self">reset it here</a>.</p>
         <script>
             fetch("https://territopple.net/acc/pub/logged-in", {method:"GET"}).then(v => {
                 if (v.status === 200) {
