@@ -1,12 +1,10 @@
 const { TTBot, DIFF_LEVELS, Random, DummyGame, BotConf } = require("./common.js");
 
-
-const confMODT = BotConf.getConfig("freya", DIFF_LEVELS.MODERATE);
 // Moderate version of Freya looks ridiculously far into the future
-new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
+new TTBot("Freya [the Foresighted] (Beginner)", "freya", {
     "desc":"Freya has foresight, and has learned a few tricks.",
     "indexable":true,
-    "diff":DIFF_LEVELS.MODERATE,
+    "diff":DIFF_LEVELS.BEGINNER,
     "disp":"Freya",
     "prereq":{"achi":[],"bots":["Terry Topple (Trivial)"]}
 }, async (that, gamestate, limit) => {
@@ -29,7 +27,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
         // state.turn = that.pnum;
         return (myturn?Math.max:Math.min)(...await Promise.all(state.getMoves().map(v => peval(v, depth-1, state))));
     };
-    setTimeout(() => {timeup = true;}, limit??confMODT.maxtime);
-    const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, confMODT.maxdepth, gamestate)]));
+    setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
+    const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, that.conf.maxdepth, gamestate)]));
     return Random.pickmove(evals);
 });

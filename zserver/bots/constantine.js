@@ -19,7 +19,6 @@ new TTBot("Constantine [the Conqueror] (Trivial)", "constantine", {
     return p[0];
 });
 
-const confBGNR = BotConf.getConfig("constantine", DIFF_LEVELS.BEGINNER);
 // Beginner version of Constantine that is slightly better
 new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
     "desc":"Constantine has learned to think ahead, but is still limited in his understanding of others.",
@@ -52,7 +51,7 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
         // state.turn = that.pnum;
         return (myturn?Math.max:Math.min)(...await Promise.all(state.getMoves().map(v => peval(v, depth-1, state))));
     };
-    setTimeout(() => {timeup = true;}, limit??confBGNR.maxtime);
-    const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, confBGNR.maxdepth, gamestate)]));
+    setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
+    const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, that.conf.maxdepth, gamestate)]));
     return Random.pickmove(evals);
 });

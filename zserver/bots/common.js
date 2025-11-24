@@ -172,6 +172,13 @@ class TTBotInstance {
         // return Object.getPrototypeOf(this).#parent;
         return this.#parent;
     }
+    /**
+     * @readonly
+     * @returns {BotConfig}
+     */
+    get conf() {
+        return this.#parent.conf;
+    }
 }
 
 /**
@@ -300,7 +307,7 @@ const PERF_MODES = {
 
 
 class TTBot {
-    #name;#short;#info;#cls;
+    #name;#short;#info;#cls;#conf;
     /**@type {Record<string, TTBot>} */
     static #reg = {};
     /**@type {Record<string, string[]>} */
@@ -317,6 +324,7 @@ class TTBot {
         TTBot.#index = null;
         this.#name = name;
         this.#short = short_name;
+        this.#conf = BotConf.getConfig(short_name, info.diff);
         const that = this;
         this.#cls = class extends TTBotInstance {
             constructor(pnum) {
@@ -345,6 +353,11 @@ class TTBot {
      * @returns {BotInfo}
      */
     get info() {return this.#info;}
+    /**
+     * @readonly
+     * @returns {BotConfig}
+     */
+    get conf() {return this.#conf}
     /**
      * @param {string} name
      * @param {number} playerNum
