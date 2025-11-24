@@ -112,7 +112,7 @@ function makeFriendActions(id, friend) {
  * @param {number} page
  */
 async function loadPage(search, page) {
-    const res = await fetch(`https://territopple.net/acc/pub/list?page=${page||1}&search=${search??"*"}`);
+    const res = await fetch(`https://territopple.net/acc/pub/list?page=${page||1}&search=${search??".*"}`);
     if (res.status !== 200) {
         return;
     }
