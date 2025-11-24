@@ -46,4 +46,5 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
     };
     setTimeout(() => {timeup = true;}, limit??confBGNR.maxtime);
     const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, confBGNR.maxdepth, gamestate)]));
+    return Random.pickmove(evals);
 });
