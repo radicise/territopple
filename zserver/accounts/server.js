@@ -424,7 +424,8 @@ const public_server = http.createServer(async (req, res) => {
                         }
                         const code = generateUpdateCode();
                         info_update_info[code] = {id:data.id,timeoutid:setTimeout(()=>{delete info_update_info[code];},ACC_PWRST_TIMEOUT)};
-                        await sendEmailVerification(email, "Password Reset", `https://territopple.net/reset-password?code=${code}`);
+                        console.log(info_update_info);
+                        await sendEmailVerification(email, "Password Reset", `https://territopple.net/account/reset-password?code=${code}`);
                         res.writeHead(200).end();
                         return;
                     } catch (E) {
@@ -447,6 +448,7 @@ const public_server = http.createServer(async (req, res) => {
                     }
                     try {
                         const info = info_update_info[body];
+                        console.log(info);
                         delete info_update_info[body];
                         await collection.updateOne({id:info.id},{"$set":{pwdata:auth.makePwData(data.pw)}});
                         res.writeHead(200).end();
