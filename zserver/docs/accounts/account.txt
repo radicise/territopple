@@ -12,5 +12,8 @@ this file documents the storage of an account record
     priv_level<int32>: privilege flags see "./priv.txt",
     priv_groups<int32[]>: active privilege groups, the high bit is the suspension flag, if set this indicates that the privilege group is suspended and does not confer any privileges to this account,
     sanction<Null|Sanction[]>: account sanctions see "./sanctions.txt",
-    solved<int32[]>: see "./solved.txt"
+    solved<int32[]>: see "./solved.txt",
+    friends<string[]>: list of friend account ids,
+    incoming_friends<string[]>: list of account ids that have sent a friend request to this account,
+    outgoing_friends<string[]>: list of account ids that this accound has sent a friend request to
 }

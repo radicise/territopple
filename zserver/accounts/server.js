@@ -129,6 +129,25 @@ async function processPubFetch(req, res, url, log) {
         }
         return;
     }
+    //https://territopple.net/acc/pub/list?page=${page||1}&search=${search??"*"}
+    if (url.pathname === "/acc/pub/list") {
+        const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
+        try {
+            const search = url.searchParams.get("search") || ".*";
+            const page = Number(url.searchParams.get("page")) || 1;
+            let pipeline = collection.find().limit(20);
+            if (search !== ".*") {
+                pipeline = pipeline.filter({"$regexMatch":{id:search}}).filter({"$regexMatch":{name:search}});
+            }
+            pipeline = pipeline.sort({_id:1});
+            const list = await (pipeline.skip(20*(page-1))).toArray();
+            res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(list));
+        } catch (E) {
+            console.log(E);
+            res.writeHead(500).end(E.sanitized ?? "Internal Error");
+        }
+        return;
+    }
     /**@type {(op:string)=>void} */
     const notimpl = (op)=>{log(EREJECT, `${op} not implemented`);};
     const stripped = url.pathname.substring(ACC_PUB_PREFIX.length); // strip the public data path prefix
@@ -300,6 +319,10 @@ const accPWResetScheme = {
     "id": "string",
     "email": "string"
 };
+/**@type {JSONScheme} */
+const friendReqScheme = {
+    "id": "string"
+};
 
 /**
  * @param {string} email
@@ -451,6 +474,41 @@ const public_server = http.createServer(async (req, res) => {
                         // console.log(info);
                         delete info_update_info[data.code];
                         await collection.updateOne({id:info.id},{"$set":{pwdata:auth.makePwData(data.pw)}});
+                        res.writeHead(200).end();
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                    }
+                    return;
+                }
+                case "/acc/send-friend-request": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, friendReqScheme)) {
+                        res.writeHead(400).end("misformatted request");
+                        return;
+                    }
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.getAccountId(sessid)) {
+                        res.writeHead(403).end("not logged in");
+                        return;
+                    }
+                    try {
+                        const mid = SessionManager.getAccountId(sessid);
+                        if (!(await collection.findOne({id:data.id}))) {
+                            res.writeHead(404).end("account not found");
+                            return;
+                        }
+                        if ((await collection.findOne({id:mid})).incoming_friends.includes(data.id)) {
+                            await Promise.all(
+                                collection.updateOne({id:data.id},{"$addToSet":{friends:mid},"$pull":{outgoing_friends:mid}}),
+                                collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
+                            );
+                        } else {
+                            await Promise.all(
+                                collection.updateOne({id:data.id},{"$addToSet":{incoming_friends:mid}}),
+                                collection.updateOne({id:mid},{"$addToSet":{outgoing_friends:data.id}})
+                            );
+                        }
                         res.writeHead(200).end();
                     } catch (E) {
                         console.log(E);
