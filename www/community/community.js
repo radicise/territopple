@@ -39,6 +39,9 @@ const listTable = document.getElementById("member-list").children[1];
  * }}
  */
 const make = (nodename, attrs) => {
+    if (Array.isArray(nodename)) {
+        return nodename.map(v => make(v));
+    }
     const e = document.createElement(nodename);
     if (attrs?.textContent) {
         e.textContent = attrs.textContent;
