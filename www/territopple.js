@@ -249,7 +249,7 @@ conn.addEventListener("open", async function(event) {
         });
     }
 	// display("Connected");
-    createBanner({type:"info",content:"Connected",fade:false});
+    createBanner({type:"info",content:"Connected"});
     let configed = false;
     let download_res = null;
 	conn.addEventListener("message", async function(event) {
