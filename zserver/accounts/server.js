@@ -424,7 +424,7 @@ const public_server = http.createServer(async (req, res) => {
                         }
                         const code = generateUpdateCode();
                         info_update_info[code] = {id:data.id,timeoutid:setTimeout(()=>{delete info_update_info[code];},ACC_PWRST_TIMEOUT)};
-                        console.log(info_update_info);
+                        // console.log(info_update_info);
                         await sendEmailVerification(email, "Password Reset", `https://territopple.net/account/reset-password?code=${code}`);
                         res.writeHead(200).end();
                         return;
