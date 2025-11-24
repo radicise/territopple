@@ -124,12 +124,12 @@ async function loadPage(search, page) {
     if (res.status !== 200) {
         return;
     }
-    /**@type {{id:string,name:string,cdate:number,odate:number,level:number,friend:number}[]} */
+    /**@type {{id:string,name:string,cdate:number,last_online:number,level:number,friend:number}[]} */
     const data = JSON.parse(await res.text());
     const rows = [];
     for (const entry of data) {
         const row = document.createElement("tr");
-        row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:makeFriendActions(entry.id, entry.friend)}]]));
+        row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.last_online)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:makeFriendActions(entry.id, entry.friend)}]]));
         rows.push(row);
     }
     listTable.replaceChildren(...rows);
