@@ -447,9 +447,9 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        const info = info_update_info[body];
-                        console.log(info);
-                        delete info_update_info[body];
+                        const info = info_update_info[data.code];
+                        // console.log(info);
+                        delete info_update_info[data.code];
                         await collection.updateOne({id:info.id},{"$set":{pwdata:auth.makePwData(data.pw)}});
                         res.writeHead(200).end();
                     } catch (E) {
