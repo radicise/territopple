@@ -121,11 +121,11 @@ async function loadPage(search, page) {
     }
     /**@type {{id:string,name:string,cdate:number,odate:number,level:number,friend:number}[]} */
     const data = JSON.parse(await res.text());
-    const children = [];
+    const rows = [];
     for (const entry of data) {
         const row = document.createElement("tr");
         row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:makeFriendActions(entry.id, entry.friend)}]]));
-        children.push(row);
+        rows.push(row);
     }
     listTable.replaceChildren(rows);
 }
