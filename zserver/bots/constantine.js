@@ -44,10 +44,13 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
                 // -gstate.owned[gamestate.players[that.pnum].team]
             );
         }
-        // const myturn = state.turn === that.pnum;
+        const myturn = gstate.turn === that.pnum;
         const state = gstate.move(tile);
+        if (state.owned.some(v => v===gstate.topology.tileCount)) {
+            return myturn?Number.POSITIVE_INFINITY:Number.NEGATIVE_INFINITY;
+        }
         // state.turn = that.pnum;
-        return (gstate.turn===that.pnum?Math.max:Math.min)(...await Promise.all(state.getMoves().map(v => peval(v, depth-1, state))));
+        return (myturn?Math.max:Math.min)(...await Promise.all(state.getMoves().map(v => peval(v, depth-1, state))));
     };
     setTimeout(() => {timeup = true;}, limit??confBGNR.maxtime);
     const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, confBGNR.maxdepth, gamestate)]));
