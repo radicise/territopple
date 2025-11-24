@@ -5,7 +5,7 @@
 
 const { extend } = require("../../defs.js");
 const fs = require("fs");
-const { Topology } = require("../../topology/topology.js");
+// const { Topology } = require("../../topology/topology.js");
 /**
  * @typedef BotConfig
  * @type {{maxdepth:number,maxtime:number}}
@@ -69,7 +69,7 @@ class DummyGame {
         }
         this.board = Array.from(game.state.board);
         this.teamboard = Array.from(game.state.teamboard);
-        /**@type {Topology} */
+        /**@type {import("../../topology/topology.js").Topology} */
         this.topology = game.state.topology;
         this.owned = Array.from(game.state.owned);
         this.players = game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
