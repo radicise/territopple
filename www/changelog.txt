@@ -1,3 +1,8 @@
+# Nov 24, 2025 (Alpha 1.5.0)
+added bot Freya
+changed bot Constantine's difficulty to Trivial
+added proper beginner version of Constantine with significant buffs
+
 # Nov 20, 2025 (Alpha 1.4.6)
 updated tutorial again
 
