@@ -137,7 +137,7 @@ async function processPubFetch(req, res, url, log) {
             const page = Number(url.searchParams.get("page")) || 1;
             let pipeline = collection.find().limit(20);
             if (search !== ".*") {
-                pipeline = pipeline.filter({"$regexMatch":{id:search}}).filter({"$regexMatch":{name:search}});
+                pipeline = pipeline.filter({"$regex":{id:search}}).filter({"$regexMatch":{name:search}});
             }
             pipeline = pipeline.sort({_id:1});
             const list = await (pipeline.skip(20*(page-1))).toArray();
