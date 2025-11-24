@@ -141,6 +141,19 @@ async function handlePass(capacity, req, socket) {
     }
 }
 
+// server.on("request", (req, res) => {
+//     if (req.method !== "GET") {
+//         res.writeHead(405).end();
+//         return;
+//     }
+//     const url = new URL("http://localhost"+req.url);
+//     if (!url.pathname.startsWith("/replays/downloads/")) {
+//         res.writeHead(403).end();
+//         return;
+//     }
+//     //
+// });
+
 server.on("upgrade", (req, socket) => {
     const url = new URL("http://localhost"+req.url);
     const connType = Number(url.searchParams.get("t"));

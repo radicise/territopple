@@ -4,6 +4,11 @@
         <script src="/_icons.js"></script>
         <title>Home - Territopple</title>
         <style>
+            ul.credit-list {
+                list-style: none outside;
+                margin-top: 0.25em;
+                padding-left: 0.75em;
+            }
             div.modal {
                 position: absolute;
                 left: 0px;
@@ -38,7 +43,7 @@
             div#splash-banner {
                 --left: 10vw;
                 margin-left: var(--left);
-                width: calc(100vw - var(--left));
+                width: calc(100vw - var(--left) - 16px);
                 /* justify-items: center; */
             }
             div#splash-banner > h1#splash-main {
@@ -91,15 +96,29 @@
             }
         </style>
         <style>
+            div#changelog-modal > div p {
+                margin-top: 0px;
+                max-height: calc(80svh - 2em - 10px);
+                overflow-y: scroll;
+            }
+            div#changelog-modal > div p h3 {
+                margin-top: 0.5em;
+                margin-bottom: 0.5em;
+            }
+            div#changelog-modal > div p h3:not(:first-child) {
+                margin-top: 1em;
+            }
+        </style>
+        <style>
             div#random-replay {
-                --size: 75vmin;
+                --size: 65svmin;
                 width: var(--size);
                 height: var(--size);
                 border: inset black 3px;
                 margin-right: 2px;
                 position: absolute;
                 right: 0px;
-                top: 50vh;
+                top: 43svh;
                 transform: translateY(-50%);
                 align-content: center;
                 text-align: center;
@@ -110,14 +129,16 @@
         <!-- <meta data-import="/components/display-settings.html" /> -->
         <!-- <meta data-import="/components/display-settings.html" data-scripts="/displaycontrols.js" /> -->
         <!-- <div id="test"></div> -->
+        <meta data-import="/components/accounts/disp.html" />
         <div id="splash-banner">
-            <h1 id="splash-main">Territopple</h1>
+            <h1 id="splash-main">Territopple (...)</h1>
         </div>
         <div id="play-options">
             <input type="button" value="Play Online" onclick="location.href='/play-online'">
-            <input type="button" value="Puzzles" disabled>
+            <input type="button" value="Puzzles" onclick="location.href='/puzzles'">
             <input type="button" value="Reference / Guide" onclick="location.href='/help'">
-            <input type="button" value="Watch Replay" onclick="location.href='/replay'" disabled>
+            <input type="button" value="Watch Replay" onclick="location.href='/replay'">
+            <input type="button" value="Tutorial" onclick="location.href='/tutorial'">
         </div>
         <div id="random-replay">
             Coming Soon!
@@ -125,14 +146,16 @@
         <div id="contact-footer">
             <!-- <input type="button" value="Contact Server Operator" onclick="document.getElementById('contact-modal').hidden=false;"> -->
             <div>
+                <a onclick="document.getElementById('cookie-modal').hidden=false;" class="button-link">Cookie Usage</a>
                 <a onclick="document.getElementById('contact-modal').hidden=false;" class="button-link">Contact Server Operator</a>
             </div>
             <div>
                 <a onclick="document.getElementById('coming-soon-modal').hidden=false;" class="button-link">Want To Host Your Own Server?</a>
+                <a onclick="document.getElementById('changelog-modal').hidden=false;" class="button-link">Changelog</a>
             </div>
             <div>
                 <a target="_blank" href="https://github.com/radicise/territopple" class="button-link">Check Out The GitHub!</a>
-                <a onclick="document.getElementById('coming-soon-modal').hidden=false;" class="button-link">About & Credits</a>
+                <a onclick="document.getElementById('credits-modal').hidden=false;" class="button-link">About & Credits</a>
             </div>
             <!-- <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
@@ -140,6 +163,95 @@
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a>
             <a onclick="window.alert('not implemented yet');" class="button-link">Want To Host Your Own Server?</a> -->
+        </div>
+        <div id="welcome-modal" class="modal" hidden>
+            <div>
+                Hi there! You don't seem to have visited Territopple before.<br><br>
+                We recommend that all mobile users view the site in landscape orientation, and that all new players start with the tutorial.<br><br>
+                Happy toppling!<br><br>
+                <input type="button" value="close" onclick="document.getElementById('welcome-modal').hidden=true;">
+            </div>
+        </div>
+        <script>
+            {
+                const wm = document.getElementById("welcome-modal");
+                if (localStorage.getItem("needs-welcome") === null) {
+                    wm.hidden = false;
+                }
+                localStorage.setItem("needs-welcome", "false");
+            }
+        </script>
+        <div id="credits-modal" class="modal" hidden>
+            <div>
+                <div style="max-height: 60vh;overflow-y: scroll;">
+                    Territopple is inspired by the game <a href="https://web.archive.org/web/20081001161951/http://secretlab.com.au/culture/" target="_blank">Culture by Secret Lab Pty. Ltd.</a><br><br>
+                    Logo / Tab Icon:<br>
+                    <ul class="credit-list"><li>Vihaan Jim</li></ul>
+                    Direction:<br>
+                    <ul class="credit-list"><li>Andrew Rivera</li></ul>
+                    Programming:<br>
+                    <ul class="credit-list">
+                        <li>Tristan Schartman</li>
+                        <li>Andrew Rivera</li>
+                        <li>Vihaan Jim</li>
+                    </ul>
+                    Systems Testing:<br>
+                    <ul class="credit-list">
+                        <li>Tristan Schartman</li>
+                    </ul>
+                    Gameplay Testing:<br>
+                    <ul class="credit-list">
+                        <li>Andrew 'Ready Player One' Rivera</li>
+                        <li>Vihaan 'That Was Not The Move' Jim</li>
+                        <li>Tristan 'It'll Be Fine' Schartman</li>
+                    </ul>
+                    Special Thanks:<br>
+                    <ul class="credit-list">
+                        <li>CheriBerry777</li>
+                        <li>cationic</li>
+                    </ul>
+                </div><br>
+                <input type="button" value="close" onclick="document.getElementById('credits-modal').hidden=true;">
+            </div>
+        </div>
+        <div id="changelog-modal" class="modal" hidden>
+            <div style="max-height: 80svh;">
+                <span style="display:flex;flex-direction:column;align-items:end;">
+                    <input type="button" value="close" style="width:fit-content;position:absolute;" onclick="document.getElementById('changelog-modal').hidden=true;">
+                </span>
+                <p></p>
+                <!-- <br> -->
+            </div>
+            <script>
+                fetch("https://territopple.net/changelog.txt", {method:"GET"}).then(v => {
+                    v.text().then(t => {
+                        const p = document.getElementById("changelog-modal").children[0].children[1];
+                        let flag = true;
+                        t.split("\n").forEach(v => {
+                            const l = v.trim();
+                            if (l.length) {
+                                if (l[0] === "#") {
+                                    const h = document.createElement("h3");
+                                    h.textContent = l.substring(1);
+                                    p.append(h);
+                                    if (flag) {
+                                        flag = false;
+                                        document.getElementById("splash-main").textContent = `Territopple (${l.substring(l.indexOf('(')+1, l.indexOf(')'))})`;
+                                    }
+                                } else {
+                                    p.append(l, document.createElement("br"));
+                                }
+                            }
+                        });
+                    });
+                });
+            </script>
+        </div>
+        <div id="cookie-modal" class="modal" hidden>
+            <div>
+                We use cookies for authentication.<br><br>
+                <input type="button" value="close" onclick="document.getElementById('cookie-modal').hidden=true;">
+            </div>
         </div>
         <div id="contact-modal" class="modal" hidden>
             <!-- actual content -->
@@ -198,7 +310,7 @@
                         nodes.push(makeNode("p", {append:["Contact Methods",makeNode("ul",{append:Object.entries(info.contact.methods||{}).map(v => makeContact(v))})]}));
                         // nodes.push();
                     } else {
-                        nodes.push(makeNode("p", {textContent:"no contact informal is available"}));
+                        nodes.push(makeNode("p", {textContent:"no contact information is available"}));
                     }
                     contact_modal.children[0].prepend(...nodes);
                 });

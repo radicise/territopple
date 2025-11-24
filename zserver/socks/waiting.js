@@ -83,6 +83,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             setTimeout(() => {allow_ping = true;}, globals.settings.PING_INTERVAL);
         }
     });
+    onall("account:found", (data) => {
+        sock.send(NetData.Account.Found(data["n"], data["a"]));
+    });
+    if (state.accId) {
+        emit("account:found", {n:(state.spectating?state.spectatorId:state.playerNum), a:state.accId});
+        state.game.updateAccountId(state.spectating?state.spectatorId:state.playerNum, state.accId);
+    }
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });

@@ -1,4 +1,4 @@
-const { NetPayload, NetData, Random } = require("../../defs.js");
+const { NetPayload, NetData, Random, settings } = require("../../defs.js");
 const { onRecordReplay } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
@@ -40,6 +40,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     } else {
                         state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                     }
+                    state.game.__ended = state.game.buffer.length;
                     emit("game:turn", {n:state.game.nextPlayer().turn,t:false});
                     state.game.state.state = 2;
                     emit("?phase");
@@ -83,16 +84,25 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
+    let mutexflag = false;
     errorL = () => {
+        if (mutexflag) return;
+        mutexflag = true;
         change("dcon");
     };
     closeL = () => {
+        if (mutexflag) return;
+        mutexflag = true;
         change("dcon");
     };
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
         switch (data.type) {
+            case "game:download":{
+                sock.send(NetData.Bin.Replay(state.game));
+                break;
+            }
             case "game:move":{
                 if (state.game.validateMove(data.payload["n"], state.playerNum)) {
                     emit("game:out:move", {"n":data.payload["n"],"t":state.game.players[state.playerNum].team});
@@ -101,11 +111,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         if (globals.state.saveReplays) {
                             onRecordReplay(state.game);
                         } else {
+                            // console.log("end buffer");
                             state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
                         }
+                        state.game.__ended = state.game.buffer.length;
                         state.game.state.state = 2;
                         emit("?phase");
-                        emit("game:win", {t:state.game.players[state.playerNum].team});
+                        emit("game:win", {t:state.game.players[state.playerNum].team,d:settings.REPLAYS.ENABLED});
                     } else {
                         emit("game:turn", {n:res.turn});
                     }

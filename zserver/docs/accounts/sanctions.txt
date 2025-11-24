@@ -1,0 +1,57 @@
+this file documents account sanctions
+
+account sanctions are either Null or an array of sanctions
+
+{
+    sanction_id<Int32>: what this sanction does,
+    value<Int32>: sanction specific value
+    source<string>: account id of the account that applied this sanction,
+    applied<double>: date applied,
+    expires<double>: end date, a date of the UNIX epoch indicates indefinite,
+    notes<string>: notes about application,
+    appeal<Null|string>: string with appeal request message if a request was made,
+    appealable_date<double>: earliest date this sanction can be appealed, a date of the UNIX epoch indicates it cannot be appealed,
+    appeals_left<Int32>: maximum times this sanction can be appealed,
+    rejections<{source<string>:who rejected the appeal,date<double>:when the appeal was rejected,notes<string>:why appeal was rejected,appeal<string>:appeal request message,value<Int32>:sanction specific value}[]>: appeal rejection messages
+}
+
+sanctions are broadly categorized under five groups.
+certain sanctions do not belong to these groups as they affect only certain parts of the site (for example, puzzle submission, leaderboard, etc.)
+
+the most significant bit of sanction_id is the bypass flag.
+privilege groups can be configured to prevent certain sanctions from being applied to members of the group, this immunity is bypassed if the bypass flag is set.
+
+Group 0:
+automatic restrictions based on account status
+
+Group 1:
+short term/non-destructive actions
+chat bans, force username reset
+
+Group 2:
+medium term actions
+multi-month/year bans, bans on creating rooms
+NOTE: extended time bans use the same sanction IDs, just with a longer than usual expiry duration
+
+Group 3:
+indefinite/semi-destructive actions
+indefinite bans, bans on playing in multiplayer contexts, flag account for deletion review
+
+Group 4:
+permanent/destructive actions
+account deletion, blacklist
+
+Sanction IDs (IDs of '_' represent actions that do not persist):
+0 (GROUP 1) disallow text chat
+1 (GROUP 1) disallow expressions
+2 (GROUP 1) force display name reset [these are always indefinite and automatically removed upon name reset]
+3 (GROUP 2) room creation bans
+4 (GROUP 3) multiplayer ban
+5 (GROUP 3) deletion review [actionable by accounts with privilege "review group 4 sanctions"]
+6 (GROUP 4) blacklist
+7 (GROUP 4) suspend [temporary privilege group removal]
+8 (GROUP 0) simultaneous room limit [applied to guests and most accounts] [uses 'value' as limit]
+9 (GROUP 0) board size limit [applied to most accounts] [uses 'value' as limit]
+
+_ (GROUP 4) demote [strips an account of a privilege group]
+_ (GROUP 4) account deletion

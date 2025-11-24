@@ -8,7 +8,16 @@ const { GlobalState } = require("../types.js");
 const { PerformanceError } = require("./errors.js");
 const crypto = require("crypto");
 
+const LOGF = `logs/worker/${process.pid}.txt`;
+
 const LOGGING = false;
+
+let log = (s) => {};
+if (LOGGING) {
+    ensureFile(LOGF);
+    logStamp(LOGF);
+    log = (s) => {addLog(LOGF, `${new Date()} - ${s}\n`);};
+}
 
 let CONNECTION_COUNT = 0;
 let MAX_TURN = 0;
@@ -78,6 +87,7 @@ on("main", "player:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];
     if (!(gameid in games)) return;
+    log(`GAME ${gameid}, player:leave\n${JSON.stringify(data)}\n${new Error().stack}`);
     games[gameid].removePlayer(data["n"]);
     games[gameid].sendAll(NetData.Player.Leave(data["n"]));
     CONNECTION_COUNT --;
@@ -200,7 +210,28 @@ process.once("message", (id) => {
             }
             const url = new URL("http://localhost"+req.url);
             const connType = Number(url.searchParams.get("t"));
+            let gameid;
+            let acc;
             let state = {};
+            console.log(req.headers.cookie);
+            const p = req.headers.cookie?.indexOf("sessionId");
+            if (p !== undefined && p !== -1) {
+                const e = req.headers.cookie.indexOf(";", p+10);
+                const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
+                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${id}`, (res) => {
+                    if (res.statusCode !== 200) {
+                        return;
+                    }
+                    let data = "";
+                    res.on("data", (chunk) => {data += chunk;});
+                    res.on("end", () => {
+                        acc = data;
+                        if (gameid) {
+                            emit("main", "account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});
+                        }
+                    });
+                });
+            }
             if (req.hid !== undefined) {
                 if (DYING) {process.send({hid:req.hid, v:false});return;}
                 const capacity = Number(url.searchParams.get("p"));
@@ -225,7 +256,8 @@ process.once("message", (id) => {
                                     socks.handle("error", sock, {data:"Unable to generate room code",redirect:"/play-online",store:"Unable to generate room code"}, state);
                                     return;
                                 }
-                                socks.handle("create", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data}, state);
+                                gameid = data;
+                                socks.handle("create", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc}, state);
                             } catch (E) {
                                 if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
                             }
@@ -245,16 +277,17 @@ process.once("message", (id) => {
                             socks.handle("error", sock, {data:"Game Not Found",redirect:"/play-online",store:"Game Not Found"}, state);
                             return;
                         }
+                        gameid = gid;
                         startPings(sock);
                         if (connType === 3) {
-                            socks.handle("rejoin", sock, {"id":gid, "n":url.searchParams.get("i"), "key":url.searchParams.get("k")}, state);
+                            socks.handle("rejoin", sock, {"id":gid, "n":url.searchParams.get("i"), "key":url.searchParams.get("k"), "acc":acc}, state);
                             return;
                         }
                         if (connType === 5) {
                             socks.handle("botjoin", sock, {"id":gid, "n":url.searchParams.get("n"), "key":url.searchParams.get("k")}, state);
                             return;
                         }
-                        socks.handle("join", sock, {"id":gid, "asSpectator":connType===4}, state);
+                        socks.handle("join", sock, {"id":gid, "asSpectator":connType===4, "acc":acc}, state);
                     } catch (E) {
                         if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
                     }

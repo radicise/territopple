@@ -1,3 +1,5 @@
+/**@type {Promise<void>} */
+let INCLUDE_FINISHED = null;
 {
     let iters = 0;
     async function replaceImports() {
@@ -13,6 +15,11 @@
                         if (v.getAttribute("data-raw-attrs")) {
                             for (const a of v.getAttribute("data-raw-attrs").split(",")) {
                                 const al = a.split("=");
+                                if (al[0] === "src" || al[0] === "href") {
+                                    if (!al[1][0] === '/') {
+                                        window.alert(`Warning, insecure content source detected. Please send an email to reports@territopple.net with the information on the next lines, as well as how you got to this page (eg. clicked a link from outside territopple.net, etc.).\nTAG: ${v.getAttribute("data-raw-tag")};ATTRS: ${v.getAttribute("data-raw-attrs")};SOURCE: ${al[0]}=${al[1]};PAGE: ${window.location.pathname}`);
+                                    }
+                                }
                                 htag.setAttribute(al[0], al[1]);
                             }
                         }
@@ -55,7 +62,7 @@
                     if (scripts) {
                         scripts.split(",").forEach(p => {
                             const s = document.createElement("script");
-                            s.src = p;
+                            s.src = `https://territopple.net/${p}`;
                             document.body.appendChild(s);
                         });
                     }
@@ -69,5 +76,8 @@
             tags = document.querySelectorAll("meta[data-import], meta[data-scripts], meta[data-raw-tag]");
         }
     }
-    replaceImports();
+    INCLUDE_FINISHED = new Promise(async (r) => {
+        await replaceImports();
+        r();
+    });
 }

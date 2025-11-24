@@ -1,0 +1,68 @@
+this file documents the priveledge flags
+privileges visibilities:
+(H) - not visible to accounts without a privilege flag at least that high
+(A[<alias>]) - visible as the specified alias, only marked as an alias if the reader has privileges at least as high
+    (A[*]) denotes a configurable alias
+    the alias overrides all other publicly visible privilege information
+(G) - causes the name of the privilege group to be displayed on the account
+    (G[<default>]) indicates a default display if the account is not associated with a privilege group
+(P) - causes the privilege to be publicly displayed on the account
+(N) - no display
+
+(LSB+)
+0  - moderation abilities (chat & account fields)
+1  - apply group 1 sanctions
+2  - apply group 2 sanctions
+3  - review group 1 & 2 sanctions
+4  - apply group 3 sanctions
+5  - review group 3 sanctions
+6  - review puzzle submissions
+7  - manage puzzles
+8  - manage events
+.. - reserved
+-- domain boundary --
+28 - read privilege flags
+29 - apply privilege groups
+30 - apply and review group 4 sanctions
+31 - privilege admin
+
+the domain boundary indicates permissions that require the account email domain to match server configuration or a special exemption in server configuration
+
+moderation abilities (N):
+can delete chat message and replays, and flag accounts and puzzles for priority review
+
+apply group 1 sanctions (G[Junior Moderator]):
+see "./sanctions.txt"
+
+apply group 2 sanctions (G[Moderator]):
+see "./santions.txt"
+
+review group 1 & 2 sanctions (G[Moderator]):
+see "./sanctions.txt"
+
+apply group 3 sanctions (G[Senior Moderator]):
+see "./sanctions.txt"
+
+review group 3 sanctions (G[Senior Moderator]):
+see "./sanctions.txt"
+
+review puzzle submissions (G[Puzzle Reviewer]):
+review puzzle submissions and reports
+
+manage puzzles (N):
+manage puzzles, including modification and deletion
+
+manage events (G[Event Manager]):
+see "./events.txt"
+
+apply and review group 4 sanctions (N):
+see "./sanctions.txt"
+
+read privilege flags (H):
+allows the account to see all privileges possessed by other accounts
+
+apply privilege groups (A[*]):
+can apply authorized privilege groups to accounts according to group and account specific allowlists
+
+privilege admin (A[*]):
+allows full control over privilege groups and own and others privileges

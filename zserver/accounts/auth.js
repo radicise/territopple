@@ -3,7 +3,7 @@
  * standalone authentication functionality
  */
 
-const { hash, createHash, randomBytes, getHashes } = require("crypto");
+const { hash, createHash, randomBytes, getHashes, scryptSync } = require("crypto");
 const { SecurityError, nbytes } = require("../../defs.js");
 const { AccountId, AuthToken, SensitiveData, RotatingCryptoData, SecretData } = require("./common.js");
 const HASH_ALGORITHM = "sha512";
@@ -80,7 +80,7 @@ function convertDataToHash(data) {
 /**
  * verifies that the salted hash of the input data matches the data to be checked against
  * @param {Buffer} checkdata
- * @param {Buffer|string} inputdata
+ * @param {Buffer} inputdata
  * @param {Buffer|bigint} salt
  * @returns {boolean}
  */
@@ -94,11 +94,44 @@ function verifyAccountPassword(checkdata, inputdata, salt) {
     //     saltb.writeBigInt64BE(salt);
     // }
     // return checkdata.equals(hash(HASH_ALGORITHM, Buffer.concat([saltb, inputdatab]), "buffer"));
-    return checkdata.equals(saltedHash(salt, inputdata));
+    return checkdata.equals(makePassword(inputdata, salt));
+}
+
+/**
+ * uses scrypt to make a storable representation of a password
+ * @param {Buffer} password
+ * @param {Buffer} salt
+ * @returns {Buffer}
+ */
+function makePassword(password, salt) {
+    return scryptSync(password, salt, 32);
+}
+
+/**
+ * @param {string} password
+ * @returns {Buffer}
+ */
+function makePwData(password) {
+    const salt = randomBytes(32);
+    password = password.normalize();
+    return Buffer.concat([salt, makePassword(Buffer.alloc(password.length, password, "utf8"), salt)]);
+}
+
+/**
+ * @param {Buffer} pwdata
+ * @param {string} password
+ * @returns {boolean}
+ */
+function verifyRecordPassword(pwdata, password) {
+    password = password.normalize();
+    return makePassword(Buffer.alloc(password.length, password, "utf8"), pwdata.subarray(0, 32)).equals(pwdata.subarray(32, 64));
 }
 
 exports.saltedHash = saltedHash;
+exports.makePassword = makePassword;
+exports.makePwData = makePwData;
 exports.convertDataToHash = convertDataToHash;
 exports.verifyAccountPassword = verifyAccountPassword;
 exports.createQuickAuthToken = createQuickAuthToken;
 exports.verifyQuickAuthToken = verifyQuickAuthToken;
+exports.verifyRecordPassword = verifyRecordPassword;

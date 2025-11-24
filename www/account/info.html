@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Account Info - Territopple</title>
+    </head>
+    <body>
+        <a href="/">home</a>
+        <div id="acc">
+            ID: <span id="acc-id">...</span><br>
+            Name: <span id="acc-name">...</span><br>
+            Joined: <span id="acc-cdate">...</span><br>
+            Last Online: <span id="acc-lo">...</span><br>
+            Level: <span id="acc-lvl">...</span><br>
+            Email: <span id="acc-email">...</span>
+        </div>
+        <script>
+            const loc = new URL(location.href);
+            let sendID = "%40self";
+            if (loc.searchParams.get("id")) {
+                // document.getElementById("acc-id").textContent = loc.searchParams.get("id");
+                sendID = loc.searchParams.get("id");
+            }
+            fetch(`https://territopple.net/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
+                console.log(v);
+                if (v.status === 403) {
+                    document.getElementById("acc-id").textContent = "unauthorized";
+                    return;
+                }
+                // v = JSON.parse(v.text);
+                v.json().then(j => {
+                    if (sendID === "%40self" || sendID === j.rid) {
+                        const b = document.createElement("input");
+                        b.type = "button";
+                        b.value = "logout";
+                        b.onclick = () => {
+                            fetch("https://territopple.net/acc/pub/logout", {method:"GET"}).then(() => {location.href="/account/login";});
+                        }
+                        document.getElementById("acc").append(document.createElement("br"), b);
+                    }
+                    document.getElementById("acc-id").textContent = j.id;
+                    document.getElementById("acc-name").textContent = j.name;
+                    document.getElementById("acc-cdate").textContent = new Date(j.cdate).toString();
+                    document.getElementById("acc-lo").textContent = new Date(j.last_online).toString();
+                    document.getElementById("acc-lvl").textContent = j.level;
+                    document.getElementById("acc-email").textContent = j.email ?? "unavailable";
+                    if (j.sanction !== null) {
+                        document.getElementById("acc").append(`Sanction: ${j.sanction}`);
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

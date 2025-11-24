@@ -222,9 +222,9 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
      * @returns {void}
      */
     function concentric_createBoard(topo, board, teamboard) {
-        if (!(topo instanceof topology.m.TGrid2D)) {
-            throw new Error("wrong topology");
-        }
+        // if (!(topo instanceof topology.m.TGrid2D)) {
+        //     throw new Error("wrong topology");
+        // }
         const rows = topo.height;
         const cols = topo.width;
         g_rows = rows;

@@ -1,0 +1,164 @@
+this files describes the format of territopple puzzle (".tpzl") files
+
+STR[N]:
+BYTE[N] - LENGTH
+BYTE[LENGTH] - data
+
+version 0:
+
+BOARD:
+note: piece counts and ownership are encoded as 1D arrays that wrap around the board
+BYTE - flags (A-H)
+IF (A) {
+    INTERPRET: wrap-around is ttb, ltr
+} ELSE {
+    INTERPRET: wrap-around is ltr, ttb
+}
+FOR TILE COUNT {
+    BITS[X] - pieces on tile I where X is the minimum bits required to represent all states of tile I according to the topology rules
+}
+IF (D) {
+    FOR TILE COUNT {
+        NYBBLE[2]<x,yyyyyyy> - NA
+        INTERPRET: NA.y IS team id
+        IF (NA.x IS 1) {
+            IF (B) {
+                NYBBLE - count
+            } ELSE {
+                NYBBLE<x,yyy> - NB
+                IF (NB.x IS 0) {
+                    INTERPRET: NB.y+1 IS count
+                } ELSE {
+                    IF (C) {
+                        NYBBLE[2]<zzzzzzzz> - NC
+                    } ELSE {
+                        NYBBLE<zzzz> - NC
+                    }
+                    INTERPRET: <NB.y,NC.z>+1 IS count
+                }
+            }
+        }
+    }
+} ELSE {
+    FOR TILE COUNT {
+        NYBBLE<x,yyy> - NA
+        INTERPRET: NA.y IS team id
+        IF (NA.x IS 1) {
+            IF (B) {
+                NYBBLE - count
+            } ELSE {
+                NYBBLE<x,yyy> - NB
+                IF (NB.x IS 0) {
+                    INTERPRET: NB.y+1 IS count
+                } ELSE {
+                    IF (C) {
+                        NYBBLE[2]<zzzz,zzzz> - NC
+                    } ELSE {
+                        NYBBLE<zzzz> - NC
+                    }
+                    INTERPRET: <NB.y,NC.z>+1 IS count
+                }
+            }
+        }
+    }
+}
+Board (plainer-text):
+piece counts are packed such that they only use as many bits as necessary to represent all values according to the topology rules
+ownership is stored in the following manner:
+the first byte is used to store flags a-h (a is MSB)
+if flag a is set, ownership is stored from top to bottom left to right, otherwise it is left to right top to bottom
+if the first bit of a nybble is 0, the next M bits denote team
+otherwise, the next M bits denote team, and the next nybble is as follows:
+if flag b is set: the next 4 bits are count
+else:
+if the first bit is 1, the next N bits are count, else the next 3 bits are count
+N is 7 unless flag c is set, in which case it is 11
+all counts are encoded with an offet of -1
+where M is 3 unless flag d is set, in which case it is 7
+
+BYTE - version
+STR[1] - name
+STR[1] - author
+BYTE[8] - creation date
+STR[1] - topology rules
+IF (len(topology rules) IS 0) {
+    BYTE - topology id
+    IF (topology id IS 255) {
+        INLINE TopologyRules
+        BYTE[12] - 0xfe (repeat 12) - end marker
+        BYTE[8] - 0xff, 0x33, 0x00, 0x55, 0x22, 0x88, 0x66, 0x44 - end marker
+    }
+} ELSE {
+    topology rules is a string identifying a .3tr file to fetch from
+}
+BYTE - topology param count (TPC)
+U16[TPC] - topology parameters
+BYTE - team count (NNTC)
+NOTE: NNTC may not be 0 or 255
+NOTE: NNTC does not count the neutral team, as it is always present
+BYTE - player count (PC)
+BYTE[PC] - team assignments
+BYTE[PC] - turn order
+NOTE: players may be omitted from the turn order, indicating that they do not play moves, these player ids are replaced by 0 in the turn order
+INLINE BOARD - initial state
+STR[3] - Puzzle info
+BYTE - variant count (VC)
+FOR VI IN 0..VC {
+    BYTE - controlled players count (CPC) [number of player(s) that the solver(s) are playing as]
+    BYTE[CPC] - controlled players (CPS)
+    BYTE - move restriction, 0 is unrestricted
+    BYTE - GOAL
+    SWITCH (GOAL) {
+        CASE (0) {
+            INTERPRET: goal is to win
+        }
+        CASE (1) {
+            INTERPRET: goal is to lose
+        }
+        CASE (2) {
+            BYTE[NNTC] - order
+            INTERPRET: goal is to eliminate teams in the given order
+            INTERPRET: order[i] is a team number which must be eliminated before this team
+            NOTE: order is not required to indicate that all or all but one teams must be eliminated, teams that should not be eliminated are to use their own team number, teams that may optionally be eliminated are to use 255 as the requirement number
+        }
+        case (3) {
+            INLINE BOARD
+            INTERPRET: goal is to turn the current board state into the given state, any neutral tiles with more than one piece will match all teams
+        }
+    }
+
+    BYTE - turn flags (A-H)
+    FOR PI IN 0..PC SKIPPING (PI IN CPS) {
+        STR[1] - bot short name (used to request a botjoin)
+        NOTE: length zero indicates no bot
+        NOTE: the name "puzzlebot" indicates the bot specified in "puzzlebot_specs.txt"
+        NOTE: compliant parsers MUST output the list of bots with all player controlled player ids set to null
+    }
+    IF (A) {
+        U16 - move count (MC)
+        FOR MI IN 0..MC {
+            BYTE - player id
+            BYTE - turn number (1 indexed)
+            BYTE[2] - tile index
+            IF (turn number IS 0) {
+                INTERPRET: tile index high byte is turn number, low byte incidates: low nybble is player number N-low, tile index is tile index used by player N-low high nybble turns in the past
+            }
+        }
+        NOTE: if at any point one of the preset moves is impossible, the puzzle has been failed
+    }
+
+    STR[2] - variant specific info
+    STR[1] - variant name (50 characters max)
+    IF (len(variant name) IS 0) {
+        INTERPRET: variant name IS "Standard"
+    }
+    BYTE - hint count (HC)
+    FOR HI IN 0..HC {
+        STR[2] - hint text
+        IF (len(hint text) IS 0) {
+            BYTE - player num
+            BYTE - turn number
+            BYTE[2] - tile index
+        }
+    }
+}

@@ -19,6 +19,7 @@
         <title>Territopple</title>
 	</head>
 	<body>
+        <meta data-import="/components/accounts/disp.html" />
 		<h1 style="width:fit-content;">Territopple, the Territory Toppling Game</h1>
         <div id="bots-popup" hidden>
             <div>
@@ -52,9 +53,9 @@
                     <!-- board rendering option -->
                     <label for="board-rendering-option">Board Rendering:</label>
                     <select id="board-rendering-option">
-                        <option value="1" selected>original</option>
+                        <option value="1">original</option>
                         <!-- <option value="2" disabled>concentric (broken)</option> -->
-                        <option value="2">concentric</option>
+                        <option value="2" selected>concentric</option>
                         <!-- <option value="3" selected>spherical</option> -->
                         <option value="3">spherical</option>
                     </select>
@@ -114,7 +115,7 @@
         <script src="helpers/banners.js"></script>
 		<script src="logic/game.js"></script>
         <script src="logic/joinlist.js?rev=1"></script>
-	<script src="territopple.js?rev=1"></script>
+	    <script src="territopple.js?rev=3"></script>
         <script src="displaycontrols.js?rev=1"></script>
 	</body>
 </html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Territopple - Create Account</title>
+    </head>
+    <body>
+        <p id="msg"></p>
+        <div id="form-container">
+            <label for="cf-email">Email:</label><input type="email" id="cf-email"><br>
+            <label for="cf-id">Account ID:</label><input type="text" id="cf-id"><br>
+            <label for="cf-disp">Display Name:</label><input type="text" id="cf-disp"><br>
+            <label for="cf-pw">Password:</label><input type="password" id="cf-pw"><br>
+            <label for="cf-cpw">Confirm Password:</label><input type="password" id="cf-cpw"><br>
+            <input type="button" value="Submit" id="cf-submit">
+        </div>
+        <p>Already have an account? <a href="/account/login" target="_self">login</a> or <a href="/" target="_self">return home</a>.</p>
+        <script>
+            const email = document.getElementById("cf-email");
+            const id = document.getElementById("cf-id");
+            const disp = document.getElementById("cf-disp");
+            const pw = document.getElementById("cf-pw");
+            const cpw = document.getElementById("cf-cpw");
+            const msg = document.getElementById("msg");
+            document.getElementById("cf-submit").addEventListener("click", () => {
+                if ([email,id,disp,pw,cpw].some(v => !v.value) || pw.value !== cpw.value) {
+                    return;
+                }
+                fetch("https://territopple.net/acc", {method:"PUT",headers:[["Content-Type","application/json"]],body:JSON.stringify({"email":email.value,"id":id.value,"name":disp.value,"pw":pw.value})}).then(v => {
+                    if (v.status === 200) {
+                        msg.textContent = "request sent, be sure to check your spam folder";
+                    } else {
+                        msg.textContent = "failed";
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

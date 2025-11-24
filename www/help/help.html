@@ -8,6 +8,13 @@
                 top: 5px;
                 right: 5px;
             }
+            body {
+                margin-left: 1em;
+                margin-right: 5em;
+            }
+            a.subheading-link {
+                margin-left: 0.5em;
+            }
         </style>
     </head>
     <body>
@@ -15,7 +22,9 @@
         <h1>Contents</h1>
         <a href="#quick-start">Quick Start</a><br>
         <a href="#reference">Reference</a><br>
-        <a href="#tactics-showcase">Tactics Showcase</a>
+        <a href="#reference-topology" class="subheading-link">Topology</a><br>
+        <a href="#reference-bro" class="subheading-link">Board Rendering Options</a><br>
+        <!-- <a href="#tactics-showcase">Tactics Showcase</a> -->
         <h1 id="quick-start">Quick Start</h1>
         <p>
             <h3>
@@ -41,21 +50,41 @@
         <h1 id="reference">Reference</h1>
         <p>This section has a more complete set of information about Territopple.</p>
         <p>
-            <h2>Huge Games (Coming Soon)</h2>
+            <h2 id="reference-topology">Topology</h2>
+            <h3>2D Grid Topology (TGrid2D)</h3>
+            This is the standard board topology, and is recommended for play.
+            <h3>2D Single-Edge Wrap Topology (THWrap2D, TVWrap2D)</h3>
+            These topologies have no corners, but do have edges.<br>
+            Tiles on the left and right, top and bottom are adjacent for THWrap2D and TVWrap2D, respectively.
+            <h3>2D Edge Wrap Topology (TBWrap2D)</h3>
+            This topology has no corners and no edges.<br>
+            Tiles on the left are adjacent with those on the right, and tiles on the top are adjacent with those on the bottom.
+            <h2 id="reference-bro">Board Rendering Options</h2>
+            <h3>Original</h3>
+            This is the classic rendering mode, it's a legacy mode way back from when the game was played in the terminal!<br>
+            In this mode, the number of pieces on tiles are represented by symbols, a '-' is one, '+' is two, 'W' is three, and '&block;' is four.<br>
+            We keep this mode around because it has an important advantage, while it takes time to get used to, it's very easy to understand large (larger than around 11x11) boards with this mode, and we recommend it for that purpose.
+            <h3>Concentric</h3>
+            So named because this mode displays tiles as a grid of concentric squares, this mode makes it very easy to grasp the basic concepts of territopple, which is why it's recommended for beginners.<br>
+            It's easy to tell when a tile is volatile as it will be completely filled. However, with the mode consuming all the space within the tile, it can be harder to see and notice the various highlights.
+            <h3>Spherical</h3>
+            This poorly named mode is not, in fact, meant to display spherical boards (coming soon-ish!). It's a 3D rendering option that displays tiles as spheres in 3D space.<br>
+            This mode is currently difficult to use on mobile, as there is no way to rotate the view without a right click or keyboard inputs, this mode also does not provide any significant advantages over the others, and exists primarily as a test that the 3D rendering worked.<br>
+            Due to this, we do not recommend the spherical rendering mode to anyone for serious use, but it might be cool to play around with it and see how it looks. Also, keep an eye out for the next rendering mode that will be added: '3D Towers'!
+            <!-- <h2>Huge Games (Coming Soon)</h2>
             These are special games made for many people to join in on without obligation.<br>
             All players are on the same team playing against an AI opponent.<br>
             Players gain moves at fixed intervals. Whenever a player makes a move, the AI immediately makes a move as well.<br>
             There are a limited number of huge games, and some may be limited time events.<br>
-            For more details about huge games, check with the server operator.
+            For more details about huge games, check with the server operator. -->
         </p>
-        <h1 id="tactics-showcase">Tactics Showcase</h1>
+        <!-- <h1 id="tactics-showcase">Tactics Showcase</h1>
         <p>This section is a showcase of some common tactics that have emerged in the course of multiple games of Territopple. While they are useful, you may prefer to discover them yourself.</p>
         <p>
             <h3>Doubling Up</h3>
             By creating a setup where there is a tile one piece away from being volatile, and multiple adjacent volatile pieces in the same volatile chain, a one-way path for toppling is made.<br>
             This allows you to safely set up topples onto your opponents without them being able to retaliate as easily.
             <h3>Forcing a Corner</h3>
-            <!-- // -->
-        </p>
+        </p> -->
     </body>
 </html>

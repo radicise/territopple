@@ -145,7 +145,7 @@ IF (ORDER):
     BYTE (STRATEGY) - order determination strategy - valid values are:
     - 0 - each move has the player number recorded with it
     - 1 - players go in standard order, but a team map is provided
-    BYTE (PADDING)
+    ~~BYTE (PADDING)~~
     FOR EACH player:
         BYTE - team assignment
     IF (player count) is odd:
@@ -179,7 +179,7 @@ SWITCH (TYPE):
 0 -> PLAYER ELIM: - player eliminated from turn order, reason not important
     BYTE - player number
 1 -> PLAYER MOVE: - player moved
-    SWITCH (SIZE):
+    SWITCH (SIZE): NOTE: P bits are tile bits if ORDER is unset
         00 ->:
             BYTE[1] - P(3),I(5)
         01 ->:

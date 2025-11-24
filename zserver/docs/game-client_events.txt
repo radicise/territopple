@@ -9,6 +9,8 @@ GAME TO CLIENT:
             - reconnection MUST use the provided parameter string, clients MUST append it directly after the '?' in the connection url
             - when the new connection is open, clients MUST IMMEDIATELY send the switch data, sending one message per element
         DYNG () - signals that the server is in the process of moving rooms to a different server
+    account:
+        found (n [player num | spectator id]: number | string, a [account id]: string)
     waiting:
         promote (n [player num]: number)
         start (void)
@@ -31,10 +33,10 @@ GAME TO CLIENT:
     game:
         roomid (g [room id]: string)
         config (c [tile count]: number, t [topology]: number, d [necessary dimensions (see Topology class)]: Record<string,number>, p [max players]: number, l [host player num]: number)
-        jlist (p [player list]: [number [player num], number [team id]][], s [spectator list]: string[])
+        jlist (p [player list]: [number [player num], number [team id], string | null [account id]][], s [spectator list]: [string, string | null [account id]][])
         turn (n [player num]: number, t [do timer]: boolean)
         move (n [tile num]: number, t [team id]: number)
-        win (t [team id]: number)
+        win (t [team id]: number, d [download available]: boolean)
         reconnected ()
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
         timeup (n [player num]: number)
@@ -50,6 +52,8 @@ BINARY GAME TO CLIENT:
         when sending tile ownerships:
             if the first bit is 0: the next three bits denote team
             if the first bit is 1: the next three bits denote team, and the following four bits denote the next n tiles all being that team (run-length encoding)
+    1:
+        replay file data
 
 CLIENT TO GAME:
     waiting:
@@ -65,4 +69,5 @@ CLIENT TO GAME:
     game:
         move (n [tile num]: number)
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
+        download ()
     ping: (n [player num]: number, kind: string | null)

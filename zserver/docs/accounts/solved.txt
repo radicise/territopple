@@ -1,0 +1,9 @@
+this file documents the "solved" field of an account record
+
+every value within the "solved" set is an int32 composed of a u26 and a bitfield of width 6
+the u26 is stored in LSB, bitfield is in upper 6 bits
+
+the u26 is a UID for the puzzle
+
+the bitfield represents which variants have been solved, where
+F[i] is set if the player has solved variant i, i = 0 when the bit checked is MSBP-6

@@ -12,6 +12,7 @@
     </head>
     <body>
         <h1>Territopple, the Territory Toppling Game (REPLAY)</h1>
+        <a href="/" target="_self">Home</a><br>
         <div id="replay-area" hidden>
             <!-- <meta data-import="/components/display-settings.html"/>
             <meta data-scripts="/logic/game.js,/helpers/render/unified.js" /> -->
@@ -22,15 +23,39 @@
             <input type="button" id="m1" value="m1">
             <input type="button" id="m2" value="m2">
             <br> -->
-            <input type="button" value="step" onclick="replay_step()">
+            <input type="button" id="replay-step" value="step" onclick="replay_step()">
+            <input type="range" id="autoplay-speed" value="1" min="0.25" max="3" step="0.25">
             <p id="time">DATA NOT LOADED</p>
             <p id="turn">DATA NOT LOADED</p>
             <h2 id="status">DATA NOT LOADED</h2>
 		    <p id="info">DATA NOT LOADED</p>
         </div>
-        <input type="file" id="replay-upload"><input type="button" value="load" onclick="load_replay()">
+        <input type="file" id="replay-upload" accept=".topl" multiple="false"><input type="button" value="load" onclick="load_replay()">
         <!-- <script src="/soldemo.js"></script> -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "/three/build/three.module.js",
+                    "three/addons/": "/three/examples/jsm/",
+                    "topology/": "/topology/"
+                }
+            }
+        </script>
+        <script>
+            function load_replay() {
+                window.postMessage({type:"replay-load"});
+            }
+            function replay_step() {
+                window.postMessage({type:"replay-step"});
+            }
+            // function exec(cmd) {
+            //     window.postMessage({type:"replay-command",cmd:cmd});
+            // }
+        </script>
         <script src="/components/include.js"></script>
-        <script src="/replay/replay.js"></script>
+        <script>
+            (async () => {await INCLUDE_FINISHED;window.postMessage("include-finished");})();
+        </script>
+        <script src="/replay/replay.js?rev=3" type="module"></script>
     </body>
 </html>

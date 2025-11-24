@@ -61,8 +61,13 @@ function displayRooms(text) {
         const sLinkEntry = document.createElement("td");
         let spectateLink = document.createElement("a");
         if (game.can_spectate) {
-            spectateLink.textContent = "(spectate)";
+            const sp = document.createElement("span");
+            spectateLink.textContent = "spectate";
             spectateLink.href = `http://${document.location.host}/territopple.html?t=4&g=${game.ident}`;
+            sp.append("(");
+            sp.append(spectateLink);
+            sp.append(")");
+            spectateLink = sp;
         } else {
             spectateLink = document.createElement("span");
             spectateLink.textContent = "(disabled)";
@@ -86,6 +91,9 @@ function displayRooms(text) {
  * @param {object?} filter
  */
 function fetchRooms(page, filter) {
+    document.getElementById("roomTable").hidden = true;
+    document.getElementById("fetchingMessage").hidden = false;
+    document.getElementById("fetchingMessage").textContent = "Fetching rooms...";
     fetch(`https://${host}/serverlist?page=${page||1}${formatFilter(filter)}`, {method:"GET"})
     .then((response) => {
         if (response.body === null) {

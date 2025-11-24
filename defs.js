@@ -57,6 +57,8 @@ class Player {
         this.time_left = 0;
         /**@type {boolean} */
         this.is_bot = false;
+        /**@type {string} */
+        this.accId = null;
     }
     /**
      * @param {Game} game
@@ -103,6 +105,10 @@ class Player {
         return this.rejoin_key;
     }
 }
+/**
+ * @typedef Spectator
+ * @type {{sock:WS,accId?:string}}
+ */
 /**
  * @typedef TurnTimerSettings
  * @prop {"per turn"|"chess"} style style of turn timer
@@ -189,14 +195,43 @@ class Game {
         extend(this.rules, state.rules||{});
         /**@type {Buffer[]} */
         this.buffer = [];
+        // this._buffer = [];
         /**@type {number} */
         this.timestamp = null;
         /**@type {Player[]} */
         this.players = [null];
-        /**@type {Record<string,WS>} */
+        /**@type {Record<string,Spectator>} */
         this.spectators = {};
         /**@type {BigInt} */
         this.sort_key = null;
+        // this.__ended = false;
+        this.__ended = 0;
+    }
+    // get buffer() {
+    //     // if (this.__ended) return [];
+    //     if (this.state.state === 2) return [];
+    //     // console.log(new Error("TRACER"));
+    //     // console.log(this._buffer);
+    //     return this._buffer;
+    // }
+    // set buffer(v) {
+    //     // throw new Error("setting buffer?");
+    //     this._buffer = v;
+    // }
+    /**
+     * @param {number|string} entid
+     * @param {string} accid
+     */
+    updateAccountId(entid, accid) {
+        if (typeof entid === "string") {
+            if (entid in this.spectators) {
+                this.spectators[entid].accId = accid;
+            }
+        } else {
+            if (this.players[entid]) {
+                this.players[entid].accId = accid;
+            }
+        }
     }
     /**
      * @param {string} key
@@ -224,7 +259,7 @@ class Game {
      */
     kill() {
         for (const k in this.spectators) {
-            this.spectators[k].terminate();
+            this.spectators[k].sock.terminate();
         }
         for (const p of this.players) {
             if (p && p.conn) {
@@ -278,17 +313,23 @@ class Game {
         // const tcol = tile % w;
         // const trow = (tile-tcol)/w;
         // onMove(this, trow, tcol, player);
+        // console.log("move recorded");
         onMove(this, tile, player);
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
+                    // console.log("team eliminated");
                     this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
+                    if (tb[t] === 0) {
+                        this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){onPlayerRemoved(this, i);v.alive=false;}});
+                    }
                 }
                 this.state.owned[p.team] ++;
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
+                    // console.log("win returned");
                     return {win:true,turn:-1};
                 }
             }
@@ -351,7 +392,7 @@ class Game {
             id = crypto.randomBytes(8).toString("base64url");
         }
         // this.sendAll(NetData.Spectator.Join(id));
-        this.spectators[id] = conn;
+        this.spectators[id] = {sock:conn,accId:null};
         this.stats.spectating ++;
         this.stats.connected ++;
         return id;
@@ -456,7 +497,7 @@ class Game {
         }
         for (const s in this.spectators) {
             if (s !== exclude) {
-                this.spectators[s].send(message);
+                this.spectators[s].sock.send(message);
             }
         }
     }
@@ -471,6 +512,9 @@ exports.Game = Game;
  * WEBPORT:number,
  * INTERNALPORT:number,
  * BOTPORT:number,
+ * AUTHPORT:number,
+ * AUTHINTERNALPORT:number,
+ * PUZZLEPORT:number,
  * ROOM_CODE_LENGTH:number,
  * PING_INTERVAL:number,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
@@ -481,7 +525,10 @@ exports.Game = Game;
  * URL_MAP_GROUPS:Record<string,string[]>,
  * DEVOPTS:{expr_webpath:boolean},
  * REPLAYS:{ENABLED:boolean,TIMESTAMP:boolean,COLLATE:boolean},
- * MAX_TEAMS:number
+ * MAX_TEAMS:number,
+ * DB_CONFIG:{URI:string},
+ * MAIL_CONFIG:{HOST:string,BOT_USER:string,BOT_PASS:string},
+ * ACC:{CREATE_TO:number,SESSION_TO:number}
  * }}
  */
 
@@ -552,6 +599,24 @@ class NetData {
          */
         static DYNG() {
             return this.Misc("DYNG");
+        }
+    }
+    static Account = class {
+        /**
+         * @param {string} type
+         * @param {Record<string,any>?} data
+         * @returns {string}
+         */
+        static Misc(type, data) {
+            return NetData.Misc(`account:${type}`, data);
+        }
+        /**
+         * @param {number|string} id
+         * @param {string} acc
+         * @returns {string}
+         */
+        static Found(id, acc) {
+            return this.Misc("found", {n:id, a:acc});
         }
     }
     static Player = class {
@@ -774,8 +839,8 @@ class NetData {
          * @returns {string}
          */
         static JList(game) {
-            const players = game.players.map((v, i) => v ? [i, v.team] : null).filter(v => v !== null);
-            const spectators = Object.keys(game.spectators);
+            const players = game.players.map((v, i) => v ? [i, v.team, v.accId] : null).filter(v => v !== null);
+            const spectators = Object.keys(game.spectators).map(v => [v, game.spectators[v].accId]);
             return this.Misc("jlist", {p:players,s:spectators});
         }
         /**
@@ -807,6 +872,13 @@ class NetData {
         return NetData.Misc("ping", {kind:kind??"default"});
     }
     static Bin = class {
+        /**
+         * @param {Game} game
+         * @returns {Buffer}
+         */
+        static Replay(game) {
+            return Buffer.concat([Buffer.of(1), Buffer.concat(game.buffer.slice(0, game.__ended))]);
+        }
         /**
          * @param {Game} game
          * @returns {Buffer}
@@ -1132,7 +1204,7 @@ exports.on = on;
 exports.clear = clear;
 exports.nbytes = nbytes;
 exports.validateJSONScheme = validateJSONScheme;
-// exports.JSONScheme = this.JSONScheme;
+exports.JSONScheme = this.JSONScheme;
 // exports.JSONSchemeType = this.JSONSchemeType;
 // exports.HostingSettings = this.HostingSettings;
 exports.NetData = NetData;

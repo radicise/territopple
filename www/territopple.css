@@ -12,11 +12,12 @@ body {
     float: right;
     user-select: none;
     cursor: pointer;
+    margin-left: 0.5em;
 }
 #board-zoom {
     vertical-align: middle;
 }
-#container-container {
+#container-container, .container-container {
     width: fit-content;
     /* border: solid black 2px; */
     overflow: hidden;
@@ -186,19 +187,28 @@ svg#render {
 
 x-concentric-tile {
     --l-alpha-tweak: calc(3 / 5);
-    --bw: 0.5px;
+    --bw: 1px;
     border: solid var(--bw) black;
     width: calc(1.5em - var(--bw) * 2);
     height: calc(1.5em - var(--bw) * 2);
 }
 x-concentric-tile div {
-    width: calc(100% - 12px);
-    height: calc(100% - 12px);
+    --size: 73.91%;
+    width: var(--size);
+    height: var(--size);
+    /* width: min(90%, calc(100% - 12px));
+    height: min(90%, calc(100% - 12px)); */
     border: solid 1px black;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
+}
+x-concentric-tile > div > div {
+    --size: 64.71%;
+}
+x-concentric-tile > div > div > div {
+    --size: 45.45%;
 }
 x-concentric-tile div:not(:has(> *)) {
     background: var(--color) !important;

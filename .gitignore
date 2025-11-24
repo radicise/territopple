@@ -6,6 +6,7 @@
 /prefs.json
 /www/replays
 /t2b/b
+/t2b/t
 .vscode
 /www/portno.js
 /crashlog.txt
@@ -16,5 +17,6 @@
 /tracelog.txt
 /www/topology
 /www/three
+/www/puzs
 /nginx.conf
 /logs

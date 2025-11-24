@@ -10,7 +10,7 @@ const loadPromise = new Promise((res,) => {
 
 /**
  * @typedef Player
- * @type {{team:number,ready:boolean,time:number}}
+ * @type {{team:number,ready:boolean,time:number,accId:string|null}}
  */
 
 class Game {
@@ -137,7 +137,7 @@ class Game {
         };
         document.getElementById("spherical-enable-bloom").onchange = () => {
             window.postMessage({type:"3d-setbloom",enabled:document.getElementById("spherical-enable-bloom").checked});
-        }
+        };
     }
     recalcDerived() {
         this.owned = new Array(6).fill(0);
@@ -257,4 +257,4 @@ class Game {
     }
 }
 
-//exports.Game = Game;
+// exports.Game = Game;
