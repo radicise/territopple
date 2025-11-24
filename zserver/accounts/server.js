@@ -411,13 +411,13 @@ const public_server = http.createServer(async (req, res) => {
                 case "/acc/reset-password": {
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, accPWResetScheme)) {
-                        console.log(body);
                         res.writeHead(400).end();
                         return;
                     }
                     try {
                         const email = await collection.findOne({id:data.id}).email;
                         if (data.email !== email) {
+                            console.log(body);
                             res.writeHead(403).end();
                             return;
                         }
