@@ -67,6 +67,7 @@ const make = (nodename, attrs) => {
     if (attrs?.children) {
         e.replaceChildren(attrs.children);
     }
+    return e;
 };
 
 /**
@@ -111,6 +112,7 @@ function makeFriendActions(id, friend) {
             break;
         }
     }
+    return actions;
 }
 
 /**

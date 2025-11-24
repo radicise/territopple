@@ -140,7 +140,7 @@ async function processPubFetch(req, res, url, log) {
                 pipeline = pipeline.filter({id:{"$regex":search}}).filter({name:{"$regex":search}});
             }
             pipeline = pipeline.sort({_id:1});
-            const list = await (pipeline.skip(20*(page-1))).toArray();
+            const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1})).toArray();
             res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(list));
         } catch (E) {
             console.log(E);
