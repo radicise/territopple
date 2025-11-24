@@ -1,22 +1,35 @@
-const { TTBot, DIFF_LEVELS, Random } = require("./common.js");
+const { TTBot, DIFF_LEVELS, Random, DummyGame, BotConf } = require("./common.js");
 
-// Beginner version of Constantine plays whatever moves get him the most territory
+
+const confMODT = BotConf.getConfig("freya", DIFF_LEVELS.MODERATE);
+// Moderate version of Freya looks ridiculously far into the future
 new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
     "desc":"Freya has foresight, and has learned a few tricks.",
     "indexable":true,
     "diff":DIFF_LEVELS.MODERATE,
     "disp":"Freya",
     "prereq":{"achi":[],"bots":["Terry Topple (Trivial)"]}
-}, (that, gamestate) => {
-    const peval = (tile, depth, cscore) => {
-        const state = gamestate.move(tile);
-        if (depth === 0) {}
-        return gamestate.move(tile).owned[gamestate.players[that.pnum].team];
+}, async (that, gamestate, limit) => {
+    let timeup = false;
+    // let best = Number.NEGATIVE_INFINITY;
+    const peval = async (tile, depth, gstate) => {
+        await new Promise(r => setTimeout(r, 0));
+        if (depth === 0 || timeup) {
+            return gstate.owned[gamestate.players[that.pnum].team]-(
+                gstate.topology.tileCount
+                -gstate.owned[0]
+                // -gstate.owned[gamestate.players[that.pnum].team]
+            );
+        }
+        const myturn = gstate.turn === that.pnum;
+        const state = gstate.move(tile);
+        if (state.owned.some(v => v===gstate.topology.tileCount)) {
+            return myturn?Number.POSITIVE_INFINITY:Number.NEGATIVE_INFINITY;
+        }
+        // state.turn = that.pnum;
+        return (myturn?Math.max:Math.min)(...await Promise.all(state.getMoves().map(v => peval(v, depth-1, state))));
     };
-    const _ = gamestate.getMoves().map(v => [v, peval(v, 4, 0)]).sort((a, b) => b[1]-a[1]);
-    const ind = _.findIndex((v, i) => i>0?v[1]<_[i-1][1]:false);
-    const sub = _.slice(0, ind<0?undefined:ind);
-    const p = Random.pick(sub);
-    // console.log(`${_}\n${ind}\n${sub}\n${p}`);
-    return p[0];
+    setTimeout(() => {timeup = true;}, limit??confMODT.maxtime);
+    const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, confMODT.maxdepth, gamestate)]));
+    return Random.pickmove(evals);
 });
