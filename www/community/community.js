@@ -132,7 +132,7 @@ async function loadPage(search, page) {
         row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:makeFriendActions(entry.id, entry.friend)}]]));
         rows.push(row);
     }
-    listTable.replaceChildren(rows);
+    listTable.replaceChildren(...rows);
 }
 
 (async () => {
