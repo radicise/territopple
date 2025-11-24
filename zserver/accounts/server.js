@@ -140,7 +140,19 @@ async function processPubFetch(req, res, url, log) {
                 pipeline = pipeline.filter({id:{"$regex":search}}).filter({name:{"$regex":search}});
             }
             pipeline = pipeline.sort({_id:1});
-            const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1})).toArray();
+            const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1,incoming_friends:1,outgoing_friends:1})).toArray();
+            if (accid) {
+                for (let i = 0; i < list.length; i ++) {
+                    list[i].friend = list[i].friends.includes(accid)?3:(list[i].outgoing_friends.includes(accid)?2:(list[i].incoming_friends.includes(accid)?1:0));
+                }
+            }
+            for (let i = 0; i < list.length; i ++) {
+                delete list[i]["friends"];
+                delete list[i]["incoming_friends"];
+                delete list[i]["outgoing_friends"];
+                list[i].odate = list[i].last_online;
+                delete list[i]["last_online"];
+            }
             res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(list));
         } catch (E) {
             console.log(E);

@@ -1,6 +1,10 @@
 
 /**@type {HTMLTableSectionElement} */
 const listTable = document.getElementById("member-list").children[1];
+/**@type {HTMLInputElement} */
+const searchText = document.getElementById("search-text");
+/**@type {HTMLInputElement} */
+const searchButton = document.getElementById("search-button");
 
 /**
  * @type {{
@@ -120,22 +124,29 @@ function makeFriendActions(id, friend) {
  * @param {number} page
  */
 async function loadPage(search, page) {
-    const res = await fetch(`https://territopple.net/acc/pub/list?page=${page||1}&search=${search??".*"}`);
+    const res = await fetch(`https://territopple.net/acc/pub/list?page=${page||1}&search=${search||".*"}`);
     if (res.status !== 200) {
         return;
     }
-    /**@type {{id:string,name:string,cdate:number,last_online:number,level:number,friend:number}[]} */
+    /**@type {{id:string,name:string,cdate:number,odate:number,level:number,friend:number}[]} */
     const data = JSON.parse(await res.text());
     const rows = [];
     for (const entry of data) {
         const row = document.createElement("tr");
-        row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.last_online)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:makeFriendActions(entry.id, entry.friend)}]]));
+        row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:makeFriendActions(entry.id, entry.friend)}]]));
         rows.push(row);
     }
     listTable.replaceChildren(...rows);
 }
 
+let page;
+let search;
+
 (async () => {
     await INCLUDE_FINISHED;
     loadPage();
+    searchButton.onclick = () => {
+        search = searchText.value;
+        loadPage(page, search);
+    };
 })();
