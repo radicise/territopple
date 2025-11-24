@@ -1,0 +1,8 @@
+{
+    "constantine":{
+        "Beginner":{
+            "maxdepth":3,
+            "maxtime":2000
+        }
+    }
+}

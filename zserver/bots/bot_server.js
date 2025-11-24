@@ -263,7 +263,7 @@ function connect(gid, key, num, rname) {
                     }
                     if (ifmt.turn === ifmt.pln) {
                         game.turn = ifmt.turn;
-                        const thunk = bot.think(game, true);
+                        const thunk = await bot.think(game, true, game.rules?.turnTime?.limit);
                         // console.log(thunk);
                         conn.send(JSON.stringify({type:"game:move",payload:{n:thunk}}));
                     }

@@ -3,6 +3,21 @@
  * this file handles common functions for all Territopple bots
  */
 
+const { extend } = require("../../defs.js");
+const fs = require("fs");
+/**
+ * @typedef BotConfig
+ * @type {{maxdepth:number,maxtime:number}}
+ */
+/**@type {Record<string,Record<string,BotConfig>>} */
+const asettings = {};
+if (fs.existsSync("botconf.json")) {
+    extend(asettings, JSON.parse(fs.readFileSync("botconf.json")));
+}
+if (!asettings["default"]) {
+    asettings["default"] = {maxdepth:1,maxtime:1000};
+}
+
 class Random {
     /**
      * @param {number} lo
@@ -137,8 +152,8 @@ class TTBotInstance {
         this.#think = think;
         this.#pnum = pnum;
     }
-    think(game, _) {
-        return this.#think(this, new DummyGame(game, _));
+    async think(game, _, limit) {
+        return await this.#think(this, new DummyGame(game, _), limit);
     }
     /**
      * @readonly
@@ -159,7 +174,7 @@ class TTBotInstance {
 
 /**
  * @typedef ThinkFunction
- * @type {(that: TTBotInstance, gamestate: DummyGame) => number}
+ * @type {(that: TTBotInstance, gamestate: DummyGame, timelimit: number?) => Promise<number>}
  * @description
  * takes a board state and returns the tile index to place a piece on
  */
@@ -373,10 +388,23 @@ class TTBot {
     }
 }
 
+class BotConf {
+    /**
+     * @param {string} botname
+     * @param {number} level
+     * @returns {BotConfig}
+     */
+    static getConfig(botname, level) {
+        return (asettings[botname]??{})[DIFF_LEVELS[level]]??asettings["default"];
+    }
+}
+
 exports.TTBot = TTBot;
+exports.BotConf = BotConf;
 exports.TTBotInstance = TTBotInstance;
 exports.ThinkFunction = this.ThinkFunction;
 exports.BotInfo = this.BotInfo;
 exports.DIFFICULTY = this.DIFFICULTY;
 exports.Random = Random;
+exports.DummyGame = DummyGame;
 exports.DIFF_LEVELS = DIFF_LEVELS;
