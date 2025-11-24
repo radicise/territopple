@@ -19,6 +19,7 @@ fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.p
 
 const ACC_CREAT_TIMEOUT = settings.ACC?.CREATE_TO ?? 600000;
 const SESS_TIMEOUT = settings.ACC?.SESSION_TO ?? 1000*60*60*24;
+const ACC_PWRST_TIMEOUT = settings.ACC?.PWRST_TO  ?? 600000;
 
 const EACCESS = "logs/accounts/access.txt";
 const EREJECT = "logs/accounts/rejected.txt";
@@ -73,6 +74,17 @@ class FatalError extends Error {
     constructor (message) {
         super(message);
         this.name = "FatalError";
+    }
+}
+class SanitizedError extends Error {
+    /**
+     * @param {String} message - error message
+     * @param {string} sanitized - sanitized error message
+     */
+    constructor (message, sanitized) {
+        super(message);
+        this.name = "SanitizedError";
+        this.sanitized = sanitized ?? message;
     }
 }
 
@@ -219,8 +231,22 @@ async function processPubFetch(req, res, url, log) {
 
 /**@type {Record<string, object>} */
 let account_creation_info = {};
-/**@type {Record<string, {id:"email",v:string}>} */
+/**@type {Record<string, {id:string,timeoutid:string}>} */
 let info_update_info = {};
+
+/**
+ * @returns {string}
+ */
+function generateUpdateCode() {
+    let c = randomInt(999999).toString();
+    for (let i = 0; i < 10; i ++) {
+        if (!(c in account_creation_info)) {
+            return c;
+        }
+        c = randomInt(999999).toString();
+    }
+    throw new SanitizedError("took too long to generate update code");
+}
 
 /**
  * @returns {string}
@@ -253,16 +279,38 @@ const accNameChangeScheme = {
     "id": "string",
     "name": "string"
 };
+/**@type {JSONScheme} */
+const accPWChangeScheme = {
+    "id": "string",
+    "pw": "string"
+};
+/**@type {JSONScheme} */
+const accUpdateScheme = {
+    "id": "string",
+    "k": "string",
+    "v": "string"
+};
+/**@type {JSONScheme} */
+const accPWResetCodeScheme = {
+    "code": "string",
+    "pw": "string"
+};
+/**@type {JSONScheme} */
+const accPWResetScheme = {
+    "id": "string",
+    "email": "string"
+};
 
 /**
  * @param {string} email
+ * @param {string} subject
  * @param {string} code_href
  */
-async function sendEmailVerification(email, code_href) {
+async function sendEmailVerification(email, subject, code_href) {
     await mailtransport.sendMail({
         from:`"Automation" <${settings.MAIL_CONFIG.BOT_USER}>`,
         to: email,
-        subject: "Email Verification",
+        subject: subject,
         text: code_href,
         html: `<a href="${code_href}" target="_blank">${code_href}</a>`
     });
@@ -327,38 +375,87 @@ const public_server = http.createServer(async (req, res) => {
             return;
         }
         case "POST":{
-            if (url.pathname === "/acc/login") {
-                const data = JSON.parse(body);
-                if (!validateJSONScheme(data, accLoginScheme)) {
-                    res.writeHead(422).end();
-                    return;
-                }
-                try {
-                    /**@type {AccountRecord} */
-                    const doc = await collection.findOne({id:data.id});
-                    if (doc === null) {
-                        res.writeHead(404).end();
+            switch (url.pathname) {
+                case "/acc/login": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, accLoginScheme)) {
+                        res.writeHead(422).end();
                         return;
                     }
-                    if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
-                        // res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
-                        res.writeHead(200, {"Set-Cookie":makeSessionCookie(SessionManager.createSession(data.id))}).end();
-                        try {
-                            await collection.updateOne({id:data.id}, {"$set":{last_online:Date.now()}});
-                        } catch (E) {
-                            console.log(E);
+                    try {
+                        /**@type {AccountRecord} */
+                        const doc = await collection.findOne({id:data.id});
+                        if (doc === null) {
+                            res.writeHead(404).end();
+                            return;
                         }
+                        if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
+                            // res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
+                            res.writeHead(200, {"Set-Cookie":makeSessionCookie(SessionManager.createSession(data.id))}).end();
+                            try {
+                                await collection.updateOne({id:data.id}, {"$set":{last_online:Date.now()}});
+                            } catch (E) {
+                                console.log(E);
+                            }
+                            return;
+                        } else {
+                            res.writeHead(403).end();
+                            return;
+                        }
+                    } catch (E) {
+                        log(EERROR, E.toString());
+                        res.writeHead(500).end();
                         return;
-                    } else {
+                    }
+                }
+                case "/acc/reset-password": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, accPWResetScheme)) {
+                        res.writeHead(400).end();
+                        return;
+                    }
+                    try {
+                        const email = await collection.findOne({id:data.id}).email;
+                        if (data.email !== email) {
+                            res.writeHead(403).end();
+                            return;
+                        }
+                        const code = generateUpdateCode();
+                        info_update_info[code] = {id:data.id,timeoutid:setTimeout(()=>{delete info_update_info[code];},ACC_PWRST_TIMEOUT)};
+                        await sendEmailVerification(email, "Password Reset", `https://territopple.net/reset-password?code=${code}`);
+                        res.writeHead(200).end();
+                        return;
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                        return;
+                    }
+                    // res.writeHead(503).end();
+                    // return;
+                }
+                case "/acc/reset-password-wcode": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, accPWResetCodeScheme)) {
+                        res.writeHead(400).end();
+                        return;
+                    }
+                    if (!(data.code in info_update_info)) {
                         res.writeHead(403).end();
                         return;
                     }
-                } catch (E) {
-                    log(EERROR, E.toString());
-                    res.writeHead(500).end();
+                    try {
+                        const info = info_update_info[body];
+                        delete info_update_info[body];
+                        await collection.updateOne({id:info.id},{"$set":{pwdata:auth.makePwData(data.pw)}});
+                        res.writeHead(200).end();
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                    }
                     return;
                 }
             }
+            res.writeHead(404).end();
             return;
         }
         case "DELETE":{
@@ -383,6 +480,7 @@ const public_server = http.createServer(async (req, res) => {
                     clearTimeout(account_creation_info[body].timeoutid);
                     delete info["timeoutid"];
                     delete account_creation_info[body];
+                    clearTimeout(info.timeoutid);
                     await collection.insertOne(info);
                     res.writeHead(200, {"Set-Cookie":makeSessionCookie(SessionManager.createSession(info.id))}).end(info.id);
                 } catch (E) {
@@ -444,9 +542,28 @@ const public_server = http.createServer(async (req, res) => {
                     return;
                 }
                 case "/acc/password": {
-                    notimpl("password change");
-                    res.writeHead(501).end();
-                    return;
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, accPWChangeScheme)) {
+                        res.writeHead(400).end();
+                        return;
+                    }
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.verifySession(sessid, data.id)) {
+                        res.writeHead(403).end();
+                        return;
+                    }
+                    try {
+                        await collection.updateOne({id:data.id}, {"$set":{pwdata:auth.makePwData(data.pw)}});
+                        res.writeHead(200).end();
+                        return;
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end();
+                        return;
+                    }
+                    // notimpl("password change");
+                    // res.writeHead(501).end();
+                    // return;
                 }
                 case "/acc/name": {
                     const data = JSON.parse(body);
@@ -499,6 +616,14 @@ const internal_server = http.createServer(async (req, res) => {
             } else {
                 res.writeHead(404).end();
             }
+            return;
+        }
+        case "/add-friend":{
+            if (req.method !== "POST") {
+                res.writeHead(405).end();
+                return;
+            }
+            res.writeHead(503).end();
             return;
         }
         case "/get-privs":{

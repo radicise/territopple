@@ -528,7 +528,7 @@ exports.Game = Game;
  * MAX_TEAMS:number,
  * DB_CONFIG:{URI:string},
  * MAIL_CONFIG:{HOST:string,BOT_USER:string,BOT_PASS:string},
- * ACC:{CREATE_TO:number,SESSION_TO:number}
+ * ACC:{CREATE_TO:number,SESSION_TO:number,PWRST_TO:number}
  * }}
  */
 
