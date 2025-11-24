@@ -143,7 +143,7 @@ async function processPubFetch(req, res, url, log) {
             const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1,incoming_friends:1,outgoing_friends:1})).toArray();
             if (accid) {
                 for (let i = 0; i < list.length; i ++) {
-                    list[i].friend = list[i].friends?.includes(accid)?3:(list[i].outgoing_friends?.includes(accid)?2:(list[i].incoming_friends?.includes(accid)?1:0));
+                    list[i].friend = list[i].id===accid?5:(list[i].friends?.includes(accid)?3:(list[i].outgoing_friends?.includes(accid)?2:(list[i].incoming_friends?.includes(accid)?1:0)));
                 }
             }
             for (let i = 0; i < list.length; i ++) {
