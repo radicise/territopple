@@ -40,7 +40,7 @@ const listTable = document.getElementById("member-list").children[1];
  */
 const make = (nodename, attrs) => {
     if (Array.isArray(nodename)) {
-        return nodename.map(v => make(v));
+        return nodename.map(v => make(v[0], v[1]));
     }
     const e = document.createElement(nodename);
     if (attrs?.textContent) {
