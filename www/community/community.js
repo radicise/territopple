@@ -64,6 +64,9 @@ const make = (nodename, attrs) => {
     if (attrs?.onclick) {
         e.onclick = attrs.onclick;
     }
+    if (attrs?.children) {
+        e.replaceChildren(attrs.children);
+    }
 };
 
 /**
