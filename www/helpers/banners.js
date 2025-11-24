@@ -14,9 +14,9 @@ document.body.appendChild(BANNER_CONTAINER);
 
 {
     const tt = document.getElementById("title-text");
-    BANNER_CONTAINER.style.setProperty("--banner-min-left", tt.clientWidth + (document.body.clientWidth/10));
+    BANNER_CONTAINER.style.setProperty("--banner-min-left", tt.clientWidth);
     window.addEventListener("resize", () => {
-        BANNER_CONTAINER.style.setProperty("--banner-min-left", tt.clientWidth + (document.body.clientWidth/10));
+        BANNER_CONTAINER.style.setProperty("--banner-min-left", tt.clientWidth);
     });
 }
 
