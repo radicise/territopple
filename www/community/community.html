@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Community - Territopple</title>
+    </head>
+    <body>
+        <meta data-import="/components/accounts/disp.html" />
+        <h1>Territopple Community</h1>
+        <a href="/" target="_self">Home</a>
+        <div id="list-container">
+            <span id="search-container">
+                <label for="search-entry">Search: </label>
+                <input type="text" id="search-entry">
+                <input type="button" id="search-button" value="search">
+            </span>
+            <table id="member-list">
+                <thead>
+                    <th scope="col">Account ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Level</th>
+                    <th scope="col">Last Online</th>
+                    <th scope="col">Joined</th>
+                    <th scope="col">Actions</th>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <span id="page-controls">
+                <input type="button" id="pc-prev" value="prev">
+                <span id="pc-links"></span>
+                <input type="button" id="pc-next" value="next">
+            </span>
+        </div>
+        <script src="/components/include.js"></script>
+        <script src="community.js"></script>
+    </body>
+</html>
