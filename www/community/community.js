@@ -147,6 +147,6 @@ let search;
     loadPage();
     searchButton.onclick = () => {
         search = searchText.value;
-        loadPage(page, search);
+        loadPage(search, page);
     };
 })();
