@@ -415,9 +415,10 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        const email = await collection.findOne({id:data.id}).email;
+                        const email = await collection.findOne({id:data.id})?.email;
                         if (data.email !== email) {
                             console.log(body);
+                            console.log(email);
                             res.writeHead(403).end();
                             return;
                         }
