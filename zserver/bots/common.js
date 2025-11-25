@@ -35,7 +35,7 @@ class Random {
      */
     static pick(arr) {
         const i = this.randrange(0, arr.length);
-        // console.log(`I:${i}`);
+        console.log(`I:${i},L:${arr.length},A:${arr}`);
         return arr[i];
     }
     /**
