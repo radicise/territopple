@@ -242,7 +242,7 @@ class Game {
             return "";
         }
         const pN = this.findPlayerNum();
-        this.players[pN] = new Player(null, pN%settings.MAX_TEAMS);
+        this.players[pN] = new Player(null, ((pN-1)%settings.MAX_TEAMS)+1);
         this.players[pN].is_bot = true;
         this.players[pN].rejoin_key = key;
         return `&n=${pN}`;
