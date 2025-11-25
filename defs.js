@@ -449,7 +449,7 @@ class Game {
             pN = this.stats.playing;
             this.players.push(p);
         }
-        p.team = pN%settings.MAX_TEAMS;
+        p.team = ((pN-1)%settings.MAX_TEAMS)+1;
         this.stats.connected ++;
         // this.sendAll(NetData.Player.Join(pN), pN);
         p.conn.send(NetData.Key.Rejoin(p.rejoin_key));
