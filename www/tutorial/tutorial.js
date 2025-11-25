@@ -13,6 +13,7 @@ const sequence = [
     {t:"Welcome to the tutorial!\nHere you will learn the basics of how Territopple is played."},
     {t:"This tutorial is still actively being developed. If you have any feedback or suggestions, please send them to feedback@territopple.net!"},
     {t:"Please note that this tutorial only covers the TGrid2D topology (the most commonly used).\nWe urge you to keep in mind that other topologies may not have edges or corners!"},
+    {t:"Whenever the next button is grayed out, look for something flashing green, and click it."},
     {t:"These are the display settings.\nClick the button highlighted in green to show them.",h:"#settings-expand-label",w:{c:"#settings-expand-label"}},
     {t:"You can use the board zoom if you have trouble seeing the individual tiles.",h:"#board-zoom"},
     {t:"Here you can change the colors of and disable the various highlights. Pick options that make things visible without cluttering your view.\nThe highlight options you pick will be saved in your browser, so you don't have to fiddle with them every time you start a new game.",h:["#hover-color","#last-move-color","#volatiles-color"]},
