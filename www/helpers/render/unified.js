@@ -1,5 +1,5 @@
 let symbs = ["!", "-", "+", "W", "&block;"];
-let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
+let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00", "#358f3b"];
 
 let __unified_queues = [[],[],[],false];
 
