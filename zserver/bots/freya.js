@@ -1,10 +1,10 @@
 const { TTBot, DIFF_LEVELS, Random, DummyGame, BotConf } = require("./common.js");
 
 // Moderate version of Freya looks ridiculously far into the future
-new TTBot("Freya [the Foresighted] (Beginner)", "freya", {
+new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
     "desc":"Freya has foresight, and has learned a few tricks.",
     "indexable":true,
-    "diff":DIFF_LEVELS.BEGINNER,
+    "diff":DIFF_LEVELS.MODERATE,
     "disp":"Freya",
     "prereq":{"achi":[],"bots":["Terry Topple (Trivial)"]}
 }, async (that, gamestate, limit) => {
