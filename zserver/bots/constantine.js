@@ -14,7 +14,7 @@ new TTBot("Constantine [the Conqueror] (Trivial)", "constantine", {
     const _ = gamestate.getMoves().map(v => [v, peval(v)]).sort((a, b) => b[1]-a[1]);
     const ind = _.findIndex((v, i) => i>0?v[1]<_[i-1][1]:false);
     const sub = _.slice(0, ind<0?undefined:ind);
-    console.log(`${that.parent.short_name}${that.pnum}:${_}\n${ind}\n${sub}\n`);
+    // console.log(`${that.parent.short_name}${that.pnum}:${_}\n${ind}\n${sub}\n`);
     const p = Random.pick(sub);
     // console.log(`${_}\n${ind}\n${sub}\n${p}`);
     return p[0];
