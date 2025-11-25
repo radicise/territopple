@@ -1,3 +1,4 @@
+const TEAM_COUNT = 7;
 // const topology = new class{
 //     #m=null;
 //     set m(v){if(this.#m===null){this.#m=v;}}
@@ -213,7 +214,7 @@ function startPuzzle() {
     gameboard.style.setProperty("--nrows", dims.y);
     gameboard.style.setProperty("--ncols", dims.x);
     puzzle = {
-        owned: new Array(6).fill(0),
+        owned: new Array(TEAM_COUNT).fill(0),
         board: Uint8Array.from(puzzleinfo.initial_board[0]),
         teamboard: Uint8Array.from(puzzleinfo.initial_board[1]),
         players: new Array(puzzleinfo.PC+1).fill(true),

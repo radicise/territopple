@@ -5,6 +5,7 @@ document.getElementById("pingbutton").value = "back";
 const topology = await import("topology/topology.js");
 /**@type {typeof import("../../www/replay/parsers.js")} */
 const parser = await import("./parsers.js");
+const TEAM_COUNT = 7;
 
 /**@type {HTMLInputElement} */
 const fileSelection = document.getElementById("replay-upload");
@@ -104,7 +105,7 @@ class Replayer {
         this.state.turn = -1;
         this.state.timestamp = this.parser.header.start_time;
         this.state.players = new Array(this.parser.header.player_count).fill(true);
-        this.state.owned = new Array(6).fill(0);
+        this.state.owned = new Array(TEAM_COUNT).fill(0);
         this.state.owned[0] = this.topo.tileCount;
         this.state.moveno = 0;
         this.state.pos = this.parser.tell();

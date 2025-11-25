@@ -166,7 +166,7 @@ class Game {
             topology: topology.m.makeTopology(state.topology),
             board: null,
             teamboard: null,
-            owned: new Array(6).fill(0),
+            owned: new Array(settings.MAX_TEAMS+1).fill(0),
             move: -1,
             turn: -1,
             // _turn: -1,

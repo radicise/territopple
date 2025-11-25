@@ -7,6 +7,7 @@ const topology = new class{
 const loadPromise = new Promise((res,) => {
     import("topology/topology.js").then(r => {topology.m = r;res(r);},r => {throw new Error("could not load topology module");});
 });
+const TEAM_COUNT = 7;
 
 /**
  * @typedef Player
@@ -33,7 +34,7 @@ class Game {
         this.board = null;
         /**@type {number[]} */
         this.teamboard = null;
-        this.owned = new Array(6).fill(0);
+        this.owned = new Array(TEAM_COUNT).fill(0);
         /**@type {Player[]} */
         this.playerList = [];
         this.started = false;
@@ -140,7 +141,7 @@ class Game {
         };
     }
     recalcDerived() {
-        this.owned = new Array(6).fill(0);
+        this.owned = new Array(TEAM_COUNT).fill(0);
         for (let i = 0; i < this.teamboard.length; i ++) {
             this.owned[this.teamboard[i]] ++;
         }
