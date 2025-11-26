@@ -53,25 +53,23 @@ class Random {
 }
 
 class DummyGame {
-    #total_tiles;
+    // #total_tiles;
     /**
-     * @param {import("../../defs").Game|DummyGame} game
+     * @param {import("../../defs").Game} game
      */
     constructor(game, _) {
         if (_) {
-            /**@type {DummyGame} */
-            const _game = game;
-            this.#total_tiles = _game.#total_tiles + _game.topology.tileCount;
-            this.board = Array.from(_game.board);
-            this.teamboard = Array.from(_game.teamboard);
-            this.topology = _game.topology;
-            this.owned = Array.from(_game.owned);
-            this.players = _game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
-            this.turn = _game.turn;
-            this.win = _game.win ?? 0;
+            // this.total_tiles = _game.total_tiles + _game.topology.tileCount;
+            this.board = Array.from(game.board);
+            this.teamboard = Array.from(game.teamboard);
+            this.topology = game.topology;
+            this.owned = Array.from(game.owned);
+            this.players = game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
+            this.turn = game.turn;
+            this.win = game.win ?? 0;
             return;
         }
-        this.#total_tiles = game.state.topology.tileCount;
+        this.total_tiles = game.state.topology.tileCount + (game.total_tiles ?? 0);
         this.board = Array.from(game.state.board);
         this.teamboard = Array.from(game.state.teamboard);
         /**@type {import("../../topology/topology.js").Topology} */
@@ -93,7 +91,7 @@ class DummyGame {
      * @returns {DummyGame}
      */
     move(tile) {
-        if (this.#total_tiles + this.topology.tileCount >= TTBot.tile_limit) {
+        if (this.total_tiles + this.topology.tileCount >= TTBot.tile_limit) {
             // const e = new Error("OOM");
             // e.OOM = true;
             // throw e;
