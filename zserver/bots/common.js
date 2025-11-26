@@ -60,15 +60,15 @@ class DummyGame {
     constructor(game, _) {
         if (_) {
             /**@type {DummyGame} */
-            const game = game;
-            this.#total_tiles = game.#total_tiles + game.topology.tileCount;
-            this.board = Array.from(game.board);
-            this.teamboard = Array.from(game.teamboard);
-            this.topology = game.topology;
-            this.owned = Array.from(game.owned);
-            this.players = game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
-            this.turn = game.turn;
-            this.win = game.win ?? 0;
+            const _game = game;
+            this.#total_tiles = _game.#total_tiles + _game.topology.tileCount;
+            this.board = Array.from(_game.board);
+            this.teamboard = Array.from(_game.teamboard);
+            this.topology = _game.topology;
+            this.owned = Array.from(_game.owned);
+            this.players = _game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
+            this.turn = _game.turn;
+            this.win = _game.win ?? 0;
             return;
         }
         this.#total_tiles = game.state.topology.tileCount;
