@@ -9,9 +9,9 @@
     "PUZZLEPORT": 84,
     "ROOM_CODE_LENGTH": 8,
     "PING_INTERVAL": 1500,
-    "MAX_TILES": 1296,
+    "MAX_TILES": 225,
     "BOT_TO":200,
-    "BOT_MAX_TILES":6375,
+    "BOT_MAX_TILES":700,
     "WORKERS": {
         "LIMIT": 4,
         "MAX_CONNECTIONS": 1024,
