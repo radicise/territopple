@@ -230,6 +230,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         g_rows = rows;
         g_cols = cols;
         const gb = document.getElementById("gameboard");
+        gb.replaceChildren();
         for (let r = 0; r < rows; r ++) {
             for (let c = 0; c < cols; c ++) {
                 const ct = r * cols + c;
