@@ -100,7 +100,10 @@ function getFlag(game, p, l) {
 function onGameCreated(game, timestamp, order) {
     // game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(1<<5)|(((typeof order)!=="number")?0:(1<<4))))];
     const maxD = game.state.topology.tileCount;
-    const size = (maxD <= 1024) ? 0 : ((maxD<=2<<18) ? 1 : ((maxD <= 4096) ? 2 : 3));
+    const maxP = game.stats.maxPlayers;
+    // const size = (maxD <= 32 && game.players) ? 0 : ((maxD<=2<<18) ? 1 : ((maxD <= 4096) ? 2 : 3));
+    // const size = 0;
+    const size = (maxP <= 7 && maxD <= 32) ? 0 : ((maxP <= 63 && maxD <= 1024) ? 1 : ((maxP <= 255 && maxD <= 65536) ? 2 : 3));
     game.buffer = [Buffer.of(FORMAT_VERSION, ...game.ident.split('').map(v => v.charCodeAt(0)), ((timestamp?(1<<7):0)|(size<<5)|((order?1:0)<<4)))];
     // game.buffer.push(Buffer.from(gameID.split('').map(v => v.charCodeAt(0))));
     // game.buffer.push(Buffer.of((settings.REPLAYS.TIMESTAMP?(1<<7):0) | (0b01<<5))); // use timestamp from settings, use medium as it's the largest that doesn't use more bytes
