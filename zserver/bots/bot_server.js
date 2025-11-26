@@ -7,6 +7,8 @@ const ws = require("ws");
 const socks = require("../socks/handlers.js");
 const { settings, emit, on, clear } = require("../../defs.js");
 
+fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "bots.pid"), process.pid.toString());
+
 socks.setGlobals({}, emit, on, clear);
 
 let server;
