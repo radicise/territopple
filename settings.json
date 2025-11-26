@@ -10,6 +10,7 @@
     "ROOM_CODE_LENGTH": 8,
     "PING_INTERVAL": 1500,
     "MAX_TILES": 1296,
+    "BOT_TO":200,
     "WORKERS": {
         "LIMIT": 4,
         "MAX_CONNECTIONS": 1024,

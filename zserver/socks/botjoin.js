@@ -29,6 +29,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         change("error", {data:"you call that locksmith yet?"});
         return;
     }
+    clearTimeout(game.players[pnum].timeoutid);
+    delete game.players[pnum]["timeoutid"];
     game.players[pnum].conn = sock;
     state.game = game;
     state.playerNum = pnum;

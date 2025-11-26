@@ -245,6 +245,10 @@ class Game {
         this.players[pN] = new Player(null, ((pN-1)%settings.MAX_TEAMS)+1);
         this.players[pN].is_bot = true;
         this.players[pN].rejoin_key = key;
+        const that = this;
+        this.players[pN].timeoutid = setTimeout(() => {
+            that.players[pN] = null;
+        }, settings.BOT_TO);
         return `&n=${pN}`;
     }
     /**
@@ -517,7 +521,8 @@ exports.Game = Game;
  * PUZZLEPORT:number,
  * ROOM_CODE_LENGTH:number,
  * PING_INTERVAL:number,
- * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number}
+ * BOT_TO:number,
+ * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number},
  * REJOIN_TIME:number,
  * APPEASEMENT:boolean,
  * WEBCONTENT_DIR:string,
