@@ -7,7 +7,7 @@
     },
     "freya":{
         "Moderate":{
-            "maxdepth":255,
+            "maxdepth":20,
             "maxtime":3000
         }
     }
