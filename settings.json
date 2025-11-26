@@ -11,6 +11,7 @@
     "PING_INTERVAL": 1500,
     "MAX_TILES": 1296,
     "BOT_TO":200,
+    "BOT_MAX_TILES":6375,
     "WORKERS": {
         "LIMIT": 4,
         "MAX_CONNECTIONS": 1024,

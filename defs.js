@@ -525,6 +525,7 @@ exports.Game = Game;
  * ROOM_CODE_LENGTH:number,
  * PING_INTERVAL:number,
  * BOT_TO:number,
+ * BOT_MAX_TILES:number,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number},
  * REJOIN_TIME:number,
  * APPEASEMENT:boolean,

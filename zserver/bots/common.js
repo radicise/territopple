@@ -3,7 +3,7 @@
  * this file handles common functions for all Territopple bots
  */
 
-const { extend } = require("../../defs.js");
+const { extend, settings } = require("../../defs.js");
 const fs = require("fs");
 // const { Topology } = require("../../topology/topology.js");
 /**
@@ -53,11 +53,15 @@ class Random {
 }
 
 class DummyGame {
+    #total_tiles;
     /**
-     * @param {import("../../defs").Game} game
+     * @param {import("../../defs").Game|DummyGame} game
      */
     constructor(game, _) {
         if (_) {
+            /**@type {DummyGame} */
+            const game = game;
+            this.#total_tiles = game.#total_tiles + game.topology.tileCount;
             this.board = Array.from(game.board);
             this.teamboard = Array.from(game.teamboard);
             this.topology = game.topology;
@@ -67,6 +71,7 @@ class DummyGame {
             this.win = game.win ?? 0;
             return;
         }
+        this.#total_tiles = game.state.topology.tileCount;
         this.board = Array.from(game.state.board);
         this.teamboard = Array.from(game.state.teamboard);
         /**@type {import("../../topology/topology.js").Topology} */
@@ -88,6 +93,11 @@ class DummyGame {
      * @returns {DummyGame}
      */
     move(tile) {
+        if (this.#total_tiles + this.topology.tileCount >= TTBot.tile_limit) {
+            const e = new Error("OOM");
+            e.OOM = true;
+            throw e;
+        }
         const work = new DummyGame(this, true);
         const player = this.turn;
         const adds = [tile];
@@ -155,7 +165,13 @@ class TTBotInstance {
         this.#pnum = pnum;
     }
     async think(game, _, limit) {
-        return await this.#think(this, new DummyGame(game, _), limit);
+        try {
+            return await this.#think(this, new DummyGame(game, _), limit);
+        } catch (E) {
+            if (E.OOM) {
+                return Random.pick(new DummyGame(game, _).getMoves());
+            }
+        }
     }
     /**
      * @readonly
@@ -308,6 +324,8 @@ const PERF_MODES = {
 
 class TTBot {
     #name;#short;#info;#cls;#conf;
+    /**@readonly */
+    static get tile_limit() {return settings.BOT_MAX_TILES;}
     /**@type {Record<string, TTBot>} */
     static #reg = {};
     /**@type {Record<string, string[]>} */
