@@ -247,6 +247,9 @@ class Game {
         this.players[pN].rejoin_key = key;
         const that = this;
         this.players[pN].timeoutid = setTimeout(() => {
+            if (that.state.state !== 0) {
+                that.sendAll(NetData.Player.Leave(pN));
+            }
             that.players[pN] = null;
         }, settings.BOT_TO);
         return `&n=${pN}`;
