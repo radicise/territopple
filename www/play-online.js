@@ -5,9 +5,11 @@ if (sessionStorage.getItem("error-store")) {
     document.getElementById("error-popup").hidden = false;
     sessionStorage.removeItem("error-store");
 }
-sessionStorage.removeItem("rejoin_key");
-sessionStorage.removeItem("rejoin_g");
-sessionStorage.removeItem("rejoin_p");
+window.addEventListener("pageshow", () => {
+    sessionStorage.removeItem("rejoin_key");
+    sessionStorage.removeItem("rejoin_g");
+    sessionStorage.removeItem("rejoin_p");
+});
 function displayRooms(text) {
     table.replaceChildren();
     /**@type {{ident:string,capacity:number,playing:number,spectating:number,dstr:string,can_spectate:boolean,phase:"wait"|"play"|"over"}[]} */
