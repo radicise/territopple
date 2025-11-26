@@ -94,9 +94,10 @@ class DummyGame {
      */
     move(tile) {
         if (this.#total_tiles + this.topology.tileCount >= TTBot.tile_limit) {
-            const e = new Error("OOM");
-            e.OOM = true;
-            throw e;
+            // const e = new Error("OOM");
+            // e.OOM = true;
+            // throw e;
+            throw new Error("OOM");
         }
         const work = new DummyGame(this, true);
         const player = this.turn;
@@ -168,9 +169,8 @@ class TTBotInstance {
         try {
             return await this.#think(this, new DummyGame(game, _), limit);
         } catch (E) {
-            if (E.OOM) {
-                return Random.pick(new DummyGame(game, _).getMoves());
-            }
+            console.log(E);
+            return Random.pick(new DummyGame(game, _).getMoves());
         }
     }
     /**
