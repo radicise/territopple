@@ -1,4 +1,4 @@
-Nov 25, 2025 (Alpha 1.6.0)
+# Nov 25, 2025 (Alpha 1.6.0)
 bot freya now limited to 20 move lookahead
 maximum board size decreased to 15x15
 ghost bots fixed
@@ -6,7 +6,7 @@ active player leaving no longer causes soft lock
 players can no longer be assigned to the neutral team
 using the back button to navigate page history no longer results in "game not found" error when creating a room
 
-Nov 24, 2025 (Alpha 1.5.2)
+# Nov 24, 2025 (Alpha 1.5.2)
 updated cookie disclosure to clarify what information is sent to the server
 
 # Nov 24, 2025 (Alpha 1.5.1)
