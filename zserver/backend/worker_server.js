@@ -73,7 +73,7 @@ on("main", "game:bot", (data) => {
     // const req = http.request(u, {method:"GET",timeout:200})
     const req = http.get(u);
     req.once("response", (res) => {
-        res.on("error", () => {})
+        res.on("error", () => {});
         // console.log(res.statusCode);
     });
     req.on("error", (e) => {
