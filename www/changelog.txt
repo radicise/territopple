@@ -1,3 +1,6 @@
+# Nov 26, 2025 (Alpha 1.6.1)
+fixed an issue that caused replay files for boards over 32 tiles or with more than 7 players to be generated with irrecoverable missing data
+
 # Nov 25, 2025 (Alpha 1.6.0)
 bot freya now limited to 20 move lookahead
 maximum board size decreased to 15x15
