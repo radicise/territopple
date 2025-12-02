@@ -25,7 +25,7 @@ const sequence = [
     {t:"Players take turns placing pieces onto the board.\nYou can only put pieces on tiles that are either owned by your team or not owned by any team."},
     {t:"Try placing a piece here.",h:"#r0c2",w:{c:"#r0c2"}},
     {m:[0,2,1],w:true},
-    {t:"When a tile has more pieces on it than it has neighbors (corners have two, edges three, centers four), it topples.\nWhen a tile topples, it resets to one piece and adds a piece to each of its neighbors.\nThis will also claim these tiles for your team.",h:"#r0c4"},
+    {t:"When a tile has more pieces on it than it has neighbors (corners have two, edges three, centers four), it topples.\nWhen a tile topples, it gives one of its pieces to each of its neighbors.\nThis will also claim these tiles for your team.",h:"#r0c4"},
     {t:"Put a piece here.",h:["#r0c3","#r1c4"],w:{c:"#r0c4"}},
     {m:[0,4,2],h:["#r0c3","#r0c4","#r1c4"]},
     {t:"When a tile has exactly as many pieces on it as it has neighbors, it's called a Volatile (because it's ready to topple).\nWhen tiles topple onto Volatiles, the Volatiles also topple.\nAdjacent Volatiles form Volatile chains."},
