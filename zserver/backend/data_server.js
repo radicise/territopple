@@ -7,6 +7,27 @@ const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog,
 const { PerformanceError } = require("./errors.js");
 const { TTBot } = require("../bots/bots.js");
 
+fs.writeFileSync("www/portno.js", settings.APPEASEMENT ? `const game_port = ${settings.GAMEPORT};\n` : `const game_port = ${settings.WEBPORT};\n`);
+if (!fs.existsSync("replays")) {
+    fs.mkdirSync("replays");
+}
+if (!fs.existsSync("operator.json")) {
+    fs.writeFileSync("operator.json", JSON.stringify({"contact":{"name":"unkown","methods":{}}}), {encoding:"utf-8"});
+}
+const _path = path;
+if (!fs.existsSync("www/operator.json")) {
+    fs.symlinkSync(_path.join(__dname, "operator.json"), _path.join(__dname, "www/operator.json"));
+}
+if (!fs.existsSync("www/replays")) {
+    fs.symlinkSync(_path.join(__dname, "replays"), _path.join(__dname, "www/replays"));
+}
+if (!fs.existsSync("www/topology")) {
+    fs.symlinkSync(_path.join(__dname, "topology"), _path.join(__dname, "www/topology"));
+}
+if (!fs.existsSync("www/three")) {
+    fs.symlinkSync(_path.join(__dname, "node_modules/three"), _path.join(__dname, "www/three"));
+}
+
 // const __dname = process.cwd();
 
 // if (!fs.existsSync(path.join(__dname, "logs/data_server/internal.txt"))) {}
