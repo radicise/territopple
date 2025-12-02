@@ -225,7 +225,7 @@
                 <!-- <br> -->
             </div>
             <script>
-                fetch("https://territopple.net/changelog.txt", {method:"GET",cache:"no-cache"}).then(v => {
+                fetch(`https://${document.location.hostname}/changelog.txt`, {method:"GET",cache:"no-cache"}).then(v => {
                     v.text().then(t => {
                         const p = document.getElementById("changelog-modal").children[0].children[1];
                         let flag = true;
