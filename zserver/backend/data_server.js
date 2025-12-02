@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const DEFS = require("../../defs.js");
-const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog, logStamp } = DEFS;
+const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog, logStamp, __dname } = DEFS;
 const { PerformanceError } = require("./errors.js");
 const { TTBot } = require("../bots/bots.js");
 
