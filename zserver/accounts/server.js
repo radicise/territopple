@@ -450,7 +450,12 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        const email = (await collection.findOne({id:data.id}))?.email;
+                        const rec = await collection.findOne({id:data.id});
+                        const email = (rec)?.email;
+                        if (settings.DEVENV && !rec?.devtst) {
+                            res.writeHead(403).end("Account is not a DEVTEST account.");
+                            return;
+                        }
                         if (data.email !== email) {
                             // console.log(body);
                             // console.log(email);
@@ -533,12 +538,20 @@ const public_server = http.createServer(async (req, res) => {
             return;
         }
         case "DELETE":{
+            if (settings.DEVENV) {
+                res.writeHead(403).end("DEV server has restricted functions");
+                return;
+            }
             // VERIFY THAT SENDER IS LOGGED IN AS TARGET USER
             notimpl("account deletion");
             res.writeHead(501).end();
             return;
         }
         case "PUT":{
+            if (settings.DEVENV) {
+                res.writeHead(403).end("DEV server has restricted functions");
+                return;
+            }
             // notimpl("account creation");
             // res.writeHead(501).end();
             if (url.pathname === "/acc/with-code") {
@@ -627,8 +640,11 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        await collection.updateOne({id:data.id}, {"$set":{pwdata:auth.makePwData(data.pw)}});
-                        res.writeHead(200).end();
+                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{pwdata:auth.makePwData(data.pw)}})).matchedCount) {
+                            res.writeHead(200).end();
+                        } else {
+                            res.writeHead(403).end("crossing DEV boundary is not allowed");
+                        }
                         return;
                     } catch (E) {
                         console.log(E);
@@ -656,8 +672,11 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        await collection.updateOne({id:data.id}, {"$set":{name:data.name}});
-                        res.writeHead(200).end();
+                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{name:data.name}})).matchedCount) {
+                            res.writeHead(200).end();
+                        } else {
+                            res.writeHead(403).end("crossing DEV boundary is not allowed");
+                        }
                         return;
                     } catch (E) {
                         console.log(E);
@@ -750,6 +769,10 @@ const internal_server = http.createServer(async (req, res) => {
             }
             if (!id) {
                 res.writeHead(401).end();
+                return;
+            }
+            if ((await collection.findOne({id:id})).devtst ^ settings.DEVENV) {
+                res.writeHead(403).end();
                 return;
             }
             const upd = {$bit:{}};

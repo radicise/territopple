@@ -1,3 +1,6 @@
+# Dec 2, 2025 (DEV 2025l1Y0)
+created development environment
+
 # Nov 26, 2025 (Alpha 1.6.1)
 fixed an issue that caused replay files for boards over 32 tiles or with more than 7 players to be generated with irrecoverable missing data
 

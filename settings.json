@@ -12,6 +12,7 @@
     "MAX_TILES": 225,
     "BOT_TO":200,
     "BOT_MAX_TILES":700,
+    "DEVENV":true,
     "WORKERS": {
         "LIMIT": 4,
         "MAX_CONNECTIONS": 1024,
