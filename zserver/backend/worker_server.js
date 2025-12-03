@@ -284,6 +284,7 @@ process.once("message", (id) => {
                             return;
                         }
                         if (connType === 5) {
+                            if (LOGGING) log(`botjoin - ${gid} - ${url.searchParams.get('n')}`);
                             socks.handle("botjoin", sock, {"id":gid, "n":url.searchParams.get("n"), "key":url.searchParams.get("k")}, state);
                             return;
                         }
