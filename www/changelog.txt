@@ -1,3 +1,6 @@
+# Dec 2, 2025 (DEV 2025l1Y1)
+fixed a few issues related to bots
+
 # Dec 2, 2025 (DEV 2025l1Y0)
 created development environment
 
