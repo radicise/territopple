@@ -56,8 +56,8 @@ server = http.createServer((req, res) => {
  * @param {string} rname
  */
 function connect(gid, key, num, rname) {
-    // console.log("CONN");
-    // console.log(gid);
+    console.log("CONN");
+    console.log(gid);
     let conn = new ws.WebSocket(`wss://territopple.net/ws/?t=5&g=${gid}&k=${key}&n=${num}`);
     conn.on("error", (e) => {
         // console.log(e);
