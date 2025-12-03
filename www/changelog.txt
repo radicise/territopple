@@ -1,3 +1,6 @@
+# Dec 3, 2025 (DEV 2025l2Y0)
+fixed an issue with incorrect endpoints being used for accounts
+
 # Dec 2, 2025 (DEV 2025l1Y1)
 fixed a few issues related to bots
 
