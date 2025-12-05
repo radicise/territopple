@@ -13,7 +13,7 @@ const { ensureFile, addLog, logStamp, settings, validateJSONScheme, JSONScheme }
 const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
-const { AppealRejectionRecord, SanctionRecord, AccountRecord } = require("./types.js");
+const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1 } = require("./types.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
 
@@ -511,16 +511,25 @@ const public_server = http.createServer(async (req, res) => {
                     }
                     try {
                         const mid = SessionManager.getAccountId(sessid);
-                        if (!(await collection.findOne({id:data.id}))) {
+                        /**@type {AccountRecord} */
+                        const orec = await collection.findOne({id:data.id});
+                        if (!orec) {
                             res.writeHead(404).end("account not found");
                             return;
                         }
-                        if ((await collection.findOne({id:mid})).incoming_friends.includes(data.id)) {
+                        /**@type {AccountRecord} */
+                        const mrec = await collection.findOne({id:mid});
+                        if (mrec.incoming_friends.includes(data.id)) {
                             await Promise.all(
                                 collection.updateOne({id:data.id},{"$addToSet":{friends:mid},"$pull":{outgoing_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
                             );
                         } else {
+                            if (!(checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
+                                (checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) && orec.friends?.some(v => mrec.friends?.includes(v))))) {
+                                    res.writeHead(403).end();
+                                    return;
+                                }
                             await Promise.all(
                                 collection.updateOne({id:data.id},{"$addToSet":{incoming_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{outgoing_friends:data.id}})

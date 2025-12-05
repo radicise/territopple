@@ -41,10 +41,42 @@ const mdb = require("mongodb");
  * priv_level:number,
  * priv_groups:number[],
  * sanction:null|SanctionRecord[],
- * solved:number[]
+ * solved:number[],
+ * flagf1:number?,
+ * friends:string[]?,
+ * incoming_friends:string[]?,
+ * outgoing_friends:string[]?
  * }}
  */
+
+/**
+ * @constant
+ * @readonly
+ * @see [flags.txt](../docs/accounts/flags.txt)
+ */
+const FlagF1 = Object.seal({
+    /**@readonly */
+    FRIEND_F_STRANGER: 0,
+    /**@readonly */
+    FRIEND_F_SAMEROOM: 1,
+    /**@readonly */
+    FRIEND_F_FOF: 2
+});
+
+/**
+ * @param {number} field
+ * @param {number} mask
+ * @returns {boolean}
+ */
+function checkFlag(field, mask) {
+    if (field ?? null === null) {
+        return false;
+    }
+    return field & mask !== 0;
+}
 
 exports.AppealRejectionRecord = this.AppealRejectionRecord;
 exports.SanctionRecord = this.SanctionRecord;
 exports.AccountRecord = this.AccountRecord;
+exports.FlagF1 = FlagF1;
+exports.checkFlag = checkFlag;

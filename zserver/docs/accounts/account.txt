@@ -15,5 +15,6 @@ this file documents the storage of an account record
     solved<int32[]>: see "./solved.txt",
     friends<string[]>: list of friend account ids,
     incoming_friends<string[]>: list of account ids that have sent a friend request to this account,
-    outgoing_friends<string[]>: list of account ids that this accound has sent a friend request to
+    outgoing_friends<string[]>: list of account ids that this accound has sent a friend request to,
+    flagf1<int32>: see "./flags.txt"
 }
