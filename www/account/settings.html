@@ -15,9 +15,6 @@
         <div id="basic-info-cont">
             ID: <span id="acc-id">...</span> (cannot be changed)<br>
             Name: <input type="text" disabled value="..." id="acc-name"><br>
-            Joined: <input type="text" disabled value="..." id="acc-cdate"><br>
-            Last Online: <input type="text" disabled value="..." id="acc-lo"><br>
-            Level: <input type="text" disabled value="..." id="acc-lvl"><br>
             Email: <span id="acc-email">...</span> (to change the account email, please contact the server operator)
         </div>
         <script>
@@ -53,10 +50,7 @@
                 // v = JSON.parse(v.text);
                 v.json().then(j => {
                     document.getElementById("acc-id").textContent = j.id;
-                    document.getElementById("acc-name").textContent = j.name;
-                    document.getElementById("acc-cdate").textContent = new Date(j.cdate).toString();
-                    document.getElementById("acc-lo").textContent = new Date(j.last_online).toString();
-                    document.getElementById("acc-lvl").textContent = j.level;
+                    document.getElementById("acc-name").value = j.name;
                     document.getElementById("acc-email").textContent = j.email ?? "unavailable";
                 });
             });
