@@ -5,7 +5,7 @@
         <title>Account Info - Territopple</title>
     </head>
     <body>
-        <a href="/">home</a>
+        <a href="/" target="_self">home</a>
         <div id="acc">
             ID: <span id="acc-id">...</span><br>
             Name: <span id="acc-name">...</span><br>
@@ -14,6 +14,7 @@
             Level: <span id="acc-lvl">...</span><br>
             Email: <span id="acc-email">...</span>
         </div>
+        <a href="/account/settings" target="_self">settings</a>
         <script>
             const loc = new URL(location.href);
             let sendID = "%40self";
@@ -22,7 +23,7 @@
                 sendID = loc.searchParams.get("id");
             }
             fetch(`https://${document.location.hostname}/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
-                console.log(v);
+                // console.log(v);
                 if (v.status === 403) {
                     document.getElementById("acc-id").textContent = "unauthorized";
                     return;
