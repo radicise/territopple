@@ -83,7 +83,7 @@ async function addFriend(ev, id) {
     if (res.status === 200) {
         alert("SUCCESS");
         ev.target.value = "Cancel Friend Request";
-        ev.target.onclick = cancelFriendRequest;
+        ev.target.onclick = (ev)=>{cancelFriendRequest(ev, id);};
     }
 }
 /**
@@ -95,7 +95,7 @@ async function cancelFriendRequest(ev, id) {
     if (res.status === 200) {
         alert("SUCCESS");
         ev.target.value = "Add Friend";
-        ev.target.onclick = addFriend;
+        ev.target.onclick = (ev)=>{addFriend(ev, id);};
     }
 }
 /**
@@ -107,7 +107,7 @@ async function acceptFriendRequest(ev, id) {
     if (res.status === 200) {
         alert("SUCCESS");
         ev.target.value = "Unfriend";
-        ev.target.onclick = unFriend;
+        ev.target.onclick = (ev)=>{unFriend(ev, id);};
     }
 }
 /**
@@ -119,7 +119,7 @@ async function unFriend(ev, id) {
     if (res.status === 200) {
         alert("SUCCESS");
         ev.target.value = "Add Friend";
-        ev.target.onclick = addFriend;
+        ev.target.onclick = (ev)=>{addFriend(ev, id);};
     }
 }
 
