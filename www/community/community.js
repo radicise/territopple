@@ -77,19 +77,39 @@ const make = (nodename, attrs) => {
 /**
  * @param {string} id
  */
-async function addFriend(id) {}
+async function addFriend(id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        alert("SUCCESS");
+    }
+}
 /**
  * @param {string} id
  */
-async function cancelFriendRequest(id) {}
+async function cancelFriendRequest(id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        alert("SUCCESS");
+    }
+}
 /**
  * @param {string} id
  */
-async function acceptFriendRequest(id) {}
+async function acceptFriendRequest(id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        alert("SUCCESS");
+    }
+}
 /**
  * @param {string} id
  */
-async function unFriend(id) {}
+async function unFriend(id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        alert("SUCCESS");
+    }
+}
 
 /**
  * @param {string} id

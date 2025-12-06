@@ -45,7 +45,8 @@ const mdb = require("mongodb");
  * flagf1:number?,
  * friends:string[]?,
  * incoming_friends:string[]?,
- * outgoing_friends:string[]?
+ * outgoing_friends:string[]?,
+ * devtst:boolean?
  * }}
  */
 

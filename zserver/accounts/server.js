@@ -498,6 +498,58 @@ const public_server = http.createServer(async (req, res) => {
                     }
                     return;
                 }
+                case "/acc/unfriend": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, friendReqScheme)) {
+                        res.writeHead(400).end("misformatted request");
+                        return;
+                    }
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.getAccountId(sessid)) {
+                        res.writeHead(403).end("not logged in");
+                        return;
+                    }
+                    try {
+                        const mid = SessionManager.getAccountId(sessid);
+                        /**@type {AccountRecord} */
+                        const orec = await collection.findOne({id:data.id});
+                        if (!orec) {
+                            res.writeHead(404).end("account not found");
+                            return;
+                        }
+                        /**@type {AccountRecord} */
+                        const mrec = await collection.findOne({id:mid});
+                        if (mrec.friends?.includes(data.id)) {
+                            await Promise.all(
+                                collection.updateOne({id:mid}, {"$pull":{"friends":data.id}}),
+                                collection.updateOne({id:data.id}, {"$pull":{"friends":mid}})
+                            );
+                            res.writeHead(200).end();
+                            return;
+                        } else if (mrec.incoming_friends?.includes(data.id)) {
+                            await Promise.all(
+                                collection.updateOne({id:mid}, {"$pull":{"incoming_friends":data.id}}),
+                                collection.updateOne({id:data.id}, {"$pull":{"outgoing_friends":mid}})
+                            );
+                            res.writeHead(200).end();
+                            return;
+                        } else if (mrec.outgoing_friends?.includes(data.id)) {
+                            await Promise.all(
+                                collection.updateOne({id:mid}, {"$pull":{"outgoing_friends":data.id}}),
+                                collection.updateOne({id:data.id}, {"$pull":{"incoming_friends":mid}})
+                            );
+                            res.writeHead(200).end();
+                            return;
+                        } else {
+                            res.writeHead(422).end("not friends");
+                            return;
+                        }
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                    }
+                    return;
+                }
                 case "/acc/send-friend-request": {
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, friendReqScheme)) {
@@ -525,7 +577,7 @@ const public_server = http.createServer(async (req, res) => {
                                 collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
                             );
                         } else {
-                            if (!(checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
+                            if (!(mrec.devtst || checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
                                 (checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) && orec.friends?.some(v => mrec.friends?.includes(v))))) {
                                     res.writeHead(403).end();
                                     return;
