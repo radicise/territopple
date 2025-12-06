@@ -39,7 +39,7 @@
                 btn.onclick = ()=>{BI_edit(eid, btn);};
             }
             document.getElementById("basic-info-cont").querySelectorAll("input").forEach(e => {const b = document.createElement("input");b.type="image";b.src="/account/icons/setedit.svg";b.alt="Edit Button";b.title="Edit";b.onclick=()=>{BI_edit(e.id,b);};e.after(b);});
-            fetch(`https://${document.location.hostname}/acc/pub/$40self/info`, {method:"GET"}).then(v => {
+            fetch(`https://${document.location.hostname}/acc/pub/%40self/info`, {method:"GET"}).then(v => {
                 // console.log(v);
                 if (v.status === 403) {
                     document.getElementById("acc-id").textContent = "unauthorized";
