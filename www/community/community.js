@@ -139,15 +139,15 @@ function makeFriendActions(id, friend) {
             break;
         }
         case 1: {
-            actions.push(make("input",{"type":"button","value":"Cancel Friend Request","onclick":(ev)=>{cancelFriendRequest(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Cancel Friend Request","src":"community/icons/cancelfriend.svg","onclick":(ev)=>{cancelFriendRequest(ev, id);}}));
             break;
         }
         case 2: {
-            actions.push(make("input",{"type":"button","value":"Accept Friend Request","onclick":(ev)=>{acceptFriendRequest(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Accept Friend Request","src":"community/icons/acceptfriend.svg","onclick":(ev)=>{acceptFriendRequest(ev, id);}}));
             break;
         }
         case 3: {
-            actions.push(make("input",{"type":"button","value":"Unfriend","onclick":(ev)=>{unFriend(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Unfriend","src":"community/icons/unfriend.svg","onclick":(ev)=>{unFriend(ev, id);}}));
             break;
         }
     }
