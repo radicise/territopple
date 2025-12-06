@@ -20,7 +20,7 @@ const searchButton = document.getElementById("search-button");
  * (nodename:"input",attrs:{type:"text",id:string?,placeholder:string?}): HTMLInputElement;
  * (nodename:"input",attrs:{type:"email",id:string?,placeholder:string?}): HTMLInputElement;
  * (nodename:"input",attrs:{type:"password",id:string?}): HTMLInputElement;
- * (nodename:"input",attrs:{type:"image",id:string?,alt:string?,src:string,onclick:VoidFunction?}): HTMLInputElement;
+ * (nodename:"input",attrs:{type:"image",id:string?,alt:string?,title:string?,src:string,onclick:VoidFunction?}): HTMLInputElement;
  * (): void;
  * (nodename:Array<["td"]|["td",{textContent:string}]|["td",{children:HTMLElement[]}]>): HTMLTableCellElement[];
  * (nodename:Array<["span"]|["span",{textContent:string?,id:string?,classList:string[]?}]|["span",{children:HTMLElement[]?,id:string?,classList:string[]?}]>): HTMLSpanElement[];
@@ -78,6 +78,9 @@ const make = (nodename, attrs) => {
     if (attrs?.alt) {
         e.alt = attrs.alt;
     }
+    if (attrs?.title) {
+        e.title = attrs.title;
+    }
     return e;
 };
 
@@ -89,6 +92,7 @@ async function addFriend(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         ev.target.alt = "Cancel Friend Request";
+        ev.target.title = "Cancel Friend Request";
         ev.target.src = "community/icons/cancelfriend.svg";
         ev.target.onclick = (ev)=>{cancelFriendRequest(ev, id);};
     }
@@ -101,6 +105,7 @@ async function cancelFriendRequest(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         ev.target.alt = "Add Friend";
+        ev.target.title = "Add Friend";
         ev.target.src = "community/icons/addfriend.svg";
         ev.target.onclick = (ev)=>{addFriend(ev, id);};
     }
@@ -113,6 +118,7 @@ async function acceptFriendRequest(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         ev.target.alt = "Unfriend";
+        ev.target.title = "Unfriend";
         ev.target.src = "community/icons/acceptfriend.svg";
         ev.target.onclick = (ev)=>{unFriend(ev, id);};
     }
@@ -125,6 +131,7 @@ async function unFriend(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         ev.target.alt = "Add Friend";
+        ev.target.title = "Add Friend";
         ev.target.src = "community/icons/addfriend.svg";
         ev.target.onclick = (ev)=>{addFriend(ev, id);};
     }
@@ -139,19 +146,19 @@ function makeFriendActions(id, friend) {
     const actions = [];
     switch (friend) {
         case 0: {
-            actions.push(make("input",{"type":"image","alt":"Add Friend","src":"community/icons/addfriend.svg","onclick":(ev)=>{addFriend(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Add Friend","title":"Add Friend","src":"community/icons/addfriend.svg","onclick":(ev)=>{addFriend(ev, id);}}));
             break;
         }
         case 1: {
-            actions.push(make("input",{"type":"image","alt":"Cancel Friend Request","src":"community/icons/cancelfriend.svg","onclick":(ev)=>{cancelFriendRequest(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Cancel Friend Request","title":"Cancel Friend Request","src":"community/icons/cancelfriend.svg","onclick":(ev)=>{cancelFriendRequest(ev, id);}}));
             break;
         }
         case 2: {
-            actions.push(make("input",{"type":"image","alt":"Accept Friend Request","src":"community/icons/acceptfriend.svg","onclick":(ev)=>{acceptFriendRequest(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Accept Friend Request","title":"Accept Friend Request","src":"community/icons/acceptfriend.svg","onclick":(ev)=>{acceptFriendRequest(ev, id);}}));
             break;
         }
         case 3: {
-            actions.push(make("input",{"type":"image","alt":"Unfriend","src":"community/icons/unfriend.svg","onclick":(ev)=>{unFriend(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Unfriend","title":"Unfriend","src":"community/icons/unfriend.svg","onclick":(ev)=>{unFriend(ev, id);}}));
             break;
         }
     }
