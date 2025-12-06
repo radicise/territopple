@@ -571,7 +571,7 @@ const public_server = http.createServer(async (req, res) => {
                         }
                         /**@type {AccountRecord} */
                         const mrec = await collection.findOne({id:mid});
-                        if (mrec.incoming_friends.includes(data.id)) {
+                        if (mrec.incoming_friends?.includes(data.id)) {
                             await Promise.all(
                                 collection.updateOne({id:data.id},{"$addToSet":{friends:mid},"$pull":{outgoing_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
