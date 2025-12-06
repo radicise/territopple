@@ -81,7 +81,6 @@ const make = (nodename, attrs) => {
 async function addFriend(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
-        alert("SUCCESS");
         ev.target.value = "Cancel Friend Request";
         ev.target.onclick = (ev)=>{cancelFriendRequest(ev, id);};
     }
@@ -93,7 +92,6 @@ async function addFriend(ev, id) {
 async function cancelFriendRequest(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
-        alert("SUCCESS");
         ev.target.value = "Add Friend";
         ev.target.onclick = (ev)=>{addFriend(ev, id);};
     }
@@ -105,7 +103,6 @@ async function cancelFriendRequest(ev, id) {
 async function acceptFriendRequest(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
-        alert("SUCCESS");
         ev.target.value = "Unfriend";
         ev.target.onclick = (ev)=>{unFriend(ev, id);};
     }
@@ -117,7 +114,6 @@ async function acceptFriendRequest(ev, id) {
 async function unFriend(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
-        alert("SUCCESS");
         ev.target.value = "Add Friend";
         ev.target.onclick = (ev)=>{addFriend(ev, id);};
     }
