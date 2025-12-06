@@ -20,6 +20,7 @@ const searchButton = document.getElementById("search-button");
  * (nodename:"input",attrs:{type:"text",id:string?,placeholder:string?}): HTMLInputElement;
  * (nodename:"input",attrs:{type:"email",id:string?,placeholder:string?}): HTMLInputElement;
  * (nodename:"input",attrs:{type:"password",id:string?}): HTMLInputElement;
+ * (nodename:"input",attrs:{type:"image",id:string?,alt:string?,src:string,onclick:VoidFunction?}): HTMLInputElement;
  * (): void;
  * (nodename:Array<["td"]|["td",{textContent:string}]|["td",{children:HTMLElement[]}]>): HTMLTableCellElement[];
  * (nodename:Array<["span"]|["span",{textContent:string?,id:string?,classList:string[]?}]|["span",{children:HTMLElement[]?,id:string?,classList:string[]?}]>): HTMLSpanElement[];
@@ -70,6 +71,12 @@ const make = (nodename, attrs) => {
     }
     if (attrs?.children) {
         e.replaceChildren(...attrs.children);
+    }
+    if (attrs?.src) {
+        e.src = attrs.src;
+    }
+    if (attrs?.alt) {
+        e.alt = attrs.alt;
     }
     return e;
 };
@@ -128,7 +135,7 @@ function makeFriendActions(id, friend) {
     const actions = [];
     switch (friend) {
         case 0: {
-            actions.push(make("input",{"type":"button","value":"Add Friend","onclick":(ev)=>{addFriend(ev, id);}}));
+            actions.push(make("input",{"type":"image","alt":"Add Friend","src":"community/icons/addfriend.svg","onclick":(ev)=>{addFriend(ev, id);}}));
             break;
         }
         case 1: {

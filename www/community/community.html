@@ -17,7 +17,10 @@
             span#search-container {
                 width: fit-content;
             }
-            thead > tr > th:nth-child(-n + 2) {
+            /* thead > tr > th:nth-child(-n + 2) {
+                text-align: left;
+            } */
+            .left-align {
                 text-align: left;
             }
             table#member-list {
@@ -26,6 +29,7 @@
             }
             table#member-list td {
                 border: solid 1px black;
+                padding: 2px;
             }
         </style>
     </head>
@@ -41,8 +45,8 @@
             </span>
             <table id="member-list">
                 <thead>
-                    <th scope="col">Account ID</th>
-                    <th scope="col">Name</th>
+                    <th scope="col" class="left-align">Account ID</th>
+                    <th scope="col" class="left-align">Name</th>
                     <th scope="col">Level</th>
                     <th scope="col">Last Online</th>
                     <th scope="col">Joined</th>
