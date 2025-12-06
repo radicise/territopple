@@ -75,39 +75,51 @@ const make = (nodename, attrs) => {
 };
 
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function addFriend(id) {
+async function addFriend(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         alert("SUCCESS");
+        ev.target.value = "Cancel Friend Request";
+        ev.target.onclick = cancelFriendRequest;
     }
 }
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function cancelFriendRequest(id) {
+async function cancelFriendRequest(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         alert("SUCCESS");
+        ev.target.value = "Add Friend";
+        ev.target.onclick = addFriend;
     }
 }
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function acceptFriendRequest(id) {
+async function acceptFriendRequest(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         alert("SUCCESS");
+        ev.target.value = "Unfriend";
+        ev.target.onclick = unFriend;
     }
 }
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function unFriend(id) {
+async function unFriend(ev, id) {
     const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
     if (res.status === 200) {
         alert("SUCCESS");
+        ev.target.value = "Add Friend";
+        ev.target.onclick = addFriend;
     }
 }
 
@@ -120,19 +132,19 @@ function makeFriendActions(id, friend) {
     const actions = [];
     switch (friend) {
         case 0: {
-            actions.push(make("input",{"type":"button","value":"Add Friend","onclick":()=>{addFriend(id);}}));
+            actions.push(make("input",{"type":"button","value":"Add Friend","onclick":(ev)=>{addFriend(ev, id);}}));
             break;
         }
         case 1: {
-            actions.push(make("input",{"type":"button","value":"Cancel Friend Request","onclick":()=>{cancelFriendRequest(id);}}));
+            actions.push(make("input",{"type":"button","value":"Cancel Friend Request","onclick":(ev)=>{cancelFriendRequest(ev, id);}}));
             break;
         }
         case 2: {
-            actions.push(make("input",{"type":"button","value":"Accept Friend Request","onclick":()=>{acceptFriendRequest(id);}}));
+            actions.push(make("input",{"type":"button","value":"Accept Friend Request","onclick":(ev)=>{acceptFriendRequest(ev, id);}}));
             break;
         }
         case 3: {
-            actions.push(make("input",{"type":"button","value":"Unfriend","onclick":()=>{unFriend(id);}}));
+            actions.push(make("input",{"type":"button","value":"Unfriend","onclick":(ev)=>{unFriend(ev, id);}}));
             break;
         }
     }
