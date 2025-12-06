@@ -520,24 +520,24 @@ const public_server = http.createServer(async (req, res) => {
                         /**@type {AccountRecord} */
                         const mrec = await collection.findOne({id:mid});
                         if (mrec.friends?.includes(data.id)) {
-                            await Promise.all(
+                            await Promise.all([
                                 collection.updateOne({id:mid}, {"$pull":{"friends":data.id}}),
                                 collection.updateOne({id:data.id}, {"$pull":{"friends":mid}})
-                            );
+                            ]);
                             res.writeHead(200).end();
                             return;
                         } else if (mrec.incoming_friends?.includes(data.id)) {
-                            await Promise.all(
+                            await Promise.all([
                                 collection.updateOne({id:mid}, {"$pull":{"incoming_friends":data.id}}),
                                 collection.updateOne({id:data.id}, {"$pull":{"outgoing_friends":mid}})
-                            );
+                            ]);
                             res.writeHead(200).end();
                             return;
                         } else if (mrec.outgoing_friends?.includes(data.id)) {
-                            await Promise.all(
+                            await Promise.all([
                                 collection.updateOne({id:mid}, {"$pull":{"outgoing_friends":data.id}}),
                                 collection.updateOne({id:data.id}, {"$pull":{"incoming_friends":mid}})
-                            );
+                            ]);
                             res.writeHead(200).end();
                             return;
                         } else {
@@ -572,20 +572,20 @@ const public_server = http.createServer(async (req, res) => {
                         /**@type {AccountRecord} */
                         const mrec = await collection.findOne({id:mid});
                         if (mrec.incoming_friends?.includes(data.id)) {
-                            await Promise.all(
+                            await Promise.all([
                                 collection.updateOne({id:data.id},{"$addToSet":{friends:mid},"$pull":{outgoing_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
-                            );
+                            ]);
                         } else {
                             if (!(mrec.devtst || checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
                                 (checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) && orec.friends?.some(v => mrec.friends?.includes(v))))) {
                                     res.writeHead(403).end();
                                     return;
                                 }
-                            await Promise.all(
+                            await Promise.all([
                                 collection.updateOne({id:data.id},{"$addToSet":{incoming_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{outgoing_friends:data.id}})
-                            );
+                            ]);
                         }
                         res.writeHead(200).end();
                     } catch (E) {
