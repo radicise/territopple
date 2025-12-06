@@ -1,3 +1,8 @@
+# Dec 6, 2025 (DEV 2025l5Y0)
+friend requests now supported
+added flags for restricting who can send a friend request to an account (NOTE: these are all disabled by default)
+added icons to the friend request buttons
+
 # Dec 3, 2025 (DEV 2025l2Y0)
 fixed an issue with incorrect endpoints being used for accounts
 
