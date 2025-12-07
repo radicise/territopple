@@ -311,7 +311,7 @@ const accNameChangeScheme = {
     "name": "string"
 };
 /**@type {JSONScheme} */
-const accFlagChangeScheme = {
+const accFlagsChangeScheme = {
     "id": "string",
     "flagf": "string"
 };

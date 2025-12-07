@@ -101,9 +101,9 @@
                     op_frs_anyone.checked = !(oprops.flagf1&1);
                     op_frs_same_room.checked = !(oprops.flagf1&2);
                     op_frs_fof.checked = !(oprops.flagf1&4);
-                    op_frs_anyone.onclick = ()=>{props.flagf1=(props.flagf1&~1)|Number(op_frs_anyone.checked);};
-                    op_frs_same_room.onclick = ()=>{props.flagf1=(props.flagf1&~2)|Number(op_frs_same_room.checked);};
-                    op_frs_fof.onclick = ()=>{props.flagf1=(props.flagf1&~4)|Number(op_frs_fof.checked);};
+                    op_frs_anyone.onclick = ()=>{props.flagf1=(props.flagf1&~1)|Number(!op_frs_anyone.checked);};
+                    op_frs_same_room.onclick = ()=>{props.flagf1=(props.flagf1&~2)|(Number(!op_frs_same_room.checked)<<1);};
+                    op_frs_fof.onclick = ()=>{props.flagf1=(props.flagf1&~4)|(Number(!op_frs_fof.checked)<<2);};
                 });
             });
             document.getElementById("apply-settings-btn").onclick = () => {
