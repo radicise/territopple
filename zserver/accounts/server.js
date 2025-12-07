@@ -582,6 +582,7 @@ const public_server = http.createServer(async (req, res) => {
                                 collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
                             ]);
                         } else {
+                            console.log(`dt:${mrec.devtst}\nof:${orec.flagf1}\nofl:${orec.friends}\nmfl:${mrec.friends}`);
                             if (!(mrec.devtst || !checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
                                 (!checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) && orec.friends?.some(v => mrec.friends?.includes(v))))) {
                                     res.writeHead(403).end();
