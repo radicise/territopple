@@ -69,8 +69,8 @@ const FlagF1 = Object.seal({
  * @param {number} mask
  * @returns {boolean}
  */
-function checkFlag(field, mask) {
-    if (field ?? null === null) {
+function checkFlag (field, mask) {
+    if ((field ?? null) === null) {
         return false;
     }
     return field & mask !== 0;
