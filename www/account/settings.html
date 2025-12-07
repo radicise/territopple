@@ -5,7 +5,8 @@
         <title>Territopple - Account Settings</title>
         <style>
             div#basic-info-cont input[type=image] {
-                height: 1em;
+                /* height: 1em; */
+                height: calc(var(--h) * 1px);
             }
         </style>
     </head>
@@ -16,6 +17,10 @@
             ID: <span id="acc-id">...</span> (cannot be changed)<br>
             Name: <span><input type="text" disabled value="..." id="acc-name"></span><br>
             Email: <span id="acc-email">...</span> (to change the account email, please contact the server operator)
+        </div>
+        <h3>Options</h3>
+        <div id="options">
+            Coming Soon
         </div>
         <script>
             /**
@@ -40,7 +45,20 @@
                 document.getElementById(eid).disabled = true;
                 btn.onclick = ()=>{BI_edit(eid, btn);};
             }
-            document.getElementById("basic-info-cont").querySelectorAll("input").forEach(e => {const b = document.createElement("input");b.type="image";b.src="/account/icons/setedit.svg";b.alt="Edit Button";b.title="Edit";b.onclick=()=>{BI_edit(e.id,b);};e.after(b);});
+            // /**@type {HTMLInputElement[]} */
+            // const imgupdatelist = [];
+            // window.addEventListener("resize", () => {});
+            document.getElementById("basic-info-cont").querySelectorAll("input").forEach(e => {
+                const b = document.createElement("input");
+                // imgupdatelist.push(b);
+                b.style.setProperty("--h", e.clientHeight);
+                b.type = "image";
+                b.src = "/account/icons/setedit.svg";
+                b.alt = "Edit Button";
+                b.title = "Edit";
+                b.onclick = () => {BI_edit(e.id,b);};
+                e.after(b);
+            });
             fetch(`https://${document.location.hostname}/acc/pub/%40self/info`, {method:"GET"}).then(v => {
                 // console.log(v);
                 if (v.status === 403) {
