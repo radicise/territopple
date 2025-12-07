@@ -586,6 +586,14 @@ const public_server = http.createServer(async (req, res) => {
                             console.log(checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER));
                             console.log(checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF));
                             console.log(orec.friends?.some(v => mrec.friends?.includes(v)));
+                            console.log(!(
+                                mrec.devtst ||
+                                !checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
+                                (
+                                    !checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) &&
+                                    orec.friends?.some(v => mrec.friends?.includes(v))
+                                )
+                            ));
                             if (
                                 !(
                                     mrec.devtst ||
