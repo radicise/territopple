@@ -728,7 +728,7 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{flagf1:data.flagf1}})).matchedCount) {
+                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{flagf1:data.flagf}})).matchedCount) {
                             res.writeHead(200).end();
                         } else {
                             res.writeHead(403).end("crossing DEV boundary is not allowed");

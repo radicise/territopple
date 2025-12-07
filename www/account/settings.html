@@ -113,11 +113,12 @@
                         apply_status.textContent = " applying";
                         switch (key) {
                             case "name": {
-                                proms.push(fetch(`https://${document.location.hostname}/acc/name`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,name:props.name})}));
+                                proms.push(fetch(`https://${document.location.hostname}/acc/name`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,name:props.name})}).then(v=>{if(v.ok)oprops.name=props.name;}));
                                 break;
                             }
                             case "flagf1": {
-                                proms.push(fetch(`https://${document.location.hostname}/acc/flagf1`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,flagf:props.flagf1})}));
+                                proms.push(fetch(`https://${document.location.hostname}/acc/flagf1`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,flagf:props.flagf1})}).then(v=>{if(v.ok)oprops.flagf1=props.flagf1;}));
+                                break;
                             }
                         }
                     }
