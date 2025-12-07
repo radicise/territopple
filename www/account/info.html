@@ -12,7 +12,7 @@
             Joined: <span id="acc-cdate">...</span><br>
             Last Online: <span id="acc-lo">...</span><br>
             Level: <span id="acc-lvl">...</span><br>
-            Email: <span id="acc-email">...</span>
+            Email: <span id="acc-email">...</span><input type="button" value="show" id="show-email-btn" disabled>
         </div>
         <a href="/account/settings" target="_self">settings</a>
         <script>
@@ -22,6 +22,17 @@
                 // document.getElementById("acc-id").textContent = loc.searchParams.get("id");
                 sendID = loc.searchParams.get("id");
             }
+            let email;
+            const acc_email = document.getElementById("acc-email");
+            document.getElementById("show-email-btn").onclick = () => {
+                if (acc_email.textContent === "<hidden>") {
+                    acc_email.textContent = email;
+                    document.getElementById("show-email-btn").value = "hide";
+                } else {
+                    acc_email.textContent = "<hidden>";
+                    document.getElementById("show-email-btn").value = "hide";
+                }
+            };
             fetch(`https://${document.location.hostname}/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
                 // console.log(v);
                 if (v.status === 403) {
@@ -44,7 +55,9 @@
                     document.getElementById("acc-cdate").textContent = new Date(j.cdate).toString();
                     document.getElementById("acc-lo").textContent = new Date(j.last_online).toString();
                     document.getElementById("acc-lvl").textContent = j.level;
-                    document.getElementById("acc-email").textContent = j.email ?? "unavailable";
+                    email = j.email ?? "unavailable";
+                    document.getElementById("acc-email").textContent = "<hidden>";
+                    document.getElementById("show-email.btn").disabled = false;
                     if (j.sanction !== null) {
                         document.getElementById("acc").append(`Sanction: ${j.sanction}`);
                     }
