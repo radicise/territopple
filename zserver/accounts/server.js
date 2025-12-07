@@ -140,7 +140,7 @@ async function processPubFetch(req, res, url, log) {
                 pipeline = pipeline.filter({$or:[{id:{$regex:search}},{name:{$regex:search}}]});
             }
             pipeline = pipeline.sort({_id:1});
-            const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1,incoming_friends:1,outgoing_friends:1})).toArray();
+            const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1,incoming_friends:1,outgoing_friends:1,flagf1:1})).toArray();
             if (accid) {
                 for (let i = 0; i < list.length; i ++) {
                     list[i].friend = list[i].id===accid?5:(list[i].friends?.includes(accid)?3:(list[i].outgoing_friends?.includes(accid)?2:(list[i].incoming_friends?.includes(accid)?1:0)));
@@ -220,7 +220,7 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = await collection.findOne({id:target});
                 v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction,rid}));
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction,rid,flagf1:v.flagf1??0}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
@@ -309,6 +309,11 @@ const accLoginScheme = {
 const accNameChangeScheme = {
     "id": "string",
     "name": "string"
+};
+/**@type {JSONScheme} */
+const accFlagChangeScheme = {
+    "id": "string",
+    "flagf": "string"
 };
 /**@type {JSONScheme} */
 const accPWChangeScheme = {
@@ -577,8 +582,8 @@ const public_server = http.createServer(async (req, res) => {
                                 collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
                             ]);
                         } else {
-                            if (!(mrec.devtst || checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
-                                (checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) && orec.friends?.some(v => mrec.friends?.includes(v))))) {
+                            if (!(mrec.devtst || !checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
+                                (!checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) && orec.friends?.some(v => mrec.friends?.includes(v))))) {
                                     res.writeHead(403).end();
                                     return;
                                 }
@@ -684,11 +689,6 @@ const public_server = http.createServer(async (req, res) => {
         case "PATCH":{
             // VERIFY THAT SENDER IS LOGGED IN AS TARGET USER
             switch (url.pathname) {
-                case "/acc/email": {
-                    notimpl("email change");
-                    res.writeHead(501).end();
-                    return;
-                }
                 case "/acc/password": {
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, accPWChangeScheme)) {
@@ -715,6 +715,30 @@ const public_server = http.createServer(async (req, res) => {
                     // notimpl("password change");
                     // res.writeHead(501).end();
                     // return;
+                }
+                case "/acc/flagf1": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, accFlagsChangeScheme)) {
+                        res.writeHead(400).end("misformatted request");
+                        return;
+                    }
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.verifySession(sessid, data.id)) {
+                        res.writeHead(403).end();
+                        return;
+                    }
+                    try {
+                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{flagf1:data.flagf1}})).matchedCount) {
+                            res.writeHead(200).end();
+                        } else {
+                            res.writeHead(403).end("crossing DEV boundary is not allowed");
+                        }
+                        return;
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end();
+                        return;
+                    }
                 }
                 case "/acc/name": {
                     const data = JSON.parse(body);

@@ -1,9 +1,9 @@
 this file describes the account flags
 
-flagf1:
-0  - enable friend requests from strangers
-1  - enable friend requests from players in the same room
-2  - enable friend requests from friends of friends
+flagf1 (PUBLIC):
+0  - disable friend requests from strangers
+1  - disable friend requests from players in the same room
+2  - disable friend requests from friends of friends
 ...
 31 - reserved
 

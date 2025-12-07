@@ -1,20 +1,22 @@
 this file documents the storage of an account record
 
+all fields marked with "pub" are publicly accessible
+
 {
     _id<ObjectID>: MongoDB ID,
-    id<string>:  account UID,
-    name<string>: account display name,
+    pub id<string>:  account UID,
+    pub name<string>: account display name,
     email<string>: account email,
     pwdata<Buffer(64)>: salt<Buffer(32)>+scrypt_key<Buffer(32)>,
-    last_online<double>: last login time,
-    cdate<double>: account creation date,
-    level<int32>: player level,
+    pub last_online<double>: last login time,
+    pub cdate<double>: account creation date,
+    pub level<int32>: player level,
     priv_level<int32>: privilege flags see "./priv.txt",
     priv_groups<int32[]>: active privilege groups, the high bit is the suspension flag, if set this indicates that the privilege group is suspended and does not confer any privileges to this account,
-    sanction<Null|Sanction[]>: account sanctions see "./sanctions.txt",
-    solved<int32[]>: see "./solved.txt",
+    pub sanction<Null|Sanction[]>: account sanctions see "./sanctions.txt",
+    pub solved<int32[]>: see "./solved.txt",
     friends<string[]>: list of friend account ids,
     incoming_friends<string[]>: list of account ids that have sent a friend request to this account,
     outgoing_friends<string[]>: list of account ids that this accound has sent a friend request to,
-    flagf1<int32>: see "./flags.txt"
+    pub flagf1<int32>: see "./flags.txt"
 }
