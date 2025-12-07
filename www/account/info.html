@@ -30,7 +30,7 @@
                     document.getElementById("show-email-btn").value = "hide";
                 } else {
                     acc_email.textContent = "<hidden>";
-                    document.getElementById("show-email-btn").value = "hide";
+                    document.getElementById("show-email-btn").value = "show";
                 }
             };
             fetch(`https://${document.location.hostname}/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
