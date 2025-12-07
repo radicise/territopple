@@ -13,7 +13,7 @@ const { ensureFile, addLog, logStamp, settings, validateJSONScheme, JSONScheme }
 const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
-const { AppealRejectionRecord, SanctionRecord, AccountRecord } = require("./types.js");
+const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1 } = require("./types.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
 
@@ -140,7 +140,7 @@ async function processPubFetch(req, res, url, log) {
                 pipeline = pipeline.filter({$or:[{id:{$regex:search}},{name:{$regex:search}}]});
             }
             pipeline = pipeline.sort({_id:1});
-            const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1,incoming_friends:1,outgoing_friends:1})).toArray();
+            const list = await (pipeline.skip(20*(page-1)).project({id:1,name:1,cdate:1,last_online:1,friends:1,level:1,incoming_friends:1,outgoing_friends:1,flagf1:1})).toArray();
             if (accid) {
                 for (let i = 0; i < list.length; i ++) {
                     list[i].friend = list[i].id===accid?5:(list[i].friends?.includes(accid)?3:(list[i].outgoing_friends?.includes(accid)?2:(list[i].incoming_friends?.includes(accid)?1:0)));
@@ -220,7 +220,7 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = await collection.findOne({id:target});
                 v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction,rid}));
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction,rid,flagf1:v.flagf1??0}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
@@ -309,6 +309,11 @@ const accLoginScheme = {
 const accNameChangeScheme = {
     "id": "string",
     "name": "string"
+};
+/**@type {JSONScheme} */
+const accFlagsChangeScheme = {
+    "id": "string",
+    "flagf": "number"
 };
 /**@type {JSONScheme} */
 const accPWChangeScheme = {
@@ -450,7 +455,12 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        const email = (await collection.findOne({id:data.id}))?.email;
+                        const rec = await collection.findOne({id:data.id});
+                        const email = (rec)?.email;
+                        if (settings.DEVENV && !rec?.devtst) {
+                            res.writeHead(403).end("Account is not a DEVTEST account.");
+                            return;
+                        }
                         if (data.email !== email) {
                             // console.log(body);
                             // console.log(email);
@@ -493,6 +503,58 @@ const public_server = http.createServer(async (req, res) => {
                     }
                     return;
                 }
+                case "/acc/unfriend": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, friendReqScheme)) {
+                        res.writeHead(400).end("misformatted request");
+                        return;
+                    }
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.getAccountId(sessid)) {
+                        res.writeHead(403).end("not logged in");
+                        return;
+                    }
+                    try {
+                        const mid = SessionManager.getAccountId(sessid);
+                        /**@type {AccountRecord} */
+                        const orec = await collection.findOne({id:data.id});
+                        if (!orec) {
+                            res.writeHead(404).end("account not found");
+                            return;
+                        }
+                        /**@type {AccountRecord} */
+                        const mrec = await collection.findOne({id:mid});
+                        if (mrec.friends?.includes(data.id)) {
+                            await Promise.all([
+                                collection.updateOne({id:mid}, {"$pull":{"friends":data.id}}),
+                                collection.updateOne({id:data.id}, {"$pull":{"friends":mid}})
+                            ]);
+                            res.writeHead(200).end();
+                            return;
+                        } else if (mrec.incoming_friends?.includes(data.id)) {
+                            await Promise.all([
+                                collection.updateOne({id:mid}, {"$pull":{"incoming_friends":data.id}}),
+                                collection.updateOne({id:data.id}, {"$pull":{"outgoing_friends":mid}})
+                            ]);
+                            res.writeHead(200).end();
+                            return;
+                        } else if (mrec.outgoing_friends?.includes(data.id)) {
+                            await Promise.all([
+                                collection.updateOne({id:mid}, {"$pull":{"outgoing_friends":data.id}}),
+                                collection.updateOne({id:data.id}, {"$pull":{"incoming_friends":mid}})
+                            ]);
+                            res.writeHead(200).end();
+                            return;
+                        } else {
+                            res.writeHead(422).end("not friends");
+                            return;
+                        }
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                    }
+                    return;
+                }
                 case "/acc/send-friend-request": {
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, friendReqScheme)) {
@@ -506,20 +568,49 @@ const public_server = http.createServer(async (req, res) => {
                     }
                     try {
                         const mid = SessionManager.getAccountId(sessid);
-                        if (!(await collection.findOne({id:data.id}))) {
+                        /**@type {AccountRecord} */
+                        const orec = await collection.findOne({id:data.id});
+                        if (!orec) {
                             res.writeHead(404).end("account not found");
                             return;
                         }
-                        if ((await collection.findOne({id:mid})).incoming_friends.includes(data.id)) {
-                            await Promise.all(
+                        /**@type {AccountRecord} */
+                        const mrec = await collection.findOne({id:mid});
+                        if (mrec.incoming_friends?.includes(data.id)) {
+                            await Promise.all([
                                 collection.updateOne({id:data.id},{"$addToSet":{friends:mid},"$pull":{outgoing_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{friends:data.id},"$pull":{incoming_friends:data.id}})
-                            );
+                            ]);
                         } else {
-                            await Promise.all(
+                            // console.log(`dt:${mrec.devtst}\nof:${orec.flagf1}\nofl:${orec.friends}\nmfl:${mrec.friends}`);
+                            // console.log(checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER));
+                            // console.log(checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF));
+                            // console.log(orec.friends?.some(v => mrec.friends?.includes(v)));
+                            // console.log(!(
+                            //     mrec.devtst ||
+                            //     !checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
+                            //     (
+                            //         !checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) &&
+                            //         orec.friends?.some(v => mrec.friends?.includes(v))
+                            //     )
+                            // ));
+                            if (
+                                !(
+                                    mrec.devtst ||
+                                    !checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
+                                    (
+                                        !checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) &&
+                                        orec.friends?.some(v => mrec.friends?.includes(v))
+                                    )
+                                )
+                            ) {
+                                res.writeHead(403).end();
+                                return;
+                            }
+                            await Promise.all([
                                 collection.updateOne({id:data.id},{"$addToSet":{incoming_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{outgoing_friends:data.id}})
-                            );
+                            ]);
                         }
                         res.writeHead(200).end();
                     } catch (E) {
@@ -533,12 +624,20 @@ const public_server = http.createServer(async (req, res) => {
             return;
         }
         case "DELETE":{
+            if (settings.DEVENV) {
+                res.writeHead(403).end("DEV server has restricted functions");
+                return;
+            }
             // VERIFY THAT SENDER IS LOGGED IN AS TARGET USER
             notimpl("account deletion");
             res.writeHead(501).end();
             return;
         }
         case "PUT":{
+            if (settings.DEVENV) {
+                res.writeHead(403).end("DEV server has restricted functions");
+                return;
+            }
             // notimpl("account creation");
             // res.writeHead(501).end();
             if (url.pathname === "/acc/with-code") {
@@ -610,11 +709,6 @@ const public_server = http.createServer(async (req, res) => {
         case "PATCH":{
             // VERIFY THAT SENDER IS LOGGED IN AS TARGET USER
             switch (url.pathname) {
-                case "/acc/email": {
-                    notimpl("email change");
-                    res.writeHead(501).end();
-                    return;
-                }
                 case "/acc/password": {
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, accPWChangeScheme)) {
@@ -627,8 +721,11 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        await collection.updateOne({id:data.id}, {"$set":{pwdata:auth.makePwData(data.pw)}});
-                        res.writeHead(200).end();
+                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{pwdata:auth.makePwData(data.pw)}})).matchedCount) {
+                            res.writeHead(200).end();
+                        } else {
+                            res.writeHead(403).end("crossing DEV boundary is not allowed");
+                        }
                         return;
                     } catch (E) {
                         console.log(E);
@@ -638,6 +735,30 @@ const public_server = http.createServer(async (req, res) => {
                     // notimpl("password change");
                     // res.writeHead(501).end();
                     // return;
+                }
+                case "/acc/flagf1": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, accFlagsChangeScheme)) {
+                        res.writeHead(400).end("misformatted request");
+                        return;
+                    }
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.verifySession(sessid, data.id)) {
+                        res.writeHead(403).end();
+                        return;
+                    }
+                    try {
+                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{flagf1:data.flagf}})).matchedCount) {
+                            res.writeHead(200).end();
+                        } else {
+                            res.writeHead(403).end("crossing DEV boundary is not allowed");
+                        }
+                        return;
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end();
+                        return;
+                    }
                 }
                 case "/acc/name": {
                     const data = JSON.parse(body);
@@ -656,8 +777,11 @@ const public_server = http.createServer(async (req, res) => {
                         return;
                     }
                     try {
-                        await collection.updateOne({id:data.id}, {"$set":{name:data.name}});
-                        res.writeHead(200).end();
+                        if ((await collection.updateOne({id:data.id,devtst:(settings.DEVENV?true:{"$exists":false})}, {"$set":{name:data.name}})).matchedCount) {
+                            res.writeHead(200).end();
+                        } else {
+                            res.writeHead(403).end("crossing DEV boundary is not allowed");
+                        }
                         return;
                     } catch (E) {
                         console.log(E);
@@ -750,6 +874,10 @@ const internal_server = http.createServer(async (req, res) => {
             }
             if (!id) {
                 res.writeHead(401).end();
+                return;
+            }
+            if ((await collection.findOne({id:id})).devtst ^ settings.DEVENV) {
+                res.writeHead(403).end();
                 return;
             }
             const upd = {$bit:{}};

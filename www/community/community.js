@@ -20,6 +20,7 @@ const searchButton = document.getElementById("search-button");
  * (nodename:"input",attrs:{type:"text",id:string?,placeholder:string?}): HTMLInputElement;
  * (nodename:"input",attrs:{type:"email",id:string?,placeholder:string?}): HTMLInputElement;
  * (nodename:"input",attrs:{type:"password",id:string?}): HTMLInputElement;
+ * (nodename:"input",attrs:{type:"image",id:string?,alt:string?,title:string?,src:string,onclick:VoidFunction?}): HTMLInputElement;
  * (): void;
  * (nodename:Array<["td"]|["td",{textContent:string}]|["td",{children:HTMLElement[]}]>): HTMLTableCellElement[];
  * (nodename:Array<["span"]|["span",{textContent:string?,id:string?,classList:string[]?}]|["span",{children:HTMLElement[]?,id:string?,classList:string[]?}]>): HTMLSpanElement[];
@@ -71,25 +72,70 @@ const make = (nodename, attrs) => {
     if (attrs?.children) {
         e.replaceChildren(...attrs.children);
     }
+    if (attrs?.src) {
+        e.src = attrs.src;
+    }
+    if (attrs?.alt) {
+        e.alt = attrs.alt;
+    }
+    if (attrs?.title) {
+        e.title = attrs.title;
+    }
     return e;
 };
 
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function addFriend(id) {}
+async function addFriend(ev, id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        ev.target.alt = "Cancel Friend Request";
+        ev.target.title = "Cancel Friend Request";
+        ev.target.src = "community/icons/cancelfriend.svg";
+        ev.target.onclick = (ev)=>{cancelFriendRequest(ev, id);};
+    }
+}
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function cancelFriendRequest(id) {}
+async function cancelFriendRequest(ev, id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        ev.target.alt = "Add Friend";
+        ev.target.title = "Add Friend";
+        ev.target.src = "community/icons/addfriend.svg";
+        ev.target.onclick = (ev)=>{addFriend(ev, id);};
+    }
+}
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function acceptFriendRequest(id) {}
+async function acceptFriendRequest(ev, id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/send-friend-request`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        ev.target.alt = "Unfriend";
+        ev.target.title = "Unfriend";
+        ev.target.src = "community/icons/acceptfriend.svg";
+        ev.target.onclick = (ev)=>{unFriend(ev, id);};
+    }
+}
 /**
+ * @param {MouseEvent} ev
  * @param {string} id
  */
-async function unFriend(id) {}
+async function unFriend(ev, id) {
+    const res = await fetch(`https://${document.location.hostname}/acc/unfriend`, {headers:[["content-type","application/json"]],method:"POST",body:JSON.stringify({"id":id})});
+    if (res.status === 200) {
+        ev.target.alt = "Add Friend";
+        ev.target.title = "Add Friend";
+        ev.target.src = "community/icons/addfriend.svg";
+        ev.target.onclick = (ev)=>{addFriend(ev, id);};
+    }
+}
 
 /**
  * @param {string} id
@@ -100,19 +146,19 @@ function makeFriendActions(id, friend) {
     const actions = [];
     switch (friend) {
         case 0: {
-            actions.push(make("input",{"type":"button","value":"Add Friend","onclick":()=>{addFriend(id);}}));
+            actions.push(make("input",{"type":"image","alt":"Add Friend","title":"Add Friend","src":"community/icons/addfriend.svg","onclick":(ev)=>{addFriend(ev, id);}}));
             break;
         }
         case 1: {
-            actions.push(make("input",{"type":"button","value":"Cancel Friend Request","onclick":()=>{cancelFriendRequest(id);}}));
+            actions.push(make("input",{"type":"image","alt":"Cancel Friend Request","title":"Cancel Friend Request","src":"community/icons/cancelfriend.svg","onclick":(ev)=>{cancelFriendRequest(ev, id);}}));
             break;
         }
         case 2: {
-            actions.push(make("input",{"type":"button","value":"Accept Friend Request","onclick":()=>{acceptFriendRequest(id);}}));
+            actions.push(make("input",{"type":"image","alt":"Accept Friend Request","title":"Accept Friend Request","src":"community/icons/acceptfriend.svg","onclick":(ev)=>{acceptFriendRequest(ev, id);}}));
             break;
         }
         case 3: {
-            actions.push(make("input",{"type":"button","value":"Unfriend","onclick":()=>{unFriend(id);}}));
+            actions.push(make("input",{"type":"image","alt":"Unfriend","title":"Unfriend","src":"community/icons/unfriend.svg","onclick":(ev)=>{unFriend(ev, id);}}));
             break;
         }
     }
@@ -124,7 +170,7 @@ function makeFriendActions(id, friend) {
  * @param {number} page
  */
 async function loadPage(search, page) {
-    const res = await fetch(`https://territopple.net/acc/pub/list?page=${page||1}&search=${search||".*"}`);
+    const res = await fetch(`https://${document.location.hostname}/acc/pub/list?page=${page||1}&search=${search||".*"}`);
     if (res.status !== 200) {
         return;
     }
@@ -133,7 +179,7 @@ async function loadPage(search, page) {
     const rows = [];
     for (const entry of data) {
         const row = document.createElement("tr");
-        row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:makeFriendActions(entry.id, entry.friend)}]]));
+        row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:[make("span", {children:makeFriendActions(entry.id, entry.friend),classList:["flex-center"]})]}]]));
         rows.push(row);
     }
     listTable.replaceChildren(...rows);

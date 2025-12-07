@@ -13,7 +13,7 @@
         </div>
         <p>Don't have an account? <a href="/account/create" target="_self">create one</a> or <a href="/" target="_self">return home</a>.<br>Forgot password? <a href="/account/password-reset" target="_self">reset it here</a>.</p>
         <script>
-            fetch("https://territopple.net/acc/pub/logged-in", {method:"GET"}).then(v => {
+            fetch(`https://${document.location.hostname}/acc/pub/logged-in`, {method:"GET"}).then(v => {
                 if (v.status === 200) {
                     location.href = "/";
                 }
@@ -25,7 +25,7 @@
                 if ([id,pw].some(v => !v.value)) {
                     return;
                 }
-                fetch("https://territopple.net/acc/login", {method:"POST",headers:[["Content-Type","application/json"]],body:JSON.stringify({"id":id.value,"pw":pw.value})}).then(v => {
+                fetch(`https://${document.location.hostname}/acc/login`, {method:"POST",headers:[["Content-Type","application/json"]],body:JSON.stringify({"id":id.value,"pw":pw.value})}).then(v => {
                     if (v.status === 200) {
                         msg.textContent = "logged in, redirecting soon";
                         location.href = "/account/info";

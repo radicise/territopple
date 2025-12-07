@@ -526,6 +526,8 @@ exports.Game = Game;
  * PING_INTERVAL:number,
  * BOT_TO:number,
  * BOT_MAX_TILES:number,
+ * DEVENV:boolean?,
+ * ORIGIN:string,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number},
  * REJOIN_TIME:number,
  * APPEASEMENT:boolean,

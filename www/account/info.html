@@ -5,15 +5,16 @@
         <title>Account Info - Territopple</title>
     </head>
     <body>
-        <a href="/">home</a>
+        <a href="/" target="_self">home</a>
         <div id="acc">
             ID: <span id="acc-id">...</span><br>
             Name: <span id="acc-name">...</span><br>
             Joined: <span id="acc-cdate">...</span><br>
             Last Online: <span id="acc-lo">...</span><br>
             Level: <span id="acc-lvl">...</span><br>
-            Email: <span id="acc-email">...</span>
+            Email: <span id="acc-email">...</span><input type="button" value="show" id="show-email-btn" disabled>
         </div>
+        <a href="/account/settings" target="_self">settings</a>
         <script>
             const loc = new URL(location.href);
             let sendID = "%40self";
@@ -21,8 +22,19 @@
                 // document.getElementById("acc-id").textContent = loc.searchParams.get("id");
                 sendID = loc.searchParams.get("id");
             }
-            fetch(`https://territopple.net/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
-                console.log(v);
+            let email;
+            const acc_email = document.getElementById("acc-email");
+            document.getElementById("show-email-btn").onclick = () => {
+                if (acc_email.textContent === "<hidden>") {
+                    acc_email.textContent = email;
+                    document.getElementById("show-email-btn").value = "hide";
+                } else {
+                    acc_email.textContent = "<hidden>";
+                    document.getElementById("show-email-btn").value = "show";
+                }
+            };
+            fetch(`https://${document.location.hostname}/acc/pub/${sendID}/info`, {method:"GET"}).then(v => {
+                // console.log(v);
                 if (v.status === 403) {
                     document.getElementById("acc-id").textContent = "unauthorized";
                     return;
@@ -34,7 +46,7 @@
                         b.type = "button";
                         b.value = "logout";
                         b.onclick = () => {
-                            fetch("https://territopple.net/acc/pub/logout", {method:"GET"}).then(() => {location.href="/account/login";});
+                            fetch(`https://${document.location.hostname}/acc/pub/logout`, {method:"GET"}).then(() => {location.href="/account/login";});
                         }
                         document.getElementById("acc").append(document.createElement("br"), b);
                     }
@@ -43,7 +55,9 @@
                     document.getElementById("acc-cdate").textContent = new Date(j.cdate).toString();
                     document.getElementById("acc-lo").textContent = new Date(j.last_online).toString();
                     document.getElementById("acc-lvl").textContent = j.level;
-                    document.getElementById("acc-email").textContent = j.email ?? "unavailable";
+                    email = j.email ?? "unavailable";
+                    document.getElementById("acc-email").textContent = "<hidden>";
+                    document.getElementById("show-email-btn").disabled = false;
                     if (j.sanction !== null) {
                         document.getElementById("acc").append(`Sanction: ${j.sanction}`);
                     }

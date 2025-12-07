@@ -17,8 +17,29 @@
             span#search-container {
                 width: fit-content;
             }
-            thead > tr > th:nth-child(-n + 2) {
+            /* thead > tr > th:nth-child(-n + 2) {
                 text-align: left;
+            } */
+            .left-align {
+                text-align: left;
+            }
+            table#member-list {
+                border-spacing: 0px;
+                border-collapse: collapse;
+            }
+            table#member-list td {
+                border: solid 1px black;
+                padding: 2px;
+            }
+            table#member-list td input[type=image] {
+                aspect-ratio: 1/1;
+                height: max(2em, 27px);
+                vertical-align: middle;
+            }
+            .flex-center {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-around;
             }
         </style>
     </head>
@@ -34,8 +55,8 @@
             </span>
             <table id="member-list">
                 <thead>
-                    <th scope="col">Account ID</th>
-                    <th scope="col">Name</th>
+                    <th scope="col" class="left-align">Account ID</th>
+                    <th scope="col" class="left-align">Name</th>
                     <th scope="col">Level</th>
                     <th scope="col">Last Online</th>
                     <th scope="col">Joined</th>

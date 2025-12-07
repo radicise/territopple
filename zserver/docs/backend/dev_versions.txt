@@ -1,0 +1,7 @@
+this file describes the format of DEV version strings and what information they convey
+
+a DEV version is composed of (yyyy/m/d/h/n) where m is base 12 (a-l), d is base 32 (0-v), h is base 2 (X-Y), n is a discriminator with base 62 (0-Z)
+abcdefghijklmnopqrstuvwxyz
+EXAMPLE: 2026a0X0
+Update is 1 Jan 2026, am, first update of that hour
+

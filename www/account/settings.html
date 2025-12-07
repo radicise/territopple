@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Territopple - Account Settings</title>
+        <style>
+            div#basic-info-cont input[type=image] {
+                height: calc(var(--h) * 1px);
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <a href="/" target="_self">home</a>
+        <a href="/account/info" target="_self">back</a>
+        <br>
+        <input type="button" value="Apply Changes" id="apply-settings-btn"><span id="apply-status"></span>
+        <div id="basic-info-cont">
+            ID: <span id="acc-id">...</span> (cannot be changed)<br>
+            Name: <span><input type="text" disabled value="..." id="acc-name"></span><br>
+            Email: <span id="acc-email">...</span> (to change the account email, please contact the server operator)
+        </div>
+        <h3>Options</h3>
+        <div id="options">
+            <h4>Allow Friend Requests From</h4>
+            Anyone: <input type="checkbox" id="op-frs-anyone" checked><br>
+            People in the same room: <input type="checkbox" id="op-frs-same-room" checked><br>
+            Friends of friends: <input type="checkbox" id="op-frs-fof" checked>
+        </div>
+        <script>
+            const oprops = {};
+            const props = {};
+            /**
+             * @param {string} eid
+             * @param {HTMLInputElement} btn
+             */
+            function BI_edit(eid, btn) {
+                btn.title = "Done";
+                btn.alt = "Done Button";
+                btn.src = "/account/icons/setdone.svg";
+                document.getElementById(eid).disabled = false;
+                btn.onclick = ()=>{BI_done(eid, btn);};
+            }
+            /**
+             * @param {string} eid
+             * @param {HTMLInputElement} btn
+             */
+            function BI_done(eid, btn) {
+                btn.title = "Edit";
+                btn.alt = "Edit Button";
+                btn.src = "/account/icons/setedit.svg";
+                document.getElementById(eid).disabled = true;
+                switch (eid) {
+                    case "acc-name":{
+                        props.name = document.getElementById(eid).value;
+                        break;
+                    }
+                }
+                btn.onclick = ()=>{BI_edit(eid, btn);};
+            }
+            // /**@type {HTMLInputElement[]} */
+            // const imgupdatelist = [];
+            // window.addEventListener("resize", () => {});
+            document.getElementById("basic-info-cont").querySelectorAll("input").forEach(e => {
+                const b = document.createElement("input");
+                // imgupdatelist.push(b);
+                b.style.setProperty("--h", e.clientHeight);
+                b.type = "image";
+                b.src = "/account/icons/setedit.svg";
+                b.alt = "Edit Button";
+                b.title = "Edit";
+                b.onclick = () => {BI_edit(e.id,b);};
+                e.after(b);
+            });
+            /**@type {HTMLInputElement} */
+            const op_frs_anyone = document.getElementById("op-frs-anyone");
+            /**@type {HTMLInputElement} */
+            const op_frs_same_room = document.getElementById("op-frs-same-room");
+            /**@type {HTMLInputElement} */
+            const op_frs_fof = document.getElementById("op-frs-fof");
+            /**@type {HTMLInputElement} */
+            const bi_name = document.getElementById("bi-name");
+            /**@type {HTMLSpanElement} */
+            const apply_status = document.getElementById("apply-status");
+            fetch(`https://${document.location.hostname}/acc/pub/%40self/info`, {method:"GET"}).then(v => {
+                // console.log(v);
+                if (v.status === 403) {
+                    document.getElementById("acc-id").textContent = "unauthorized";
+                    return;
+                }
+                // v = JSON.parse(v.text);
+                v.json().then(j => {
+                    document.getElementById("acc-id").textContent = j.id;
+                    document.getElementById("acc-name").value = j.name;
+                    document.getElementById("acc-email").textContent = j.email ?? "unavailable";
+                    props.name = j.name;
+                    props.flagf1 = j.flagf1;
+                    oprops.name = j.name;
+                    oprops.flagf1 = j.flagf1;
+                    oprops.id = j.id;
+                    op_frs_anyone.checked = !(oprops.flagf1&1);
+                    op_frs_same_room.checked = !(oprops.flagf1&2);
+                    op_frs_fof.checked = !(oprops.flagf1&4);
+                    op_frs_anyone.onclick = ()=>{props.flagf1=(props.flagf1&~1)|Number(!op_frs_anyone.checked);};
+                    op_frs_same_room.onclick = ()=>{props.flagf1=(props.flagf1&~2)|(Number(!op_frs_same_room.checked)<<1);};
+                    op_frs_fof.onclick = ()=>{props.flagf1=(props.flagf1&~4)|(Number(!op_frs_fof.checked)<<2);};
+                });
+            });
+            document.getElementById("apply-settings-btn").onclick = () => {
+                const proms = [];
+                for (const key in oprops) {
+                    if (oprops[key] !== props[key]) {
+                        apply_status.textContent = " applying";
+                        switch (key) {
+                            case "name": {
+                                proms.push(fetch(`https://${document.location.hostname}/acc/name`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,name:props.name})}).then(v=>{if(v.ok)oprops.name=props.name;}));
+                                break;
+                            }
+                            case "flagf1": {
+                                proms.push(fetch(`https://${document.location.hostname}/acc/flagf1`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,flagf:props.flagf1})}).then(v=>{if(v.ok)oprops.flagf1=props.flagf1;}));
+                                break;
+                            }
+                        }
+                    }
+                }
+                Promise.allSettled(proms).then(v => {apply_status.textContent=v.every(r=>r.status==="fulfilled")?" applied":" failed";});
+            };
+        </script>
+        <!-- <script src="/components/include.js"></script> -->
+        <!-- <script src="/account/settings.js"></script> -->
+    </body>
+</html>
