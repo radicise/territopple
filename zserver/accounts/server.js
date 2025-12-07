@@ -583,11 +583,22 @@ const public_server = http.createServer(async (req, res) => {
                             ]);
                         } else {
                             console.log(`dt:${mrec.devtst}\nof:${orec.flagf1}\nofl:${orec.friends}\nmfl:${mrec.friends}`);
-                            if (!(mrec.devtst || !checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
-                                (!checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) && orec.friends?.some(v => mrec.friends?.includes(v))))) {
-                                    res.writeHead(403).end();
-                                    return;
-                                }
+                            console.log(checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER));
+                            console.log(checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF));
+                            console.log(orec.friends?.some(v => mrec.friends?.includes(v)));
+                            if (
+                                !(
+                                    mrec.devtst ||
+                                    !checkFlag(orec.flagf1, FlagF1.FRIEND_F_STRANGER) ||
+                                    (
+                                        !checkFlag(orec.flagf1, FlagF1.FRIEND_F_FOF) &&
+                                        orec.friends?.some(v => mrec.friends?.includes(v))
+                                    )
+                                )
+                            ) {
+                                res.writeHead(403).end();
+                                return;
+                            }
                             await Promise.all([
                                 collection.updateOne({id:data.id},{"$addToSet":{incoming_friends:mid}}),
                                 collection.updateOne({id:mid},{"$addToSet":{outgoing_friends:data.id}})
