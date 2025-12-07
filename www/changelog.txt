@@ -1,3 +1,8 @@
+# Dec 6, 2025 (DEV 2025l5Y1)
+changed friend request restrictions to be enabled by default
+added settings page
+added name change UI
+
 # Dec 6, 2025 (DEV 2025l5Y0)
 friend requests now supported
 added flags for restricting who can send a friend request to an account (NOTE: these are all disabled by default)
