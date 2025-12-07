@@ -57,11 +57,11 @@ const mdb = require("mongodb");
  */
 const FlagF1 = Object.seal({
     /**@readonly */
-    FRIEND_F_STRANGER: 0,
+    FRIEND_F_STRANGER: 1,
     /**@readonly */
-    FRIEND_F_SAMEROOM: 1,
+    FRIEND_F_SAMEROOM: 2,
     /**@readonly */
-    FRIEND_F_FOF: 2
+    FRIEND_F_FOF: 4
 });
 
 /**
