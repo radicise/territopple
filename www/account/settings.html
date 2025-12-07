@@ -50,6 +50,12 @@
                 btn.alt = "Edit Button";
                 btn.src = "/account/icons/setedit.svg";
                 document.getElementById(eid).disabled = true;
+                switch (eid) {
+                    case "acc-name":{
+                        props.name = document.getElementById(eid).value;
+                        break;
+                    }
+                }
                 btn.onclick = ()=>{BI_edit(eid, btn);};
             }
             // /**@type {HTMLInputElement[]} */
