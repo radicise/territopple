@@ -67,6 +67,7 @@ class DummyGame {
             this.players = game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
             this.turn = game.turn;
             this.win = game.win ?? 0;
+            this.total_tiles = game.topology.tileCount + (game.total_tiles ?? 0);
             return;
         }
         this.total_tiles = game.state.topology.tileCount + (game.total_tiles ?? 0);
