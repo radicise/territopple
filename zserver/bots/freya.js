@@ -9,6 +9,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
     "prereq":{"achi":[],"bots":["Terry Topple (Trivial)"]}
 }, async (that, gamestate, limit) => {
     let timeup = false;
+    const starttime = Date.now();
     // let best = Number.NEGATIVE_INFINITY;
     /**
      * @param {number} tile
@@ -18,6 +19,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
      */
     const peval = async (tile, depth, gstate) => {
         await new Promise(r => setTimeout(r, 1));
+        // console.log(`DT: ${Date.now() - starttime}`);
         if (depth === 0 || timeup) {
             return gstate.owned[gamestate.players[that.pnum].team]-(
                 gstate.topology.tileCount

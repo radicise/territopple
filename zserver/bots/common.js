@@ -68,6 +68,7 @@ class DummyGame {
             this.turn = game.turn;
             this.win = game.win ?? 0;
             this.total_tiles = game.topology.tileCount + (game.total_tiles ?? 0);
+            console.log(this.total_tiles);
             return;
         }
         this.total_tiles = game.state.topology.tileCount + (game.total_tiles ?? 0);
