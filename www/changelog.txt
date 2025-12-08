@@ -1,3 +1,6 @@
+# Dec 8, 2025 (DEV 2025l7Y0)
+fixed memory limits not working for bots
+
 # Dec 6, 2025 (Alpha 1.7.0)
 account emails are now hidden by default, and can be shown by pressing a button
 added settings page
