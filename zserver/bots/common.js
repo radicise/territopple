@@ -168,7 +168,7 @@ class TTBotInstance {
         try {
             return await this.#think(this, new DummyGame(game, _), limit);
         } catch (E) {
-            console.log(E);
+            if (E.message !== "OOM") console.log(E);
             return Random.pick(new DummyGame(game, _).getMoves());
         }
     }
