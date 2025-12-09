@@ -14,6 +14,8 @@ const fs = require("fs");
 const asettings = {};
 if (fs.existsSync("botconf.json")) {
     extend(asettings, JSON.parse(fs.readFileSync("botconf.json")));
+} else {
+    console.log("MISSING BOT SETTINGS");
 }
 if (!asettings["default"]) {
     asettings["default"] = {maxdepth:1,maxtime:1000};
