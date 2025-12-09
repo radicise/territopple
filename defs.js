@@ -555,7 +555,8 @@ const extend = (e, o) => {
             if (key in e) {
                 extend(e[key], o[key]);
             } else {
-                extend(e, o[key]);
+                // extend(e, o[key]);
+                e[key] = o[key];
             }
         } else {
             e[key] = o[key];
