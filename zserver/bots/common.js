@@ -169,8 +169,8 @@ class DummyGame {
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== team) {
-                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+tb[t])-1, work.#offsetO+tb[t]);
-                if (work.getOwned(0, true) === 0 && work.getOwned[tb[t], true] === 0) {
+                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+tb[t]*4)-1, work.#offsetO+tb[t]*4);
+                if (work.getOwned(0, true) === 0 && work.getOwned(tb[t], true) === 0) {
                     for (let i = work.#offsetP; i < this.playc; i ++) {
                         const tm = this.playerdata[work.#offsetP+i]&0x7f;
                         if (tm === tb[t]) {
@@ -179,7 +179,7 @@ class DummyGame {
                     }
                     // work.players.forEach((v, i) => {if(v&&v.team===tb[t]){v.alive=false;}});
                 }
-                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+team)+1, work.#offsetO+team);
+                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+team*4)+1, work.#offsetO+team*4);
                 tb[t] = team;
                 if (work.getOwned(team, true) === bb.length) {
                     work.win = this.turn;
@@ -209,7 +209,7 @@ class DummyGame {
      * @returns {number}
      */
     getOwned(pnum, _) {
-        return this.owneddata.readUint32BE(this.#offsetO+_?pnum:this.getTeam(pnum));
+        return this.owneddata.readUint32BE(this.#offsetO+(_?pnum:this.getTeam(pnum))*4);
     }
     get #offsetB() {return this.topology.tileCount*this.depth;}
     get #offsetBT() {return this.#offsetB+this.tbstart;}
