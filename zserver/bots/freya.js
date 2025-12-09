@@ -19,6 +19,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
      */
     const peval = async (tile, depth, gstate) => {
         if (depth === 0 || timeup || Date.now()-starttime > limit) {
+            if (!timeup) console.log("TIMEOUT");
             timeup = true;
             return gstate.getOwned(that.pnum)-(
                 gstate.topology.tileCount
