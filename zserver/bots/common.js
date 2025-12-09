@@ -173,6 +173,10 @@ class DummyGame {
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== team) {
+                const nov = work.getOwned(tb[t], true)-1;
+                if (nov < 0) {
+                    console.log("SCREWED");
+                }
                 work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+tb[t]*4)-1, work.#offsetO+tb[t]*4);
                 if (work.getOwned(0, true) === 0 && work.getOwned(tb[t], true) === 0) {
                     for (let i = work.#offsetP; i < this.playc; i ++) {
