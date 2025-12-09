@@ -341,7 +341,9 @@ class TTBotInstance {
         try {
             return await this.#think(this, new DummyGame(game, true, this.#parent.conf.maxdepth??1), limit);
         } catch (E) {
-            if (E.message !== "OOM") console.log(E);
+            // if (E.message !== "OOM") {
+            // }
+            console.log(E);
             return Random.pick(new DummyGame(game, true, 1).getMoves());
         }
     }
