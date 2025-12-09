@@ -158,7 +158,7 @@ class DummyGame {
      * @returns {DummyGame}
      */
     move(tile) {
-        if (this.depth === this.maxdepth) {
+        if (this.depth+1 === this.maxdepth) {
             // const e = new Error("OOM");
             // e.OOM = true;
             // throw e;
