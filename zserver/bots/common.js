@@ -6,7 +6,7 @@
 const { extend, settings, __dname } = require("../../defs.js");
 const fs = require("fs");
 const path = require("path");
-console.log(__dname);
+// console.log(__dname);
 // const { Topology } = require("../../topology/topology.js");
 /**
  * @typedef BotConfig
@@ -14,8 +14,8 @@ console.log(__dname);
  */
 /**@type {Record<string,Record<string,BotConfig>>} */
 const asettings = {};
-if (fs.existsSync(path.join(__dname, "botconf.json"))) {
-    extend(asettings, JSON.parse(fs.readFileSync(path.join(__dname, "botconf.json"))));
+if (fs.existsSync(path.join(__dirname, "botconf.json"))) {
+    extend(asettings, JSON.parse(fs.readFileSync(path.join(__dirname, "botconf.json"))));
 } else {
     console.log("MISSING BOT SETTINGS");
 }
