@@ -265,6 +265,7 @@ function connect(gid, key, num, rname) {
                     }
                     if (ifmt.turn === ifmt.pln) {
                         game.turn = ifmt.turn;
+                        console.log("THINKING");
                         const thunk = await bot.think(game, game.rules?.turnTime?.limit);
                         // console.log(thunk);
                         conn.send(JSON.stringify({type:"game:move",payload:{n:thunk}}));
