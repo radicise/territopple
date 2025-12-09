@@ -18,14 +18,15 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
      * @returns {Promise<number>}
      */
     const peval = async (tile, depth, gstate) => {
-        if (depth === 0 || timeup) {
+        if (depth === 0 || timeup || Date.now()-starttime > limit) {
+            timeup = true;
             return gstate.getOwned(that.pnum)-(
                 gstate.topology.tileCount
                 -gstate.getOwned(0)
                 // -gstate.owned[gamestate.players[that.pnum].team]
             );
         }
-        await new Promise(r => setTimeout(r, 1));
+        // await new Promise(r => setTimeout(r, 1));
         // console.log(`DT: ${Date.now() - starttime}`);
         const myturn = gstate.turn === that.pnum;
         const state = gstate.move(tile);
@@ -40,7 +41,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
         const res = (myturn?Math.max:Math.min)(...l);
         return res;
     };
-    setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
+    // setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
     const evals = [];
     for (const move of gamestate.getMoves()) {
         evals.push([move, await peval(move, that.conf.maxdepth, gamestate)]);
