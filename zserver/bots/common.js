@@ -122,7 +122,7 @@ class DummyGame {
         for (let i = 0; i < this.playc; i ++) {
             this.playerdata[this.#offsetP+i] = this.playerdata[game.#offsetP+i];
         }
-        for (let i = 0; i < this.teamc; i ++) {
+        for (let i = 0, l = this.teamc*4; i < l; i ++) {
             this.owneddata[this.#offsetO+i] = this.owneddata[game.#offsetO+i];
         }
     }
