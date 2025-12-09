@@ -53,6 +53,178 @@ class Random {
 }
 
 class DummyGame {
+    constructor(parent, parentisgame, maxdepth) {
+        if (parentisgame) {
+            this.#fromGame(parent, maxdepth);
+        } else {
+            this.#fromDummy(parent);
+        }
+    }
+    /**
+     * @param {import("./bot_server.js").Game} game
+     * @param {number} maxdepth
+     */
+    #fromGame(game, maxdepth) {
+        const players = game.players;
+        // property creation
+        this._teamc = game.owned.length;
+        this._playc = game.players.length;
+        const tc = game.topology.tileCount;
+        maxdepth = Math.min(Math.floor(TTBot.tile_limit/tc), maxdepth);
+        this._maxdepth = maxdepth;
+        this._tbstart = tc*maxdepth;
+        this._boarddata = Buffer.allocUnsafe(this.tbstart*2);
+        this._owneddata = Buffer.allocUnsafe(game.owned.length*maxdepth*4);
+        this._topology = game.topology;
+        this._playerdata = Buffer.allocUnsafe(players.length*maxdepth);
+        this._turndata = Buffer.allocUnsafe(maxdepth);
+        this.root = this;
+        this.win = game.win ?? 0;
+        this.depth = 0;
+        // buffer initialization
+        for (let i = 0; i < game.topology.tileCount; i ++) {
+            this._boarddata[i] = game.board[i];
+            this._boarddata[this._tbstart+i] = game.teamboard[i];
+        }
+        for (let i = 0; i < players.length; i ++) {
+            this._playerdata[i] = (players[i].alive?0x80:0)|players[i].team;
+        }
+        this._turndata[0] = game.turn;
+    }
+    /**
+     * @param {DummyGame} game
+     */
+    #fromDummy(game) {
+        this.root = game.root;
+        this.depth = game.depth+1;
+        this.win = game.win ?? 0;
+        for (let i = 0; i < this.topology.tileCount; i ++) {
+            this.boarddata[this.#offsetB+i] = this.boarddata[game.#offsetB+i];
+            this.boarddata[this.#offsetBT+i] = this.boarddata[game.#offsetBT+i];
+        }
+        for (let i = 0; i < this.playc; i ++) {
+            this.playerdata[this.#offsetP+i] = this.playerdata[game.#offsetP+i];
+        }
+        for (let i = 0; i < this.teamc; i ++) {
+            this.owneddata[this.#offsetO+i] = this.owneddata[game.#offsetO+i];
+        }
+    }
+    /**
+     * @returns {number}
+     */
+    getNextPlayer() {
+        let i = this.turn;
+        while (true) {
+            i += 1;
+            i = i % this.playc;
+            if (i === this.turn) {
+                this.win = this.playerdata[this.#offsetP+this.turn]&0x7f;
+                return 255;
+            }
+            if (this.playerdata[this.#offsetP+i]&0x80) {
+                return i;
+            }
+        }
+    }
+    /**
+     * returns list of all valid moves
+     * @returns {number[]}
+     */
+    getMoves() {
+        const t = this.playerdata[this.#offsetP+this.turn]&0x7f;
+        const l = [];
+        this.boarddata.subarray(this.#offsetBT,this.#offsetBT+this.topology.tileCount).forEach((v, i) => {if(v === 0 || v === t)l.push(i);});
+        return l;
+    }
+    /**
+     * @param {number} tile
+     * @returns {DummyGame}
+     */
+    move(tile) {
+        if (this.depth === this.maxdepth) {
+            // const e = new Error("OOM");
+            // e.OOM = true;
+            // throw e;
+            throw new Error("OOM");
+        }
+        const work = new DummyGame(this, false);
+        const player = this.turn;
+        const adds = [tile];
+        const team = work.playerdata[work.#offsetP+player];
+        const tb = work.boarddata.subarray(work.#offsetBT, work.#offsetBT+this.topology.tileCount);
+        const bb = work.boarddata.subarray(work.#offsetB, work.#offsetB+this.topology.tileCount);
+        while (adds.length) {
+            const t = adds.pop();
+            if (tb[t] !== team) {
+                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+tb[t])-1, work.#offsetO+tb[t]);
+                if (work.owned[0] === 0 && work.owned[tb[t]] === 0) {
+                    for (let i = work.#offsetP; i < this.playc; i ++) {
+                        const tm = this.playerdata[work.#offsetP+i]&0x7f;
+                        if (tm === tb[t]) {
+                            this.playerdata[work.#offsetP+i] = tm;
+                        }
+                    }
+                    // work.players.forEach((v, i) => {if(v&&v.team===tb[t]){v.alive=false;}});
+                }
+                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+team)+1, work.#offsetO+team);
+                tb[t] = team;
+                if (work.owned[team] === bb.length) {
+                    work.win = this.turn;
+                    work.turn = 255;
+                    return work;
+                }
+            }
+            bb[t] ++;
+            const neighbors = work.topology.getNeighbors(t);
+            if (bb[t] > neighbors.length) {
+                bb[t] -= neighbors.length;
+                adds.push(...neighbors);
+            }
+        }
+        work.turn = work.getNextPlayer();
+        return work;
+    }
+    /**
+     * @param {number} pnum
+     * @returns {number}
+     */
+    getTeam(pnum) {
+        return this.playerdata[this.#offsetP+pnum]&0x7f;
+    }
+    /**
+     * @param {number} pnum
+     * @returns {number}
+     */
+    getOwned(pnum) {
+        return this.owneddata[this.#offsetO+this.getTeam(pnum)];
+    }
+    get #offsetB() {return this.topology.tileCount*this.depth;}
+    get #offsetBT() {return this.#offsetB+this.tbstart;}
+    get #offsetO() {return this.teamc*this.depth*4;}
+    get #offsetP() {return this.playc*this.depth;}
+    get turn() {return this.turndata[this.depth];}
+    set turn(v) {this.turndata[this.depth]=v;}
+    /**@returns {number} */
+    get teamc(){return this.root._teamc;}
+    /**@returns {number} */
+    get playc(){return this.root._playc;}
+    /**@returns {number} */
+    get maxdepth(){return this.root._maxdepth;}
+    /**@returns {number} */
+    get tbstart(){return this.root._tbstart;}
+    /**@returns {Buffer} */
+    get boarddata(){return this.root._boarddata;}
+    /**@returns {Buffer} */
+    get owneddata(){return this.root._owneddata;}
+    /**@returns {import("../../topology/topology.js").Topology} */
+    get topology(){return this.root._topology;}
+    /**@returns {Buffer} */
+    get playerdata(){return this.root._playerdata;}
+    /**@returns {Buffer} */
+    get turndata(){return this.root._turndata;}
+}
+
+class DummyGameOld {
     // #total_tiles;
     /**
      * @param {import("../../defs").Game} game
@@ -165,12 +337,12 @@ class TTBotInstance {
         this.#think = think;
         this.#pnum = pnum;
     }
-    async think(game, _, limit) {
+    async think(game, limit) {
         try {
-            return await this.#think(this, new DummyGame(game, _), limit);
+            return await this.#think(this, new DummyGame(game, true, this.#parent.conf.maxdepth??1), limit);
         } catch (E) {
             if (E.message !== "OOM") console.log(E);
-            return Random.pick(new DummyGame(game, _).getMoves());
+            return Random.pick(new DummyGame(game, true, 1).getMoves());
         }
     }
     /**

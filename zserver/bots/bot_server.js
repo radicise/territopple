@@ -265,7 +265,7 @@ function connect(gid, key, num, rname) {
                     }
                     if (ifmt.turn === ifmt.pln) {
                         game.turn = ifmt.turn;
-                        const thunk = await bot.think(game, true, game.rules?.turnTime?.limit);
+                        const thunk = await bot.think(game, game.rules?.turnTime?.limit);
                         // console.log(thunk);
                         conn.send(JSON.stringify({type:"game:move",payload:{n:thunk}}));
                     }
@@ -606,7 +606,7 @@ class Game {
         this.board = null;
         /**@type {number[]} */
         this.teamboard = null;
-        this.owned = new Array(6).fill(0);
+        this.owned = new Array(7).fill(0);
         /**@type {Player[]} */
         this.playerList = [];
         this.started = false;
@@ -683,7 +683,7 @@ class Game {
         this.playerList[0] = {team:0};
     }
     recalcDerived() {
-        this.owned = new Array(6).fill(0);
+        this.owned = new Array(7).fill(0);
         for (let i = 0; i < this.teamboard.length; i ++) {
             this.owned[this.teamboard[i]] ++;
         }
@@ -725,3 +725,4 @@ class Game {
         }
     }
 }
+exports.Game = Game;

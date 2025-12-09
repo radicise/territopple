@@ -9,7 +9,7 @@ new TTBot("Constantine [the Conqueror] (Trivial)", "constantine", {
     "prereq":{"achi":[],"bots":["Terry Topple (Trivial)"]}
 }, (that, gamestate) => {
     const peval = (tile) => {
-        return gamestate.move(tile).owned[gamestate.players[that.pnum].team];
+        return gamestate.move(tile).getOwned(that.pnum);
     };
     const _ = gamestate.getMoves().map(v => [v, peval(v)]).sort((a, b) => b[1]-a[1]);
     const ind = _.findIndex((v, i) => i>0?v[1]<_[i-1][1]:false);
@@ -36,7 +36,6 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
      * @returns {Promise<number>}
      */
     const peval = async (tile, depth, gstate) => {
-        await new Promise(r => setTimeout(r, 0));
         if (depth === 0 || timeup) {
             return gstate.owned[gamestate.players[that.pnum].team]-(
                 gstate.topology.tileCount
@@ -44,15 +43,23 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
                 // -gstate.owned[gamestate.players[that.pnum].team]
             );
         }
+        await new Promise(r => setTimeout(r, 1));
         const myturn = gstate.turn === that.pnum;
         const state = gstate.move(tile);
-        if (state.owned.some(v => v===gstate.topology.tileCount)) {
+        if (state.win) {
             return myturn?Number.POSITIVE_INFINITY:Number.NEGATIVE_INFINITY;
         }
         // state.turn = that.pnum;
-        return (myturn?Math.max:Math.min)(...await Promise.all(state.getMoves().map(v => peval(v, depth-1, state))));
+        const l = [];
+        for (const v of state.getMoves()) {
+            l.push(await peval(v, depth-1, state));
+        }
+        return (myturn?Math.max:Math.min)(...l);
     };
     setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
-    const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, that.conf.maxdepth, gamestate)]));
+    const evals = [];
+    for (const v of gamestate.getMoves()) {
+        evals.push([v, await peval(v, that.conf.maxdepth, gamestate)]);
+    }
     return Random.pickmove(evals);
 });
