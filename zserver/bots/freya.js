@@ -48,7 +48,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
     // setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
     const evals = [];
     for (const move of gamestate.getMoves()) {
-        evals.push([move, await peval(move, gamestate.maxdepth, gamestate)]);
+        evals.push([move, await peval(move, gamestate.maxdepth-1, gamestate)]);
     }
     return Random.pickmove(evals);
 });
