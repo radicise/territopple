@@ -8,6 +8,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
     "disp":"Freya",
     "prereq":{"achi":[],"bots":["Terry Topple (Trivial)"]}
 }, async (that, gamestate, limit) => {
+    limit = Math.min(limit ?? that.conf.maxtime, that.conf.maxtime);
     let timeup = false;
     const starttime = Date.now();
     let count = 0;
