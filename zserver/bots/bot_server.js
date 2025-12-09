@@ -6,6 +6,7 @@ const ws = require("ws");
 // const child_process = require("child_process");
 const socks = require("../socks/handlers.js");
 const { settings, emit, on, clear } = require("../../defs.js");
+const { DBG } = require("./common.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "bots.pid"), process.pid.toString());
 
@@ -566,6 +567,10 @@ process.stdin.on("data", (d) => {
                 try {
                     console.log(eval(l));
                 } catch (E) {
+                    try {
+                        console.log(DBG(l));
+                        return;
+                    } catch (E) {}
                     console.error(E.stack);
                 }
             } else {
