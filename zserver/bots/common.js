@@ -19,6 +19,16 @@ if (!asettings["default"]) {
     asettings["default"] = {maxdepth:1,maxtime:1000};
 }
 
+class TileLimitError extends Error {
+    /**
+     * @param {String} message - error message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "TileLimitError";
+    }
+}
+
 class Random {
     /**
      * @param {number} lo
@@ -145,12 +155,12 @@ class DummyGame {
             // const e = new Error("OOM");
             // e.OOM = true;
             // throw e;
-            throw new Error("OOM");
+            throw new TileLimitError("OOM");
         }
         const work = new DummyGame(this, false);
         const player = this.turn;
         const adds = [tile];
-        const team = work.playerdata[work.#offsetP+player];
+        const team = work.playerdata[work.#offsetP+player]&0x7f;
         const tb = work.boarddata.subarray(work.#offsetBT, work.#offsetBT+this.topology.tileCount);
         const bb = work.boarddata.subarray(work.#offsetB, work.#offsetB+this.topology.tileCount);
         while (adds.length) {
@@ -269,7 +279,7 @@ class DummyGameOld {
             // const e = new Error("OOM");
             // e.OOM = true;
             // throw e;
-            throw new Error("OOM");
+            throw new TileLimitError("OOM");
         }
         const work = new DummyGame(this, true);
         const player = this.turn;
@@ -614,4 +624,5 @@ exports.BotInfo = this.BotInfo;
 exports.DIFFICULTY = this.DIFFICULTY;
 exports.Random = Random;
 exports.DummyGame = DummyGame;
+exports.TileLimitError = TileLimitError;
 exports.DIFF_LEVELS = DIFF_LEVELS;
