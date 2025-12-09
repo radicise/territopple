@@ -73,7 +73,7 @@ class DummyGame {
         maxdepth = Math.min(Math.floor(TTBot.tile_limit/tc), maxdepth);
         this._maxdepth = maxdepth;
         this._tbstart = tc*maxdepth;
-        this._boarddata = Buffer.allocUnsafe(this.tbstart*2);
+        this._boarddata = Buffer.allocUnsafe(this._tbstart*2);
         this._owneddata = Buffer.allocUnsafe(game.owned.length*maxdepth*4);
         this._topology = game.topology;
         this._playerdata = Buffer.allocUnsafe(players.length*maxdepth);
