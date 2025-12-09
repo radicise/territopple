@@ -6,6 +6,7 @@
 const { extend, settings, __dname } = require("../../defs.js");
 const fs = require("fs");
 const path = require("path");
+console.log(__dname);
 // const { Topology } = require("../../topology/topology.js");
 /**
  * @typedef BotConfig
