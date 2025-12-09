@@ -623,6 +623,13 @@ class BotConf {
     }
 }
 
+function DBG(cmd) {
+    if (!process.argv.includes("--eval-stdin")) process.exit(1);
+    return eval(cmd);
+}
+
+exports.DBG = DBG;
+
 exports.TTBot = TTBot;
 exports.BotConf = BotConf;
 exports.TTBotInstance = TTBotInstance;
