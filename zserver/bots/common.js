@@ -96,6 +96,9 @@ class DummyGame {
             this._boarddata[i] = game.board[i];
             this._boarddata[this._tbstart+i] = game.teamboard[i];
         }
+        for (let i = 0; i < game.owned.length; i ++) {
+            this._owneddata.writeUInt32BE(game.owned[i], i*4);
+        }
         for (let i = 0; i < players.length; i ++) {
             this._playerdata[i] = (players[i].alive?0x80:0)|players[i].team;
         }
