@@ -3,8 +3,9 @@
  * this file handles common functions for all Territopple bots
  */
 
-const { extend, settings } = require("../../defs.js");
+const { extend, settings, __dname } = require("../../defs.js");
 const fs = require("fs");
+const path = require("path");
 // const { Topology } = require("../../topology/topology.js");
 /**
  * @typedef BotConfig
@@ -12,8 +13,8 @@ const fs = require("fs");
  */
 /**@type {Record<string,Record<string,BotConfig>>} */
 const asettings = {};
-if (fs.existsSync("botconf.json")) {
-    extend(asettings, JSON.parse(fs.readFileSync("botconf.json")));
+if (fs.existsSync(path.join(__dname, "botconf.json"))) {
+    extend(asettings, JSON.parse(fs.readFileSync(path.join(__dname, "botconf.json"))));
 } else {
     console.log("MISSING BOT SETTINGS");
 }
