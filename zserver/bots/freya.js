@@ -10,6 +10,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
 }, async (that, gamestate, limit) => {
     let timeup = false;
     const starttime = Date.now();
+    let count = 0;
     // let best = Number.NEGATIVE_INFINITY;
     /**
      * @param {number} tile
@@ -18,6 +19,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
      * @returns {Promise<number>}
      */
     const peval = async (tile, depth, gstate) => {
+        count ++;
         if (depth === 0 || timeup || Date.now()-starttime > limit) {
             if (!timeup) console.log("TIMEOUT");
             timeup = true;
