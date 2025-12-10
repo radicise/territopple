@@ -578,7 +578,7 @@ class NetData {
     static Misc(type, data) {
         const pack = {type, payload:data??{}};
         if (settings.DEBUG?.TRACE_WS) {
-            pack.trace = (new Error("TRACE").stack).split("\n").join("@");
+            pack.trace = (new Error("TRACE").stack).split("\n").filter(v=>v.includes("territopple")).map(v=>v.trim()).join("@");
         }
         return JSON.stringify(pack);
     }
