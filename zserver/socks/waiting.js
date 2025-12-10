@@ -94,10 +94,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
     errorL = () => {
-        change("dcon", {isHost});
+        change("dcon", {isHost:state.isHost});
     };
     closeL = () => {
-        change("dcon", {isHost});
+        change("dcon", {isHost:state.isHost});
     };
     messageL = (_data) => {
         /**@type {NetPayload} */
