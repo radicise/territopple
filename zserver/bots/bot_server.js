@@ -57,8 +57,8 @@ server = http.createServer((req, res) => {
  * @param {string} rname
  */
 function connect(gid, key, num, rname) {
-    console.log("CONN");
-    console.log(gid);
+    // console.log("CONN");
+    // console.log(gid);
     let conn = new ws.WebSocket(`wss://${settings.ORIGIN}/ws/?t=5&g=${gid}&k=${key}&n=${num}`);
     conn.on("error", (e) => {
         // console.log(e);
@@ -266,7 +266,7 @@ function connect(gid, key, num, rname) {
                     }
                     if (ifmt.turn === ifmt.pln) {
                         game.turn = ifmt.turn;
-                        console.log("THINKING");
+                        // console.log("THINKING");
                         const thunk = await bot.think(game, game.rules?.turnTime?.limit);
                         // console.log(thunk);
                         conn.send(JSON.stringify({type:"game:move",payload:{n:thunk}}));
