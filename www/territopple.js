@@ -159,7 +159,7 @@ function kickPlayer(pNum) {
     if (ifmt.pln !== game.hostNum) return; // can only kick if host
     if (ifmt.pln === pNum) return; // can't kick self
     if (!game.playerList[pNum]) return; // player doesn't exist
-    conn.send(JSON.stringify({type:"waiting:kick",payload:{n:pNum}}));
+    conn.send(JSON.stringify({type:"game:kick",payload:{n:pNum}}));
 }
 /**
  * @param {string} sId
@@ -381,7 +381,7 @@ conn.addEventListener("open", async function(event) {
                 createBanner({type:"info",content:`Game started`});
                 break;
             }
-            case "waiting:kick":{
+            case "game:kick":{
                 let n = data.payload["n"];
                 if (typeof n === "number") {
                     if (ifmt.pln === n) {

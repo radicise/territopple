@@ -51,7 +51,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             change("play");
         }
     });
-    onall("waiting:kick", (data) => {
+    onall("game:kick", (data) => {
         sock.send(NetData.Waiting.Kick(data["n"]));
         if (state.spectating?(data.n===state.spectatorId):(data.n===state.playerNum)) {
             if (state.spectating) {
@@ -119,7 +119,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     emit("game:bot", {bot:data.payload["bot"]});
                 }
                 break;
-            case "waiting:kick":
+            case "game:kick":
                 if (isHost) {
                     emit("waiting:kick", {n:data.payload["n"]});
                 }

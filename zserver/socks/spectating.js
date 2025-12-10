@@ -34,6 +34,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     on("spectator:join", (data) => {
         sock.send(NetData.Spectator.Join(data["n"]));
     });
+    onall("game:kick", (data) => {
+        sock.send(NetData.Waiting.Kick(data["n"]));
+        if (data.n===state.spectatorId) {
+            state.game.removeSpectator(data.n);
+            change("close");
+        }
+    });
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
