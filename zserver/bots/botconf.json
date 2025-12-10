@@ -3,11 +3,15 @@
         "Beginner":{
             "maxdepth":7,
             "maxtime":2000
+        },
+        "Trivial":{
+            "maxdepth":2,
+            "maxtime":1000
         }
     },
     "freya":{
         "Moderate":{
-            "maxdepth":20,
+            "maxdepth":255,
             "maxtime":3000
         }
     }

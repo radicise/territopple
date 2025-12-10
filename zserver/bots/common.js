@@ -3,8 +3,10 @@
  * this file handles common functions for all Territopple bots
  */
 
-const { extend, settings } = require("../../defs.js");
+const { extend, settings, __dname } = require("../../defs.js");
 const fs = require("fs");
+const path = require("path");
+// console.log(__dname);
 // const { Topology } = require("../../topology/topology.js");
 /**
  * @typedef BotConfig
@@ -12,11 +14,23 @@ const fs = require("fs");
  */
 /**@type {Record<string,Record<string,BotConfig>>} */
 const asettings = {};
-if (fs.existsSync("botconf.json")) {
-    extend(asettings, JSON.parse(fs.readFileSync("botconf.json")));
+if (fs.existsSync(path.join(__dirname, "botconf.json"))) {
+    extend(asettings, JSON.parse(fs.readFileSync(path.join(__dirname, "botconf.json"))));
+} else {
+    console.log("MISSING BOT SETTINGS");
 }
 if (!asettings["default"]) {
     asettings["default"] = {maxdepth:1,maxtime:1000};
+}
+
+class TileLimitError extends Error {
+    /**
+     * @param {String} message - error message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "TileLimitError";
+    }
 }
 
 class Random {
@@ -53,6 +67,201 @@ class Random {
 }
 
 class DummyGame {
+    constructor(parent, parentisgame, maxdepth) {
+        if (parentisgame) {
+            this.#fromGame(parent, maxdepth);
+        } else {
+            this.#fromDummy(parent);
+        }
+    }
+    /**
+     * @param {import("./bot_server.js").Game} game
+     * @param {number} maxdepth
+     */
+    #fromGame(game, maxdepth) {
+        const players = game.players;
+        // property creation
+        this._teamc = game.owned.length;
+        this._playc = game.players.length;
+        const tc = game.topology.tileCount;
+        maxdepth = Math.min(Math.floor(TTBot.tile_limit/tc), maxdepth);
+        this._maxdepth = maxdepth;
+        this._tbstart = tc*maxdepth;
+        this._boarddata = Buffer.allocUnsafe(this._tbstart*2);
+        this._owneddata = Buffer.allocUnsafe(game.owned.length*maxdepth*4);
+        this._topology = game.topology;
+        this._playerdata = Buffer.allocUnsafe(players.length*maxdepth);
+        this._turndata = Buffer.allocUnsafe(maxdepth);
+        this.root = this;
+        this.win = game.win ?? 0;
+        this.depth = 0;
+        // buffer initialization
+        for (let i = 0; i < game.topology.tileCount; i ++) {
+            this._boarddata[i] = game.board[i];
+            this._boarddata[this._tbstart+i] = game.teamboard[i];
+        }
+        for (let i = 0; i < game.owned.length; i ++) {
+            this._owneddata.writeUInt32BE(game.owned[i], i*4);
+        }
+        for (let i = 0; i < players.length; i ++) {
+            this._playerdata[i] = (players[i].alive?0x80:0)|players[i].team;
+        }
+        this._turndata[0] = game.turn;
+    }
+    /**
+     * @param {DummyGame} game
+     */
+    #fromDummy(game) {
+        this.root = game.root;
+        this.depth = game.depth+1;
+        this.win = game.win ?? 0;
+        for (let i = 0; i < this.topology.tileCount; i ++) {
+            this.boarddata[this.#offsetB+i] = this.boarddata[game.#offsetB+i];
+            this.boarddata[this.#offsetBT+i] = this.boarddata[game.#offsetBT+i];
+        }
+        for (let i = 0; i < this.playc; i ++) {
+            this.playerdata[this.#offsetP+i] = this.playerdata[game.#offsetP+i];
+        }
+        for (let i = 0, l = this.teamc*4; i < l; i ++) {
+            this.owneddata[this.#offsetO+i] = this.owneddata[game.#offsetO+i];
+        }
+        this.turn = game.turn;
+    }
+    /**
+     * @returns {number}
+     */
+    getNextPlayer() {
+        let i = this.turn;
+        while (true) {
+            i += 1;
+            i = i % this.playc;
+            if (i === this.turn) {
+                this.win = this.playerdata[this.#offsetP+this.turn]&0x7f;
+                return 255;
+            }
+            if (this.playerdata[this.#offsetP+i]&0x80) {
+                return i;
+            }
+        }
+    }
+    /**
+     * returns list of all valid moves
+     * @returns {number[]}
+     */
+    getMoves() {
+        const t = this.playerdata[this.#offsetP+this.turn]&0x7f;
+        const l = [];
+        this.boarddata.subarray(this.#offsetBT,this.#offsetBT+this.topology.tileCount).forEach((v, i) => {if(v === 0 || v === t)l.push(i);});
+        return l;
+    }
+    /**
+     * @param {number} tile
+     * @returns {DummyGame}
+     */
+    move(tile) {
+        if (this.depth+1 === this.maxdepth) {
+            // const e = new Error("OOM");
+            // e.OOM = true;
+            // throw e;
+            throw new TileLimitError("OOM");
+        }
+        // if (this.turn === 255) {
+        //     console.log(new Error("2"));
+        //     return this;
+        // }
+        const work = new DummyGame(this, false);
+        const player = this.turn;
+        const adds = [tile];
+        const team = work.playerdata[work.#offsetP+player]&0x7f;
+        // if (team > 2) {
+        //     console.log("AGH");
+        // }
+        const tb = work.boarddata.subarray(work.#offsetBT, work.#offsetBT+this.topology.tileCount);
+        const bb = work.boarddata.subarray(work.#offsetB, work.#offsetB+this.topology.tileCount);
+        while (adds.length) {
+            const t = adds.pop();
+            // if (tb[t] > 2) {
+            //     console.log("YIKES");
+            // }
+            if (tb[t] !== team) {
+                const nov = work.getOwned(tb[t], true)-1;
+                // if (nov < 0) {
+                //     console.log("SCREWED");
+                // }
+                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+tb[t]*4)-1, work.#offsetO+tb[t]*4);
+                if (work.getOwned(0, true) === 0 && work.getOwned(tb[t], true) === 0) {
+                    for (let i = work.#offsetP; i < this.playc; i ++) {
+                        const tm = this.playerdata[work.#offsetP+i]&0x7f;
+                        if (tm === tb[t]) {
+                            this.playerdata[work.#offsetP+i] = tm;
+                        }
+                    }
+                    // work.players.forEach((v, i) => {if(v&&v.team===tb[t]){v.alive=false;}});
+                }
+                work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+team*4)+1, work.#offsetO+team*4);
+                tb[t] = team;
+                if (work.getOwned(team, true) === bb.length) {
+                    work.win = team;
+                    work.turn = 255;
+                    return work;
+                }
+            }
+            bb[t] ++;
+            const neighbors = work.topology.getNeighbors(t);
+            if (bb[t] > neighbors.length) {
+                bb[t] -= neighbors.length;
+                adds.push(...neighbors);
+            }
+        }
+        work.turn = work.getNextPlayer();
+        return work;
+    }
+    /**
+     * @param {number} pnum
+     * @returns {number}
+     */
+    getTeam(pnum) {
+        return this.playerdata[this.#offsetP+pnum]&0x7f;
+    }
+    /**
+     * @param {number} pnum
+     * @returns {number}
+     */
+    getOwned(pnum, _) {
+        return this.owneddata.readUint32BE(this.#offsetO+(_?pnum:this.getTeam(pnum))*4);
+    }
+    get #offsetB() {return this.topology.tileCount*this.depth;}
+    get #offsetBT() {return this.#offsetB+this.tbstart;}
+    get #offsetO() {return this.teamc*this.depth*4;}
+    get #offsetP() {return this.playc*this.depth;}
+    get turn() {return this.turndata[this.depth];}
+    set turn(v) {
+        // if (v === 255) {
+        //     console.log(new Error());
+        // }
+        this.turndata[this.depth]=v;
+    }
+    /**@returns {number} */
+    get teamc(){return this.root._teamc;}
+    /**@returns {number} */
+    get playc(){return this.root._playc;}
+    /**@returns {number} */
+    get maxdepth(){return this.root._maxdepth;}
+    /**@returns {number} */
+    get tbstart(){return this.root._tbstart;}
+    /**@returns {Buffer} */
+    get boarddata(){return this.root._boarddata;}
+    /**@returns {Buffer} */
+    get owneddata(){return this.root._owneddata;}
+    /**@returns {import("../../topology/topology.js").Topology} */
+    get topology(){return this.root._topology;}
+    /**@returns {Buffer} */
+    get playerdata(){return this.root._playerdata;}
+    /**@returns {Buffer} */
+    get turndata(){return this.root._turndata;}
+}
+
+class DummyGameOld {
     // #total_tiles;
     /**
      * @param {import("../../defs").Game} game
@@ -67,6 +276,8 @@ class DummyGame {
             this.players = game.players.map(v => v === null ? v : {alive:v.alive, team:v.team});
             this.turn = game.turn;
             this.win = game.win ?? 0;
+            this.total_tiles = game.topology.tileCount + (game.total_tiles ?? 0);
+            console.log(this.total_tiles);
             return;
         }
         this.total_tiles = game.state.topology.tileCount + (game.total_tiles ?? 0);
@@ -95,7 +306,7 @@ class DummyGame {
             // const e = new Error("OOM");
             // e.OOM = true;
             // throw e;
-            throw new Error("OOM");
+            throw new TileLimitError("OOM");
         }
         const work = new DummyGame(this, true);
         const player = this.turn;
@@ -163,12 +374,14 @@ class TTBotInstance {
         this.#think = think;
         this.#pnum = pnum;
     }
-    async think(game, _, limit) {
+    async think(game, limit) {
         try {
-            return await this.#think(this, new DummyGame(game, _), limit);
+            return await this.#think(this, new DummyGame(game, true, this.#parent.conf.maxdepth??1), limit);
         } catch (E) {
+            // if (E.message !== "OOM") {
+            // }
             console.log(E);
-            return Random.pick(new DummyGame(game, _).getMoves());
+            return Random.pick(new DummyGame(game, true, 1).getMoves());
         }
     }
     /**
@@ -430,6 +643,13 @@ class BotConf {
     }
 }
 
+function DBG(cmd) {
+    if (!process.argv.includes("--eval-stdin")) process.exit(1);
+    return eval(cmd);
+}
+
+exports.DBG = DBG;
+
 exports.TTBot = TTBot;
 exports.BotConf = BotConf;
 exports.TTBotInstance = TTBotInstance;
@@ -438,4 +658,5 @@ exports.BotInfo = this.BotInfo;
 exports.DIFFICULTY = this.DIFFICULTY;
 exports.Random = Random;
 exports.DummyGame = DummyGame;
+exports.TileLimitError = TileLimitError;
 exports.DIFF_LEVELS = DIFF_LEVELS;

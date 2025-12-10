@@ -6,6 +6,7 @@ const ws = require("ws");
 // const child_process = require("child_process");
 const socks = require("../socks/handlers.js");
 const { settings, emit, on, clear } = require("../../defs.js");
+const { DBG } = require("./common.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "bots.pid"), process.pid.toString());
 
@@ -56,8 +57,8 @@ server = http.createServer((req, res) => {
  * @param {string} rname
  */
 function connect(gid, key, num, rname) {
-    console.log("CONN");
-    console.log(gid);
+    // console.log("CONN");
+    // console.log(gid);
     let conn = new ws.WebSocket(`wss://${settings.ORIGIN}/ws/?t=5&g=${gid}&k=${key}&n=${num}`);
     conn.on("error", (e) => {
         // console.log(e);
@@ -265,7 +266,8 @@ function connect(gid, key, num, rname) {
                     }
                     if (ifmt.turn === ifmt.pln) {
                         game.turn = ifmt.turn;
-                        const thunk = await bot.think(game, true, game.rules?.turnTime?.limit);
+                        // console.log("THINKING");
+                        const thunk = await bot.think(game, game.rules?.turnTime?.limit);
                         // console.log(thunk);
                         conn.send(JSON.stringify({type:"game:move",payload:{n:thunk}}));
                     }
@@ -565,6 +567,10 @@ process.stdin.on("data", (d) => {
                 try {
                     console.log(eval(l));
                 } catch (E) {
+                    try {
+                        console.log(DBG(l));
+                        return;
+                    } catch (E) {}
                     console.error(E.stack);
                 }
             } else {
@@ -606,7 +612,7 @@ class Game {
         this.board = null;
         /**@type {number[]} */
         this.teamboard = null;
-        this.owned = new Array(6).fill(0);
+        this.owned = new Array(7).fill(0);
         /**@type {Player[]} */
         this.playerList = [];
         this.started = false;
@@ -619,7 +625,7 @@ class Game {
         this.turn = -1;
     }
     get players() {
-        return this.playerList.map(v => v===null?{alive:false,team:0}:{alive:true,team:v.team});
+        return this.playerList.map(v => v===null||v.team===0?{alive:false,team:0}:{alive:true,team:v.team});
     }
     stopTimer() {
         if (this.timerid) {
@@ -683,7 +689,7 @@ class Game {
         this.playerList[0] = {team:0};
     }
     recalcDerived() {
-        this.owned = new Array(6).fill(0);
+        this.owned = new Array(7).fill(0);
         for (let i = 0; i < this.teamboard.length; i ++) {
             this.owned[this.teamboard[i]] ++;
         }
@@ -725,3 +731,4 @@ class Game {
         }
     }
 }
+exports.Game = Game;

@@ -8,26 +8,50 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
     "disp":"Freya",
     "prereq":{"achi":[],"bots":["Terry Topple (Trivial)"]}
 }, async (that, gamestate, limit) => {
+    limit = Math.min(limit ?? that.conf.maxtime, that.conf.maxtime);
     let timeup = false;
+    const starttime = Date.now();
+    let count = 0;
     // let best = Number.NEGATIVE_INFINITY;
+    /**
+     * @param {number} tile
+     * @param {number} depth
+     * @param {DummyGame} gstate
+     * @returns {Promise<number>}
+     */
     const peval = async (tile, depth, gstate) => {
-        await new Promise(r => setTimeout(r, 0));
-        if (depth === 0 || timeup) {
-            return gstate.owned[gamestate.players[that.pnum].team]-(
+        count ++;
+        const timeout = timeup || Date.now()-starttime > limit;
+        if (depth === 0 || timeout) {
+            if (timeout) {
+                // if (!timeup) console.log("TIMEOUT");
+                timeup = true;
+            }
+            return gstate.getOwned(that.pnum)-(
                 gstate.topology.tileCount
-                -gstate.owned[0]
+                -gstate.getOwned(0, true)
                 // -gstate.owned[gamestate.players[that.pnum].team]
             );
         }
+        // await new Promise(r => setTimeout(r, 1));
+        // console.log(`DT: ${Date.now() - starttime}`);
         const myturn = gstate.turn === that.pnum;
         const state = gstate.move(tile);
-        if (state.owned.some(v => v===gstate.topology.tileCount)) {
+        if (state.win) {
             return myturn?Number.POSITIVE_INFINITY:Number.NEGATIVE_INFINITY;
         }
         // state.turn = that.pnum;
-        return (myturn?Math.max:Math.min)(...await Promise.all(state.getMoves().map(v => peval(v, depth-1, state))));
+        const l = [];
+        for (const move of state.getMoves()) {
+            l.push(await peval(move, depth-1, state));
+        }
+        const res = (myturn?Math.max:Math.min)(...l);
+        return res;
     };
-    setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
-    const evals = await Promise.all(gamestate.getMoves().map(async (v) => [v, await peval(v, that.conf.maxdepth, gamestate)]));
+    // setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
+    const evals = [];
+    for (const move of gamestate.getMoves()) {
+        evals.push([move, await peval(move, gamestate.maxdepth-1, gamestate)]);
+    }
     return Random.pickmove(evals);
 });

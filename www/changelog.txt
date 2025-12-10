@@ -1,3 +1,8 @@
+# Dec 9, 2025 (ALPHA 1.7.1)
+fixed bots and added optimized board evaluation
+fixed memory limits not working for bots
+bot freya now searches up to 255 moves in the future (scales down with board size to 5 moves on 36x36 boards)
+
 # Dec 6, 2025 (Alpha 1.7.0)
 account emails are now hidden by default, and can be shown by pressing a button
 added settings page
