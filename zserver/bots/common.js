@@ -167,6 +167,7 @@ class DummyGame {
         }
         if (this.turn === 255) {
             console.log(new Error("2"));
+            return this;
         }
         const work = new DummyGame(this, false);
         const player = this.turn;
