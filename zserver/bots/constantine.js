@@ -59,7 +59,7 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
     setTimeout(() => {timeup = true;}, limit??that.conf.maxtime);
     const evals = [];
     for (const v of gamestate.getMoves()) {
-        evals.push([v, await peval(v, that.conf.maxdepth, gamestate)]);
+        evals.push([v, await peval(v, gamestate.maxdepth-1, gamestate)]);
     }
     return Random.pickmove(evals);
 });

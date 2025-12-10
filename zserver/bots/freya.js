@@ -24,7 +24,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
         const timeout = timeup || Date.now()-starttime > limit;
         if (depth === 0 || timeout) {
             if (timeout) {
-                if (!timeup) console.log("TIMEOUT");
+                // if (!timeup) console.log("TIMEOUT");
                 timeup = true;
             }
             return gstate.getOwned(that.pnum)-(

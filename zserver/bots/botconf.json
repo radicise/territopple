@@ -3,6 +3,10 @@
         "Beginner":{
             "maxdepth":7,
             "maxtime":2000
+        },
+        "Trivial":{
+            "maxdepth":2,
+            "maxtime":1000
         }
     },
     "freya":{
