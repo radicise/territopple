@@ -86,6 +86,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     onall("account:found", (data) => {
         sock.send(NetData.Account.Found(data["n"], data["a"]));
     });
+    onall("account:isbot", (data) => {
+        sock.send(NetData.Account.IsBot(data["n"], data["a"]));
+    });
     if (state.accId) {
         emit("account:found", {n:(state.spectating?state.spectatorId:state.playerNum), a:state.accId});
         state.game.updateAccountId(state.spectating?state.spectatorId:state.playerNum, state.accId);

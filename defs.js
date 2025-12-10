@@ -635,6 +635,14 @@ class NetData {
         static Found(id, acc) {
             return this.Misc("found", {n:id, a:acc});
         }
+        /**
+         * @param {number} id
+         * @param {string} name
+         * @returns {string}
+         */
+        static IsBot(id, name) {
+            return this.Misc("isbot", {n:id, a:name});
+        }
     }
     static Player = class {
         /**

@@ -285,7 +285,7 @@ process.once("message", (id) => {
                         }
                         if (connType === 5) {
                             if (LOGGING) log(`botjoin - ${gid} - ${url.searchParams.get('n')}`);
-                            socks.handle("botjoin", sock, {"id":gid, "n":url.searchParams.get("n"), "key":url.searchParams.get("k")}, state);
+                            socks.handle("botjoin", sock, {"id":gid, "n":url.searchParams.get("n"), "a":decodeURI(url.searchParams.get("a")??""), "key":url.searchParams.get("k")}, state);
                             return;
                         }
                         socks.handle("join", sock, {"id":gid, "asSpectator":connType===4, "acc":acc}, state);

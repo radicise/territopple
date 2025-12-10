@@ -86,6 +86,15 @@ function makeJListActions(type, arg) {
  * @param {number} n
  * @param {string} a
  */
+function setJListPlayerBot(n, a) {
+    const c = document.getElementById(`JLIST-player-${n}`);
+    if (!c) return;
+    c.children[0].textContent = `${n} (bot ${a}) - ${game.playerList[n].team}`;
+}
+/**
+ * @param {number} n
+ * @param {string} a
+ */
 function setJListPlayerAccount(n, a) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;

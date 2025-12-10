@@ -359,6 +359,13 @@ conn.addEventListener("open", async function(event) {
                 }
                 break;
             }
+            case "account:isbot":{
+                const n = data.payload["n"];
+                /**@type {string} */
+                const a = data.payload["a"];
+                setJListPlayerBot(n, a);
+                break;
+            }
             case "waiting:promote":{
                 if (game.hostNum) {
                     const c = document.getElementById(`JLIST-player-${game.hostNum}`);

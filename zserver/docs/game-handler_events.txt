@@ -3,6 +3,7 @@ ALL HANDLERS WILL ONLY RECIEVE EMISSIONS IF THE EMITTED DATA CONTAINS A "#gameid
 
 account:
     found (n [player num | spectator id]: number | string, a [account id]: string)
+    isbot (n [player num]: number, a [bot name]: string)
 
 waiting:
     start (void)
