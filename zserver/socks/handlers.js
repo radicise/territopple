@@ -41,6 +41,12 @@ let tagcount = 0;
  * @ param {(name: string, cb: (data: DataRecord) => void) => void} on
  */
 function handle(name, sock, args, state, __tag) {
+    if (!sock.HANDLER_INIT) {
+        sock.HANDLER_INIT = true;
+        sock.on("close", (...a)=>{sock.emit("_close",...a)});
+        sock.on("error", (...a)=>{sock.emit("_error",...a)});
+        sock.on("message", (...a)=>{sock.emit("_message",...a)});
+    }
     let HOLDING = false;
     let callbuf = null;
     let cbuf = [];
@@ -54,9 +60,12 @@ function handle(name, sock, args, state, __tag) {
     let ___ = () => {
         HOLDING = false;
         if (callbuf) {
-            if (messageL) sock.removeListener("message", messageL);
-            if (closeL) sock.removeListener("close", closeL);
-            if (errorL) sock.removeListener("error", errorL);
+            sock.removeAllListeners("_message");
+            sock.removeAllListeners("_close");
+            sock.removeAllListeners("_error");
+            // if (messageL) sock.removeListener("message", messageL);
+            // if (closeL) sock.removeListener("close", closeL);
+            // if (errorL) sock.removeListener("error", errorL);
             clear(genTag);
             sock.removeListener("HOLD", __);
             sock.removeListener("CONT", ___);
@@ -76,9 +85,12 @@ function handle(name, sock, args, state, __tag) {
                 callbuf = [name, args];
             }
         }
-        if (messageL) sock.removeListener("message", messageL);
-        if (closeL) sock.removeListener("close", closeL);
-        if (errorL) sock.removeListener("error", errorL);
+        sock.removeAllListeners("_message");
+        sock.removeAllListeners("_close");
+        sock.removeAllListeners("_error");
+        // if (messageL) sock.removeListener("message", messageL);
+        // if (closeL) sock.removeListener("close", closeL);
+        // if (errorL) sock.removeListener("error", errorL);
         clear(genTag);
         sock.removeListener("HOLD", __);
         sock.removeListener("CONT", ___);
@@ -87,9 +99,9 @@ function handle(name, sock, args, state, __tag) {
     messageL = m.messageL;
     closeL = m.closeL;
     errorL = m.errorL;
-    if (messageL) sock.on("message", (...a) => {if(!HOLDING)messageL(...a);});
-    if (errorL) sock.on("error", (...a) => {if(!HOLDING)errorL(...a);else ebuf.push(a);});
-    if (closeL) sock.on("close", (...a) => {if(!HOLDING)closeL(...a);else cbuf.push(a);});
+    if (messageL) sock.on("_message", (...a) => {if(!HOLDING)messageL(...a);});
+    if (errorL) sock.on("_error", (...a) => {if(!HOLDING)errorL(...a);else ebuf.push(a);});
+    if (closeL) sock.on("_close", (...a) => {if(!HOLDING)closeL(...a);else cbuf.push(a);});
     return genTag;
 }
 
