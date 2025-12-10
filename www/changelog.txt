@@ -1,3 +1,7 @@
+# Dec 10, 2025 (DEV 2025l9X0)
+allowed "kick" button to be used once game starts
+fixed issue where certain event handlers stayed attached to websockets when they should have been removed
+
 # Dec 9, 2025 (ALPHA 1.7.1)
 fixed bots and added optimized board evaluation
 fixed memory limits not working for bots
