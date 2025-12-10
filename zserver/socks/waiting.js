@@ -8,8 +8,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let closeL;
     let errorL;
     (() => {
-    let isHost = args.isHost ?? false;
-    // if (isHost) {
+    state.isHost = args.isHost ?? false;
+    // if (state.isHost) {
     //     sock.send(NetData.Waiting.Promote(state.playerNum));
     // }
     {
@@ -38,7 +38,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         // sock.send("waiting:promote");
         sock.send(NetData.Waiting.Promote(data["n"]));
         if (data.n === state.playerNum) {
-            isHost = true;
+            state.isHost = true;
         }
     });
     onall("waiting:start", (data) => {
@@ -115,17 +115,17 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             //     emit("waiting:setready", {n:state.playerNum,r:data.payload["r"]});
             //     break;
             case "game:bot":
-                if (isHost) {
+                if (state.isHost) {
                     emit("game:bot", {bot:data.payload["bot"]});
                 }
                 break;
             case "game:kick":
-                if (isHost) {
+                if (state.isHost) {
                     emit("waiting:kick", {n:data.payload["n"]});
                 }
                 break;
             case "waiting:start":
-                if (isHost) {
+                if (state.isHost) {
                     onGameStarted(state.game, 0, state.game.players.slice(1).map(v => v?v.team:0));
                     state.game.start();
                     emit("?phase");
@@ -136,7 +136,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 change("leave", {isHost});
                 break;
             case "waiting:promote":
-                if (isHost) {
+                if (state.isHost) {
                     /**@type {number} */
                     const n = data.payload["n"];
                     if (n === state.playerNum) return;
@@ -152,8 +152,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 state.game.removePlayer(state.playerNum);
                 emit("player:spectate", {n:state.playerNum, id:state.spectatorId});
                 delete state["playerNum"];
-                if (isHost) {
-                    isHost = false;
+                if (state.isHost) {
+                    state.isHost = false;
                     emit("waiting:need-promote");
                 }
                 // on(`#META:${state.tag}`, (data) => {

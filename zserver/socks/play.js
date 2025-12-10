@@ -8,7 +8,6 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let closeL;
     let errorL;
     (() => {
-    let isHost = args.isHost ?? false;
     on("?borked", () => {change("error", {data:"borked",redirect:"/play-online",store:"Error, please email the server operator, make sure to include what you were doing before the error occurred."});});
     onall("game:out:move", (data) => {
         sock.send(NetData.Game.Move(data["n"], data["t"]));
@@ -119,7 +118,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 break;
             }
             case "game:kick":{
-                if (isHost) {
+                if (state.isHost) {
                     emit("waiting:kick", {n:data.payload["n"]});
                 }
                 break;
