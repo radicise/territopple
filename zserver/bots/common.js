@@ -165,6 +165,9 @@ class DummyGame {
             // throw e;
             throw new TileLimitError("OOM");
         }
+        if (this.turn === 255) {
+            console.log(new Error("2"));
+        }
         const work = new DummyGame(this, false);
         const player = this.turn;
         const adds = [tile];
@@ -197,7 +200,7 @@ class DummyGame {
                 work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+team*4)+1, work.#offsetO+team*4);
                 tb[t] = team;
                 if (work.getOwned(team, true) === bb.length) {
-                    work.win = this.turn;
+                    work.win = team;
                     work.turn = 255;
                     return work;
                 }
@@ -231,7 +234,12 @@ class DummyGame {
     get #offsetO() {return this.teamc*this.depth*4;}
     get #offsetP() {return this.playc*this.depth;}
     get turn() {return this.turndata[this.depth];}
-    set turn(v) {this.turndata[this.depth]=v;}
+    set turn(v) {
+        if (v === 255) {
+            console.log(new Error());
+        }
+        this.turndata[this.depth]=v;
+    }
     /**@returns {number} */
     get teamc(){return this.root._teamc;}
     /**@returns {number} */
