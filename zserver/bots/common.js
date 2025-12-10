@@ -165,29 +165,29 @@ class DummyGame {
             // throw e;
             throw new TileLimitError("OOM");
         }
-        if (this.turn === 255) {
-            console.log(new Error("2"));
-            return this;
-        }
+        // if (this.turn === 255) {
+        //     console.log(new Error("2"));
+        //     return this;
+        // }
         const work = new DummyGame(this, false);
         const player = this.turn;
         const adds = [tile];
         const team = work.playerdata[work.#offsetP+player]&0x7f;
-        if (team > 2) {
-            console.log("AGH");
-        }
+        // if (team > 2) {
+        //     console.log("AGH");
+        // }
         const tb = work.boarddata.subarray(work.#offsetBT, work.#offsetBT+this.topology.tileCount);
         const bb = work.boarddata.subarray(work.#offsetB, work.#offsetB+this.topology.tileCount);
         while (adds.length) {
             const t = adds.pop();
-            if (tb[t] > 2) {
-                console.log("YIKES");
-            }
+            // if (tb[t] > 2) {
+            //     console.log("YIKES");
+            // }
             if (tb[t] !== team) {
                 const nov = work.getOwned(tb[t], true)-1;
-                if (nov < 0) {
-                    console.log("SCREWED");
-                }
+                // if (nov < 0) {
+                //     console.log("SCREWED");
+                // }
                 work.owneddata.writeUInt32BE(work.owneddata.readUint32BE(work.#offsetO+tb[t]*4)-1, work.#offsetO+tb[t]*4);
                 if (work.getOwned(0, true) === 0 && work.getOwned(tb[t], true) === 0) {
                     for (let i = work.#offsetP; i < this.playc; i ++) {
@@ -236,9 +236,9 @@ class DummyGame {
     get #offsetP() {return this.playc*this.depth;}
     get turn() {return this.turndata[this.depth];}
     set turn(v) {
-        if (v === 255) {
-            console.log(new Error());
-        }
+        // if (v === 255) {
+        //     console.log(new Error());
+        // }
         this.turndata[this.depth]=v;
     }
     /**@returns {number} */
