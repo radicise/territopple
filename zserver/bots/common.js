@@ -172,6 +172,9 @@ class DummyGame {
         const bb = work.boarddata.subarray(work.#offsetB, work.#offsetB+this.topology.tileCount);
         while (adds.length) {
             const t = adds.pop();
+            if (tb[t] > 2) {
+                console.log("YIKES");
+            }
             if (tb[t] !== team) {
                 const nov = work.getOwned(tb[t], true)-1;
                 if (nov < 0) {
