@@ -757,13 +757,6 @@ class NetData {
             return NetData.Misc(`waiting:${type}`, data);
         }
         /**
-         * @param {number | string} n
-         * @returns {string}
-         */
-        static Kick(n) {
-            return this.Misc("kick", {n});
-        }
-        /**
          * @param {number} n
          * @returns {string}
          */
@@ -793,6 +786,13 @@ class NetData {
          */
         static Misc(type, data) {
             return NetData.Misc(`game:${type}`, data);
+        }
+        /**
+         * @param {number | string} n
+         * @returns {string}
+         */
+        static Kick(n) {
+            return this.Misc("kick", {n});
         }
         /**
          * @param {number} tile

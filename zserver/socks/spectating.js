@@ -35,7 +35,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Spectator.Join(data["n"]));
     });
     onall("game:kick", (data) => {
-        sock.send(NetData.Waiting.Kick(data["n"]));
+        sock.send(NetData.Game.Kick(data["n"]));
         if (data.n===state.spectatorId) {
             state.game.removeSpectator(data.n);
             change("close");

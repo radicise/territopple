@@ -88,7 +88,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         }
     });
     onall("game:kick", (data) => {
-        sock.send(NetData.Waiting.Kick(data["n"]));
+        sock.send(NetData.Game.Kick(data["n"]));
         if (data.n===state.playerNum) {
             onPlayerRemoved(state.game, state.playerNum);
             state.game.removePlayer(data.n);
