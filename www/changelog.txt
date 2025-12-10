@@ -1,8 +1,6 @@
-# Dec 10, 2025 (DEV 2025l9Y0)
+# Dec 10, 2025 (Alpha 1.7.2)
 bot names are now displayed in the joined list
 the joined list now has a maximum width for names, hover on a name to see the full name if it's clipped
-
-# Dec 10, 2025 (DEV 2025l9X0)
 allowed "kick" button to be used once game starts
 fixed issue where certain event handlers stayed attached to websockets when they should have been removed
 
