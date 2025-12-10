@@ -625,7 +625,7 @@ class Game {
         this.turn = -1;
     }
     get players() {
-        return this.playerList.map(v => v===null?{alive:false,team:0}:{alive:true,team:v.team});
+        return this.playerList.map(v => v===null||v.team===0?{alive:false,team:0}:{alive:true,team:v.team});
     }
     stopTimer() {
         if (this.timerid) {
