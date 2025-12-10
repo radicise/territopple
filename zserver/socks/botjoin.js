@@ -32,6 +32,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     clearTimeout(game.players[pnum].timeoutid);
     delete game.players[pnum]["timeoutid"];
     game.players[pnum].conn = sock;
+    game.players[pnum].accId = args["a"]||"UNKNOWN";
     state.game = game;
     state.playerNum = pnum;
     const g = game;
@@ -39,6 +40,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     sock.send(NetData.Game.Roomid(state.game.ident));
     sock.send(NetData.Game.JList(g), () => {
         emit("player:join", {n:state.playerNum, t:state.game.players[state.playerNum].team});
+        emit("account:isbot", {n:state.playerNum, a:game.players[pnum].accId});
         change("waiting", {isHost:pnum===g.state.hostNum});
         // if (g.state.state === 0) {
         //     return;

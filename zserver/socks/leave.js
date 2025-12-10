@@ -9,13 +9,15 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     if (!state.spectating) {
-        state.game.removePlayer(state.playerNum);
         if (state.game.state.state !== 0) {
             onPlayerRemoved(state.game, state.playerNum);
+            state.game.removePlayer(state.playerNum);
             if (state.game.state.turn === state.playerNum) {
                 const res = state.game.nextPlayer();
                 emit("game:turn", {n:res.turn});
             }
+        } else {
+            state.game.removePlayer(state.playerNum);
         }
         emit("player:leave", {n:state.playerNum});
         if (args.isHost??false) {

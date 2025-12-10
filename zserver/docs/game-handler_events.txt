@@ -3,12 +3,12 @@ ALL HANDLERS WILL ONLY RECIEVE EMISSIONS IF THE EMITTED DATA CONTAINS A "#gameid
 
 account:
     found (n [player num | spectator id]: number | string, a [account id]: string)
+    isbot (n [player num]: number, a [bot name]: string)
 
 waiting:
     start (void)
     promote (n [player num]: number)
     need-promote (void)
-    kick (n [player num | spectator id]: number | string)
     setready (n [player num]: number, r [ready]: boolean)
 
 spectator:
@@ -25,6 +25,7 @@ game:
     add (id [game id]: string, game [game object]: Game)
     win (t [team id]: number)
     turn (n [player num]: number)
+    kick (n [player num | spectator id]: number | string)
     out:
         move (n [tile num]: number, t [team num]: number)
     in:

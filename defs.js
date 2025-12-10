@@ -514,6 +514,7 @@ exports.Game = Game;
 /**
  * @typedef HostingSettings
  * @type {{
+ * DEBUG?:{TRACE_WS?:boolean}
  * GAMEPORT:number,
  * DATAPORT:number,
  * WEBPORT:number,
@@ -526,7 +527,7 @@ exports.Game = Game;
  * PING_INTERVAL:number,
  * BOT_TO:number,
  * BOT_MAX_TILES:number,
- * DEVENV:boolean?,
+ * DEVENV?:boolean,
  * ORIGIN:string,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number},
  * REJOIN_TIME:number,
@@ -575,7 +576,11 @@ class NetData {
      * @returns {string}
      */
     static Misc(type, data) {
-        return JSON.stringify({type, payload:data??{}});
+        const pack = {type, payload:data??{}};
+        if (settings.DEBUG?.TRACE_WS) {
+            pack.trace = (new Error("TRACE").stack).split("\n").filter(v=>v.includes("territopple")).map(v=>v.trim()).join("@");
+        }
+        return JSON.stringify(pack);
     }
     static CONN = class {
         /**
@@ -629,6 +634,14 @@ class NetData {
          */
         static Found(id, acc) {
             return this.Misc("found", {n:id, a:acc});
+        }
+        /**
+         * @param {number} id
+         * @param {string} name
+         * @returns {string}
+         */
+        static IsBot(id, name) {
+            return this.Misc("isbot", {n:id, a:name});
         }
     }
     static Player = class {
@@ -757,13 +770,6 @@ class NetData {
             return NetData.Misc(`waiting:${type}`, data);
         }
         /**
-         * @param {number | string} n
-         * @returns {string}
-         */
-        static Kick(n) {
-            return this.Misc("kick", {n});
-        }
-        /**
          * @param {number} n
          * @returns {string}
          */
@@ -793,6 +799,13 @@ class NetData {
          */
         static Misc(type, data) {
             return NetData.Misc(`game:${type}`, data);
+        }
+        /**
+         * @param {number | string} n
+         * @returns {string}
+         */
+        static Kick(n) {
+            return this.Misc("kick", {n});
         }
         /**
          * @param {number} tile

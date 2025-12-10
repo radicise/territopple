@@ -1,3 +1,9 @@
+# Dec 10, 2025 (Alpha 1.7.2)
+bot names are now displayed in the joined list
+the joined list now has a maximum width for names, hover on a name to see the full name if it's clipped
+allowed "kick" button to be used once game starts
+fixed issue where certain event handlers stayed attached to websockets when they should have been removed
+
 # Dec 9, 2025 (ALPHA 1.7.1)
 fixed bots and added optimized board evaluation
 fixed memory limits not working for bots

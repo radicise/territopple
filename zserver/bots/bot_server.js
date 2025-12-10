@@ -6,7 +6,7 @@ const ws = require("ws");
 // const child_process = require("child_process");
 const socks = require("../socks/handlers.js");
 const { settings, emit, on, clear } = require("../../defs.js");
-const { DBG } = require("./common.js");
+const { DBG, DIFF_LEVELS } = require("./common.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "bots.pid"), process.pid.toString());
 
@@ -59,7 +59,8 @@ server = http.createServer((req, res) => {
 function connect(gid, key, num, rname) {
     // console.log("CONN");
     // console.log(gid);
-    let conn = new ws.WebSocket(`wss://${settings.ORIGIN}/ws/?t=5&g=${gid}&k=${key}&n=${num}`);
+    const bdata = TTBot.access(rname);
+    let conn = new ws.WebSocket(`wss://${settings.ORIGIN}/ws/?t=5&g=${gid}&k=${key}&n=${num}&a=${encodeURI(bdata.info.disp+" ("+DIFF_LEVELS[bdata.info.diff]+")")}`);
     conn.on("error", (e) => {
         // console.log(e);
         conn.terminate();

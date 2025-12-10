@@ -1,5 +1,5 @@
 const { NetPayload, NetData, Random, settings } = require("../../defs.js");
-const { onRecordReplay } = require("../../replayHooks.js");
+const { onRecordReplay, onPlayerRemoved } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
 /**@type {SocketHandler} */
@@ -87,6 +87,14 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             setTimeout(() => {allow_ping = true;}, globals.settings.PING_INTERVAL);
         }
     });
+    onall("game:kick", (data) => {
+        sock.send(NetData.Game.Kick(data["n"]));
+        if (data.n===state.playerNum) {
+            onPlayerRemoved(state.game, state.playerNum);
+            state.game.removePlayer(data.n);
+            change("close");
+        }
+    });
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
@@ -107,6 +115,12 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         switch (data.type) {
             case "game:download":{
                 sock.send(NetData.Bin.Replay(state.game));
+                break;
+            }
+            case "game:kick":{
+                if (state.isHost) {
+                    emit("game:kick", {n:data.payload["n"]});
+                }
                 break;
             }
             case "game:move":{

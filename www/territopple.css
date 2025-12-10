@@ -38,6 +38,14 @@ body {
     text-align: center;
     font-family: monospace;
 }
+#joined-table .JLIST-id {
+    max-width: 15ch;
+    overflow-x: clip;
+    text-wrap-mode: nowrap;
+}
+#joined-table .JLIST-id:hover {
+    text-wrap-mode: wrap;
+}
 table {
     border-collapse: collapse;
     border: 3px solid #888888;

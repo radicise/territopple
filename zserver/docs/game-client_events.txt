@@ -11,10 +11,10 @@ GAME TO CLIENT:
         DYNG () - signals that the server is in the process of moving rooms to a different server
     account:
         found (n [player num | spectator id]: number | string, a [account id]: string)
+        isbot (n [player num]: number, a [bot name]: string)
     waiting:
         promote (n [player num]: number)
         start (void)
-        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
         setready (n [player num]: number, r [ready]: boolean)
     error: (code: number, message: string | null, redirect: string | null, store: string | null)
     key:
@@ -40,6 +40,7 @@ GAME TO CLIENT:
         reconnected ()
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
         timeup (n [player num]: number)
+        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
     ping: (kind: string | null)
 
 BINARY GAME TO CLIENT:
@@ -59,7 +60,6 @@ CLIENT TO GAME:
     waiting:
         leave (void)
         start (void)
-        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
         promote (n [player num]: number)
         setready (r [ready]: boolean)
     spectator:
@@ -70,4 +70,5 @@ CLIENT TO GAME:
         move (n [tile num]: number)
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
         download ()
+        kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
     ping: (n [player num]: number, kind: string | null)
