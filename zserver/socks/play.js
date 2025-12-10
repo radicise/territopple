@@ -119,7 +119,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             }
             case "game:kick":{
                 if (state.isHost) {
-                    emit("waiting:kick", {n:data.payload["n"]});
+                    emit("game:kick", {n:data.payload["n"]});
                 }
                 break;
             }
