@@ -514,6 +514,7 @@ exports.Game = Game;
 /**
  * @typedef HostingSettings
  * @type {{
+ * DEBUG?:{TRACE_WS?:boolean}
  * GAMEPORT:number,
  * DATAPORT:number,
  * WEBPORT:number,
@@ -526,7 +527,7 @@ exports.Game = Game;
  * PING_INTERVAL:number,
  * BOT_TO:number,
  * BOT_MAX_TILES:number,
- * DEVENV:boolean?,
+ * DEVENV?:boolean,
  * ORIGIN:string,
  * WORKERS:{LIMIT:number,MAX_CONNECTIONS:number,MAX_TURNAROUND:number},
  * REJOIN_TIME:number,
@@ -575,7 +576,11 @@ class NetData {
      * @returns {string}
      */
     static Misc(type, data) {
-        return JSON.stringify({type, payload:data??{}});
+        const pack = {type, payload:data??{}};
+        if (settings.DEBUG?.TRACE_WS) {
+            pack.trace = (new Error("TRACE").stack).split("\n").join("@");
+        }
+        return JSON.stringify(pack);
     }
     static CONN = class {
         /**
