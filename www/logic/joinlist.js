@@ -3,9 +3,10 @@ const joinedList = document.getElementById("joined-list");
 
 /**
  * @param {HTMLElement|string|number|boolean|bigint|object} content
+ * @param {string[]?} classList
  * @returns {HTMLTableCellElement}
  */
-function makeTD(content) {
+function makeTD(content, classList) {
     const td = document.createElement("td");
     td.scope = "col";
     if (typeof content === "object") {
@@ -16,6 +17,9 @@ function makeTD(content) {
         }
     } else {
         td.textContent = `${content}`;
+    }
+    if (classList) {
+        td.classList.add(...classList);
     }
     return td;
 }
@@ -126,7 +130,7 @@ function addJListSelf(n) {
     const row = document.createElement("tr");
     row.scope = "row";
     row.id = `JLIST-player-${n}`;
-    row.append(makeTD(`${n} (Guest) [self]`));
+    row.append(makeTD(`${n} (Guest) [self]`, ["JLIST-id"]));
     row.append(makeTD(typeof n === "number" ? (n === game.hostNum ? "Host" : "Player") : "Spectator"));
     // row.append(...makeJListActions("self"));
     row.append(makeTD("--:--"));
@@ -140,7 +144,7 @@ function addJListPlayer(n) {
     const row = document.createElement("tr");
     row.scope = "row";
     row.id = `JLIST-player-${n[0]}`;
-    row.append(makeTD(`${n[0]} (${n[2]??"Guest"}) - ${n[1]}`));
+    row.append(makeTD(`${n[0]} (${n[2]??"Guest"}) - ${n[1]}`, ["JLIST-id"]));
     row.append(makeTD(n === game.hostNum ? "Host" : "Player"));
     row.append(makeTD("--:--"));
     // row.append(...makeJListActions("player", n));
@@ -163,7 +167,7 @@ function addJListSpectator(n) {
     const row = document.createElement("tr");
     row.id = `JLIST-spectator-${n[0]}`;
     row.scope = "row";
-    row.append(makeTD(`${n[0]} (${n[1]??"Guest"})`));
+    row.append(makeTD(`${n[0]} (${n[1]??"Guest"})`, ["JLIST-id"]));
     row.append(makeTD("Spectator"));
     row.append(makeTD(""));
     // row.append(...makeJListActions("spectator", n));
