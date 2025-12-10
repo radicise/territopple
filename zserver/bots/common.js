@@ -125,6 +125,7 @@ class DummyGame {
         for (let i = 0, l = this.teamc*4; i < l; i ++) {
             this.owneddata[this.#offsetO+i] = this.owneddata[game.#offsetO+i];
         }
+        this.turn = game.turn;
     }
     /**
      * @returns {number}
