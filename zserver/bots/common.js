@@ -168,6 +168,9 @@ class DummyGame {
         const player = this.turn;
         const adds = [tile];
         const team = work.playerdata[work.#offsetP+player]&0x7f;
+        if (team > 2) {
+            console.log("AGH");
+        }
         const tb = work.boarddata.subarray(work.#offsetBT, work.#offsetBT+this.topology.tileCount);
         const bb = work.boarddata.subarray(work.#offsetB, work.#offsetB+this.topology.tileCount);
         while (adds.length) {
