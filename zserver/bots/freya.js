@@ -29,7 +29,7 @@ new TTBot("Freya [the Foresighted] (Moderate)", "freya", {
             }
             return gstate.getOwned(that.pnum)-(
                 gstate.topology.tileCount
-                -gstate.getOwned(0)
+                -gstate.getOwned(0, true)
                 // -gstate.owned[gamestate.players[that.pnum].team]
             );
         }

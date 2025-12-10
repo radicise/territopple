@@ -39,7 +39,7 @@ new TTBot("Constantine [the Conqueror] (Beginner)", "constantine", {
         if (depth === 0 || timeup) {
             return gstate.getOwned(that.pnum)-(
                 gstate.topology.tileCount
-                -gstate.owned[0]
+                -gstate.getOwned(0, true)
                 // -gstate.owned[gamestate.players[that.pnum].team]
             );
         }
