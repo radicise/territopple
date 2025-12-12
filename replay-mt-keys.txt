@@ -1,0 +1,34 @@
+this file describes what purposes certain replay metatable keys are reserved for
+any keys not marked with "(restricted)" do not have any given format for their values, provided the value pertains to the specified purpose
+
+b"ORGN" (restricted):
+origin of this replay
+format reserved
+
+b"SIGN" (restricted):
+format reserved
+
+b"scor":
+information about scoring
+
+b"fmt0"-b"fmtz" (restricted):
+metametadata about format of other fields
+format reserved
+
+b"col0"-b"colz" (restricted):
+color data
+format reserved
+
+b"link" (restricted):
+reserved for future use
+
+b"pn00"-b"pnzz" (restricted):
+player information
+format reserved
+
+b"pnTB" (restricted):
+metametadata about player information
+format reserved
+
+b"orgn" (restricted):
+reserved for future use
