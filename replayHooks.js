@@ -27,7 +27,7 @@ const defs = require("./defs.js");
 const topology = defs.topology;
 const fingerprint = defs.fingerprint;
 
-const FORMAT_VERSION = 4;
+const FORMAT_VERSION = 5;
 
 /**
  * @param {number|BigInt} n
@@ -145,7 +145,17 @@ function onGameStarted(game, idstrategy, team_map) {
     } else {
         game.buffer.push(Buffer.from(topologyData));
     }
-    game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint, 0xf0, 0x0f));
+    game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint));
+    if (game.__extflags.length || game.__extmeta) {
+        game.buffer[0][9] |= 4;
+        game.buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
+        game.buffer.push(Buffer.of(Object.keys(game.__extmeta).length, ...Object.entries(game.__extmeta).flatMap(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]])));
+    }
+    if (game.__extevds) {
+        game.buffer[0][9] |= 2;
+        game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).flatMap(v => [Number(v[0]),v[1].length,v[1].map(iv => iv.condflag?[128|iv.flag_byte,(iv.flag_bit<<5)|iv.size]:(iv.size))])));
+    }
+    game.buffer.push(Buffer.of(0xf0, 0x0f));
 }
 
 /**
