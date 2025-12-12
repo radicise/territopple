@@ -244,7 +244,7 @@ BYTE[2] - 0xf0,0x0f - start of game data
 BYTE[4] - 0xff,0xf0,0x0f,0xff - end of replay // allows multiple replays to be put into one file
 
 METATABLE_ENTRY:
-BYTE - value length (VL)
+BYTE[2] - value length [big endian] (VL)
 BYTE[4] - key
 BYTE[VL] - value
 NOTE: select keys are reserved for specific purposes, see "./replay-mt-keys.txt"

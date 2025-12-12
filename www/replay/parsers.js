@@ -365,7 +365,7 @@ class Version5 {
             const emc = data.consume();
             this.header.metatable = {};
             for (let i = 0; i < emc; i ++) {
-                const l = data.consume();
+                const l = fromBytes(data.consume(2));
                 this.header.metatable[fromBytes(data.consume(4))] = l===1?[data.consume()]:[...data.consume(l)];
             }
         }
