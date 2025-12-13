@@ -111,6 +111,21 @@ class Replayer {
         this.state.pos = this.parser.tell();
         const dims = topology.exportDimensions(this.topo);
         gameBoard.style.cssText = `--ncols:${dims.x};--nrows:${dims.y};`
+        if (this.parser.header.EXTMETA) {
+            {
+                const clist = [];
+                for (let i = 0; i < 10; i ++) {
+                    const ind = 1668246528|(48+i);
+                    if (this.parser.header.metatable[ind]) {
+                        const cols = this.parser.header.metatable[ind];
+                        for (let j = 0; j < cols.length; j += 3) {
+                            clist.push(`#${cols.slice(j,j+3).map(v=>v.toString(16).padStart(2,'0')).join('')}`);
+                        }
+                    }
+                }
+                setColors(clist);
+            }
+        }
         setup(this.topo, this.state.board, this.state.teamboard);
         Display.status = "Before Start";
         Display.turn = "Player 1";
