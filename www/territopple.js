@@ -223,6 +223,27 @@ conn.addEventListener("open", async function(event) {
         }
     });
     {
+        const teamcolsm = document.getElementById("teamcolor-modal");
+        document.getElementById("colorbutton").addEventListener("click", () => {
+            if (!game.started && game.hostNum === ifmt.pln) {
+                teamcolsm.hidden = false;
+            }
+        });
+        /**@type {HTMLInputElement[]} */
+        const pickers = [0,1,2,3,4,5,6].map(v=>document.getElementById(`tcm-${v}`));
+        document.getElementById("tcm-apply").addEventListener("click", () => {
+            conn.send(JSON.stringify({type:"waiting:teamcols",payload:{c:pickers.map(v=>Number.parseInt(v.value.substring(1),16))}}));
+            teamcolsm.hidden = true;
+        });
+        document.getElementById("tcm-cancel").addEventListener("click", () => {
+            pickers.forEach((v,i) => v.value = teamcols[i]);
+            teamcolsm.hidden = true;
+        });
+        document.getElementById("tcm-reset").addEventListener("click", () => {
+            pickers.forEach((v,i) => v.value = default_teamcols[i]);
+        });
+    }
+    {
         const botspopup = document.getElementById("bots-popup");
         document.getElementById("botbutton").addEventListener("click", () => {
             if (!game.started && game.hostNum === ifmt.pln) {
