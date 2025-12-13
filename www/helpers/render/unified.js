@@ -139,6 +139,7 @@ let {updateTile, createBoard, setVolatile, flushUpdates, setColors} = (()=>{
                 createBoard = o.createBoard;
                 setVolatile = o.setVolatile;
                 flushUpdates = o.flushUpdates;
+                setColors = o.setColors;
                 for (const l of __unified_queues[1]) {
                     createBoard(...l);
                 }
