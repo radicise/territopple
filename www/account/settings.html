@@ -108,22 +108,39 @@
             });
             document.getElementById("apply-settings-btn").onclick = () => {
                 const proms = [];
+                let okay = true;
                 for (const key in oprops) {
                     if (oprops[key] !== props[key]) {
                         apply_status.textContent = " applying";
                         switch (key) {
                             case "name": {
-                                proms.push(fetch(`https://${document.location.hostname}/acc/name`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,name:props.name})}).then(v=>{if(v.ok)oprops.name=props.name;}));
+                                proms.push(fetch(`https://${document.location.hostname}/acc/name`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,name:props.name})}).then(v=>{
+                                    if(v.ok)oprops.name=props.name;
+                                    else {
+                                        okay = false;
+                                        props.name = oprops.name;
+                                        bi_name.value = props.name;
+                                    }
+                                }));
                                 break;
                             }
                             case "flagf1": {
-                                proms.push(fetch(`https://${document.location.hostname}/acc/flagf1`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,flagf:props.flagf1})}).then(v=>{if(v.ok)oprops.flagf1=props.flagf1;}));
+                                proms.push(fetch(`https://${document.location.hostname}/acc/flagf1`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify({id:oprops.id,flagf:props.flagf1})}).then(v=>{
+                                    if(v.ok)oprops.flagf1=props.flagf1;
+                                    else {
+                                        okay = false;
+                                        props.flagf1 = oprops.flagf1;
+                                        op_frs_anyone.checked = !(oprops.flagf1&1);
+                                        op_frs_same_room.checked = !(oprops.flagf1&2);
+                                        op_frs_fof.checked = !(oprops.flagf1&4);
+                                    }
+                                }));
                                 break;
                             }
                         }
                     }
                 }
-                Promise.allSettled(proms).then(v => {apply_status.textContent=v.every(r=>r.status==="fulfilled")?" applied":" failed";});
+                Promise.allSettled(proms).then(v => {apply_status.textContent=okay?" applied":" failed";});
             };
         </script>
         <!-- <script src="/components/include.js"></script> -->
