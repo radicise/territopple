@@ -231,6 +231,7 @@ conn.addEventListener("open", async function(event) {
         });
         /**@type {HTMLInputElement[]} */
         const pickers = [0,1,2,3,4,5,6].map(v=>document.getElementById(`tcm-${v}`));
+        pickers.forEach((v,i) => v.value = teamcols[i]);
         document.getElementById("tcm-apply").addEventListener("click", () => {
             conn.send(JSON.stringify({type:"waiting:teamcols",payload:{c:pickers.map(v=>Number.parseInt(v.value.substring(1),16))}}));
             teamcolsm.hidden = true;
