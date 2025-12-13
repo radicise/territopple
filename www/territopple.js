@@ -545,9 +545,8 @@ conn.addEventListener("open", async function(event) {
                 ifmt.turn = 0;
                 // await game.setConfig(topology.m.formatDimensions(dims), players);
                 await game.setConfig(dims, players);
-                if (data.payload["c"]) {
-                    console.log(data.payload["c"]);
-                    setColors(data.payload["c"].map(v=>"#"+([v>>16,(v>>8)&0xff,v&0xff].map(vi=>vi.toString(16)).join())),game.topology,game.teamboard);
+                if (data.payload["tc"]) {
+                    setColors(data.payload["tc"].map(v=>"#"+([v>>16,(v>>8)&0xff,v&0xff].map(vi=>vi.toString(16)).join())),game.topology,game.teamboard);
                 }
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 if (configed) {
