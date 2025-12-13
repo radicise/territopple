@@ -206,6 +206,15 @@ class Game {
         this.sort_key = null;
         // this.__ended = false;
         this.__ended = 0;
+        /**@type {number[]} */
+        this.__extflags = [];
+        /**@type {Record<number,Buffer>} */
+        this.__extmeta = {};
+        /**@type {Record<number,{condflag:boolean,flag_byte:number?,flag_bit:number?,size:number,producer:()=>Buffer}[]} */
+        this.__extevds = {};
+        this.stdmeta = {
+            colors: null
+        };
     }
     // get buffer() {
     //     // if (this.__ended) return [];
@@ -790,6 +799,13 @@ class NetData {
         static SetReady(playerNum, ready) {
             return this.Misc("setready", {n:playerNum,r:ready});
         }
+        /**
+         * @param {number[]} colors
+         * @returns {string}
+         */
+        static TeamCols(colors) {
+            return this.Misc("teamcols", {c:colors});
+        }
     }
     static Game = class {
         /**
@@ -848,7 +864,7 @@ class NetData {
          * @returns {string}
          */
         static Config(game) {
-            const o = {c:game.state.topology.tileCount,d:topology.m.exportDimensions(game.state.topology),t:topology.m.getTopologyId(game.state.topology),p:game.stats.maxPlayers,l:game.state.hostNum};
+            const o = {c:game.state.topology.tileCount,d:topology.m.exportDimensions(game.state.topology),t:topology.m.getTopologyId(game.state.topology),p:game.stats.maxPlayers,l:game.state.hostNum,tc:game.stdmeta.colors};
             // let d;
             // switch (o.t) {
             //     case 0:{

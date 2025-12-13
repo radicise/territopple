@@ -89,6 +89,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     onall("account:isbot", (data) => {
         sock.send(NetData.Account.IsBot(data["n"], data["a"]));
     });
+    onall("waiting:teamcols", (data) => {
+        sock.send(NetData.Waiting.TeamCols(data["c"]));
+    });
     if (state.accId) {
         emit("account:found", {n:(state.spectating?state.spectatorId:state.playerNum), a:state.accId});
         state.game.updateAccountId(state.spectating?state.spectatorId:state.playerNum, state.accId);
@@ -147,6 +150,12 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         state.game.state.hostNum = n;
                         emit("waiting:promote", {n});
                     }
+                }
+                break;
+            case "waiting:teamcols":
+                if (state.isHost) {
+                    state.game.stdmeta.colors = data.payload["c"];
+                    emit("waiting:teamcols", {c:data.payload["c"]});
                 }
                 break;
             case "player:spectate":

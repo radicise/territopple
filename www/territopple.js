@@ -223,6 +223,28 @@ conn.addEventListener("open", async function(event) {
         }
     });
     {
+        const teamcolsm = document.getElementById("teamcolor-modal");
+        document.getElementById("colorbutton").addEventListener("click", () => {
+            if (!game.started && game.hostNum === ifmt.pln) {
+                teamcolsm.hidden = false;
+            }
+        });
+        /**@type {HTMLInputElement[]} */
+        const pickers = [0,1,2,3,4,5,6].map(v=>document.getElementById(`tcm-${v}`));
+        pickers.forEach((v,i) => v.value = teamcols[i]);
+        document.getElementById("tcm-apply").addEventListener("click", () => {
+            conn.send(JSON.stringify({type:"waiting:teamcols",payload:{c:pickers.map(v=>Number.parseInt(v.value.substring(1),16))}}));
+            teamcolsm.hidden = true;
+        });
+        document.getElementById("tcm-cancel").addEventListener("click", () => {
+            pickers.forEach((v,i) => v.value = teamcols[i]);
+            teamcolsm.hidden = true;
+        });
+        document.getElementById("tcm-reset").addEventListener("click", () => {
+            pickers.forEach((v,i) => v.value = default_teamcols[i]);
+        });
+    }
+    {
         const botspopup = document.getElementById("bots-popup");
         document.getElementById("botbutton").addEventListener("click", () => {
             if (!game.started && game.hostNum === ifmt.pln) {
@@ -388,6 +410,10 @@ conn.addEventListener("open", async function(event) {
                 createBanner({type:"info",content:`Game started`});
                 break;
             }
+            case "waiting:teamcols":{
+                setColors(data.payload["c"].map(v=>"#"+([v>>16,(v>>8)&0xff,v&0xff].map(vi=>vi.toString(16).padStart(2,'0')).join(""))),game.topology,game.teamboard);
+                break;
+            }
             case "game:kick":{
                 let n = data.payload["n"];
                 if (typeof n === "number") {
@@ -541,6 +567,9 @@ conn.addEventListener("open", async function(event) {
                 ifmt.turn = 0;
                 // await game.setConfig(topology.m.formatDimensions(dims), players);
                 await game.setConfig(dims, players);
+                if (data.payload["tc"]) {
+                    setColors(data.payload["tc"].map(v=>"#"+([v>>16,(v>>8)&0xff,v&0xff].map(vi=>vi.toString(16).padStart(2,'0')).join(""))),game.topology,game.teamboard);
+                }
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 if (configed) {
                     configed();

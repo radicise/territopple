@@ -16,6 +16,7 @@ GAME TO CLIENT:
         promote (n [player num]: number)
         start (void)
         setready (n [player num]: number, r [ready]: boolean)
+        teamcolors (c [colors]: number[])
     error: (code: number, message: string | null, redirect: string | null, store: string | null)
     key:
         rejoin (key: string, g [game id]: string, p [player num]: number)
@@ -32,7 +33,7 @@ GAME TO CLIENT:
         ownid (n [spectator id]: string)
     game:
         roomid (g [room id]: string)
-        config (c [tile count]: number, t [topology]: number, d [necessary dimensions (see Topology class)]: Record<string,number>, p [max players]: number, l [host player num]: number)
+        config (c [tile count]: number, t [topology]: number, d [necessary dimensions (see Topology class)]: Record<string,number>, p [max players]: number, l [host player num]: number, tc [team colors]: number[] | null)
         jlist (p [player list]: [number [player num], number [team id], string | null [account id]][], s [spectator list]: [string, string | null [account id]][])
         turn (n [player num]: number, t [do timer]: boolean)
         move (n [tile num]: number, t [team id]: number)
@@ -62,6 +63,7 @@ CLIENT TO GAME:
         start (void)
         promote (n [player num]: number)
         setready (r [ready]: boolean)
+        teamcolors (c [colors]: number[])
     spectator:
         leave (void)
     player:

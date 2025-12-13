@@ -1,3 +1,8 @@
+# Dec 12, 2025 (Alpha 1.7.3)
+fixed a bug where finishing a replay caused the page to be unable to step replays until reloaded
+added custom team colors
+added ability to store arbitrary metadata in replay files
+
 # Dec 10, 2025 (Alpha 1.7.2)
 bot names are now displayed in the joined list
 the joined list now has a maximum width for names, hover on a name to see the full name if it's clipped

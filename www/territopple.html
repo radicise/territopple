@@ -73,6 +73,7 @@
                         <input type="button" id="pingbutton" value="ping">
                         <input type="button" id="startbutton" value="start" class="FLAG-host-only">
                         <input type="button" id="botbutton" value="bots" class="FLAG-host-only">
+                        <input type="button" id="colorbutton" value="colors" class="FLAG-host-only">
                     </span>
                     <span id="underboard-right">
                         <span id="turn-time">Time: --:--</span>
@@ -96,6 +97,18 @@
             <input type="button" value="Download Replay">
             <a hidden></a>
         </div>
+        <div id="teamcolor-modal" hidden>
+            <div>
+                Neutral: <input type="color" id="tcm-0"><br>
+                Team 1: <input type="color" id="tcm-1"><br>
+                Team 2: <input type="color" id="tcm-2"><br>
+                Team 3: <input type="color" id="tcm-3"><br>
+                Team 4: <input type="color" id="tcm-4"><br>
+                Team 5: <input type="color" id="tcm-5"><br>
+                Team 6: <input type="color" id="tcm-6"><br>
+                <input type="button" id="tcm-apply" value="apply"><input type="button" id="tcm-cancel" value="cancel"><input type="button" id="tcm-reset" value="reset to defaults">
+            </div>
+        </div>
 		<!-- <div id="gameboard" class="container m1"></div> -->
 		<h2 id="status">Connecting to server . . .</h2>
 		<p id="info">Not yet connected to server</p>
@@ -111,11 +124,11 @@
         </script>
         <script id="SCRIPT-r3d" type="module" src="render3.js" async></script>
         <script src="portno.js"></script>
-        <script src="helpers/render/unified.js"></script>
+        <script src="helpers/render/unified.js?rev=1"></script>
         <script src="helpers/banners.js"></script>
 		<script src="logic/game.js"></script>
-        <script src="logic/joinlist.js?rev=1"></script>
-	    <script src="territopple.js?rev=3"></script>
+        <script src="logic/joinlist.js?rev=2"></script>
+	    <script src="territopple.js?rev=4"></script>
         <script src="displaycontrols.js?rev=1"></script>
         <script src="/components/include.js"></script>
 	</body>

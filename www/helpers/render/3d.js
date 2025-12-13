@@ -54,3 +54,4 @@ function d3_cleanup() {
 function d3_flushUpdates() {
     window.postMessage({"type":"3d-flushupdates"});
 }
+function d3_updateColors(topo, teamboard) {}

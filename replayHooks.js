@@ -27,7 +27,7 @@ const defs = require("./defs.js");
 const topology = defs.topology;
 const fingerprint = defs.fingerprint;
 
-const FORMAT_VERSION = 4;
+const FORMAT_VERSION = 5;
 
 /**
  * @param {number|BigInt} n
@@ -145,7 +145,20 @@ function onGameStarted(game, idstrategy, team_map) {
     } else {
         game.buffer.push(Buffer.from(topologyData));
     }
-    game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint, 0xf0, 0x0f));
+    game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint));
+    if (game.__extflags.length || Object.keys(game.__extmeta).length || Object.keys(game.stdmeta).some(v=>game.stdmeta[v])) {
+        game.buffer[0][9] |= 4;
+        game.buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
+        if (game.stdmeta.colors) {
+            game.__extmeta[1668246576] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
+        }
+        game.buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
+    }
+    if (Object.keys(game.__extevds).length) {
+        game.buffer[0][9] |= 2;
+        game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => [Number(v[0]),v[1].length,v[1].map(iv => iv.condflag?[128|iv.flag_byte,(iv.flag_bit<<5)|iv.size]:(iv.size))]).flat(3)));
+    }
+    game.buffer.push(Buffer.of(0xf0, 0x0f));
 }
 
 /**

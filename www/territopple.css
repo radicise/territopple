@@ -171,6 +171,23 @@ svg#render {
     animation: blink var(--blink-dur, 0.5s) linear var(--blink-count, 3) forwards;
 }
 
+#teamcolor-modal {
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10;
+    background-color: #88888888;
+}
+#teamcolor-modal > div {
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    background-color: #888888;
+    border: solid 2px white;
+}
 #bots-popup {
     position: fixed;
     left: 0px;

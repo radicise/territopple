@@ -10,8 +10,8 @@ import { preserveCopy } from "./render_helper/updater.js";
 
 const bgColor = new three.Color(200,200,200);
 
-const lit_team_colors = [new three.Color(30,30,30),new three.Color(175,0,0),new three.Color(0,20,175),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
-const unlit_team_colors = [new three.Color(200,200,200),new three.Color(255,0,0),new three.Color(0,0,255),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
+const lit_team_colors = [new three.Color(30,30,30),new three.Color(175,0,0),new three.Color(0,20,175),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0),new three.Color(0x35,0x8f,0x3b)];
+const unlit_team_colors = [new three.Color(200,200,200),new three.Color(255,0,0),new three.Color(0,0,255),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0),new three.Color(0x35,0x8f,0x3b)];
 // const team_colors = [new three.Color(0,0,0),new three.Color(255,0,0),new three.Color(0,0,255),new three.Color(0xbf,0,0xbf),new three.Color(0,0xbf,0xbf),new three.Color(0xbf,0xbf,0)];
 // let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
 
