@@ -1,3 +1,7 @@
+# Dec 12, 2025 (DEV 2025laY3)
+fixed a bug with custom team colors being parsed incorrectly
+added UI for custom team colors
+
 # Dec 12, 2025 (DEV 2025laY2)
 fixed a bug where finishing a replay caused the page to be unable to step replays until reloaded
 added support for generating replay files with custom team colors
