@@ -1,3 +1,6 @@
+# Dec 12, 2025 (DEV 2025laY1)
+added support for custom team colors in game, input something along the lines of "conn.send(JSON.stringify({type:"waiting:teamcols",payload:{c:[0x7f3cc7,0x3ec73c,0xc7c53c]}}))" into the console using devtools to access this feature
+
 # Dec 12, 2025 (DEV 2025laY0)
 added ability to store arbitrary metadata in replay files
 added ability to specify custom team colors in replay files
