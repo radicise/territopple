@@ -154,6 +154,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 break;
             case "waiting:teamcols":
                 if (state.isHost) {
+                    state.game.stdmeta.colors = data.payload["c"];
                     emit("waiting:teamcols", {c:data.payload["c"]});
                 }
                 break;
