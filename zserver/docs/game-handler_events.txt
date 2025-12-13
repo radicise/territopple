@@ -10,6 +10,7 @@ waiting:
     promote (n [player num]: number)
     need-promote (void)
     setready (n [player num]: number, r [ready]: boolean)
+    teamcolors (c [colors]: number[])
 
 spectator:
     leave (n [spectator id]: string)

@@ -388,6 +388,10 @@ conn.addEventListener("open", async function(event) {
                 createBanner({type:"info",content:`Game started`});
                 break;
             }
+            case "waiting:teamcols":{
+                setColors(data.payload["c"].map(v=>"#"+([v>>16,(v>>8)&0xff,v&0xff].map(vi=>vi.toString(16)).join())),game.topology,game.teamboard);
+                break;
+            }
             case "game:kick":{
                 let n = data.payload["n"];
                 if (typeof n === "number") {
@@ -541,6 +545,7 @@ conn.addEventListener("open", async function(event) {
                 ifmt.turn = 0;
                 // await game.setConfig(topology.m.formatDimensions(dims), players);
                 await game.setConfig(dims, players);
+                setColors(data.payload["c"].map(v=>"#"+([v>>16,(v>>8)&0xff,v&0xff].map(vi=>vi.toString(16)).join())),game.topology,game.teamboard);
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 if (configed) {
                     configed();
