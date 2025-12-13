@@ -356,11 +356,13 @@ class Version5 {
         this.header.server_id = [...data.consume(16)].map((v,i) => v.toString(16).padStart(2,"0")+((i+1)%4===0)?"-":"").join("");
         if (this.header.EXTMETA) {
             const efc = data.consume();
-            this.header.extra_flags = data.consume(efc);
-            if (typeof this.header.extra_flags === "number") {
-                this.header.extra_flags = [this.header.extra_flags];
-            } else {
-                this.header.extra_flags = [...this.header.extra_flags];
+            if (efc) {
+                this.header.extra_flags = data.consume(efc);
+                if (typeof this.header.extra_flags === "number") {
+                    this.header.extra_flags = [this.header.extra_flags];
+                } else {
+                    this.header.extra_flags = [...this.header.extra_flags];
+                }
             }
             const emc = fromBytes(data.consume(2));
             this.header.metatable = {};
