@@ -1,3 +1,6 @@
+# Dec 13, 2025 [hotfix] (Alpha 1.7.4)
+added limit to length of account id and name
+
 # Dec 12, 2025 (Alpha 1.7.3)
 fixed a bug where finishing a replay caused the page to be unable to step replays until reloaded
 added custom team colors
