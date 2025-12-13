@@ -1,17 +1,7 @@
-# Dec 12, 2025 (DEV 2025laY3)
-fixed a bug with custom team colors being parsed incorrectly
-added UI for custom team colors
-
-# Dec 12, 2025 (DEV 2025laY2)
+# Dec 12, 2025 (Alpha 1.7.3)
 fixed a bug where finishing a replay caused the page to be unable to step replays until reloaded
-added support for generating replay files with custom team colors
-
-# Dec 12, 2025 (DEV 2025laY1)
-added support for custom team colors in game, input something along the lines of "conn.send(JSON.stringify({type:"waiting:teamcols",payload:{c:[0x7f3cc7,0x3ec73c,0xc7c53c]}}))" into the console using devtools to access this feature
-
-# Dec 12, 2025 (DEV 2025laY0)
+added custom team colors
 added ability to store arbitrary metadata in replay files
-added ability to specify custom team colors in replay files
 
 # Dec 10, 2025 (Alpha 1.7.2)
 bot names are now displayed in the joined list
