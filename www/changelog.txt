@@ -1,3 +1,7 @@
+# Dec 12, 2025 (DEV 2025laY2)
+fixed a bug where finishing a replay caused the page to be unable to step replays until reloaded
+added support for generating replay files with custom team colors
+
 # Dec 12, 2025 (DEV 2025laY1)
 added support for custom team colors in game, input something along the lines of "conn.send(JSON.stringify({type:"waiting:teamcols",payload:{c:[0x7f3cc7,0x3ec73c,0xc7c53c]}}))" into the console using devtools to access this feature
 
