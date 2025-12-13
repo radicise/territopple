@@ -362,7 +362,7 @@ class Version5 {
             } else {
                 this.header.extra_flags = [...this.header.extra_flags];
             }
-            const emc = data.consume();
+            const emc = fromBytes(data.consume(2));
             this.header.metatable = {};
             for (let i = 0; i < emc; i ++) {
                 const l = fromBytes(data.consume(2));

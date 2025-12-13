@@ -17,7 +17,9 @@ format reserved
 
 b"col0"-b"colz" (restricted):
 color data
-format reserved
+for all teams:
+    BYTE[3] - rgb color
+start in "col0", overflow continues into other segments
 
 b"link" (restricted):
 reserved for future use

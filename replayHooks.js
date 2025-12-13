@@ -149,7 +149,7 @@ function onGameStarted(game, idstrategy, team_map) {
     if (game.__extflags.length || game.__extmeta) {
         game.buffer[0][9] |= 4;
         game.buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
-        game.buffer.push(Buffer.of(Object.keys(game.__extmeta).length, ...Object.entries(game.__extmeta).flatMap(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]])));
+        game.buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).flatMap(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]])));
     }
     if (game.__extevds) {
         game.buffer[0][9] |= 2;

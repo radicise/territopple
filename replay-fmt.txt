@@ -233,7 +233,7 @@ BYTE[16] - unique server fingerprint, derived from hostname, home directory, and
 IF (EXTMETA):
     BYTE - extra flags count (EFC)
     BYTE[EFC] - extra flags
-    BYTE - metatable size (MTS)
+    BYTE[2] - metatable size (MTS)
     METATABLE_ENTRY[MTS] - metatable
 IF (EXTEVS):
     BYTE - extended event count (EEVC)
