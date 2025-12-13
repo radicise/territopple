@@ -150,7 +150,7 @@ function onGameStarted(game, idstrategy, team_map) {
         game.buffer[0][9] |= 4;
         game.buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
         if (game.stdmeta.colors) {
-            game.__extmeta[1668246528] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
+            game.__extmeta[1668246576] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
         }
         game.buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
     }
