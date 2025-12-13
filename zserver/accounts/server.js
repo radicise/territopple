@@ -20,6 +20,7 @@ fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.p
 const ACC_CREAT_TIMEOUT = settings.ACC?.CREATE_TO ?? 600000;
 const SESS_TIMEOUT = settings.ACC?.SESSION_TO ?? 1000*60*60*24;
 const ACC_PWRST_TIMEOUT = settings.ACC?.PWRST_TO  ?? 600000;
+const ACC_MAX_NAME_LEN = settings.ACC?.NAME_MAX ?? 25;
 
 const EACCESS = "logs/accounts/access.txt";
 const EREJECT = "logs/accounts/rejected.txt";
@@ -673,6 +674,10 @@ const public_server = http.createServer(async (req, res) => {
                     //     res.writeHead(200).end();
                     //     return;
                     // }
+                    if (data.id.length > ACC_MAX_NAME_LEN || data.name > ACC_MAX_NAME_LEN) {
+                        res.writeHead(422).end("name too long");
+                        return;
+                    }
                     if ((await collection.findOne({id:data.id})) !== null) {
                         res.writeHead(422).end();
                         return;
@@ -764,6 +769,10 @@ const public_server = http.createServer(async (req, res) => {
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, accNameChangeScheme)) {
                         res.writeHead(400).end();
+                        return;
+                    }
+                    if (data.name.length > ACC_MAX_NAME_LEN) {
+                        res.writeHead(422).end("name too long");
                         return;
                     }
                     const p = req.headers.cookie.indexOf("sessionId");
