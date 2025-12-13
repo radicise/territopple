@@ -154,7 +154,7 @@ function onGameStarted(game, idstrategy, team_map) {
         }
         game.buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).flatMap(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]])));
     }
-    if (game.__extevds) {
+    if (Object.keys(game.__extevds).length) {
         game.buffer[0][9] |= 2;
         game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).flatMap(v => [Number(v[0]),v[1].length,v[1].map(iv => iv.condflag?[128|iv.flag_byte,(iv.flag_bit<<5)|iv.size]:(iv.size))])));
     }
