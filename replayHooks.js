@@ -146,9 +146,12 @@ function onGameStarted(game, idstrategy, team_map) {
         game.buffer.push(Buffer.from(topologyData));
     }
     game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint));
-    if (game.__extflags.length || game.__extmeta) {
+    if (game.__extflags.length || game.__extmeta || Object.keys(game.stdmeta).some(v=>game.stdmeta[v])) {
         game.buffer[0][9] |= 4;
         game.buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
+        if (game.stdmeta.colors) {
+            game.__extmeta[1668246528] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
+        }
         game.buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).flatMap(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]])));
     }
     if (game.__extevds) {
