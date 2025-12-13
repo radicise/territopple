@@ -1,4 +1,5 @@
 let symbs = ["!", "-", "+", "W", "&block;"];
+const default_teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00", "#358f3b"];
 let teamcols = ["#333333", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00", "#358f3b"];
 
 let __unified_queues = [[],[],[],false];
@@ -53,7 +54,9 @@ let {updateTile, createBoard, setVolatile, flushUpdates, setColors} = (()=>{
      * @param {number[]} teamboard
      * @returns {void}
      */
-    function setColors(colors, topo, teamboard) {}
+    function setColors(colors, topo, teamboard) {
+        colors.forEach((v, i) => teamcols[i] = v);
+    }
     return { updateTile, createBoard, setVolatile, flushUpdates, setColors };
 })();
 {
