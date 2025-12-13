@@ -91,6 +91,7 @@ class Replayer {
                 this.topo = topology.makeTopology(topology.formatDimensions([this.parser.header.topology_id, ...this.parser.header.topology_data.params]));
                 this.init_replay();
                 this.broken = false;
+                this.done = false;
             } catch (E) {
                 alert(E.message);
                 console.error(E);
