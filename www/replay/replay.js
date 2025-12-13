@@ -123,7 +123,7 @@ class Replayer {
                         }
                     }
                 }
-                setColors(clist);
+                setColors(clist, this.topo, this.state.teamboard);
             }
         }
         setup(this.topo, this.state.board, this.state.teamboard);
