@@ -59,7 +59,7 @@ function original_cleanup() {
  * @param {number[]} teamboard
  */
 function original_updateColors(topo, teamboard) {
-    document.getElementById("gameboard").querySelectorAll("> div").forEach(
+    document.getElementById("gameboard").childNodes.forEach(
         /**@param {HTMLElement} v */
         v => {const p = v.id.split("c");const tile = Number(p[0].substring(1))*topo.width+Number(p[1]);v.style.setProperty("color", teamcols[teamboard[tile]]);});
 }
