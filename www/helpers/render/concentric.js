@@ -61,7 +61,7 @@ class TTConcentricTile extends HTMLElement {
 }
 customElements.define("x-concentric-tile", TTConcentricTile);
 
-const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_settings } = (() => {
+const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_settings } = (() => {
     const NS = "http://www.w3.org/2000/svg";
     /**@type {SVGSVGElement} */
     const SVG = document.createElementNS(NS, "svg");
@@ -295,5 +295,6 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         document.getElementById("gameboard").replaceChildren();
         SVG.replaceChildren(defs);
     }
-    return { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_settings };
+    function concentric_updateColors(topo, teamboard) {}
+    return { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_settings };
 })();

@@ -8,7 +8,7 @@ let __unified_queues = [[],[],[],false];
  * @typedef {import("../../../topology/topology.js").Topology} Topology
  */
 
-let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
+let {updateTile, createBoard, setVolatile, flushUpdates, setColors} = (()=>{
     /**
      * updates a tile
      * @param {TilePosition} pos
@@ -46,13 +46,21 @@ let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
     function flushUpdates() {
         __unified_queues[3] = true;
     }
-    return { updateTile, createBoard, setVolatile, flushUpdates };
+    /**
+     * sets team colors
+     * @param {string[]} colors
+     * @param {Topology} topo
+     * @param {number[]} teamboard
+     * @returns {void}
+     */
+    function setColors(colors, topo, teamboard) {}
+    return { updateTile, createBoard, setVolatile, flushUpdates, setColors };
 })();
 {
     const f = (()=>{
         const dummyFunc = () => {};
         let renderchoice = 0;
-        const methods = [[original_updateTile, concentric_updateTile, d3_updateTile], [original_createBoard, concentric_createBoard, d3_createBoard], [original_setVolatile, concentric_setVolatile, d3_setVolatile], [original_cleanup, concentric_cleanup, d3_cleanup], [dummyFunc, dummyFunc, d3_flushUpdates]];
+        const methods = [[original_updateTile, concentric_updateTile, d3_updateTile], [original_createBoard, concentric_createBoard, d3_createBoard], [original_setVolatile, concentric_setVolatile, d3_setVolatile], [original_cleanup, concentric_cleanup, d3_cleanup], [dummyFunc, dummyFunc, d3_flushUpdates], [original_updateColors, concentric_updateColors, d3_updateColors]];
         /**
          * updates a tile
          * @param {TilePosition} pos
@@ -101,7 +109,18 @@ let {updateTile, createBoard, setVolatile, flushUpdates} = (()=>{
         function flushUpdates() {
             methods[4][renderchoice]();
         }
-        return { updateTile, createBoard, setVolatile, flushUpdates };
+        /**
+         * sets team colors
+         * @param {string[]} colors
+         * @param {Topology} topo
+         * @param {number[]} teamboard
+         * @returns {void}
+         */
+        function setColors(colors, topo, teamboard) {
+            colors.forEach((v, i) => teamcols[i] = v);
+            methods[5][renderchoice](topo, teamboard);
+        }
+        return { updateTile, createBoard, setVolatile, flushUpdates, setColors };
     });
     let n = 4;
     for (const name of ["original", "concentric", "3d", "_"]) {

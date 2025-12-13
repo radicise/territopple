@@ -54,3 +54,12 @@ function original_setVolatile(pos, value) {
 function original_cleanup() {
     document.getElementById("gameboard").replaceChildren();
 }
+/**
+ * @param {Topology} topo
+ * @param {number[]} teamboard
+ */
+function original_updateColors(topo, teamboard) {
+    document.getElementById("gameboard").querySelectorAll("> div").forEach(
+        /**@param {HTMLElement} v */
+        v => {const p = v.id.split("c");const tile = Number(p[0].substring(1))*topo.width+Number(p[1]);v.style.setProperty("color", teamcols[teamboard[tile]]);});
+}
