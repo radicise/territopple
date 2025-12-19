@@ -574,8 +574,11 @@ const extend = (e, o) => {
     }
 };
 {
-    const prefs = JSON.parse(fs.readFileSync(_path.join(__dirname, "prefs.json"), {encoding:"utf-8"}));
-    extend(settings, prefs);
+    const prefsPath = _path.join(__dirname, "prefs.json");
+    if (fs.existsSync(prefsPath)) {
+	const prefs = JSON.parse(fs.readFileSync(prefsPath, {encoding:"utf-8"}));
+	extend(settings, prefs);
+    }
 }
 
 class NetData {
