@@ -1248,6 +1248,7 @@ exports.on = on;
 exports.clear = clear;
 exports.nbytes = nbytes;
 exports.validateJSONScheme = validateJSONScheme;
+this.JSONScheme = undefined;
 exports.JSONScheme = this.JSONScheme;
 // exports.JSONSchemeType = this.JSONSchemeType;
 // exports.HostingSettings = this.HostingSettings;
