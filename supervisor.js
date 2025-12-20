@@ -47,8 +47,29 @@ function startProcesses() {
     for (const server of servers) {
 	if (server.process === null) {
 	    server.process = spawn("npm", ["run", server.cmd], {
-		stdio: ['ignore', 'inherit', 'inherit']
+		stdio: ['ignore', 'pipe', 'pipe']
 	    });
+
+	    // Prefix stdout with process name
+	    server.process.stdout.on('data', (data) => {
+		const lines = data.toString().split('\n');
+		lines.forEach((line) => {
+		    if (line.length > 0) {
+			process.stdout.write(`[${server.name}] ${line}\n`);
+		    }
+		});
+	    });
+
+	    // Prefix stderr with process name
+	    server.process.stderr.on('data', (data) => {
+		const lines = data.toString().split('\n');
+		lines.forEach((line) => {
+		    if (line.length > 0) {
+			process.stderr.write(`[${server.name}] ${line}\n`);
+		    }
+		});
+	    });
+
 	    addLog(LOG, `started ${server.name}\n`);
 	}
     }
