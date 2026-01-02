@@ -1,0 +1,174 @@
+this document describes the format used to store programs to be executed on the TerriTopple Virtual Machine (".tttr", ".3tr", or ".ttvm").
+ttvm may also be known as version 1 of the topology rules format
+
+SSTR:
+BYTE - length
+BYTE[length]
+LSTR:
+BYTE[2] - length
+BYTE[length]
+
+all "SECTION" and "NAMED" blocks may be reordered, all "NAMED" blocks must remain within their specified "SECTION"
+
+version 1:
+BYTE - version
+
+// config
+SECTION .conf
+BYTE[7] b'SECTION'
+BYTE[5] b'.conf'
+
+BYTE - purpose
+INTERPRET: purpose==0 is topology rules
+INTERPRET: purpose==1 is general purpose code
+
+SSTR - name - may be length zero to indicate an unnamed/anonymous implementation
+
+BYTE - invar count
+
+// render restrictions
+BYTE[2] - SOME, flags, LSB maps to "any"
+BYTE[2] - NONE, flags, LSB maps to "any"
+
+// implementation
+SECTION .code
+BYTE[7] - b'SECTION'
+BYTE[5] - b'.code'
+
+// constructor
+NAMED
+SSTR 'constructor'
+BYTE - parameter count
+SSTR[parameter count] - parameter names // binds the given names to parameters in the order of declaration
+NOTE: in the case that the purpose of the program is topology rules, the VMTarget will have the specified parameter names used to set dimension properties
+returns void
+BYTECODE
+
+// getPositionOf
+[TOPOLOGY ONLY]
+NAMED
+SSTR 'getpositionof'
+automatically binds parameter 0 (tindex) as number
+automatically binds parameter 1 (mode) as 16bit flag set where LSB maps to "any"
+returns number[], ret[0] is the index into the tile position class list to use, ret[0]==0 indicates an error
+BYTECODE
+
+// getNeighbors
+[TOPOLOGY ONLY]
+NAMED
+SSTR 'getneighbors'
+automatically binds parameter 0 (tindex) as number
+returns number[], an array of tile indicies that neighbor the given index
+BYTECODE
+
+// getRequiredBits
+[TOPOLOGY ONLY]
+NAMED
+SSTR 'getrequiredbits'
+automatically binds parameter 0 (tindex) as number
+returns number, the number of bits required to store this tile's value
+BYTECODE
+
+// think
+[BOT ONLY]
+NAMED
+SSTR 'think'
+automatically binds parameter 0 (state) as GameState
+returns number, the tile index to move at
+BYTECODE
+
+// constant data
+SECTION .data
+BYTE[7] - b'SECTION'
+BYTE[5] - b'.data'
+
+LSTR - format string, any NUL byte shall be followed by the bound number of a constructor parameter, must not contain spaces, must not contain numeric characters
+-- becomes `${name} ${evalfmtstr}`
+NOTE: the length of the format string must be zero in applications where it is not used
+
+BYTE[2] - datavar count (DVC)
+DATAVAR[DVC] - datavars
+
+NOTE: the '.indx' section is not strictly required for topology purposes unless usage of the CALL opcode is desired
+// symbol table
+SECTION .indx
+BYTE[7] - b'SECTION'
+BYTE[5] - b'.indx'
+
+BYTE[2] - entry count (IEC)
+INDEX_ENTRY[IEC] - entries
+NOTE: symbols are accessed from the table via their indicies
+
+
+INDEX_ENTRY:
+SSTR - symbol
+BYTE[4] - offset
+INTERPRET: offset==0, offset unspecified
+INTERPRET: offset>0, symbol resides at specified offset from the .text section
+
+DATAVAR:
+BYTE - type - 0, 1, 2
+SWITCH (type) {
+    0 ->:
+        BYTE[4] - s64BE
+    1 ->:
+        SSTR - string
+    2 ->:
+        BYTE[8] - f64BE
+}
+
+
+BYTECODE:
+all code must end with a RET instruction
+the termination of bytecode is denoted with the HLT instruction
+
+RO indicates read only
+CW indicates constructor writeable
+RW indicates read write
+EO indicates extend only
+
+all code execution happens in the context of a topology class, therefore some fields are automatically bound
+auto-fields {
+    4: tc - tile count, RO+CW
+    5: max_neighbors - RO+CW
+    _: dstr - dimension string, this is set automatically based on the format string, and is not accessible
+}
+
+special memory addresses {
+    0: pabs - parameter address binding start, RO
+    1: iabs - invariant address binding start, RO
+    2: dabs - data address binding start, RO
+    3: this - the "this" object, RO
+    6: stack - RO
+}
+
+memory areas {
+    invariants: IABS..IABS+INVAR_COUNT, RO+CW (NOTE: it is UB to attempt to write to an invariant address outside of the constructor)
+    data: DABS..DABS+DATAVAR_COUNT, RW
+    parameter: PABS..PABS+PARAM_COUNT, RO (NOTE: it is UB to attempt to write to a parameter address)
+}
+
+Call ABI:
+parameters are passed through r1-r4, with additional parameters being pushed onto the stack in reverse order
+return values are passed through r0
+r0-r4 are allowed to be freely manipulated, all others must be saved and restored
+
+Syscalls:
+the syscall invoked by the SYSCALL opcode is specified using r0
+parameters and return values function in the same way as the Call ABI
+
+Available Syscalls:
+
+General Purpose
+0x0000 - fault
+0x0001 - alloc
+0x0002 - free
+0x0003 - set timer
+0x0004 - set max pc steps
+0x0005 - set irupt handler
+
+Bots:
+0x8000 - obtain root board reference
+0x8001 - get legal moves
+0x8002 - do move
+0x8003 - pick move

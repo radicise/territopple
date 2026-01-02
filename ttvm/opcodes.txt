@@ -1,0 +1,229 @@
+this file specifies all ttvm opcodes, their parameters, and their effects
+it also includes register specifications
+
+Registers:
+r0-12 - GPRs
+r13 (ONES) - always contains all 1s (RO)
+r14 (ONE) - always contains 1 (RO)
+r15 (ZERO) - always contains 0 (RO)
+r16 (SP) - stack pointer
+r17 (BP) - base pointer
+r18 (PC) - program counter (RO)
+r19 (CF) - compare flags (RO)
+
+Binary Representation:
+
+ADD(era compat):
+00000000 | xxxx|yyyy - rx.ry -> rx
+00000001 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
+00000010 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
+(era) 00000000 | xxxxxxxx | yyyyyyyy - rx.ry -> rx
+(era) 00000001 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> rx
+(era) 00000010 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> rx
+SUB(era compat):
+00000011 | xxxx|yyyy - rx.ry -> rx
+00000100 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
+00000101 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
+(era) 00000011 | xxxxxxxx | yyyyyyyy - rx.ry -> rx
+(era) 00000100 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> rx
+(era) 00000101 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> rx
+MUL:
+00000110 | xxxx|yyyy - rx.ry -> rx
+00000111 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
+00001000 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
+UNUSED:
+00001001
+00001010
+00001011
+IDIV:
+00001100 | xxxx|yyyy - rx.ry -> s1.s0
+00001101 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> s1.s0
+00001110 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> s1.s0
+SHL:
+00001111 | xxxx|yyyy - rx.ry -> rx
+SHR:
+00010000 | xxxx|yyyy - rx.ry -> rx
+SAR:
+00010001 | xxxx|yyyy - rx.ry -> rx
+XOR:
+00010010 | xxxx|yyyy - rx.ry -> rx
+00010011 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
+00010100 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
+NOT:
+00010010 | xxxx|1101 - rx.ONES -> rx
+ORR:
+00010101 | xxxx|yyyy - rx.ry -> rx
+00010110 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
+00010111 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
+AND:
+00011000 | xxxx|yyyy - rx.ry -> rx
+00011001 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
+00011010 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
+PSH:
+00011011 | xxxxxxxx - rx -> s0.rx
+POP:
+00011100 | xxxxxxxx - rx -> s0.rx
+CMP(era compat):
+00011101 | xxxx|yyyy - rx.ry -> cf
+00011110 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> cf
+00011111 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> cf
+(era) 00011101 | xxxxxxx | yyyyyyyy - rx.ry -> cf
+(era) 00011110 | xxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> cf
+(era) 00011111 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> cf
+TST(era compat):
+00011101 | xxxx|1111 - rx.ZERO -> cf
+(era) 00011101 | xxxxxxxx | 00001111 - rx.ZERO -> cf
+XCHG:
+00100000 | xxxx|yyyy - rx.ry -> rx.ry
+CMPXCHG:
+00100001 | xxxx|yyyy - rx.ry -> rx.ry.cf
+JMP:
+00100010 | xxxx|ria0 - rx -> pc(.s0 call)
+JE/Z:
+00100011 | xxxx|ria0 - rx -> pc(.s0 call)
+JNE/Z:
+00100100 | xxxx|ria0 - rx -> pc(.s0 call)
+JL:
+00100101 | xxxx|ria0 - rx -> pc(.s0 call)
+JB:
+00100101 | xxxx|ria1 - rx -> pc(.s0 call)
+JLE:
+00100110 | xxxx|ria0 - rx -> pc(.s0 call)
+JBE:
+00100110 | xxxx|ria1 - rx -> pc(.s0 call)
+JG:
+00100111 | xxxx|ria0 - rx -> pc(.s0 call)
+JA:
+00100111 | xxxx|ria1 - rx -> pc(.s0 call)
+JGE:
+00101000 | xxxx|ria0 - rx -> pc(.s0 call)
+JAE:
+00101000 | xxxx|ria1 - rx -> pc(.s0 call)
+RET:
+00101001 - s0 -> pc
+SYSCALL:
+00101010 - r0(.r1-r4)(.s*) -> r0(.r1-r4)(.s*)
+MOV(era compat):
+00101011 | xxxx|yyyy - ry -> rx (oprev compat)
+00101100 | xxxx|00ll | zzzz*(2<<l) - mz -> rx
+00101101 | xxxx|00ll | zzzz*(2<<l) - iz -> rx
+00101110 | xxxx|yyyy - *ry -> rx (oprev compat)
+(era) 00101011 | xxxxxxxx | yyyyyyyy - ry -> rx (oprev compat)
+(era) 00101110 | xxxxxxxx | yyyyyyyy - *ry -> rx (oprev compat)
+
+MODIFIERS:
+010000|nn - size (universal)
+010001|00 - era (era compat)
+010001|01 - call (jump)
+010001|10 - oprev (oprev compat)
+01001|nnn - memoffset (universal)
+
+HLT:
+11111111 - . -> .
+
+Description:
+
+ADD(r/er,r/er/m/i):
+adds the second operand to the first, storing the result in the first operand
+
+SUB(r/er,r/er/m/i):
+subtracts the second operand from the first, storing the result in the first operand
+
+MUL(r,r/m/i):
+multiplies the operands, storing the result in the first
+
+IDIV(r,r/m/i):
+divides the operands, pushes the quotient and remainder to the stack, in that order
+
+SHL(r,r):
+shifts the first operand left by amount specified by the second, stores the result in the first
+
+SHR(r,r):
+shifts the first operand right logically by amount specified by the second, stores the result in the first
+
+SAR(r,r):
+shifts the first operand right arithmetically by amount specified by the second, stores the result in the first
+
+XOR(r,r/m/i):
+bitwise xors the operands, stores the result in the first
+
+ORR(r,r/m/i):
+bitwise ors the operands, stores the result in the first
+
+AND(r,r/m/i):
+bitwise ands the operands, stores the result in the first
+
+PSH(re):
+pushes the operand onto the stack, the operand is unchanged
+
+POP(re):
+pops a value off the stack into the operand
+
+CMP(r/re,r/re/m/i):
+compares the operands, stores the result in the CF register
+
+XCHG(r,r):
+swaps the values in the operands
+
+CMPXCHG(r,r):
+swaps the values in the operands and compares them, stores the result of the comparison in the CF register
+
+JMP(r,f[r,i,a]):
+performs an absolute jump to the value specified in the register
+if 'r' is set, the jump is relative to PC+[len(instruction)]
+if 'i' is set, the next two bytes are read as a two's compliment signed integer and used instead of the operand
+if the 'call' prefix is present, PC+[len(instruction)] is pushed to the stack before the jump
+if the 'call' prefex is present and 'a' is set, the call is x86 style
+
+JE/Z, JNE/z, JL, JB, JLE, JBE, JG, JA, JGE, JAE all have the same operands and behavior as JMP with the following changes:
+JE/Z jumps only if the zero flag in CF is set
+JNE/Z jumps only if the zero flag in CF is unset
+JL jumps only if the less flag in CF is set
+JLE jumps only if the less flag or zero flag in CF is set
+JB jumps only if the below flag in CF is set
+JBE jumps only if the below flag or zero flag in CF is set
+JG jumps only if the greater flag in CF is set
+JGE jumps only if the greater flag or zero flag in CF is set
+JA jumps only if the above flag in CF is set
+JAE jumps only if the above flag or zero flag in CF is set
+
+RET():
+pops a value off the stack into PC
+
+SYSCALL():
+performs a syscall
+
+MOV(r/re,r/re/m/i):
+copies the value of the second operand into the first
+
+HLT():
+halts the VM, causing a fault
+
+MODIFIERS:
+
+SIZE(b[nn]):
+applies to all opcodes
+sets the size of the values operated on to (8<<'nn') bits
+
+ERA():
+applies to all opcodes that are 'era compat'
+all 'r' operands become 're' operands
+
+CALL():
+applies to all 'jump' opcodes
+the jump is now a call
+
+OPREV():
+applies to all opcodes that are 'oprev compat'
+the meanings of the operands are reversed
+
+MEMOFFSET(b[nnn]):
+applies to all opcodes
+the memory address operand is interpreted as a two's compliment signed offset from the specified reference
+
+if 'nnn' is 0, the reference is the SP register
+if 'nnn' is 1, the reference is the BP register
+if 'nnn' is 2, the reference is the PC register
+if 'nnn' is 3, the reference is DABS
+if 'nnn' is 4, the reference is IABS
+if 'nnn' is 5, the reference is PABS
