@@ -4,73 +4,85 @@
  */
 
 const { spawn, ChildProcess } = require("child_process");
-const { ensureFile, addLog, logStamp } = require("./defs.js");
+const { ensureFile, addLog, logStamp, settings } = require("./defs.js");
 
-/**@type {ChildProcess} */
-let manager_proc = null;
-/**@type {ChildProcess} */
-let data_proc = null;
-/**@type {ChildProcess} */
-let bot_proc = null;
+const servers = [
+    { name: "data",
+      cmd: "be-data",
+      process: null },
+    { name: "manager",
+      cmd: "be-mngr",
+      process: null },
+    { name: "bots",
+      cmd: "be-bots",
+      process: null },
+    { name: "server",
+      cmd: "ac-serv",
+      process: null },
+    { name: "puzzles",
+      cmd: "be-puzs",
+      process: null }
+];
 
 const LOG = "logs/supervisor.txt";
 ensureFile(LOG);
 logStamp(LOG);
 
 function addListeners() {
-    manager_proc.removeAllListeners("exit");
-    manager_proc.addListener("exit", (code, signal) => {
-        addLog(`manager ended with code ${code} and signal ${signal}`);
-        if (signal === null) {
-            startProcesses()
-        }
-    });
-    data_proc.removeAllListeners("exit");
-    data_proc.addListener("exit", (code, signal) => {
-        addLog(`data ended with code ${code} and signal ${signal}`);
-        if (signal === null) {
-            startProcesses()
-        }
-    });
-    bot_proc.removeAllListeners("exit");
-    bot_proc.addListener("exit", (code, signal) => {
-        addLog(`bots ended with code ${code} and signal ${signal}`);
-        if (signal === null) {
-            startProcesses()
-        }
-    });
+    for (const server of servers) {
+	if (server.process !== null) {
+	    server.process.removeAllListeners("exit");
+	    server.process.addListener("exit", (code, signal) => {
+		addLog(LOG, `${server.name} ended with code ${code} and signal ${signal}\n`);
+		server.process = null;
+		if (signal === null) {
+		    startProcesses();
+		}
+	    });
+	}
+    }
 }
 
 function startProcesses() {
-    if (manager_proc === null) {
-        manager_proc = spawn("npm run be-mngr");
-        addLog("started manager");
-    }
-    if (data_proc === null) {
-        data_proc = spawn("npm run be-data");
-        addLog("started data");
-    }
-    if (bot_proc === null) {
-        bot_proc = spawn("npm run be-bots");
-        addLog("started bots");
+    for (const server of servers) {
+	if (server.process === null) {
+	    server.process = spawn("npm", ["run", server.cmd], {
+		stdio: ['ignore', 'pipe', 'pipe']
+	    });
+
+	    // Prefix stdout with process name
+	    server.process.stdout.on('data', (data) => {
+		const lines = data.toString().split('\n');
+		lines.forEach((line) => {
+		    if (line.length > 0) {
+			process.stdout.write(`[${server.name}] ${line}\n`);
+		    }
+		});
+	    });
+
+	    // Prefix stderr with process name
+	    server.process.stderr.on('data', (data) => {
+		const lines = data.toString().split('\n');
+		lines.forEach((line) => {
+		    if (line.length > 0) {
+			process.stderr.write(`[${server.name}] ${line}\n`);
+		    }
+		});
+	    });
+
+	    addLog(LOG, `started ${server.name}\n`);
+	}
     }
     addListeners();
 }
+
 function stopProcesses() {
-    if (manager_proc !== null) {
-        manager_proc.kill("SIGINT");
-        addLog("stopped manager");
-        manager_proc = null;
-    }
-    if (data_proc !== null) {
-        data_proc.kill("SIGINT");
-        addLog("stopped data");
-        data_proc = null;
-    }
-    if (bot_proc !== null) {
-        bot_proc.kill("SIGINT");
-        addLog("stopped bots");
-        bot_proc = null;
+    for (const server of servers) {
+	if (server.process !== null) {
+	    server.process.kill("SIGINT");
+	    addLog(LOG, `stopped ${server.name}\n`);
+	    server.process = null;
+	}
     }
 }
 
@@ -89,3 +101,4 @@ process.addListener("SIGUSR2", () => {
     stopProcesses();
 });
 
+startProcesses();
