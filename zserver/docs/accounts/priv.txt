@@ -1,4 +1,4 @@
-this file documents the priveledge flags
+this file documents the privelege flags
 privileges visibilities:
 (H) - not visible to accounts without a privilege flag at least that high
 (A[<alias>]) - visible as the specified alias, only marked as an alias if the reader has privileges at least as high
