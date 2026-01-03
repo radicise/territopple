@@ -865,6 +865,16 @@ async function processAdminFetch(req, res, url, log) {
         }
         return;
     }
+    if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
+        res.writeHead(400).end();
+        return;
+    }
+    const body = req.method === "GET"?"":await new Promise((r, s) => {
+        let d = "";
+        req.on("data", (data) => {d += data});
+        req.on("end", ()=>r(d));
+        req.on("error", s);
+    });
     if (stripped === "/login") {
         const data = JSON.parse(body);
         if (!validateJSONScheme(data, accLoginScheme)) {
@@ -891,10 +901,6 @@ async function processAdminFetch(req, res, url, log) {
             res.writeHead(500).end();
             return;
         }
-    }
-    if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
-        res.writeHead(400).end();
-        return;
     }
     const sessid = extractASessionId(req.headers.cookie);
     const accid = ASessionManager.getAccountId(sessid);
