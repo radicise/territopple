@@ -902,7 +902,7 @@ async function processAdminFetch(req, res, url, log) {
                 return;
             }
         } catch (E) {
-            log(EERROR, E.toString());
+            log(EERROR, E.toString()+`\n${E.stack}`);
             res.writeHead(500).end();
             return;
         }
