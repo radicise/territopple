@@ -889,7 +889,9 @@ async function processAdminFetch(req, res, url, log) {
                 res.writeHead(404).end();
                 return;
             }
-            if (!check_permission(await getEffectivePrivs(doc), Permissions.MODERATE)) {
+            const privs = await getEffectivePrivs(doc);
+            console.log(privs);
+            if (!check_permission(privs, Permissions.MODERATE)) {
                 res.writeHead(403).end("account is not an admin");
                 return;
             }
