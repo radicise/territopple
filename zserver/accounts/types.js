@@ -40,7 +40,7 @@ const mdb = require("mongodb");
  * level:number,
  * priv_level:number,
  * priv_groups:number[],
- * sanction:null|SanctionRecord[],
+ * sanction:SanctionRecord[],
  * solved:number[],
  * flagf1:number?,
  * friends:string[]?,

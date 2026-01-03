@@ -5,15 +5,16 @@
 
 const nodemailer = require("nodemailer");
 const { SecretData, SensitiveData, AccountId, AuthToken, RotatingCryptoData } = require("./common.js");
-const { randomBytes, randomInt } = require("crypto");
+const { randomBytes, randomInt, sign, generateKeyPair } = require("crypto");
 const auth = require("./auth.js");
 // const db = require("./db.js");
 const http = require("http");
-const { ensureFile, addLog, logStamp, settings, validateJSONScheme, JSONScheme } = require("../../defs.js");
+const { ensureFile, addLog, logStamp, settings, validateJSONScheme, assembleByte, JSONScheme } = require("../../defs.js");
 const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
 const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1 } = require("./types.js");
+const { check_permission, Permissions, check_can_moderate } = require("./perms.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
 
@@ -27,11 +28,14 @@ const EREJECT = "logs/accounts/rejected.txt";
 const ESENSITIVE = "logs/accounts/sensitive.txt"; // used to log sensitive operations (eg. account creation, password change)
 const EERROR = "logs/accounts/error.txt";
 const IACCESS = "logs/accounts/iaccess.txt";
+const EBADMOD = "logs/accounts/ebadmod.txt";
+ensureFile(EBADMOD);
 ensureFile(IACCESS);
 ensureFile(EACCESS);
 ensureFile(EREJECT);
 ensureFile(ESENSITIVE);
 ensureFile(EERROR);
+logStamp(EBADMOD);
 logStamp(IACCESS);
 logStamp(EACCESS);
 logStamp(EREJECT);
@@ -67,6 +71,7 @@ let IREQNUM_CNT = 0;
 let EREQNUM_CNT = 0;
 
 const ACC_PUB_PREFIX = "/acc/pub";
+const ACC_ADMIN_PREFIX = "/acc/admin";
 
 class FatalError extends Error {
     /**
@@ -106,6 +111,20 @@ function extractSessionId(cookie) {
     }
     const e = cookie.indexOf(";", p+10);
     return cookie.substring(p+10, e>0?e:undefined);
+}
+
+/**
+ * @param {string} cookie
+ * @returns {string|null}
+ */
+function extractASessionId(cookie) {
+    if (!cookie) return null;
+    const p = cookie.indexOf("AsessionId");
+    if (p === -1) {
+        return null;
+    }
+    const e = cookie.indexOf(";", p+11);
+    return cookie.substring(p+11, e>0?e:undefined);
 }
 
 /**
@@ -221,7 +240,7 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = await collection.findOne({id:target});
                 v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction,rid,flagf1:v.flagf1??0}));
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:null,rid,flagf1:v.flagf1??0}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
@@ -341,6 +360,16 @@ const accPWResetScheme = {
 const friendReqScheme = {
     "id": "string"
 };
+/**@type {JSONScheme} */
+const sanctionScheme = {
+    "id": "string",
+    "sid": "number",
+    "value": "number",
+    "exp": "number",
+    "appeal": "number",
+    "notes": "string",
+    "appeals": "number"
+};
 
 /**
  * @param {string} email
@@ -391,14 +420,17 @@ const public_server = http.createServer(async (req, res) => {
         await processPubFetch(req, res, url, log);
         return;
     }
-    console.log(req.headers["content-type"]);
-    console.log(req.headers["sec-fetch-site"]);
+    if (url.pathname.startsWith(ACC_ADMIN_PREFIX)) {
+        await processAdminFetch(req, res, url, log);
+        return;
+    }
+    // console.log(req.headers["content-type"]);
+    // console.log(req.headers["sec-fetch-site"]);
     if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
         res.writeHead(400).end();
         return;
     }
-    console.log(req.headers.cookie);
-    // AUTHENTICATION NOT IMPLEMENTED
+    // console.log(req.headers.cookie);
     const body = req.method === "GET"?"":await new Promise((r, s) => {
         let d = "";
         req.on("data", (data) => {d += data});
@@ -700,7 +732,7 @@ const public_server = http.createServer(async (req, res) => {
                         pwdata:auth.makePwData(data.pw),
                         level:0,
                         priv_level:0,
-                        sanction:null,
+                        sanction:[],
                         timeoutid:setTimeout(()=>{delete account_creation_info[code];}, ACC_CREAT_TIMEOUT)
                     };
                     res.writeHead(200).end();
@@ -803,6 +835,124 @@ const public_server = http.createServer(async (req, res) => {
         }
     }
 });
+
+/**
+ * processes the admin fetch operations
+ * @param {http.IncomingMessage} req
+ * @param {http.ServerResponse} res
+ * @param {URL} url
+ * @param {(p:string,d:string)=>void} log
+ */
+async function processAdminFetch(req, res, url, log) {
+    const stripped = url.pathname.substring(ACC_ADMIN_PREFIX.length);
+    if (stripped === "/logout") {
+        ASessionManager.deleteToken(extractASessionId(req.headers.cookie));
+        res.writeHead(200).end();
+        return;
+    }
+    if (stripped === "/check") {
+        if (ASessionManager.getAccountId(extractASessionId(req.headers.cookie))) {
+            res.writeHead(200).end();
+        } else {
+            res.writeHead(400).end();
+        }
+        return;
+    }
+    if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
+        res.writeHead(400).end();
+        return;
+    }
+    const sessid = extractASessionId(req.headers.cookie);
+    const accid = ASessionManager.getAccountId(sessid);
+    if (!sessid || !accid) {
+        res.writeHead(403).end("not logged in");
+        return;
+    }
+    switch (req.method) {
+        case "GET":{
+            switch (stripped) {
+                case "/info": {
+                    const target = url.searchParams.get("id");
+                    if (!target) {
+                        res.writeHead(400).end("no target");
+                        return;
+                    }
+                    try {
+                        /**@type {AccountRecord} */
+                        const rec = await collection.findOne({id:target});
+                        if (!rec) {
+                            res.writeHead(404).end("target not found");
+                            return;
+                        }
+                        delete rec["pwdata"];
+                        res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(rec));
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
+            }
+            res.writeHead(404).end();
+            return;
+        }
+        case "POST":{
+            switch (stripped) {
+                // normal sanction
+                case "/Nsanction": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, sanctionScheme)) {
+                        res.writeHead(400).end("misformed");
+                        return;
+                    }
+                    try {
+                        /**@type {AccountRecord} */
+                        const source_rec = await collection.findOne({id:accid});
+                        const source_privs = await getEffectivePrivs(source_rec);
+                        const target_rec = await collection.findOne({id:data.id});
+                        const target_privs = await getEffectivePrivs(target_rec);
+                        if (!check_can_moderate(source_privs, target_privs)) {
+                            log(EBADMOD, `'${accid}'->'${data.id}' (${data.sid}) [canmod]`);
+                            res.writeHead(403).end("insufficient permissions, this attempt has been logged");
+                            return;
+                        }
+                        if (!check_sanction_allowed(source_privs, data.sid)) {
+                            log(EBADMOD, `'${accid}'->'${data.id}' (${data.sid}) [sancallow]`);
+                            res.writeHead(403).end("insufficient permissions, this attempt has been logged");
+                            return;
+                        }
+                        /**@type {SanctionRecord} */
+                        const sobj = {
+                            "appeal":null,
+                            "appealable_date":data.appeal,
+                            "appeals_left":data.appeals,
+                            "applied":Date.now(),
+                            "expires":data.exp,
+                            "sanction_id":data.sid,
+                            "notes":data.notes,
+                            "rejections":[],
+                            "source":accid,
+                            "value":data.value
+                        };
+                        if ((await collection.updateOne({id:data.id},{"$push":{"sanction":sobj}})).modifiedCount) {
+                            res.writeHead(200).end();
+                            return;
+                        }
+                        res.writeHead(500).end("unknown failure");
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
+                default:
+                    res.writeHead(404).end();
+                    return;
+            }
+        }
+    }
+}
+
 const internal_server = http.createServer(async (req, res) => {
     const url = new URL("http://localhost"+req.url);
     const TIME = new Date();
@@ -833,6 +983,48 @@ const internal_server = http.createServer(async (req, res) => {
             res.writeHead(503).end();
             return;
         }
+        case "/perms":{
+            if (req.method !== "GET") {
+                res.writeHead(405).end();
+                return;
+            }
+            if (url.searchParams.get("id") === "%40guest") {
+                res.writeHead(200).end(Buffer.alloc(6,0).toString("base64url"));
+                return;
+            }
+            const id = SessionManager.getAccountId(url.searchParams.get("id"));
+            if (id) {
+                try {
+                    /**@type {AccountRecord} */
+                    const rec = await collection.findOne({id});
+                    if (!rec) {
+                        res.writeHead(404).end();
+                        return;
+                    }
+                    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+                    const effective_priv = (rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0));
+                    const buf = Buffer.alloc(6,0);
+                    buf[0] = (rec.sanction?.find(v => v.sanction_id===9)?.value??0)<<4;
+                    buf[0] |= (rec.sanction?.find(v => v.sanction_id===8)?.value??0);
+                    buf.writeInt32BE(effective_priv, 1);
+                    buf[5] = assembleByte(
+                        rec.sanction?.some(v=>v.sanction_id===0),
+                        rec.sanction?.some(v=>v.sanction_id===1),
+                        rec.sanction?.some(v=>v.sanction_id===3),
+                        rec.sanction?.some(v=>v.sanction_id===4),
+                        rec.sanction?.some(v=>v.sanction_id===10),
+                        rec.sanction?.some(v=>v.sanction_id===11)
+                    );
+                    res.writeHead(200).end(buf.toString("base64url"));
+                } catch (E) {
+                    console.log(E);
+                    res.writeHead(500).end();
+                }
+            } else {
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/get-privs":{
             if (req.method !== "GET") {
                 res.writeHead(405).end();
@@ -848,7 +1040,7 @@ const internal_server = http.createServer(async (req, res) => {
                         return;
                     }
                     const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
-                    res.writeHead(200).end((rec.priv_level | groups.reduce((pv, cv) => pv | cv, 0)).toString());
+                    res.writeHead(200).end((rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0)).toString());
                 } catch (E) {
                     console.log(E);
                     res.writeHead(500).end();
@@ -1000,6 +1192,91 @@ class SessionManager {
 SessionManager.load();
 process.on("SIGINT", ()=>{SessionManager.save();});
 // process.on("SIGTERM", SessionManager.save);
+
+/**
+ * manages admin login sessions
+ * like standard SessionManager, but without sessions being preserved across restarts
+ */
+class ASessionManager {
+    /**@type {Record<string,[string,number]>} */
+    static #sessions = {};
+    /**@type {Record<string, string>} */
+    static #inverse_map = {};
+    /**
+     * @returns {string}
+     */
+    static #generateToken() {
+        let t;
+        do {
+            t = randomBytes(32).toString("base64url");
+        } while (t in this.#inverse_map);
+        return t;
+    }
+    /**
+     * returns base64url encoded token
+     * @param {string} id account id to create the token for
+     * @returns {string}
+     */
+    static createSession(id) {
+        if (id in this.#sessions) {
+            this.refreshSession(id);
+            return this.#sessions[id][0];
+        }
+        const token = this.#generateToken();
+        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT)];
+        this.#inverse_map[token] = id;
+        return token;
+    }
+    /**
+     * @param {string} sessionid
+     * @returns {string}
+     */
+    static getAccountId(sessionid) {
+        return this.#inverse_map[sessionid];
+    }
+    /**
+     * verifies that the session token corresponds to the given account id
+     * @param {string} token
+     * @param {string} id
+     * @returns {boolean}
+     */
+    static verifySession(token, id) {
+        if (!(id in this.#sessions)) return;
+        return this.#sessions[id][0] === token;
+    }
+    /**
+     * @param {string} id
+     */
+    static refreshSession(id) {
+        if (!(id in this.#sessions)) return false;
+        clearTimeout(this.#sessions[id][1]);
+        this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT);
+        return true;
+    }
+    /**
+     * @param {string} token
+     */
+    static deleteToken(token) {
+        if (!(token in this.#inverse_map)) return;
+        this.#expireToken(this.#inverse_map[token]);
+    }
+    /**
+     * @param {string} id
+     */
+    static #expireToken(id) {
+        delete this.#inverse_map[this.#sessions[id][0]];
+        delete this.#sessions[id];
+    }
+}
+
+/**
+ * @param {AccountRecord} rec
+ * @returns {Promise<number>}
+ */
+async function getEffectivePrivs(rec) {
+    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+    return (rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0));
+}
 
 
 public_server.listen(settings.AUTHPORT);

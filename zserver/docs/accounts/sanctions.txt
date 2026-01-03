@@ -49,9 +49,17 @@ Sanction IDs (IDs of '_' represent actions that do not persist):
 4 (GROUP 3) multiplayer ban
 5 (GROUP 3) deletion review [actionable by accounts with privilege "review group 4 sanctions"]
 6 (GROUP 4) blacklist
-7 (GROUP 4) suspend [temporary privilege group removal]
+7 (GROUP 4) suspend [temporary privilege group removal, 'value' is the privilege group]
 8 (GROUP 0) simultaneous room limit [applied to guests and most accounts] [uses 'value' as limit]
 9 (GROUP 0) board size limit [applied to most accounts] [uses 'value' as limit]
+10 (GROUP 1) extra review for submitting UGC
+11 (GROUP 2) ban from submitting UGC
 
 _ (GROUP 4) demote [strips an account of a privilege group]
-_ (GROUP 4) account deletion
+_ (GROUP 4) account deletion [cannot be applied to accounts unless sanction 5 has been applied prior]
+
+Exceptions for permissions required to apply sanctions:
+these sanctions have exceptions to the normal permission requirements
+
+10 - may be applied by those with 'review puzzle submissions' or 'manage puzzles'
+11 - may be applied by those with 'review puzzle submissions' or 'manage puzzles' and 'moderation abilities'

@@ -1,0 +1,20 @@
+div#info-sanction-area > div#isa-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 50ch;
+    overflow-y: scroll;
+}
+div.isa-sanction-item {
+    display: flex;
+    flex-direction: column;
+}
+div.isa-sanction-rejects {
+    display: flex;
+    flex-direction: column;
+    max-height: 5ch;
+    overflow-y: scroll;
+}
+div.isa-sanction-rejection {
+    display: flex;
+    flex-direction: column;
+}

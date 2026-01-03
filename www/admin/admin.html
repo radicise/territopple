@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Territopple - Admin</title>
+        <link rel="stylesheet" type="text/css" href="admin.css" />
+    </head>
+    <body>
+        <meta data-import="/components/admin/disp.html" />
+        <div id="dal-container">
+            <!-- direct account lookup -->
+            <label for="dal-entry">Account Id: </label>
+            <input type="text" id="dal-entry">
+            <input type="button" value="Go" id="dal-button">
+            <br>
+            <span id="dal-error"></span>
+        </div>
+        <div id="info-pane">
+            <div id="info-quick-details" hidden>
+                Details:<br>
+                Id: <span id="iqd-id"></span><br>
+                Name: <span id="iqd-name"></span><br>
+                Email: <span id="iqd-email"></span><input type="button" value="show" id="iqd-email-btn"><br>
+                CDate: <span id="iqd-cdate"></span><br>
+                LDate: <span id="iqd-ldate"></span>
+            </div>
+            <div id="info-sanction-area" hidden>
+                Sanctions:
+                <div id="isa-list"></div>
+            </div>
+        </div>
+        <script src="/components/utils/make.js"></script>
+        <script src="/components/include.js"></script>
+        <script src="./admin.js"></script>
+    </body>
+</html>

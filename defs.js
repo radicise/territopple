@@ -1235,8 +1235,24 @@ function logStamp(lpath) {
     addLog(lpath, `\n\n${new Date()} - STARTUP\n\n`);
 }
 
+/**
+ * @param  {boolean} bit7
+ * @param  {boolean} bit6
+ * @param  {boolean} bit5
+ * @param  {boolean} bit4
+ * @param  {boolean} bit3
+ * @param  {boolean} bit2
+ * @param  {boolean} bit1
+ * @param  {boolean} bit0
+ * @returns {number}
+ */
+function assembleByte(bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0) {
+    return [bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0].reduce((pv, cv, ci) => pv | ((cv?1:0)<<(7-ci)),0);
+}
+
 exports.__dname = __dname;
 exports.extend = extend;
+exports.assembleByte = assembleByte;
 exports.ensureFile = ensureFile;
 exports.addLog = addLog;
 exports.logStamp = logStamp;
