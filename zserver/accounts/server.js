@@ -889,6 +889,10 @@ async function processAdminFetch(req, res, url, log) {
                 res.writeHead(404).end();
                 return;
             }
+            if (!check_permission(await getEffectivePrivs(doc), Permissions.MODERATE)) {
+                res.writeHead(403).end("account is not an admin");
+                return;
+            }
             if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
                 // res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
                 res.writeHead(200, {"Set-Cookie":makeASessionCookie(ASessionManager.createSession(data.id))}).end();
