@@ -1,7 +1,7 @@
 div#info-pane {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    /* grid-template-rows: repeat(2, 1fr); */
     grid-template-areas:
     "dt sc"
     "pv sc";
@@ -20,7 +20,7 @@ div#isa-list {
     flex-direction: column;
     max-height: 50ch;
     overflow-y: scroll;
-    border: solid 2px black;
+    /* border: solid 2px black; */
     width: fit-content;
     padding: 2px;
 }
@@ -39,7 +39,7 @@ div.isa-sanction-rejects {
     flex-direction: column;
     max-height: 15ch;
     overflow-y: scroll;
-    border: solid 2px black;
+    /* border: solid 2px black; */
     width: fit-content;
     padding: 2px;
     text-indent: 2ch;
@@ -50,4 +50,19 @@ div.isa-sanction-rejection {
     border-bottom: solid 2px black;
     padding-bottom: 2px;
     margin-bottom: 2px;
+}
+
+div#ipa-list {
+    max-height: 30ch;
+    overflow-y: scroll;
+}
+div.ipa-priv-item {
+    border-bottom: solid 2px black;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+div.ipa-priv-list {
+    display: flex;
+    flex-direction: column;
+    text-indent: 2ch;
 }
