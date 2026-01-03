@@ -57,6 +57,7 @@
             sanction_cont.hidden = false;
             iqd_id.textContent = info.id;
             iqd_name.textContent = info.name;
+            acc_email = info.email;
             iqd_email.textContent = "<hidden>";
             iqd_email_btn.value = "show";
             iqd_cdate.textContent = new Date(info.cdate).toUTCString();
