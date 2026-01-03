@@ -1319,7 +1319,7 @@ class ASessionManager {
  * @returns {Promise<number>}
  */
 async function getEffectivePrivs(rec) {
-    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+    const groups = await priv_groups.find({gid:{$in:rec.priv_groups?.filter(v=>!(v&0x80000000))??[]}}).project({privs:1}).toArray();
     return (rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0));
 }
 
