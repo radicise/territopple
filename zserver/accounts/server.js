@@ -858,8 +858,9 @@ async function processAdminFetch(req, res, url, log) {
         return;
     }
     if (stripped === "/check") {
-        if (ASessionManager.getAccountId(extractASessionId(req.headers.cookie))) {
-            res.writeHead(200).end();
+        const id = ASessionManager.getAccountId(extractASessionId(req.headers.cookie))
+        if (id) {
+            res.writeHead(200).end(JSON.stringify({name:id}));
         } else {
             res.writeHead(400).end();
         }
