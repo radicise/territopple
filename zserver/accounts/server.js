@@ -393,6 +393,13 @@ async function sendEmailVerification(email, subject, code_href) {
 function makeSessionCookie(id) {
     return `sessionId=${id}; Same-Site=Lax; Secure; Http-Only; Path=/`;
 }
+/**
+ * @param {string} id
+ * @returns {string}
+ */
+function makeASessionCookie(id) {
+    return `AsessionId=${id}; Same-Site=Lax; Secure; Http-Only; Path=/`;
+}
 
 // used to process requests for account management and public data fetching
 const public_server = http.createServer(async (req, res) => {
@@ -857,6 +864,33 @@ async function processAdminFetch(req, res, url, log) {
             res.writeHead(400).end();
         }
         return;
+    }
+    if (stripped === "/login") {
+        const data = JSON.parse(body);
+        if (!validateJSONScheme(data, accLoginScheme)) {
+            res.writeHead(422).end();
+            return;
+        }
+        try {
+            /**@type {AccountRecord} */
+            const doc = await collection.findOne({id:data.id});
+            if (doc === null) {
+                res.writeHead(404).end();
+                return;
+            }
+            if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
+                // res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
+                res.writeHead(200, {"Set-Cookie":makeASessionCookie(ASessionManager.createSession(data.id))}).end();
+                return;
+            } else {
+                res.writeHead(403).end();
+                return;
+            }
+        } catch (E) {
+            log(EERROR, E.toString());
+            res.writeHead(500).end();
+            return;
+        }
     }
     if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
         res.writeHead(400).end();
