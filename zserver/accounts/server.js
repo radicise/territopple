@@ -13,7 +13,7 @@ const { ensureFile, addLog, logStamp, settings, validateJSONScheme, assembleByte
 const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
-const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1 } = require("./types.js");
+const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1, PrivGroupRecord } = require("./types.js");
 const { check_permission, Permissions, check_can_moderate } = require("./perms.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
@@ -890,7 +890,6 @@ async function processAdminFetch(req, res, url, log) {
                 return;
             }
             const privs = await getEffectivePrivs(doc);
-            console.log(privs);
             if (!check_permission(privs, Permissions.MODERATE)) {
                 res.writeHead(403).end("account is not an admin");
                 return;
@@ -918,6 +917,26 @@ async function processAdminFetch(req, res, url, log) {
     switch (req.method) {
         case "GET":{
             switch (stripped) {
+                case "/priv-group-info": {
+                    const target = url.searchParams.get("id");
+                    if (!target) {
+                        res.writeHead(400).end("no target");
+                        return;
+                    }
+                    try {
+                        /**@type {PrivGroupRecord} */
+                        const rec = await priv_groups.findOne({gid:target});
+                        if (!rec) {
+                            res.writeHead(404).end("target not found");
+                            return;
+                        }
+                        res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(rec));
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
                 case "/info": {
                     const target = url.searchParams.get("id");
                     if (!target) {

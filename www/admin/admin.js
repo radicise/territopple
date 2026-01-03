@@ -2,6 +2,8 @@
     await INCLUDE_FINISHED;
     /**@type {typeof import("../../commonjs/sanctions.mjs")} */
     const sanctions = await import("/commonjs/sanctions.mjs");
+    /**@type {typeof import("../../commonjs/perms.mjs")} */
+    const perms = await import("/commonjs/perms.mjs");
     {
         /**@type {HTMLInputElement} */
         const ent = document.getElementById("dal-entry");
@@ -75,7 +77,8 @@
             }
             priv_list.replaceChildren();
             if (info.priv_level || info.priv_groups) {
-                //
+                addPrivs({privs:info.priv_level,name:"Inherent",gid:-1});
+                info.priv_groups?.forEach(addPrivs);
             } else {
                 priv_list.textContent = "None";
             }
@@ -104,6 +107,17 @@
                         make("span",{"textContent":`Value: ${reject.value}`}),
                         make("span",{"textContent":`Notes: ${reject.notes}`})
                     ]})):[make("span",{"textContent":"None"})]})
+                ]})
+            );
+        }
+        /**
+         * @param {import("../../zserver/accounts/types.js").PrivGroupRecord} privs
+         */
+        function addPrivs(privs) {
+            priv_list.appendChild(
+                make("div",{"classList":["ipa-priv-item"],"children":[
+                    make("span",{"textContent":`Group: ${privs.name} (${privs.gid})`}),
+                    make("div",{"classList":["ipa-priv-list"],"children":privs.privs?privs.privs.toString(2).padStart(32,"0").split("").map((f, i) => f==="1"?make("span",{"textContent":perms.PRIVILEGES[31-i]}):null).filter(v=>v!==null):[make("span",{"textContent":"None"})]})
                 ]})
             );
         }

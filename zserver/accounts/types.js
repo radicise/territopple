@@ -51,6 +51,10 @@ const mdb = require("mongodb");
  */
 
 /**
+ * @typedef {{gid:number,name:string,privs:number}} PrivGroupRecord
+ */
+
+/**
  * @constant
  * @readonly
  * @see [flags.txt](../docs/accounts/flags.txt)
@@ -79,5 +83,6 @@ function checkFlag (field, mask) {
 exports.AppealRejectionRecord = this.AppealRejectionRecord;
 exports.SanctionRecord = this.SanctionRecord;
 exports.AccountRecord = this.AccountRecord;
+exports.PrivGroupRecord = this.PrivGroupRecord;
 exports.FlagF1 = FlagF1;
 exports.checkFlag = checkFlag;
