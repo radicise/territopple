@@ -1,7 +1,7 @@
 (async () => {
     await INCLUDE_FINISHED;
     /**@type {typeof import("../../commonjs/sanctions.mjs")} */
-    const sanctions = await import("commonjs/sanctions.mjs");
+    const sanctions = await import("/commonjs/sanctions.mjs");
     {
         /**@type {HTMLInputElement} */
         const ent = document.getElementById("dal-entry");
