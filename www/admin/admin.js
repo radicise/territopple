@@ -21,6 +21,11 @@
                 }
             });
         };
+        ent.onkeyup = (e) => {
+            if (e.code === "Enter") {
+                btn.click();
+            }
+        };
     }
     const { displayAccountInfo } = (()=>{
         /**@type {HTMLDivElement} */
