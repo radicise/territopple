@@ -1,7 +1,7 @@
 div#info-pane {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: minmax(100px, auto);
+    grid-template-rows: repeat(2, 1fr);
     grid-template-areas:
     "dt sc"
     "pv sc";
