@@ -39,6 +39,10 @@
         const sanction_cont = document.getElementById("info-sanction-area");
         /**@type {HTMLDivElement} */
         const sanction_list = document.getElementById("isa-list");
+        /**@type {HTMLDivElement} */
+        const priv_cont = document.getElementById("info-priv-area");
+        /**@type {HTMLDivElement} */
+        const priv_list = document.getElementById("ipa-list");
         let acc_email = "n/a";
         iqd_email_btn.onclick = () => {
             if (iqd_email_btn.value === "show") {
@@ -55,6 +59,7 @@
         function displayAccountInfo(info) {
             iqd_cont.hidden = false;
             sanction_cont.hidden = false;
+            priv_cont.hidden = false;
             iqd_id.textContent = info.id;
             iqd_name.textContent = info.name;
             acc_email = info.email;
@@ -67,6 +72,12 @@
                 info.sanction.forEach(addSanction);
             } else {
                 sanction_list.textContent = "None";
+            }
+            priv_list.replaceChildren();
+            if (info.priv_level || info.priv_groups) {
+                //
+            } else {
+                priv_list.textContent = "None";
             }
         }
         /**

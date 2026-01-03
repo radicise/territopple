@@ -1,4 +1,21 @@
-div#info-sanction-area > div#isa-list {
+div#info-pane {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(100px, auto);
+    grid-template-areas:
+    "dt sc"
+    "pv sc";
+}
+div#info-quick-details {
+    grid-area: dt;
+}
+div#info-sanction-area {
+    grid-area: sc;
+}
+div#info-priv-area {
+    grid-area: pv;
+}
+div#isa-list {
     display: flex;
     flex-direction: column;
     max-height: 50ch;
