@@ -1,0 +1,13 @@
+this file describes future features planned for puzzles/special boards
+
+- special toppling semantics
+- custom rendering (programmatic/tile bitmaps/subdividing images)
+- special tiles with custom properties
+
+examples:
+special toppling semantics:
+one-way topples
+custom rendering:
+make the board shape and tiles come together to make an image
+special tiles with custom properties:
+void tile that cannot be played on or owned and consumes pieces that topple onto it
