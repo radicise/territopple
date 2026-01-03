@@ -866,7 +866,7 @@ async function processAdminFetch(req, res, url, log) {
         }
         return;
     }
-    if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
+    if ((req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") && req.method !== "GET") {
         res.writeHead(400).end();
         return;
     }
