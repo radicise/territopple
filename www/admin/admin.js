@@ -107,7 +107,7 @@
                     make("span",{"textContent":"Rejections:"}),
                     make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[
                         make("span",{"textContent":`Rejected By: ${reject.source}`}),
-                        make("span",{"textContent":`Rejected Date: ${reject.date}`}),
+                        make("span",{"textContent":`Rejected Date: ${new Date(reject.date).toUTCString()}`}),
                         make("span",{"textContent":`Rejected Appeal: ${reject.appeal}`}),
                         make("span",{"textContent":`Value: ${reject.value}`}),
                         make("span",{"textContent":`Notes: ${reject.notes}`})
