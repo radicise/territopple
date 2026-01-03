@@ -1,3 +1,6 @@
+# Jan 2, 2026 (DEV202601Y0)
+began work on moderation tools
+
 # Dec 13, 2025 [hotfix] (Alpha 1.7.4)
 added limit to length of account id and name
 
