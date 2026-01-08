@@ -75,8 +75,9 @@ TST(era compat):
 (era) 00011101 | xxxxxxxx | 00001111 - rx.ZERO -> cf
 XCHG:
 00100000 | xxxx|yyyy - rx.ry -> rx.ry
-CMPXCHG:
-00100001 | xxxx|yyyy - rx.ry -> rx.ry.cf
+CMPXCHG (era compat):
+00100001 | xxxxxxxx | yyyy|llmm | wwww*(2<<l) | zzzz*(2<<m) - rx.ry.mw.mz -> mz
+(era) 00100001 | xxxxxxxx | yyyyyyyy | 0000llmm | wwww*(2<<l) | zzzz*(2<<m) - rx.ry.mw.mz -> mz
 JMP:
 00100010 | xxxx|ria0 - rx -> pc(.s0 call)
 JE/Z:
@@ -165,8 +166,8 @@ compares the operands, stores the result in the CF register
 XCHG(r,r):
 swaps the values in the operands
 
-CMPXCHG(r,r):
-swaps the values in the operands and compares them, stores the result of the comparison in the CF register
+CMPXCHG(re,r/re,m,m):
+compares the values of the first and third operands, if equal, stores the second operand in the fourth
 
 JMP(r,f[r,i,a]):
 performs an absolute jump to the value specified in the register
