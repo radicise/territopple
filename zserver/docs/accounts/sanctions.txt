@@ -18,8 +18,10 @@ account sanctions are either Null or an array of sanctions
 sanctions are broadly categorized under five groups.
 certain sanctions do not belong to these groups as they affect only certain parts of the site (for example, puzzle submission, leaderboard, etc.)
 
-the most significant bit of sanction_id is the bypass flag.
+MSB-1 of sanction_id is the bypass flag.
 privilege groups can be configured to prevent certain sanctions from being applied to members of the group, this immunity is bypassed if the bypass flag is set.
+MSB-2 of sanction_id is the canceled flag.
+the canceled flag is applied if an appeal is accepted or the sanction is otherwise ended early
 
 Group 0:
 automatic restrictions based on account status

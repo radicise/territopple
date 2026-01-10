@@ -50,6 +50,10 @@
         const priv_cont = document.getElementById("info-priv-area");
         /**@type {HTMLDivElement} */
         const priv_list = document.getElementById("ipa-list");
+        /**@type {HTMLDivElement} */
+        const sanc_manage = document.getElementById("sanc-manage-modal");
+        /**@type {import("../../zserver/accounts/types.js").AccountRecord} */
+        let curr_info = null;
         let acc_email = "n/a";
         iqd_email_btn.onclick = () => {
             if (iqd_email_btn.value === "show") {
@@ -87,14 +91,45 @@
             } else {
                 priv_list.textContent = "None";
             }
+            curr_info = info;
+        }
+        /**
+         * @param {number} id
+         */
+        function openManageSanction(id) {
+            const sanction = curr_info.sanction[id];
+            sanc_manage.children[0].replaceChildren(
+                make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x10000000].name}`}),
+                make("span",{"children":[make("span",{"textContent":"Canceled:"}),make("input",{"type":"checkbox","checked":(sanction.sanction_id&0x20000000)!==0})]}),
+                make("span",{"children":[make("span",{"textContent":"Value:"}),make("input",{"type":"number","value":sanction.value})]}),
+                make("span",{"textContent":`Applied By: ${sanction.source}`}),
+                make("span",{"textContent":`Applied: ${new Date(sanction.applied).toUTCString()}`}),
+                make("span",{"textContent":`Expires: ${new Date(sanction.expires).toUTCString()}`}),
+                make("span",{"textContent":`Appealable Date: ${new Date(sanction.appealable_date).toUTCString()}`}),
+                make("span",{"textContent":`Appeals Left: ${sanction.appeals_left}`}),
+                make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
+                make("span",{"textContent":"Notes:"}),
+                make("input",{"type":"textarea","classList":["isa-si-notes"],"value":sanction.notes}),
+                make("span",{"textContent":"Rejections:"}),
+                make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[
+                    make("span",{"textContent":`Rejected By: ${reject.source}`}),
+                    make("span",{"textContent":`Rejected Date: ${new Date(reject.date).toUTCString()}`}),
+                    make("span",{"textContent":`Rejected Appeal: ${reject.appeal}`}),
+                    make("span",{"textContent":`Value: ${reject.value}`}),
+                    make("span",{"textContent":`Notes: ${reject.notes}`})
+                ]})):[make("span",{"textContent":"None"})]})
+            );
+            sanc_manage.hidden = false;
         }
         /**
          * @param {import("../../zserver/accounts/types.js").SanctionRecord} sanction
+         * @param {number} id
          */
-        function addSanction(sanction) {
+        function addSanction(sanction, id) {
             sanction_list.appendChild(
-                make("div",{"classList":["isa-sanction-item"],"children":[
-                    make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id].name}`}),
+                make("div",{"id":`isa-ent-${id}`,"classList":["isa-sanction-item"],"children":[
+                    make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x10000000].name}`}),
+                    make("span",{"textContent":`Canceled: ${(sanction.sanction_id&0x20000000)!==0}`}),
                     make("span",{"textContent":`Value: ${sanction.value}`}),
                     make("span",{"textContent":`Applied By: ${sanction.source}`}),
                     make("span",{"textContent":`Applied: ${new Date(sanction.applied).toUTCString()}`}),
@@ -104,6 +139,7 @@
                     make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
                     make("span",{"textContent":"Notes:"}),
                     make("span",{"classList":["isa-si-notes"],"textContent":sanction.notes}),
+                    make("input",{"type":"button","value":"Manage","onclick":()=>{openManageSanction(id);}}),
                     make("span",{"textContent":"Rejections:"}),
                     make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[
                         make("span",{"textContent":`Rejected By: ${reject.source}`}),
