@@ -76,5 +76,8 @@ const make = (nodename, attrs) => {
     if (attrs?.title) {
         e.title = attrs.title;
     }
+    if (attrs?.checked) {
+        e.checked = attrs.checked;
+    }
     return e;
 };
