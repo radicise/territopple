@@ -55,7 +55,7 @@ const make = (nodename, attrs) => {
     if (attrs?.type) {
         e.type = attrs.type;
     }
-    if (attrs?.value) {
+    if (attrs?.value !== null && attrs?.value !== undefined) {
         e.value = attrs.value;
     }
     if (attrs?.placeholder) {
