@@ -62,7 +62,7 @@ const make = (nodename, attrs) => {
         e.placeholder = attrs.placeholder;
     }
     if (attrs?.onclick) {
-        e.onclick = attrs.onclick;
+        e.onclick = (ev)=>{attrs.onclick(e,ev);};
     }
     if (attrs?.children) {
         e.replaceChildren(...attrs.children);

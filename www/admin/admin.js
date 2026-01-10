@@ -4,6 +4,7 @@
     const sanctions = await import("/commonjs/sanctions.mjs");
     /**@type {typeof import("../../commonjs/perms.mjs")} */
     const perms = await import("/commonjs/perms.mjs");
+    const adminid = (await (await fetch(`https://${document.location.hostname}/acc/admin/check`, {method:"GET"})).json()).name;
     {
         /**@type {HTMLInputElement} */
         const ent = document.getElementById("dal-entry");
@@ -100,7 +101,7 @@
             const sanction = curr_info.sanction[id];
             sanc_manage.children[0].replaceChildren(
                 make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x1fffffff].name}`}),
-                make("span",{"children":[make("span",{"textContent":"Canceled:"}),make("input",{"type":"checkbox","checked":(sanction.sanction_id&0x20000000)!==0})]}),
+                make("span",{"children":[make("span",{"textContent":"Canceled:"}),make("input",{"type":"checkbox","checked":(sanction.sanction_id&0x20000000)!==0,"disabled":true})]}),
                 make("span",{"children":[make("span",{"textContent":"Value:"}),make("input",{"type":"number","value":sanction.value})]}),
                 make("span",{"textContent":`Applied By: ${sanction.source}`}),
                 make("span",{"textContent":`Applied: ${new Date(sanction.applied).toUTCString()}`}),
@@ -109,9 +110,9 @@
                 make("span",{"textContent":`Appeals Left: ${sanction.appeals_left}`}),
                 make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
                 make("span",{"children":[
-                    make("input",{"type":"button","value":"Accept","disabled":!sanction.appeal}),
+                    make("input",{"type":"button","value":"Accept","disabled":!sanction.appeal,"onclick":(e)=>{sanction.appeal=null;sanction.sanction_id|=0x20000000;e.parentNode.parentNode.querySelector("input[type='checkbox']").checked=true;}}),
                     make("input",{"type":"text","disabled":!sanction.appeal,"oninput":(e)=>{e.parentNode.children[2].disabled=e.value.length===0}}),
-                    make("input",{"type":"button","value":"Reject","disabled":true})
+                    make("input",{"type":"button","value":"Reject","disabled":true,"onclick":(e)=>{sanction.rejections.push({date:Date.now(),appeal:sanction.appeal,value:0,source:adminid,notes:e.parentNode.children[1].value});sanction.appeal=null;}})
                 ]}),
                 make("span",{"textContent":"Notes:"}),
                 make("textarea",{"classList":["isa-si-notes"],"value":sanction.notes}),
