@@ -79,5 +79,11 @@ const make = (nodename, attrs) => {
     if (attrs?.checked) {
         e.checked = attrs.checked;
     }
+    if (attrs?.disabled) {
+        e.disabled = attrs.disabled;
+    }
+    if (attrs?.oninput) {
+        e.oninput = (ev)=>{attrs.oninput(e,ev);};
+    }
     return e;
 };

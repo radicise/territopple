@@ -108,6 +108,11 @@
                 make("span",{"textContent":`Appealable Date: ${new Date(sanction.appealable_date).toUTCString()}`}),
                 make("span",{"textContent":`Appeals Left: ${sanction.appeals_left}`}),
                 make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
+                make("span",{"children":[
+                    make("input",{"type":"button","value":"Accept","disabled":!sanction.appeal}),
+                    make("input",{"type":"text","disabled":!sanction.appeal,"oninput":(e)=>{e.parentNode.children[2].disabled=e.value.length===0}}),
+                    make("input",{"type":"button","value":"Reject","disabled":true})
+                ]}),
                 make("span",{"textContent":"Notes:"}),
                 make("textarea",{"classList":["isa-si-notes"],"value":sanction.notes}),
                 make("span",{"textContent":"Rejections:"}),

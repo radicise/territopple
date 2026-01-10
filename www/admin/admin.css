@@ -66,3 +66,13 @@ div.ipa-priv-list {
     flex-direction: column;
     text-indent: 2ch;
 }
+
+div#sanc-manage-modal {
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50% -50%);
+    border: solid 2px black;
+    height: 80vh;
+    width: 40vh;
+}
