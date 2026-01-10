@@ -123,7 +123,8 @@
             sanc_manage.children[1].onclick = () => {
                 sanc_manage.hidden = true;
                 sanction.notes = sanc_manage.children[0].querySelector("textarea").value;
-                sanction.sanction_id &= (sanc_manage.children[0].querySelector("input[type='checkbox']").checked?0x7fffffff:0x5fffffff);
+                sanction.sanction_id &= 0x5fffffff;(sanc_manage.children[0].querySelector("input[type='checkbox']").checked?0x7fffffff:0);
+                sanction.sanction_id |= (sanc_manage.children[0].querySelector("input[type='checkbox']").checked?0x20000000:0);
                 sanction.value = Number(sanc_manage.children[0].querySelector("input[type='number']").value);
             };
         }
