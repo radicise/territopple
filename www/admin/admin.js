@@ -109,7 +109,7 @@
                 make("span",{"textContent":`Appeals Left: ${sanction.appeals_left}`}),
                 make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
                 make("span",{"textContent":"Notes:"}),
-                make("input",{"type":"textarea","classList":["isa-si-notes"],"value":sanction.notes}),
+                make("textarea",{"classList":["isa-si-notes"],"value":sanction.notes}),
                 make("span",{"textContent":"Rejections:"}),
                 make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[
                     make("span",{"textContent":`Rejected By: ${reject.source}`}),
