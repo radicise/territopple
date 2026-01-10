@@ -99,7 +99,7 @@
         function openManageSanction(id) {
             const sanction = curr_info.sanction[id];
             sanc_manage.children[0].replaceChildren(
-                make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x10000000].name}`}),
+                make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x1fffffff].name}`}),
                 make("span",{"children":[make("span",{"textContent":"Canceled:"}),make("input",{"type":"checkbox","checked":(sanction.sanction_id&0x20000000)!==0})]}),
                 make("span",{"children":[make("span",{"textContent":"Value:"}),make("input",{"type":"number","value":sanction.value})]}),
                 make("span",{"textContent":`Applied By: ${sanction.source}`}),
@@ -120,6 +120,12 @@
                 ]})):[make("span",{"textContent":"None"})]})
             );
             sanc_manage.hidden = false;
+            sanc_manage.children[1].onclick = () => {
+                sanc_manage.hidden = true;
+                sanction.notes = sanc_manage.children[0].querySelector("textarea").value;
+                sanction.sanction_id &= (sanc_manage.children[0].querySelector("input[type='checkbox']").checked?0x7fffffff:0x5fffffff);
+                sanction.value = Number(sanc_manage.children[0].querySelector("input[type='number']").value);
+            };
         }
         /**
          * @param {import("../../zserver/accounts/types.js").SanctionRecord} sanction
@@ -128,7 +134,7 @@
         function addSanction(sanction, id) {
             sanction_list.appendChild(
                 make("div",{"id":`isa-ent-${id}`,"classList":["isa-sanction-item"],"children":[
-                    make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x10000000].name}`}),
+                    make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x1fffffff].name}`}),
                     make("span",{"textContent":`Canceled: ${(sanction.sanction_id&0x20000000)!==0}`}),
                     make("span",{"textContent":`Value: ${sanction.value}`}),
                     make("span",{"textContent":`Applied By: ${sanction.source}`}),
