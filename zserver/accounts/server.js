@@ -105,13 +105,15 @@ class SanitizedError extends Error {
  */
 function extractSessionId(cookie) {
     if (!cookie) return null;
-    let p = cookie.indexOf(";sessionId");
+    let p = cookie.indexOf("; sessionId");
     if (p === -1) {
         if (cookie.startsWith("sessionId")) {
             p = 0;
         } else {
             return null;
         }
+    } else {
+        p += 2;
     }
     const e = cookie.indexOf(";", p+10);
     return cookie.substring(p+10, e>0?e:undefined);
@@ -207,11 +209,13 @@ async function processPubFetch(req, res, url, log) {
     let self = false;
     let rid;
     if (req.headers.cookie) {
-        let p = req.headers.cookie.indexOf(";sessionId");
+        let p = req.headers.cookie.indexOf("; sessionId");
         if (p === -1) {
             if (req.headers.cookie.startsWith("sessionId")) {
                 p = 0;
             }
+        } else {
+            p += 2;
         }
         if (p === -1 && target === "%40self") {
             res.writeHead(403).end("bad cookie");
@@ -829,18 +833,8 @@ const public_server = http.createServer(async (req, res) => {
                         res.writeHead(422).end("name too long");
                         return;
                     }
-                    let p = req.headers.cookie.indexOf(";sessionId");
-                    if (p === -1) {
-                        if (req.headers.cookie.startsWith("sessionId")) {
-                            p = 0;
-                        }
-                    }
-                    if (p === -1) {
-                        res.writeHead(403).end();
-                        return;
-                    }
-                    const e = req.headers.cookie.indexOf(";", p+10);
-                    if (!SessionManager.verifySession(req.headers.cookie.substring(p+10, e>0?e:undefined), data.id)) {
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.verifySession(sessid, data.id)) {
                         res.writeHead(403).end();
                         return;
                     }
