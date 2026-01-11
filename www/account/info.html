@@ -27,7 +27,7 @@
                 a.textContent = "Sanctions";
                 a.href = "/account/sanctions";
                 a.target = "_self";
-                document.getElementById("acc").appendChild(a);
+                document.getElementById("acc").append(document.createElement("br"), a);
             }
             let email;
             const acc_email = document.getElementById("acc-email");

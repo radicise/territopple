@@ -233,6 +233,7 @@ async function processPubFetch(req, res, url, log) {
             try {
                 /**@type {AccountRecord} */
                 const v = await collection.findOne({id:target});
+                v._id;
                 const t = Date.now();
                 res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction.filter(v=>!(v.expires<=t||v.sanction_id&0x20000000)).map(v=>{delete v["notes"];return v;})));
             } catch (E) {
