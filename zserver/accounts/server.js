@@ -1330,12 +1330,14 @@ class ASessionManager {
      */
     static deleteToken(token) {
         if (!(token in this.#inverse_map)) return;
+        clearTimeout(this.#sessions[this.#inverse_map[token]][0]);
         this.#expireToken(this.#inverse_map[token]);
     }
     /**
      * @param {string} id
      */
     static #expireToken(id) {
+        if (!(id in this.#sessions)) return;
         delete this.#inverse_map[this.#sessions[id][0]];
         delete this.#sessions[id];
     }
