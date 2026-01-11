@@ -46,7 +46,7 @@
                 make("span",{"textContent":`Appeal Granted By: ${sanction.granted_by??"n/a"}`}),
                 make("span",{"children":[
                     make("input",{"type":"text","oninput":(e)=>{e.parentNode.children[1].disabled=e.value.length===0;},"disabled":!(sanction.appealable_date>0&&sanction.appealable_date<=Date.now()&&sanction.appeals_left>0&&sanction.appeal===null)}),
-                    make("input",{"type":"button","onclick":(e)=>{makeAppeal(sanction.refid,e.parentNode.children[0].value);},"disabled":true})
+                    make("input",{"type":"button","value":"Appeal","onclick":(e)=>{makeAppeal(sanction.refid,e.parentNode.children[0].value);},"disabled":true})
                 ]}),
                 make("span",{"textContent":"Rejections:"}),
                 make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[
