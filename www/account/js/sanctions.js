@@ -45,7 +45,7 @@
                 make("span",{"textContent":`Appeal Granted: ${sanction.appeal_granted?new Date(sanction.appeal_granted).toUTCString():"No"}`}),
                 make("span",{"textContent":`Appeal Granted By: ${sanction.granted_by??"n/a"}`}),
                 make("span",{"children":[
-                    make("input",{"type":"text","oninput":(e)=>{e.parentNode.children[1].disabled=e.value.length===0;},"disabled":sanction.appealable_date>0&&sanction.appealable_date<=Date.now()&&sanction.appeals_left>0}),
+                    make("input",{"type":"text","oninput":(e)=>{e.parentNode.children[1].disabled=e.value.length===0;},"disabled":!(sanction.appealable_date>0&&sanction.appealable_date<=Date.now()&&sanction.appeals_left>0&&sanction.appeal===null)}),
                     make("input",{"type":"button","onclick":(e)=>{makeAppeal(sanction.refid,e.parentNode.children[0].value);},"disabled":true})
                 ]}),
                 make("span",{"textContent":"Rejections:"}),
