@@ -146,7 +146,7 @@
                     make("span",{"textContent":`Value: ${sanction.value}`}),
                     make("span",{"textContent":`Applied By: ${sanction.source}`}),
                     make("span",{"textContent":`Applied: ${new Date(sanction.applied).toUTCString()}`}),
-                    make("span",{"textContent":`Expires: ${new Date(sanction.expires).toUTCString()}`}),
+                    make("span",{"textContent":`Expires: ${sanction.expires?new Date(sanction.expires).toUTCString():"Never"}`}),
                     make("span",{"textContent":`Appealable Date: ${new Date(sanction.appealable_date).toUTCString()}`}),
                     make("span",{"textContent":`Appeals Left: ${sanction.appeals_left}`}),
                     make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
