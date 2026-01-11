@@ -1,3 +1,8 @@
+# Jan 10, 2026 (DEV202609Y0)
+changed how sanctions work
+added ability to view sanctions placed on your account
+added ability to appeal sanctions
+
 # Jan 2, 2026 (DEV202601Y0)
 began work on moderation tools
 
