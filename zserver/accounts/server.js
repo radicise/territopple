@@ -240,7 +240,7 @@ async function processPubFetch(req, res, url, log) {
     switch (resource) {
         case "/sanction": {
             if (!self) {
-                res.writeHead(403).end("can only seen own sanctions");
+                res.writeHead(403).end("can only see own sanctions");
                 return;
             }
             try {
@@ -248,7 +248,7 @@ async function processPubFetch(req, res, url, log) {
                 const v = await collection.findOne({id:target});
                 v._id;
                 const t = Date.now();
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction.filter(v=>!(v.expires<=t||v.sanction_id&0x20000000)).map(v=>{delete v["notes"];return v;})));
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction.filter(v=>!((v.expires<=t&&v.expires!==0)||v.sanction_id&0x20000000)).map(v=>{delete v["notes"];return v;})));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
