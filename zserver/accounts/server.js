@@ -223,13 +223,18 @@ async function processPubFetch(req, res, url, log) {
         }
     }
     const resource = stripped.substring(stripped.indexOf("/", 1));
-    console.log(`${target} , ${resource}`);
+    // console.log(`${target} , ${resource}`);
     switch (resource) {
         case "/sanction": {
+            if (!self) {
+                res.writeHead(403).end();
+                return;
+            }
             try {
+                /**@type {AccountRecord} */
                 const v = await collection.findOne({id:target});
-                v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction));
+                const t = Date.now();
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction.filter(v=>!(v.expires<=t||v.sanction_id&0x20000000)).map(v=>{delete v["notes"];return v;})));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
