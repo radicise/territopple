@@ -205,7 +205,7 @@ async function processPubFetch(req, res, url, log) {
     if (req.headers.cookie) {
         const p = req.headers.cookie.indexOf("sessionId");
         if (p === -1 && target === "%40self") {
-            res.writeHead(403).end();
+            res.writeHead(403).end("bad cookie");
             return;
         }
         const e = req.headers.cookie.indexOf(";", p+10);
@@ -213,7 +213,7 @@ async function processPubFetch(req, res, url, log) {
         rid = me;
         if (target === "%40self") {
             if (!me) {
-                res.writeHead(403).end();
+                res.writeHead(403).end("bad token");
                 return;
             }
             target = me;
@@ -227,7 +227,7 @@ async function processPubFetch(req, res, url, log) {
     switch (resource) {
         case "/sanction": {
             if (!self) {
-                res.writeHead(403).end();
+                res.writeHead(403).end("can only seen own sanctions");
                 return;
             }
             try {
