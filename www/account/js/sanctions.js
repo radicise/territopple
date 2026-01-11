@@ -19,7 +19,7 @@
      */
     function addSanction(sanction) {
         area.appendChild(
-            make("div",{"id":`isa-ent-${id}`,"classList":["isa-sanction-item"],"children":[
+            make("div",{"classList":["isa-sanction-item"],"children":[
                 make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x1fffffff].name}`}),
                 make("span",{"textContent":`Value: ${sanction.value}`}),
                 make("span",{"textContent":`Applied By: ${sanction.source}`}),
