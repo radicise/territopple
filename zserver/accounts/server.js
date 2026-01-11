@@ -389,6 +389,11 @@ const sanctionScheme = {
     "notes": "string",
     "appeals": "number"
 };
+/**@type {JSONScheme} */
+const appealScheme = {
+    "refid": "number",
+    "message": "string"
+};
 
 /**
  * @param {string} email
@@ -672,6 +677,41 @@ const public_server = http.createServer(async (req, res) => {
                             ]);
                         }
                         res.writeHead(200).end();
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                    }
+                    return;
+                }
+                case "/acc/make-appeal": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, appealScheme)) {
+                        res.writeHead(400).end("misformatted request");
+                        return;
+                    }
+                    const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
+                    if (!accid) {
+                        res.writeHead(403).end("not logged in");
+                        return;
+                    }
+                    try {
+                        /**@type {AccountRecord} */
+                        const rec = await collection.findOne({id:accid});
+                        /**@type {SanctionRecord} */
+                        const sanc = rec.sanction.find(v => v.refid === data.refid);
+                        if (!sanc) {
+                            res.writeHead(404).end("sanction refid not found");
+                            return;
+                        }
+                        if (!(Date.now()>=sanc.appealable_date && sanc.appeal === null && sanc.appeals_left > 0 && sanc.appealable_date !== 0 && (Date.now()<sanc.expires||sanc.expires===0))) {
+                            res.writeHead(403).end("appealing this request is not permitted at this time");
+                            return;
+                        }
+                        if ((await collection.updateOne({id:accid},{"$set":{"sanction.$[a].appeal":data.message,"sanction.$[a].appeal_date":Date.now()},"$dec":"sanction.$[a].appeals_left"},{arrayFilters:[{"a.refid":{"$eq":data.refid}}]})).modifiedCount) {
+                            res.writeHead(200).end();
+                            return;
+                        }
+                        res.writeHead(500).end("unknown failure");
                     } catch (E) {
                         console.log(E);
                         res.writeHead(500).end(E.sanitized ?? "Internal Error");
