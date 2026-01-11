@@ -21,8 +21,11 @@ const mdb = require("mongodb");
  * expires:number,
  * notes:string,
  * appeal:string|null,
+ * appeal_date:number,
  * appealable_date:number,
  * appeals_left:number,
+ * appeal_granted:number,
+ * granted_by:string|null,
  * rejections:AppealRejectionRecord[]
  * }}
  */

@@ -28,6 +28,9 @@
                 make("span",{"textContent":`Appealable Date: ${new Date(sanction.appealable_date).toUTCString()}`}),
                 make("span",{"textContent":`Appeals Left: ${sanction.appeals_left}`}),
                 make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
+                make("span",{"textContent":`Appealed On: ${sanction.appeal_date?new Date(sanction.appeal_date).toUTCString():"n/a"}`}),
+                make("span",{"textContent":`Appeal Granted: ${sanction.appeal_granted?new Date(sanction.appeal_granted).toUTCString():"No"}`}),
+                make("span",{"textContent":`Appeal Granted By: ${sanction.granted_by??"n/a"}`}),
                 make("span",{"textContent":"Rejections:"}),
                 make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[
                     make("span",{"textContent":`Rejected By: ${reject.source}`}),

@@ -10,8 +10,11 @@ account sanctions are either Null or an array of sanctions
     expires<double>: end date, a date of the UNIX epoch indicates indefinite,
     notes<string>: notes about application,
     appeal<Null|string>: string with appeal request message if a request was made,
+    appeal_date<double>: date that the appeal was made, 0 if no appeal has been made,
     appealable_date<double>: earliest date this sanction can be appealed, a date of the UNIX epoch indicates it cannot be appealed,
     appeals_left<Int32>: maximum times this sanction can be appealed,
+    appeal_granted<double>: date appeal was granted, 0 if appeal has not been granted,
+    granted_by<Null|string>: account id of the account that granted the appeal,
     rejections<{source<string>:who rejected the appeal,date<double>:when the appeal was rejected,notes<string>:why appeal was rejected,appeal<string>:appeal request message,value<Int32>:sanction specific value}[]>: appeal rejection messages
 }
 
