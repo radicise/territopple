@@ -36,6 +36,7 @@
                     make("span",{"textContent":`Rejected By: ${reject.source}`}),
                     make("span",{"textContent":`Rejected Date: ${new Date(reject.date).toUTCString()}`}),
                     make("span",{"textContent":`Rejected Appeal: ${reject.appeal}`}),
+                    make("span",{"textContent":`Appeal Date: ${new Date(reject.adate).toUTCString()}`}),
                     make("span",{"textContent":`Value: ${reject.value}`}),
                     make("span",{"textContent":`Notes: ${reject.notes}`})
                 ]})):[make("span",{"textContent":"None"})]})

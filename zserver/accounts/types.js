@@ -5,6 +5,7 @@ const mdb = require("mongodb");
  * @type {{
  * source:string,
  * date:number,
+ * adate:number,
  * notes:string,
  * appeal:string,
  * value:number
@@ -14,6 +15,7 @@ const mdb = require("mongodb");
 /**
  * @typedef SanctionRecord
  * @type {{
+ * refid:number,
  * sanction_id:number,
  * value:number,
  * source:string,
@@ -49,7 +51,8 @@ const mdb = require("mongodb");
  * friends:string[]?,
  * incoming_friends:string[]?,
  * outgoing_friends:string[]?,
- * devtst:boolean?
+ * devtst:boolean?,
+ * next_refid:number
  * }}
  */
 

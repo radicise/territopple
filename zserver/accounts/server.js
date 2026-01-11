@@ -989,6 +989,7 @@ async function processAdminFetch(req, res, url, log) {
                         /**@type {AccountRecord} */
                         const source_rec = await collection.findOne({id:accid});
                         const source_privs = await getEffectivePrivs(source_rec);
+                        /**@type {AccountRecord} */
                         const target_rec = await collection.findOne({id:data.id});
                         const target_privs = await getEffectivePrivs(target_rec);
                         if (!check_can_moderate(source_privs, target_privs)) {
@@ -1012,9 +1013,13 @@ async function processAdminFetch(req, res, url, log) {
                             "notes":data.notes,
                             "rejections":[],
                             "source":accid,
-                            "value":data.value
+                            "value":data.value,
+                            "appeal_date":0,
+                            "appeal_granted":0,
+                            "granted_by":null,
+                            "refid":target_rec.next_refid
                         };
-                        if ((await collection.updateOne({id:data.id},{"$push":{"sanction":sobj}})).modifiedCount) {
+                        if ((await collection.updateOne({id:data.id},{"$push":{"sanction":sobj},"$inc":"next_refid"})).modifiedCount) {
                             res.writeHead(200).end();
                             return;
                         }

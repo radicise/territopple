@@ -4,7 +4,8 @@ account sanctions are either Null or an array of sanctions
 
 {
     sanction_id<Int32>: what this sanction does,
-    value<Int32>: sanction specific value
+    refid<Int32>: reference to this sanction,
+    value<Int32>: sanction specific value,
     source<string>: account id of the account that applied this sanction,
     applied<double>: date applied,
     expires<double>: end date, a date of the UNIX epoch indicates indefinite,
@@ -15,7 +16,7 @@ account sanctions are either Null or an array of sanctions
     appeals_left<Int32>: maximum times this sanction can be appealed,
     appeal_granted<double>: date appeal was granted, 0 if appeal has not been granted,
     granted_by<Null|string>: account id of the account that granted the appeal,
-    rejections<{source<string>:who rejected the appeal,date<double>:when the appeal was rejected,notes<string>:why appeal was rejected,appeal<string>:appeal request message,value<Int32>:sanction specific value}[]>: appeal rejection messages
+    rejections<{source<string>:who rejected the appeal,date<double>:when the appeal was rejected,notes<string>:why appeal was rejected,appeal<string>:appeal request message,value<Int32>:sanction specific value,adate<double>:date the appeal was made}[]>: appeal rejection messages
 }
 
 sanctions are broadly categorized under five groups.
