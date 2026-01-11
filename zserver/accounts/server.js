@@ -707,7 +707,7 @@ const public_server = http.createServer(async (req, res) => {
                             res.writeHead(403).end("appealing this request is not permitted at this time");
                             return;
                         }
-                        if ((await collection.updateOne({id:accid},{"$set":{"sanction.$[a].appeal":data.message,"sanction.$[a].appeal_date":Date.now()},"$dec":"sanction.$[a].appeals_left"},{arrayFilters:[{"a.refid":{"$eq":data.refid}}]})).modifiedCount) {
+                        if ((await collection.updateOne({id:accid},{"$set":{"sanction.$[a].appeal":data.message,"sanction.$[a].appeal_date":Date.now()},"$inc":{"sanction.$[a].appeals_left":-1}},{arrayFilters:[{"a.refid":{"$eq":data.refid}}]})).modifiedCount) {
                             res.writeHead(200).end();
                             return;
                         }
@@ -1059,7 +1059,7 @@ async function processAdminFetch(req, res, url, log) {
                             "granted_by":null,
                             "refid":target_rec.next_refid
                         };
-                        if ((await collection.updateOne({id:data.id},{"$push":{"sanction":sobj},"$inc":"next_refid"})).modifiedCount) {
+                        if ((await collection.updateOne({id:data.id},{"$push":{"sanction":sobj},"$inc":{"next_refid":1}})).modifiedCount) {
                             res.writeHead(200).end();
                             return;
                         }
