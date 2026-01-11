@@ -105,9 +105,13 @@ class SanitizedError extends Error {
  */
 function extractSessionId(cookie) {
     if (!cookie) return null;
-    const p = cookie.indexOf("sessionId");
+    let p = cookie.indexOf(";sessionId");
     if (p === -1) {
-        return null;
+        if (cookie.startsWith("sessionId")) {
+            p = 0;
+        } else {
+            return null;
+        }
     }
     const e = cookie.indexOf(";", p+10);
     return cookie.substring(p+10, e>0?e:undefined);
@@ -203,7 +207,12 @@ async function processPubFetch(req, res, url, log) {
     let self = false;
     let rid;
     if (req.headers.cookie) {
-        const p = req.headers.cookie.indexOf("sessionId");
+        let p = req.headers.cookie.indexOf(";sessionId");
+        if (p === -1) {
+            if (req.headers.cookie.startsWith("sessionId")) {
+                p = 0;
+            }
+        }
         if (p === -1 && target === "%40self") {
             res.writeHead(403).end("bad cookie");
             return;
@@ -820,7 +829,12 @@ const public_server = http.createServer(async (req, res) => {
                         res.writeHead(422).end("name too long");
                         return;
                     }
-                    const p = req.headers.cookie.indexOf("sessionId");
+                    let p = req.headers.cookie.indexOf(";sessionId");
+                    if (p === -1) {
+                        if (req.headers.cookie.startsWith("sessionId")) {
+                            p = 0;
+                        }
+                    }
                     if (p === -1) {
                         res.writeHead(403).end();
                         return;
