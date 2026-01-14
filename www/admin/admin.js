@@ -115,6 +115,7 @@
          */
         function openManageSanction(id) {
             const sanction = curr_info.sanction[id];
+            const update = {};
             sanc_manage.children[0].replaceChildren(
                 make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x1fffffff].name}`}),
                 make("span",{"children":[make("span",{"textContent":"Canceled:"}),make("input",{"type":"checkbox","checked":(sanction.sanction_id&0x20000000)!==0,"disabled":true})]}),
@@ -126,9 +127,9 @@
                 make("span",{"textContent":`Appeals Left: ${sanction.appeals_left}`}),
                 make("span",{"textContent":`Appeal: ${sanction.appeal??"<no appeal>"}`}),
                 make("span",{"children":[
-                    make("input",{"type":"button","value":"Accept","disabled":!sanction.appeal,"onclick":(e)=>{sanction.appeal=null;sanction.sanction_id|=0x20000000;e.parentNode.parentNode.querySelector("input[type='checkbox']").checked=true;}}),
+                    make("input",{"type":"button","value":"Accept","disabled":!sanction.appeal,"onclick":(e)=>{update.appeal={accept:true};sanction.sanction_id|=0x20000000;e.parentNode.parentNode.querySelector("input[type='checkbox']").checked=true;}}),
                     make("input",{"type":"text","disabled":!sanction.appeal,"oninput":(e)=>{e.parentNode.children[2].disabled=e.value.length===0}}),
-                    make("input",{"type":"button","value":"Reject","disabled":true,"onclick":(e)=>{sanction.rejections.push({date:Date.now(),appeal:sanction.appeal,value:0,source:adminid,notes:e.parentNode.children[1].value});sanction.appeal=null;}})
+                    make("input",{"type":"button","value":"Reject","disabled":true,"onclick":(e)=>{sanction.rejections.push({date:Date.now(),appeal:sanction.appeal,value:0,source:adminid,notes:e.parentNode.children[1].value});update.appeal={accept:false,value:0,notes:e.parentNode.children[1].value};}})
                 ]}),
                 make("span",{"textContent":"Notes:"}),
                 make("textarea",{"classList":["isa-si-notes"],"value":sanction.notes}),
@@ -148,9 +149,21 @@
                 sanction.sanction_id &= 0x5fffffff;(sanc_manage.children[0].querySelector("input[type='checkbox']").checked?0x7fffffff:0);
                 sanction.sanction_id |= (sanc_manage.children[0].querySelector("input[type='checkbox']").checked?0x20000000:0);
                 sanction.value = Number(sanc_manage.children[0].querySelector("input[type='number']").value);
-                const cont = document.getElementById(`isa-ent-${id}`);
-                cont.querySelector("span.isa-si-notes").textContent = sanction.notes;
-                cont.children[1].textContent = `Canceled: ${(sanction.sanction_id&0x20000000)!==0}`;
+                update.acc = curr_info.id;
+                update.refid = sanction.refid;
+                update.value = sanction.value;
+                update.notes = sanction.notes;
+                fetch(`https://${document.location.hostname}/acc/admin/Msanction`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify(update)}).then(async r => {
+                    if (r.status === 200) {
+                        alert("sanction updated");
+                        document.getElementById("dal-button").click();
+                    } else {
+                        alert(`Failed (${r.status}):\n${await r.text()}`);
+                    }
+                });
+                // const cont = document.getElementById(`isa-ent-${id}`);
+                // cont.querySelector("span.isa-si-notes").textContent = sanction.notes;
+                // cont.children[1].textContent = `Canceled: ${(sanction.sanction_id&0x20000000)!==0}`;
                 // TODO: update the rest
             };
         }

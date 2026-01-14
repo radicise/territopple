@@ -897,6 +897,24 @@ const public_server = http.createServer(async (req, res) => {
     }
 });
 
+/**@type {JSONScheme} */
+const adminSancManScheme = {
+    "acc": "string",
+    "refid": "number",
+    "cancel?": "boolean",
+    "value?": "number",
+    "expires?": "number",
+    "notes?": "string",
+    "appeal?": "any"
+};
+/**@type {JSONScheme} */
+const adminSancManAppealScheme = {
+    "accept": "boolean",
+    "notes?": "string",
+    "value?": "number"
+};
+/**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
+
 /**
  * processes the admin fetch operations
  * @param {http.IncomingMessage} req
@@ -1067,6 +1085,68 @@ async function processAdminFetch(req, res, url, log) {
                     } catch (E) {
                         console.log(E);
                         res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
+                default:
+                    res.writeHead(404).end();
+                    return;
+            }
+        }
+        case "PATCH": {
+            switch (stripped) {
+                // manage sanction
+                case "/Msanction": {
+                    /**@type {AdminSancManData} */
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, adminSancManScheme)) {
+                        res.writeHead(400).end("misformed man data");
+                        return;
+                    }
+                    if ("appeal" in data && !validateJSONScheme(data.appeal, adminSancManAppealScheme)) {
+                        res.writeHead(400).end("misformed appeal man");
+                        return;
+                    }
+                    try {
+                        /**@type {SanctionRecord} */
+                        const rec = await collection.find({id:data.acc}).project({sanction:{$elemMatch:{refid:data.refid}}}).tryNext();
+                        if (rec === null) {
+                            res.writeHead(404).end("sanction not found");
+                            return;
+                        }
+                        const upd = {"$set":{},"$bit":{},"$push":{}};
+                        const sanction = "sanction.$[a]";
+                        if ("cancel" in data) {
+                            upd["$bit"][`${sanction}.sanction_id`] = {"and":0x5fffffff,"or":data.cancel?0x20000000:0};
+                        }
+                        if ("appeal" in data) {
+                            if (data.appeal.accept) {
+                                upd["$bit"][`${sanction}.sanction_id`] = {"or":0x20000000};
+                                upd["$set"][`${sanction}.appeal_granted`] = Date.now();
+                                upd["$set"][`${sanction}.granted_by`] = accid;
+                            } else {
+                                upd["$push"][`${sanction}.rejections`] = {"source":accid,"date":Date.now(),"notes":data.appeal.notes??"<no notes>","value":data.appeal.value??0,"appeal":rec.appeal,"adate":rec.appeal_date};
+                                upd["$set"][`${sanction}.appeal`] = null;
+                                upd["$set"][`${sanction}.appeal_date`] = 0;
+                            }
+                        }
+                        if ("expires" in data) {
+                            upd["$set"][`${sanction}.expires`] = data.expires;
+                        }
+                        if ("notes" in data) {
+                            upd["$set"][`${sanction}.notes`] = data.notes;
+                        }
+                        if ("value" in data) {
+                            upd["$set"][`${sanction}.value`] = data.value;
+                        }
+                        if ((await collection.updateOne({id:data.acc},upd,{arrayFilters:[{"a.refid":{"$eq":data.refid}}]})).modifiedCount) {
+                            res.writeHead(200).end();
+                            return;
+                        }
+                        res.writeHead(500).end("unknown failure");
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
                     }
                     return;
                 }
