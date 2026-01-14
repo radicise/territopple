@@ -1037,7 +1037,7 @@ async function processAdminFetch(req, res, url, log) {
                             res.writeHead(403).end("insufficient permissions, this attempt has been logged");
                             return;
                         }
-                        if (!check_sanction_allowed(source_privs, data.sid)) {
+                        if (!check_sanction_allowed(source_privs, data.id)) {
                             log(EBADMOD, `'${accid}'->'${data.acc}' (${data.id}) [sancallow]`);
                             res.writeHead(403).end("insufficient permissions, this attempt has been logged");
                             return;
@@ -1059,7 +1059,7 @@ async function processAdminFetch(req, res, url, log) {
                             "granted_by":null,
                             "refid":target_rec.next_refid
                         };
-                        if ((await collection.updateOne({id:data.id},{"$push":{"sanction":sobj},"$inc":{"next_refid":1}})).modifiedCount) {
+                        if ((await collection.updateOne({id:data.acc},{"$push":{"sanction":sobj},"$inc":{"next_refid":1}})).modifiedCount) {
                             res.writeHead(200).end();
                             return;
                         }
