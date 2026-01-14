@@ -1030,15 +1030,15 @@ async function processAdminFetch(req, res, url, log) {
                         const source_rec = await collection.findOne({id:accid});
                         const source_privs = await getEffectivePrivs(source_rec);
                         /**@type {AccountRecord} */
-                        const target_rec = await collection.findOne({id:data.id});
+                        const target_rec = await collection.findOne({id:data.acc});
                         const target_privs = await getEffectivePrivs(target_rec);
                         if (!check_can_moderate(source_privs, target_privs)) {
-                            log(EBADMOD, `'${accid}'->'${data.id}' (${data.sid}) [canmod]`);
+                            log(EBADMOD, `'${accid}'->'${data.acc}' (${data.id}) [canmod]`);
                             res.writeHead(403).end("insufficient permissions, this attempt has been logged");
                             return;
                         }
                         if (!check_sanction_allowed(source_privs, data.sid)) {
-                            log(EBADMOD, `'${accid}'->'${data.id}' (${data.sid}) [sancallow]`);
+                            log(EBADMOD, `'${accid}'->'${data.acc}' (${data.id}) [sancallow]`);
                             res.writeHead(403).end("insufficient permissions, this attempt has been logged");
                             return;
                         }
