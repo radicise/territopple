@@ -183,7 +183,7 @@ function check_can_moderate(source, target) {
     // priv admins have full trust, DB admin must strip this privilege before sanctioning
     if (check_permission(target, Permissions.PRIV_ADMIN)) return false;
     // moderation actions cannot be applied to those of higher moderation level
-    if (get_sanction_perms(target).lastIndexOf(true) >= get_sanction_perms(source)) return false;
+    if (get_sanction_perms(target).lastIndexOf(true) >= get_sanction_perms(source).lastIndexOf(true)) return false;
     return true;
 }
 
@@ -192,7 +192,7 @@ function check_can_moderate(source, target) {
  * @returns {boolean[]}
  */
 function get_sanction_perms(source) {
-    [check_permission(source, Permissions.APPLY_G1_SANCTION),check_permission(source, Permissions.APPLY_G2_SANCTION),check_permission(source, Permissions.APPLY_G3_SANCTION),check_permission(source, Permissions.APPLY_G4_SANCTION)]
+    return [check_permission(source, Permissions.APPLY_G1_SANCTION),check_permission(source, Permissions.APPLY_G2_SANCTION),check_permission(source, Permissions.APPLY_G3_SANCTION),check_permission(source, Permissions.APPLY_G4_SANCTION)];
 }
 
 /**
