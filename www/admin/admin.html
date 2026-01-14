@@ -23,6 +23,7 @@
                 Email: <input type="button" value="show" id="iqd-email-btn"><span id="iqd-email"></span><br>
                 CDate: <span id="iqd-cdate"></span><br>
                 LDate: <span id="iqd-ldate"></span>
+                <input type="button" value="Add Sanction" id="iqd-add-sanc">
             </div>
             <div id="info-sanction-area" hidden>
                 Sanctions:
@@ -33,9 +34,33 @@
                 <div id="ipa-list"></div>
             </div>
         </div>
-        <div id="sanc-manage-modal" hidden>
+        <div id="sanc-manage-modal" class="modal" hidden>
             <div class="isa-sanction-item"></div>
             <input type="button" value="Apply"><input type="button" value="Cancel" onclick="document.getElementById('sanc-manage-modal').hidden=true;">
+        </div>
+        <div id="sanc-add-modal" class="modal" hidden>
+            <div class="isa-sanction-item">
+                <span>Sanction Type: <select id="sam-typesel"></select></span>
+                <span id="sam-bypass" hidden>Bypass Immunity: <input type="checkbox" id="sam-bypass-i"></span>
+                <span><span id="sam-valtype">Value:</span> <input id="sam-value" type="number" value="0"></span>
+                <span>Duration: <select id="sam-duration">
+                    <option value="0" selected>1 Day</option>
+                    <option value="1">3 Days</option>
+                    <option value="2">1 Week</option>
+                    <option value="3">2 Weeks</option>
+                    <option value="4">1 Month</option>
+                    <option value="5">2 Months</option>
+                    <option value="6">3 Months</option>
+                    <option value="7">6 Months</option>
+                    <option value="8">1 Year</option>
+                    <option value="9">Forever</option>
+                </select></span>
+                <span id="sam-can-appeal" hidden>Appealable: <input type="checkbox" id="sam-can-appeal-i" checked></span>
+                <span id="sam-appeals-left" hidden>Allowed Appeals: <input type="number" id="sam-appeals-left-i" value="1" min="1"></span>
+                <span>Notes:</span>
+                <textarea id="sam-notes"></textarea>
+            </div>
+            <input type="button" value="Apply"><input type="button" value="Cancel" onclick="document.getElementById('sanc-add-modal').hidden=true;">
         </div>
         <script src="/components/utils/make.js"></script>
         <script src="/components/include.js"></script>

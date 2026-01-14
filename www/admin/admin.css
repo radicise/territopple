@@ -67,7 +67,7 @@ div.ipa-priv-list {
     text-indent: 2ch;
 }
 
-div#sanc-manage-modal {
+div.modal {
     position: absolute;
     left: 50vw;
     top: 50vh;

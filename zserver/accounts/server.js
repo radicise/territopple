@@ -381,13 +381,13 @@ const friendReqScheme = {
 };
 /**@type {JSONScheme} */
 const sanctionScheme = {
-    "id": "string",
-    "sid": "number",
+    "acc": "string",
+    "id": "number",
+    "bypass": "boolean",
     "value": "number",
-    "exp": "number",
-    "appeal": "number",
-    "notes": "string",
-    "appeals": "number"
+    "expires": "number",
+    "appeals": "number",
+    "notes": "string"
 };
 /**@type {JSONScheme} */
 const appealScheme = {
@@ -1045,11 +1045,11 @@ async function processAdminFetch(req, res, url, log) {
                         /**@type {SanctionRecord} */
                         const sobj = {
                             "appeal":null,
-                            "appealable_date":data.appeal,
+                            "appealable_date":data.appeals?(data.expires?data.expires+((data.expires-Date.now())/2):180*86400):0,
                             "appeals_left":data.appeals,
                             "applied":Date.now(),
-                            "expires":data.exp,
-                            "sanction_id":data.sid,
+                            "expires":data.expires,
+                            "sanction_id":data.id,
                             "notes":data.notes,
                             "rejections":[],
                             "source":accid,
