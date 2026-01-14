@@ -14,7 +14,7 @@ const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
 const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1, PrivGroupRecord } = require("./types.js");
-const { check_permission, Permissions, check_can_moderate } = require("./perms.js");
+const { check_permission, Permissions, check_can_moderate, check_sanction_allowed } = require("./perms.js");
 
 fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
 
