@@ -228,7 +228,7 @@
                     id: id,
                     bypass: bypass.checked,
                     value: Number(samval.value),
-                    expires: dur>=0?Date.now()+dur*86400:0,
+                    expires: dur>=0?Date.now()+dur*86400*1000:0,
                     appeals: can_appeal.checked?Number(appeals_allowed.value):0,
                     notes: samnotes.value
                 };

@@ -1045,7 +1045,7 @@ async function processAdminFetch(req, res, url, log) {
                         /**@type {SanctionRecord} */
                         const sobj = {
                             "appeal":null,
-                            "appealable_date":data.appeals?(data.expires?data.expires+((data.expires-Date.now())/2):180*86400):0,
+                            "appealable_date":data.appeals?(data.expires?data.expires+((data.expires-Date.now())/2):180*86400*1000):0,
                             "appeals_left":data.appeals,
                             "applied":Date.now(),
                             "expires":data.expires,
