@@ -155,7 +155,7 @@
                 update.notes = sanction.notes;
                 fetch(`https://${document.location.hostname}/acc/admin/Msanction`, {method:"PATCH",headers:[["content-type","application/json"]],body:JSON.stringify(update)}).then(async r => {
                     if (r.status === 200) {
-                        alert("sanction updated");
+                        // alert("sanction updated");
                         document.getElementById("dal-button").click();
                     } else {
                         alert(`Failed (${r.status}):\n${await r.text()}`);
@@ -247,8 +247,9 @@
                 };
                 fetch(`https://${document.location.hostname}/acc/admin/Nsanction`, {method:"POST",headers:[["content-type","application/json"]],body:JSON.stringify(req)}).then(async r => {
                     if (r.status === 200) {
-                        alert("Sanction applied successfully");
+                        // alert("Sanction applied successfully");
                         sanc_add.hidden = true;
+                        document.getElementById("dal-button").click();
                     } else {
                         alert(`Failed (${r.status}):\n${await r.text()}`);
                         sanc_add.hidden = true;
