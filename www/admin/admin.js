@@ -187,7 +187,7 @@
                     make("span",{"textContent":`Appeal Granted: ${sanction.appeal_granted?new Date(sanction.appeal_granted).toUTCString():"No"}`}),
                     make("span",{"textContent":`Appeal Granted By: ${sanction.granted_by??"n/a"}`}),
                     make("span",{"textContent":"Notes:"}),
-                    make("textarea",{"classList":["isa-si-notes"],"value":sanction.notes}),
+                    make("textarea",{"classList":["isa-si-notes"],"value":sanction.notes,"readonly":true}),
                     make("input",{"type":"button","value":"Manage","onclick":()=>{openManageSanction(id);}}),
                     make("span",{"textContent":"Rejections:"}),
                     make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[

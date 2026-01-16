@@ -85,5 +85,8 @@ const make = (nodename, attrs) => {
     if (attrs?.oninput) {
         e.oninput = (ev)=>{attrs.oninput(e,ev);};
     }
+    if (attrs?.readonly) {
+        e.readonly = attrs.readonly;
+    }
     return e;
 };
