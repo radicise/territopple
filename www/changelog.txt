@@ -1,3 +1,6 @@
+# Jan 15, 2026 (DEV20260fY0)
+got admin page to a workable state
+
 # Jan 10, 2026 (DEV202609Y0)
 changed how sanctions work
 added ability to view sanctions placed on your account
