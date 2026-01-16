@@ -1171,23 +1171,25 @@ function nbytes(n, c) {
 function validateJSONScheme(obj, scheme) {
     try {
         const allow_extensions = scheme["*"] === "any";
-        if (Object.keys(scheme).filter(v => v.endsWith("?")).some(v => !(v.slice(0,v.length-1) in obj))) {
+        if (Object.keys(scheme).filter(v => !v.endsWith("?")).some(v => !(v in obj))) {
             return false;
         }
-        for (let key in obj) {
+        for (const _key in obj) {
+            let key = _key;
             if ((key+"?") in scheme) {
                 key = key + "?";
             }
+            // console.log(key);
             if (key in scheme) {
                 if (typeof scheme[key] === "string") {
-                    if (typeof obj[key] !== scheme[key] && scheme[key] !== "any") {
+                    if (typeof obj[_key] !== scheme[key] && scheme[key] !== "any") {
                         return false;
                     }
                 } else if (Array.isArray(scheme[key])) {
-                    if (!Array.isArray(obj[key])) {
+                    if (!Array.isArray(obj[_key])) {
                         return false;
                     }
-                    if (!obj[key].every(v => (typeof scheme[key][0] === "object") ? validateJSONScheme(obj, scheme[key][0]) : (scheme[key][0] === "any" || typeof v === scheme[key][0]))) {
+                    if (!obj[_key].every(v => (typeof scheme[key][0] === "object") ? validateJSONScheme(obj, scheme[key][0]) : (scheme[key][0] === "any" || typeof v === scheme[key][0]))) {
                         return false;
                     }
                 }
