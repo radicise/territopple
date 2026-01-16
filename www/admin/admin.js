@@ -98,11 +98,27 @@
             sanction_list.replaceChildren();
             if (info.sanction.length) {
                 const now = Date.now();
-                info.sanction.sort((a,b) => 
-                    (Number(b.granted_by===null)-Number(a.granted_by===null))
-                    || (Number(a.expires!==0&&a.expires<=now)-Number(b.expires!==0&&b.expires<=now))
-                    || (a.applied-b.applied)
-                );
+                const sinfo = sanctions.SANCTION_INFO;
+                info.sanction.sort((a,b) => {
+                    // const angrant = Number(a.granted_by===null);
+                    // const bngrant = Number(b.granted_by===null);
+                    // const aexp = Number(a.expires!==0&&a.expires<=now);
+                    // const bexp = Number(b.expires!==0&&b.expires<=now);
+                    // const ag = sinfo[a.sanction_id&0x1fffffff].g;
+                    // const bg = sinfo[b.sanction_id&0x1fffffff].g;
+                    // const c1 = angrant
+                    // if (angrant-bngrant) return bngrant-angrant;
+                    return (
+                        // active before expired
+                        (Number(a.expires!==0&&a.expires<=now)-Number(b.expires!==0&&b.expires<=now))
+                        // appeal not granted before appeal granted
+                        || (Number(b.granted_by===null)-Number(a.granted_by===null))
+                        // high group before low group
+                        || (sinfo[b.sanction_id&0x1fffffff].g-sinfo[a.sanction_id&0x1fffffff].g)
+                        // applied last before applied first
+                        || (b.applied-a.applied)
+                    );
+                });
                 info.sanction.forEach(addSanction);
             } else {
                 sanction_list.textContent = "None";
