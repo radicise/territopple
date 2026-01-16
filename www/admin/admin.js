@@ -100,7 +100,7 @@
                 const now = Date.now();
                 info.sanction.sort((a,b) => 
                     (Number(b.granted_by===null)-Number(a.granted_by===null))
-                    || (Number(b.expires!==0&&b.expires<=now)-Number(a.expires!==0&&a.expires<=now))
+                    || (Number(a.expires!==0&&a.expires<=now)-Number(b.expires!==0&&b.expires<=now))
                     || (a.applied-b.applied)
                 );
                 info.sanction.forEach(addSanction);
