@@ -97,6 +97,12 @@
             iqd_ldate.textContent = new Date(info.last_online).toUTCString();
             sanction_list.replaceChildren();
             if (info.sanction.length) {
+                const now = Date.now();
+                info.sanction.sort((a,b) => 
+                    (Number(a.granted_by===null)-Number(b.granted_by===null))
+                    || (Number(a.expires!==0&&a.expires<=now)-Number(b.expires!==0&&b.expires<=now))
+                    || (a.applied-b.applied)
+                );
                 info.sanction.forEach(addSanction);
             } else {
                 sanction_list.textContent = "None";
@@ -169,11 +175,10 @@
         }
         /**
          * @param {SanctionRecord} sanction
-         * @param {number} id
          */
-        function addSanction(sanction, id) {
+        function addSanction(sanction) {
             sanction_list.appendChild(
-                make("div",{"id":`isa-ent-${id}`,"classList":["isa-sanction-item"],"children":[
+                make("div",{"id":`isa-ent-${sanction.refid}`,"classList":["isa-sanction-item"],"children":[
                     make("span",{"textContent":`Sanction: ${sanctions.SANCTION_INFO[sanction.sanction_id&0x1fffffff].name}`}),
                     make("span",{"textContent":`Canceled: ${(sanction.sanction_id&0x20000000)!==0}`}),
                     make("span",{"textContent":`Value: ${sanction.value}`}),
@@ -188,7 +193,7 @@
                     make("span",{"textContent":`Appeal Granted By: ${sanction.granted_by??"n/a"}`}),
                     make("span",{"textContent":"Notes:"}),
                     make("textarea",{"classList":["isa-si-notes"],"value":sanction.notes,"readonly":true}),
-                    make("input",{"type":"button","value":"Manage","onclick":()=>{openManageSanction(id);}}),
+                    make("input",{"type":"button","value":"Manage","onclick":()=>{openManageSanction(sanction.refid);}}),
                     make("span",{"textContent":"Rejections:"}),
                     make("div",{"classList":["isa-sanction-rejects"],"children":sanction.rejections.length?sanction.rejections.map(reject => make("div",{"classList":["isa-sanction-rejection"],"children":[
                         make("span",{"textContent":`Rejected By: ${reject.source}`}),
