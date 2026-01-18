@@ -274,9 +274,9 @@ conn.addEventListener("open", async function(event) {
     createBanner({type:"info",content:"Connected"});
     let configed = false;
     let download_res = null;
+    /**@type {HTMLDivElement} */
+    const pause_modal = document.getElementById("pause-modal");
     {
-        /**@type {HTMLDivElement} */
-        const pm = document.getElementById("pause-modal");
         /**@type {HTMLInputElement} */
         const pmc = document.getElementById("pm-cancel");
         /**@type {HTMLInputElement} */
@@ -294,13 +294,13 @@ conn.addEventListener("open", async function(event) {
                 data = false;
                 const p = new Promise(r => download_res = r);
                 conn.send('{"type":"game:export","payload":{}}');
-                pm.children[0].children[0].textContent = "Export in progress, do not close this tab.";
+                pause_modal.children[0].children[0].textContent = "Export in progress, do not close this tab.";
                 p.then(v => {
                     conn.close();
                     pmc.disabled = false;
                     pmc.value = "Done";
                     pme.value = "Retry Download";
-                    pm.children[0].children[0].textContent = "Export finished. If the file does not download, click Retry Download. When done, click Done.";
+                    pause_modal.children[0].children[0].textContent = "Export finished. If the file does not download, click Retry Download. When done, click Done.";
                     data = true;
                     dl.download = `${ifmt.room}.stpl`;
                     dl.href = window.URL.createObjectURL(v);
@@ -416,10 +416,14 @@ conn.addEventListener("open", async function(event) {
                 updScr("status", "Game paused");
                 ifmt.pause_turn = ifmt.turn;
                 ifmt.turn = -1;
+                if (ifmt.pln === game.hostNum) {
+                    pause_modal.hidden = false;
+                }
                 // game.handlePause(data.payload["t"]);
                 break;
             }
             case "game:resume": {
+                pause_modal.hidden = true;
                 ifmt.turn = ifmt.pause_turn;
                 updScr("status", `Player ${ifmt.turn}'s turn`);
                 // game.handleResume();
