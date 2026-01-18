@@ -8,6 +8,7 @@ const { Permissions, check_permission } = require("../accounts/perms.js");
 
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "puzs.pid");
+    ensureFile(PID_FILE);
     fs.writeFileSync(PID_FILE, process.pid.toString());
 }
 
