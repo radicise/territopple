@@ -34,3 +34,6 @@ format reserved
 
 b"orgn" (restricted):
 reserved for future use
+
+b"rulz":
+rules data

@@ -274,6 +274,56 @@ conn.addEventListener("open", async function(event) {
     createBanner({type:"info",content:"Connected"});
     let configed = false;
     let download_res = null;
+    {
+        /**@type {HTMLDivElement} */
+        const pm = document.getElementById("pause-modal");
+        /**@type {HTMLInputElement} */
+        const pmc = document.getElementById("pm-cancel");
+        /**@type {HTMLInputElement} */
+        const pme = document.getElementById("pm-export");
+        /**@type {HTMLDivElement} */
+        const da = document.getElementById("download-area");
+        /**@type {HTMLAnchorElement} */
+        const dl = da.lastElementChild;
+        document.getElementById("pausebutton").onclick = () => {conn.send('{"type":"game:pause","payload":{}}');};
+        let data = null;
+        pme.onclick = () => {
+            if (data === null) {
+                pmc.disabled = true;
+                pmc.value = "...";
+                data = false;
+                const p = new Promise(r => download_res = r);
+                conn.send('{"type":"game:export","payload":{}}');
+                pm.children[0].children[0].textContent = "Export in progress, do not close this tab.";
+                p.then(v => {
+                    conn.close();
+                    pmc.disabled = false;
+                    pmc.value = "Done";
+                    pme.value = "Retry Download";
+                    pm.children[0].children[0].textContent = "Export finished. If the file does not download, click Retry Download. When done, click Done.";
+                    data = true;
+                    dl.download = `${ifmt.room}.stpl`;
+                    dl.href = window.URL.createObjectURL(v);
+                    dl.click();
+                    // setTimeout(()=>{window.URL.revokeObjectURL(dl.href);}, 1500);
+                });
+            } else if (data) {
+                dl.click();
+            }
+        };
+        pmc.onclick = () => {
+            if (data === null) {
+                // pmc.disabled = true;
+                pme.disabled = true;
+                conn.send('{"type":"game:resume","payload":{}}');
+                // pm.hidden = true;
+            } else if (data) {
+                window.URL.revokeObjectURL(dl.href);
+                sessionStorage.setItem("error-store", "Room closed for game export");
+                window.location.href = "/play-online";
+            }
+        };
+    }
 	conn.addEventListener("message", async function(event) {
         if (typeof event.data !== "string") {
             // console.log(event.data);
@@ -307,7 +357,7 @@ conn.addEventListener("open", async function(event) {
                 };
                 const kind = arr[0];
                 switch (kind) {
-                    case 1:{
+                    case 2:case 1:{
                         download_res(new Blob([arr.slice(1)]));
                         return;
                     }
@@ -362,6 +412,19 @@ conn.addEventListener("open", async function(event) {
             //     //
             //     break;
             // }
+            case "game:pause": {
+                updScr("status", "Game paused");
+                ifmt.pause_turn = ifmt.turn;
+                ifmt.turn = -1;
+                // game.handlePause(data.payload["t"]);
+                break;
+            }
+            case "game:resume": {
+                ifmt.turn = ifmt.pause_turn;
+                updScr("status", `Player ${ifmt.turn}'s turn`);
+                // game.handleResume();
+                break;
+            }
             case "account:found": {
                 const n = data.payload["n"];
                 /**@type {string} */

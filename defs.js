@@ -59,6 +59,14 @@ class Player {
         this.is_bot = false;
         /**@type {string} */
         this.accId = null;
+        /**@type {string} */
+        this.botq = null;
+        /**@type {number} */
+        this.res_time = null;
+        /**@type {number} */
+        this.set_time = null;
+        /**@type {boolean} */
+        this.needs_resume = false;
     }
     /**
      * @param {Game} game
@@ -78,9 +86,12 @@ class Player {
         }
         if (!cb) return;
         if (!game.rules.turnTime.limit) return;
+        this.timeout_cb = cb;
+        this.set_time = Date.now();
         switch (game.rules.turnTime.style) {
             case "per turn":
-                this.turn_timer = setTimeout(cb, game.rules.turnTime.limit);
+                this.turn_timer = setTimeout(cb, this.res_time ?? game.rules.turnTime.limit);
+                this.res_time = null;
                 break;
             case "chess":
                 this.turn_timer = setInterval(() => {
@@ -228,6 +239,65 @@ class Game {
     //     this._buffer = v;
     // }
     /**
+     * @param {string} key
+     * @param {Buffer} value
+     */
+    setMeta(key, value) {
+        const globi = key.indexOf("_");
+        if (globi !== -1) {
+            let c = 0;
+            const s = key.slice(0, globi);
+            for (let i = 0, l = value.length; i < l; i += 0xffff) {
+                this.setMeta(s+(c.toString(36).padStart(2,'0')), value.subarray(i, Math.min(i+0xffff,l)));
+            }
+            return;
+        }
+        let k = key.charCodeAt(0)<<24;
+        k |= key.charCodeAt(1)<<16;
+        k |= key.charCodeAt(2)<<16;
+        k |= key.charCodeAt(3);
+        this.__extmeta[k] = value;
+    }
+    resumeTimers() {
+        this.players.forEach(v => {
+            if (!v) return;
+            if (v.needs_resume) v.resetTimer(this, v.timeout_cb);
+        });
+    }
+    pauseTimers() {
+        const now = Date.now();
+        this.players.forEach(v => {
+            if (!v) return;
+            if (v.turn_timer !== null) {
+                v.needs_resume = true;
+                switch (this.rules.turnTime.style) {
+                    case "per turn":
+                        v.res_time = now-v.set_time + 1500;
+                        break;
+                    case "chess":
+                        v.time_left += 1;
+                        break;
+                }
+            }
+            v.resetTimer(this);
+        });
+    }
+    stopTimers() {
+        this.players.forEach(v => v?.resetTimer(this));
+    }
+    addExportMeta() {
+        const pens = ["random", "skip", "lose"];
+        const styles = ["per turn", "chess"];
+        const rulz = Buffer.from([(this.rules.turnTime.limit?
+            [1,
+                pens.indexOf(this.rules.turnTime.penalty),
+                styles.indexOf(this.rules.turnTime.style),
+                this.rules.turnTime.style==="chess"?this.players.map(v=>nbytes(v?.time_left??0,4)):nbytes(this.rules.turnTime.limit/1000,4)
+            ]
+            :[0])].flat(5));
+        this.setMeta("rulz", rulz);
+    }
+    /**
      * @param {number|string} entid
      * @param {string} accid
      */
@@ -244,9 +314,10 @@ class Game {
     }
     /**
      * @param {string} key
+     * @param {string} bot
      * @returns {string}
      */
-    addBot(key) {
+    addBot(key, bot) {
         if (this.stats.playing === this.stats.maxPlayers) {
             return "";
         }
@@ -254,6 +325,7 @@ class Game {
         this.players[pN] = new Player(null, ((pN-1)%settings.MAX_TEAMS)+1);
         this.players[pN].is_bot = true;
         this.players[pN].rejoin_key = key;
+        this.players[pN].botq = bot;
         const that = this;
         this.players[pN].timeoutid = setTimeout(() => {
             if (that.state.state !== 0) {
@@ -312,6 +384,8 @@ class Game {
                 break;
             }
         }
+        const playerdata = Buffer.from([this.players.map(v=>!v?0:[Number(v.is_bot)+1,!v.is_bot?[]:[this.buffer.botq.length,this.buffer.botq.split("").map(w=>w.charCodeAt(0))],v.accId.length,v.accId.split("").map(w=>w.charCodeAt(0))])].flat(5));
+        this.setMeta("pn__", playerdata);
     }
     /**
      * @param {number} tile
@@ -904,6 +978,19 @@ class NetData {
         static Timeup(playerNum) {
             return this.Misc("timeup", {n:playerNum});
         }
+        /**
+         * @param {number} time_left
+         * @returns {string}
+         */
+        static Pause(time_left) {
+            return this.Misc("pause", {t:time_left??0});
+        }
+        /**
+         * @returns {string}
+         */
+        static Resume() {
+            return this.Misc("resume", {});
+        }
     }
     /**
      * @param {string?} kind
@@ -913,6 +1000,13 @@ class NetData {
         return NetData.Misc("ping", {kind:kind??"default"});
     }
     static Bin = class {
+        /**
+         * @param {Game} game
+         * @returns {Buffer}
+         */
+        static Export(game) {
+            return Buffer.concat([Buffer.of(2), Buffer.concat(game.buffer.slice(0, game.__ended))]);
+        }
         /**
          * @param {Game} game
          * @returns {Buffer}

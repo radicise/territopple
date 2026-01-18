@@ -42,6 +42,8 @@ GAME TO CLIENT:
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
         timeup (n [player num]: number)
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
+        pause (t [time left]: number[])
+        resume ()
     ping: (kind: string | null)
 
 BINARY GAME TO CLIENT:
@@ -56,6 +58,8 @@ BINARY GAME TO CLIENT:
             if the first bit is 1: the next three bits denote team, and the following four bits denote the next n tiles all being that team (run-length encoding)
     1:
         replay file data
+    2:
+        export file data
 
 CLIENT TO GAME:
     waiting:
@@ -72,5 +76,8 @@ CLIENT TO GAME:
         move (n [tile num]: number)
         rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
         download ()
+        export ()
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
+        pause ()
+        resume ()
     ping: (n [player num]: number, kind: string | null)
