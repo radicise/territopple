@@ -1,0 +1,24 @@
+use the version as indicated by fmt_, version is 0 if fmt_ is undefined
+
+version 0:
+FOR EACH player IN game.players {
+    IF (player IS null) {
+        BYTE 0
+        CONTINUE
+    } ELSE {
+        IF (player IS bot) {
+            BYTE 2
+            BYTE botq.length
+            BYTE[] botq
+            INTERPRET: botq is a string that may be used as the target of a botjoin message
+        } ELSE {
+            BYTE 1
+        }
+        IF (player.accId IS null) {
+            BYTE 0
+        } ELSE {
+            BYTE player.accId.length
+            BYTE[] player.accId
+        }
+    }
+}

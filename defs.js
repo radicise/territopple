@@ -302,7 +302,7 @@ class Game {
                 this.rules.turnTime.style==="chess"?this.players.map(v=>nbytes(v?.time_left??0,4)):nbytes(this.rules.turnTime.limit/1000,4)
             ]
             :[0])].flat(5));
-        this.setMeta("rulz", rulz);
+        this.setMeta("rlz_", rulz);
     }
     /**
      * @param {number|string} entid
