@@ -1,3 +1,7 @@
+#Jan 17, 2026 (DEV20260hY0)
+added ability to pause and export games (note: pausing a game does pause any turn time rules server-side, but not on the client)
+fixed issue #58
+
 # Jan 15, 2026 (DEV20260fY0)
 got admin page to a workable state
 
