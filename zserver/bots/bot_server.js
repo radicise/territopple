@@ -8,7 +8,7 @@ const socks = require("../socks/handlers.js");
 const { settings, emit, on, clear } = require("../../defs.js");
 const { DBG, DIFF_LEVELS } = require("./common.js");
 
-fs.writeFileSync(path.join(settings.DEVOPTS?.pid_dir??process.env.HOME, path.join(process.env.HOME, "serv-pids"), "bots.pid"), process.pid.toString());
+fs.writeFileSync(path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "bots.pid"), process.pid.toString());
 
 socks.setGlobals({}, emit, on, clear);
 

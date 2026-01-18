@@ -16,7 +16,7 @@ const path = require("path");
 const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1, PrivGroupRecord } = require("./types.js");
 const { check_permission, Permissions, check_can_moderate, check_sanction_allowed } = require("./perms.js");
 
-fs.writeFileSync(path.join(settings.DEVOPTS?.pid_dir??process.env.HOME, path.join(process.env.HOME, "serv-pids"), "auth.pid"), process.pid.toString());
+fs.writeFileSync(path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid"), process.pid.toString());
 
 const ACC_CREAT_TIMEOUT = settings.ACC?.CREATE_TO ?? 600000;
 const SESS_TIMEOUT = settings.ACC?.SESSION_TO ?? 1000*60*60*24;
