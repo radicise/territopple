@@ -1,3 +1,4 @@
+const __dname = process.cwd();
 const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 const crypto = require("crypto");
 const os = require("os");
@@ -625,7 +626,7 @@ exports.Game = Game;
  * WEBCONTENT_DIR:string,
  * URL_MAP:Record<string,string>,
  * URL_MAP_GROUPS:Record<string,string[]>,
- * DEVOPTS:{expr_webpath:boolean},
+ * DEVOPTS:{expr_webpath:boolean,pid_dir:string,log_dir:string},
  * REPLAYS:{ENABLED:boolean,TIMESTAMP:boolean,COLLATE:boolean},
  * MAX_TEAMS:number,
  * DB_CONFIG:{URI:string},
@@ -657,6 +658,9 @@ const extend = (e, o) => {
 {
     const prefs = JSON.parse(fs.readFileSync(_path.join(__dirname, "prefs.json"), {encoding:"utf-8"}));
     extend(settings, prefs);
+}
+if (settings.DEVOPTS?.pid_dir?.startsWith("./")) {
+    settings.DEVOPTS.pid_dir = __dname + settings.DEVOPTS.pid_dir;
 }
 
 class NetData {
@@ -1303,8 +1307,6 @@ function validateJSONScheme(obj, scheme) {
         return false;
     }
 }
-
-const __dname = process.cwd();
 
 /**
  * @param {string} fpath
