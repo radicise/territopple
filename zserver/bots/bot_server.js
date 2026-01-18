@@ -5,7 +5,7 @@ const path = require("path");
 const ws = require("ws");
 // const child_process = require("child_process");
 const socks = require("../socks/handlers.js");
-const { settings, emit, on, clear } = require("../../defs.js");
+const { settings, ensureFile, emit, on, clear } = require("../../defs.js");
 const { DBG, DIFF_LEVELS } = require("./common.js");
 
 {
