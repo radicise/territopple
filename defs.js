@@ -247,15 +247,22 @@ class Game {
         if (globi !== -1) {
             let c = 0;
             const s = key.slice(0, globi);
+            console.log(`globi: ${globi}, s: ${s}`);
             for (let i = 0, l = value.length; i < l; i += 0xffff) {
-                this.setMeta(s+(c.toString(36).padStart(2,'0')), value.subarray(i, Math.min(i+0xffff,l)));
+                const k = s+(c.toString(36).padStart(2,'0'));
+                console.log(`key: ${k}`);
+                this.setMeta(k, value.subarray(i, Math.min(i+0xffff,l)));
             }
             return;
         }
         let k = key.charCodeAt(0)<<24;
+        console.log(k);
         k |= key.charCodeAt(1)<<16;
+        console.log(k);
         k |= key.charCodeAt(2)<<16;
+        console.log(k);
         k |= key.charCodeAt(3);
+        console.log(k);
         this.__extmeta[k] = value;
     }
     resumeTimers() {
