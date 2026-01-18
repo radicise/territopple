@@ -1313,13 +1313,14 @@ function validateJSONScheme(obj, scheme) {
  */
 function ensureFile(fpath) {
     const parts = fpath.split(_path.sep);
-    // console.log(fpath);
-    // console.log(parts);
+    console.log(fpath);
+    console.log(parts);
     const _dname = fpath[0] === "" ? "" : __dname;
+    console.log(_dname);
     parts.slice(0, parts.length-1).forEach((v, i, a) => {
         const seg = _path.join(...a.slice(0, i+1));
-        // console.log(seg);
-        // console.log(`${v} :: ${i} :: ${a}`);
+        console.log(seg);
+        console.log(`${v} :: ${i} :: ${a}`);
         if (!fs.existsSync(_path.join(_dname, seg))) {
             fs.mkdirSync(_path.join(_dname, seg));
         }
