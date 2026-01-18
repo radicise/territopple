@@ -137,6 +137,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     state.game.stopTimers();
                     state.game.addExportMeta();
                     onRecordReplay(state.game, {suppress_write:true});
+                    state.game.__ended = state.game.buffer.length;
                     sock.send(NetData.Bin.Export(state.game));
                 }
                 break;
