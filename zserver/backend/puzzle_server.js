@@ -6,7 +6,10 @@ const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog,
 const mdb = require("mongodb");
 const { Permissions, check_permission } = require("../accounts/perms.js");
 
-fs.writeFileSync(path.join(settings.DEVOPTS?.pid_dir??process.env.HOME, "serv-pids", "puzs.pid"), process.pid.toString());
+{
+    const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "puzs.pid");
+    fs.writeFileSync(PID_FILE, process.pid.toString());
+}
 
 const INDEXLOG = "logs/puzzles/index.txt";
 const ERRORLOG = "logs/puzzles/error.txt";

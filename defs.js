@@ -660,7 +660,7 @@ const extend = (e, o) => {
     extend(settings, prefs);
 }
 if (settings.DEVOPTS?.pid_dir?.startsWith("./")) {
-    settings.DEVOPTS.pid_dir = __dname + settings.DEVOPTS.pid_dir;
+    settings.DEVOPTS.pid_dir = _path.join(__dname, settings.DEVOPTS.pid_dir);
 }
 
 class NetData {
