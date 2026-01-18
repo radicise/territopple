@@ -384,7 +384,7 @@ class Game {
                 break;
             }
         }
-        const playerdata = Buffer.from([this.players.map(v=>!v?0:[Number(v.is_bot)+1,!v.is_bot?[]:[this.buffer.botq.length,this.buffer.botq.split("").map(w=>w.charCodeAt(0))],v.accId.length,v.accId.split("").map(w=>w.charCodeAt(0))])].flat(5));
+        const playerdata = Buffer.from([this.players.map(v=>!v?0:[Number(v.is_bot)+1,!v.is_bot?[]:[this.buffer.botq.length,this.buffer.botq.split("").map(w=>w.charCodeAt(0))],v.accId?[v.accId.length,v.accId.split("").map(w=>w.charCodeAt(0))]:0])].flat(5));
         this.setMeta("pn__", playerdata);
     }
     /**
