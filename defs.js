@@ -656,8 +656,11 @@ const extend = (e, o) => {
     }
 };
 {
-    const prefs = JSON.parse(fs.readFileSync(_path.join(__dirname, "prefs.json"), {encoding:"utf-8"}));
-    extend(settings, prefs);
+    const prefsPath = _path.join(__dirname, "prefs.json");
+    if (fs.existsSync(prefsPath)) {
+	const prefs = JSON.parse(fs.readFileSync(prefsPath, {encoding:"utf-8"}));
+	extend(settings, prefs);
+    }
 }
 if (settings.DEVOPTS?.pid_dir?.startsWith("./")) {
     settings.DEVOPTS.pid_dir = _path.join(__dname, settings.DEVOPTS.pid_dir);
@@ -1371,6 +1374,7 @@ exports.on = on;
 exports.clear = clear;
 exports.nbytes = nbytes;
 exports.validateJSONScheme = validateJSONScheme;
+this.JSONScheme = undefined;
 exports.JSONScheme = this.JSONScheme;
 // exports.JSONSchemeType = this.JSONSchemeType;
 // exports.HostingSettings = this.HostingSettings;

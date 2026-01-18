@@ -21,8 +21,11 @@ const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json"
             }
         }
     };
-    const prefs = JSON.parse(fs.readFileSync(path.join(__dirname, "prefs.json"), {encoding:"utf-8"}));
-    extend(settings, prefs);
+    const prefsPath = _path.join(__dirname, "prefs.json");
+    if (fs.existsSync(prefsPath)) {
+	const prefs = JSON.parse(fs.readFileSync(prefsPath, {encoding:"utf-8"}));
+	extend(settings, prefs);
+    }
     // for (const pref in prefs) {
     //     settings[pref] = prefs[pref];
     // }
