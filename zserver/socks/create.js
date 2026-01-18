@@ -48,6 +48,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     }
     onGameCreated(state.game, true, 1);
     state.game.addPlayer(sock);
+    state.game.players[1].accId = state.accId;
     state.playerNum = 1;
     state.spectating = false;
     state.game.state.hostNum = 1;

@@ -84,6 +84,15 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         }
     });
     onall("account:found", (data) => {
+        let d = true;
+        if (data["n"] === state.playerNum) {
+            state.game.players[state.playerNum].accId = data["a"];
+        } else if (data["n"] === state.spectatorId) {
+            state.game.spectators[state.spectatorId].accId = data["a"];
+        } else {
+            d = false;
+        }
+        if (d) state.accId = data["a"];
         sock.send(NetData.Account.Found(data["n"], data["a"]));
     });
     onall("account:isbot", (data) => {

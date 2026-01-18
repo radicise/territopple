@@ -35,6 +35,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     clearTimeout(game.players[pnum].dcon_timer);
     game.players[pnum].dcon_timer = null;
     game.players[pnum].conn = sock;
+    if (!state.accId) {
+        state.accId = game.players[pnum].accId;
+    } else {
+        game.players[pnum].accId = state.accId;
+    }
     state.game = game;
     state.playerNum = pnum;
     const g = game;

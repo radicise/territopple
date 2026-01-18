@@ -48,6 +48,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     }
     state.game = game;
     state.playerNum = game.addPlayer(sock);
+    state.game.players[state.playerNum].accId = state.accId;
     sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
     sock.send(NetData.Game.Roomid(state.game.ident));
     sock.send(pack);
