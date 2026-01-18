@@ -276,11 +276,11 @@ conn.addEventListener("open", async function(event) {
     let download_res = null;
     /**@type {HTMLDivElement} */
     const pause_modal = document.getElementById("pause-modal");
+    /**@type {HTMLInputElement} */
+    const pmc = document.getElementById("pm-cancel");
+    /**@type {HTMLInputElement} */
+    const pme = document.getElementById("pm-export");
     {
-        /**@type {HTMLInputElement} */
-        const pmc = document.getElementById("pm-cancel");
-        /**@type {HTMLInputElement} */
-        const pme = document.getElementById("pm-export");
         /**@type {HTMLDivElement} */
         const da = document.getElementById("download-area");
         /**@type {HTMLAnchorElement} */
@@ -417,6 +417,7 @@ conn.addEventListener("open", async function(event) {
                 ifmt.pause_turn = ifmt.turn;
                 ifmt.turn = -1;
                 if (ifmt.pln === game.hostNum) {
+                    pme.disabled = false;
                     pause_modal.hidden = false;
                 }
                 // game.handlePause(data.payload["t"]);
