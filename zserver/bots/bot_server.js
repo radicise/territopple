@@ -5,10 +5,15 @@ const path = require("path");
 const ws = require("ws");
 // const child_process = require("child_process");
 const socks = require("../socks/handlers.js");
-const { settings, emit, on, clear } = require("../../defs.js");
+const { settings, ensureFile, emit, on, clear } = require("../../defs.js");
 const { DBG, DIFF_LEVELS } = require("./common.js");
 
-fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "bots.pid"), process.pid.toString());
+{
+    const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "bots.pid");
+    ensureFile(PID_FILE);
+    fs.writeFileSync(PID_FILE, process.pid.toString());
+}
+// fs.writeFileSync(path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "bots.pid"), process.pid.toString());
 
 socks.setGlobals({}, emit, on, clear);
 

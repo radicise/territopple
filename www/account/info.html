@@ -22,6 +22,13 @@
                 // document.getElementById("acc-id").textContent = loc.searchParams.get("id");
                 sendID = loc.searchParams.get("id");
             }
+            if (sendID === "%40self") {
+                const a = document.createElement("a");
+                a.textContent = "Sanctions";
+                a.href = "/account/sanctions";
+                a.target = "_self";
+                document.getElementById("acc").append(document.createElement("br"), a);
+            }
             let email;
             const acc_email = document.getElementById("acc-email");
             document.getElementById("show-email-btn").onclick = () => {
@@ -58,9 +65,6 @@
                     email = j.email ?? "unavailable";
                     document.getElementById("acc-email").textContent = "<hidden>";
                     document.getElementById("show-email-btn").disabled = false;
-                    if (j.sanction !== null) {
-                        document.getElementById("acc").append(`Sanction: ${j.sanction}`);
-                    }
                 });
             });
         </script>

@@ -27,6 +27,9 @@ if (!fs.existsSync("www/topology")) {
 if (!fs.existsSync("www/three")) {
     fs.symlinkSync(_path.join(__dname, "node_modules/three"), _path.join(__dname, "www/three"));
 }
+if (!fs.existsSync("www/commonjs")) {
+    fs.symlinkSync(_path.join(__dname, "commonjs"), _path.join(__dname, "www/commonjs"));
+}
 
 // const __dname = process.cwd();
 

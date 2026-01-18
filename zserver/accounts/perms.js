@@ -166,12 +166,59 @@ const Permissions = Object.seal({
 
 /**
  * @param {number} flags
- * @param {number} perm
+ * @param {...number} perms
  * @returns {boolean}
  */
-function check_permission(flags, perm) {
-    return (flags & (1<<perm)) !== 0;
+function check_permission(flags, ...perms) {
+    return perms.some(perm=>(flags & (1<<perm)) !== 0);
+}
+
+/**
+ * checks that the source is allowed to moderate the target based on privileges
+ * @param {number} source
+ * @param {number} target
+ * @returns {boolean}
+ */
+function check_can_moderate(source, target) {
+    // priv admins have full trust, DB admin must strip this privilege before sanctioning
+    if (check_permission(target, Permissions.PRIV_ADMIN)) return false;
+    // moderation actions cannot be applied to those of higher moderation level
+    if (get_sanction_perms(target).lastIndexOf(true) >= get_sanction_perms(source).lastIndexOf(true)) return false;
+    return true;
+}
+
+/**
+ * @param {number} source
+ * @returns {boolean[]}
+ */
+function get_sanction_perms(source) {
+    return [check_permission(source, Permissions.APPLY_G1_SANCTION),check_permission(source, Permissions.APPLY_G2_SANCTION),check_permission(source, Permissions.APPLY_G3_SANCTION),check_permission(source, Permissions.APPLY_G4_SANCTION)];
+}
+
+/**
+ * @param {number} source
+ * @param {number} sid
+ * @returns {boolean}
+ */
+function check_sanction_allowed(source, sid) {
+    // bypass flag requires priv admin or apply priv groups
+    if (sid&0x80000000) {return check_permission(source, Permissions.PRIV_ADMIN,Permissions.APPLY_PRIV_GROUPS);}
+    switch (sid) {
+        case 0:case 1:case 2:case 10:
+            return check_permission(source, Permissions.APPLY_G1_SANCTION);
+        case 3:case 11:
+            return check_permission(source, Permissions.APPLY_G2_SANCTION);
+        case 4:case 5:
+            return check_permission(source, Permissions.APPLY_G3_SANCTION);
+        case 6:case 7:
+            return check_permission(source, Permissions.APPLY_G4_SANCTION);
+        // sanction ids not covered here default to false
+        default:
+            return false;
+    }
 }
 
 exports.Permissions = Permissions;
 exports.check_permission = check_permission;
+exports.check_can_moderate = check_can_moderate;
+exports.check_sanction_allowed = check_sanction_allowed;

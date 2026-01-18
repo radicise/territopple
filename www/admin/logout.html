@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Territopple - Admin Login</title>
+    </head>
+    <body>
+        <script>
+            fetch(`https://${document.location.hostname}/acc/admin/logout`, {method:"GET"}).then(res => {
+                location.href = "/admin/login";
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,83 @@
+div#info-pane {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* grid-template-rows: repeat(2, 1fr); */
+    grid-template-areas:
+    "dt sc"
+    "pv sc";
+}
+div#info-quick-details {
+    grid-area: dt;
+}
+div#info-sanction-area {
+    grid-area: sc;
+}
+div#info-priv-area {
+    grid-area: pv;
+}
+div#isa-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 50ch;
+    overflow-y: scroll;
+    /* border: solid 2px black; */
+    width: fit-content;
+    padding: 2px;
+}
+div.isa-sanction-item {
+    display: flex;
+    flex-direction: column;
+    border-bottom: solid 2px black;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+span.isa-si-notes {
+    text-indent: 2ch;
+}
+div.isa-sanction-rejects {
+    display: flex;
+    flex-direction: column;
+    max-height: 15ch;
+    overflow-y: scroll;
+    /* border: solid 2px black; */
+    width: fit-content;
+    padding: 2px;
+    text-indent: 2ch;
+}
+div.isa-sanction-rejection {
+    display: flex;
+    flex-direction: column;
+    border-bottom: solid 2px black;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+
+div#ipa-list {
+    max-height: 30ch;
+    overflow-y: scroll;
+}
+div.ipa-priv-item {
+    border-bottom: solid 2px black;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+div.ipa-priv-list {
+    display: flex;
+    flex-direction: column;
+    text-indent: 2ch;
+}
+
+div.modal {
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    border: solid 2px black;
+    background: white;
+    height: 80vmin;
+    width: 60vmin;
+}
+
+textarea {
+    resize: none;
+}

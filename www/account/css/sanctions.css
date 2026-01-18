@@ -1,0 +1,27 @@
+div.isa-sanction-item {
+    display: flex;
+    flex-direction: column;
+    border-bottom: solid 2px black;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+span.isa-si-notes {
+    text-indent: 2ch;
+}
+div.isa-sanction-rejects {
+    display: flex;
+    flex-direction: column;
+    max-height: 15ch;
+    overflow-y: scroll;
+    /* border: solid 2px black; */
+    width: fit-content;
+    padding: 2px;
+    text-indent: 2ch;
+}
+div.isa-sanction-rejection {
+    display: flex;
+    flex-direction: column;
+    border-bottom: solid 2px black;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}

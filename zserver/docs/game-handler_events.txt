@@ -27,6 +27,9 @@ game:
     win (t [team id]: number)
     turn (n [player num]: number)
     kick (n [player num | spectator id]: number | string)
+    export ()
+    pause ()
+    resume ()
     out:
         move (n [tile num]: number, t [team num]: number)
     in:

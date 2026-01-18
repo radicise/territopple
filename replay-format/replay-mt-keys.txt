@@ -13,7 +13,7 @@ information about scoring
 
 b"fmt0"-b"fmtz" (restricted):
 metametadata about format of other fields
-format reserved
+format: "./restrictkeys/fmt_.txt"
 
 b"col0"-b"colz" (restricted):
 color data
@@ -26,7 +26,7 @@ reserved for future use
 
 b"pn00"-b"pnzz" (restricted):
 player information
-format reserved
+format: "./restrictkeys/pn__.txt"
 
 b"pnTB" (restricted):
 metametadata about player information
@@ -34,3 +34,7 @@ format reserved
 
 b"orgn" (restricted):
 reserved for future use
+
+b"rlz0"-b"rlzz" (restricted):
+rules data
+format: "./restrictkeys/rlz_.txt"

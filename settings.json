@@ -11,7 +11,7 @@
     "PING_INTERVAL": 1500,
     "MAX_TILES": 225,
     "BOT_TO":200,
-    "BOT_MAX_TILES":700,
+    "BOT_MAX_TILES":6480,
     "DEVENV":false,
     "WORKERS": {
         "LIMIT": 4,

@@ -1,0 +1,14 @@
+this file describes the format of the condensed permission values returned by the accounts server
+
+NOTE: this endpoint is handled by the internal server, and is not accessible to the public
+NOTE: the special id "%40guest" will return the default values for a user that is not logged in
+GET "/perms?id=[id]":
+NYBBLE - tile limit selector
+NYBBLE - simultaneous rooms selector
+BYTE[4] - effective priv level
+BIT - text chat ban
+BIT - expression ban
+BIT - room creation ban
+BIT - multiplayer ban
+BIT - UGC extra review
+BIT - UGC ban

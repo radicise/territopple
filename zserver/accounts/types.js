@@ -5,6 +5,7 @@ const mdb = require("mongodb");
  * @type {{
  * source:string,
  * date:number,
+ * adate:number,
  * notes:string,
  * appeal:string,
  * value:number
@@ -14,6 +15,7 @@ const mdb = require("mongodb");
 /**
  * @typedef SanctionRecord
  * @type {{
+ * refid:number,
  * sanction_id:number,
  * value:number,
  * source:string,
@@ -21,8 +23,11 @@ const mdb = require("mongodb");
  * expires:number,
  * notes:string,
  * appeal:string|null,
+ * appeal_date:number,
  * appealable_date:number,
  * appeals_left:number,
+ * appeal_granted:number,
+ * granted_by:string|null,
  * rejections:AppealRejectionRecord[]
  * }}
  */
@@ -40,14 +45,19 @@ const mdb = require("mongodb");
  * level:number,
  * priv_level:number,
  * priv_groups:number[],
- * sanction:null|SanctionRecord[],
+ * sanction:SanctionRecord[],
  * solved:number[],
  * flagf1:number?,
  * friends:string[]?,
  * incoming_friends:string[]?,
  * outgoing_friends:string[]?,
- * devtst:boolean?
+ * devtst:boolean?,
+ * next_refid:number
  * }}
+ */
+
+/**
+ * @typedef {{gid:number,name:string,privs:number}} PrivGroupRecord
  */
 
 /**
@@ -79,5 +89,6 @@ function checkFlag (field, mask) {
 exports.AppealRejectionRecord = this.AppealRejectionRecord;
 exports.SanctionRecord = this.SanctionRecord;
 exports.AccountRecord = this.AccountRecord;
+exports.PrivGroupRecord = this.PrivGroupRecord;
 exports.FlagF1 = FlagF1;
 exports.checkFlag = checkFlag;

@@ -1,3 +1,11 @@
+# Jan 17, 2026 (Alpha 1.7.5)
+added ability to pause and export games (note: pausing a game does pause any turn time rules server-side, but not on the client)
+fixed issue #58
+got admin page to a workable state
+added ability to view sanctions placed on your account
+added ability to appeal sanctions
+began work on moderation tools
+
 # Dec 13, 2025 [hotfix] (Alpha 1.7.4)
 added limit to length of account id and name
 

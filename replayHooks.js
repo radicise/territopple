@@ -6,6 +6,7 @@ exports.onGameStarted = onGameStarted;
 exports.onRecordReplay = onRecordReplay;
 exports.onPlayerRemoved = onPlayerRemoved;
 exports.onMove = onMove;
+exports.onRecordMetadata = onRecordMetadata;
 
 if (!fs.existsSync("gameid.bin")) {
     fs.writeFileSync("gameid.bin", Buffer.alloc(8, 0));
@@ -146,14 +147,7 @@ function onGameStarted(game, idstrategy, team_map) {
         game.buffer.push(Buffer.from(topologyData));
     }
     game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint));
-    if (game.__extflags.length || Object.keys(game.__extmeta).length || Object.keys(game.stdmeta).some(v=>game.stdmeta[v])) {
-        game.buffer[0][9] |= 4;
-        game.buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
-        if (game.stdmeta.colors) {
-            game.__extmeta[1668246576] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
-        }
-        game.buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
-    }
+    game.buffer.push("@META");
     if (Object.keys(game.__extevds).length) {
         game.buffer[0][9] |= 2;
         game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => [Number(v[0]),v[1].length,v[1].map(iv => iv.condflag?[128|iv.flag_byte,(iv.flag_bit<<5)|iv.size]:(iv.size))]).flat(3)));
@@ -162,11 +156,33 @@ function onGameStarted(game, idstrategy, team_map) {
 }
 
 /**
+ * @summary records extended metadata
+ * @param {import("./defs.js").Game} game
+ * @description
+ * records extended metadata to the replay buffer
+ * may be called multiple times but only records data the first time it is called
+ * MUST be called before attempting to save the replay
+ */
+function onRecordMetadata(game) {
+    let buffer = [];
+    if (game.__extflags.length || Object.keys(game.__extmeta).length || Object.keys(game.stdmeta).some(v=>game.stdmeta[v])) {
+        game.buffer[0][9] |= 4;
+        buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
+        if (game.stdmeta.colors) {
+            game.__extmeta[1668246576] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
+        }
+        buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
+    }
+    game.buffer[game.buffer.indexOf("@META")] = Buffer.concat(buffer);
+}
+
+/**
  * @summary writes the replay file to disk
  * @param {import("./server").Game} game
  * @param {Object} [options]
  * @param {string} [options.filepath] path to write the replay to, defaults to "replays/[game.ident].topl"
  * @param {boolean} [options.append] whether to append to the given file or overwrite it, defaults to false
+ * @param {boolean} [options.suppress_write] whether to suppress all writes
  * @description
  * may ONLY be called ONCE, when the game is over
  * it is NOT necessary for the game to have finished in a player winning
@@ -176,6 +192,7 @@ function onRecordReplay(game, options) {
     options = options ?? {};
     options.filepath = path.join(__dirname, options.filepath ?? `replays/${game.ident}.topl`);
     options.append = options.append ?? false;
+    onRecordMetadata(game);
     game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
     const data = Buffer.concat(game.buffer);
     if (options.append) {

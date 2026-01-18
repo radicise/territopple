@@ -1,0 +1,26 @@
+use version as specified by fmt_, version is 0 if fmt_ is undefined
+
+version 0:
+LET _STYLES = ["per turn","chess"]
+LET _PENALTIES = ["random", "skip", "lose"]
+IF (game.rules HAS turnTime) {
+    BYTE 1
+    BYTE _PENALTIES.indexOf(.turnTime.penalty)
+    BYTE _STYLES.indexOf(.turnTime.style)
+    SWITCH (.turnTime.style) {
+        CASE "per turn" {
+            BYTE[4] .turnTime.limit IN seconds
+        }
+        CASE "chess" {
+            FOR EACH player IN game.players {
+                IF (player IS null) {
+                    BYTE[4] 0
+                } ELSE {
+                    BYTE[4] player.time_left IN seconds
+                }
+            }
+        }
+    }
+} ELSE {
+    BYTE 0
+}

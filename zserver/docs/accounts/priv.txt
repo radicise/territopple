@@ -1,4 +1,4 @@
-this file documents the priveledge flags
+this file documents the privelege flags
 privileges visibilities:
 (H) - not visible to accounts without a privilege flag at least that high
 (A[<alias>]) - visible as the specified alias, only marked as an alias if the reader has privileges at least as high
@@ -66,3 +66,11 @@ can apply authorized privilege groups to accounts according to group and account
 
 privilege admin (A[*]):
 allows full control over privilege groups and own and others privileges
+
+
+Priv Groups:
+{
+    gid<Int32>: group id,
+    privs<Int32>: privilege flags,
+    name<String>: group name
+}

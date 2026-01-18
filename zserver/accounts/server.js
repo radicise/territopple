@@ -5,17 +5,23 @@
 
 const nodemailer = require("nodemailer");
 const { SecretData, SensitiveData, AccountId, AuthToken, RotatingCryptoData } = require("./common.js");
-const { randomBytes, randomInt } = require("crypto");
+const { randomBytes, randomInt, sign, generateKeyPair } = require("crypto");
 const auth = require("./auth.js");
 // const db = require("./db.js");
 const http = require("http");
-const { ensureFile, addLog, logStamp, settings, validateJSONScheme, JSONScheme } = require("../../defs.js");
+const { ensureFile, addLog, logStamp, settings, validateJSONScheme, assembleByte, JSONScheme } = require("../../defs.js");
 const mdb = require("mongodb");
 const fs = require("fs");
 const path = require("path");
-const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1 } = require("./types.js");
+const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1, PrivGroupRecord } = require("./types.js");
+const { check_permission, Permissions, check_can_moderate, check_sanction_allowed } = require("./perms.js");
 
-fs.writeFileSync(path.join(process.env.HOME, "serv-pids", "auth.pid"), process.pid.toString());
+{
+    const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid");
+    ensureFile(PID_FILE);
+    fs.writeFileSync(PID_FILE, process.pid.toString());
+}
+// fs.writeFileSync(path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid"), process.pid.toString());
 
 const ACC_CREAT_TIMEOUT = settings.ACC?.CREATE_TO ?? 600000;
 const SESS_TIMEOUT = settings.ACC?.SESSION_TO ?? 1000*60*60*24;
@@ -27,11 +33,14 @@ const EREJECT = "logs/accounts/rejected.txt";
 const ESENSITIVE = "logs/accounts/sensitive.txt"; // used to log sensitive operations (eg. account creation, password change)
 const EERROR = "logs/accounts/error.txt";
 const IACCESS = "logs/accounts/iaccess.txt";
+const EBADMOD = "logs/accounts/ebadmod.txt";
+ensureFile(EBADMOD);
 ensureFile(IACCESS);
 ensureFile(EACCESS);
 ensureFile(EREJECT);
 ensureFile(ESENSITIVE);
 ensureFile(EERROR);
+logStamp(EBADMOD);
 logStamp(IACCESS);
 logStamp(EACCESS);
 logStamp(EREJECT);
@@ -67,6 +76,7 @@ let IREQNUM_CNT = 0;
 let EREQNUM_CNT = 0;
 
 const ACC_PUB_PREFIX = "/acc/pub";
+const ACC_ADMIN_PREFIX = "/acc/admin";
 
 class FatalError extends Error {
     /**
@@ -100,12 +110,32 @@ class SanitizedError extends Error {
  */
 function extractSessionId(cookie) {
     if (!cookie) return null;
-    const p = cookie.indexOf("sessionId");
+    let p = cookie.indexOf("; sessionId");
     if (p === -1) {
-        return null;
+        if (cookie.startsWith("sessionId")) {
+            p = 0;
+        } else {
+            return null;
+        }
+    } else {
+        p += 2;
     }
     const e = cookie.indexOf(";", p+10);
     return cookie.substring(p+10, e>0?e:undefined);
+}
+
+/**
+ * @param {string} cookie
+ * @returns {string|null}
+ */
+function extractASessionId(cookie) {
+    if (!cookie) return null;
+    const p = cookie.indexOf("AsessionId");
+    if (p === -1) {
+        return null;
+    }
+    const e = cookie.indexOf(";", p+11);
+    return cookie.substring(p+11, e>0?e:undefined);
 }
 
 /**
@@ -184,9 +214,16 @@ async function processPubFetch(req, res, url, log) {
     let self = false;
     let rid;
     if (req.headers.cookie) {
-        const p = req.headers.cookie.indexOf("sessionId");
+        let p = req.headers.cookie.indexOf("; sessionId");
+        if (p === -1) {
+            if (req.headers.cookie.startsWith("sessionId")) {
+                p = 0;
+            }
+        } else {
+            p += 2;
+        }
         if (p === -1 && target === "%40self") {
-            res.writeHead(403).end();
+            res.writeHead(403).end("bad cookie");
             return;
         }
         const e = req.headers.cookie.indexOf(";", p+10);
@@ -194,7 +231,7 @@ async function processPubFetch(req, res, url, log) {
         rid = me;
         if (target === "%40self") {
             if (!me) {
-                res.writeHead(403).end();
+                res.writeHead(403).end("bad token");
                 return;
             }
             target = me;
@@ -204,13 +241,19 @@ async function processPubFetch(req, res, url, log) {
         }
     }
     const resource = stripped.substring(stripped.indexOf("/", 1));
-    console.log(`${target} , ${resource}`);
+    // console.log(`${target} , ${resource}`);
     switch (resource) {
         case "/sanction": {
+            if (!self) {
+                res.writeHead(403).end("can only see own sanctions");
+                return;
+            }
             try {
+                /**@type {AccountRecord} */
                 const v = await collection.findOne({id:target});
                 v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction));
+                const t = Date.now();
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction.filter(v=>!((v.expires<=t&&v.expires!==0)||v.sanction_id&0x20000000)).map(v=>{delete v["notes"];return v;})));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
@@ -221,7 +264,7 @@ async function processPubFetch(req, res, url, log) {
             try {
                 const v = await collection.findOne({id:target});
                 v._id;
-                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:v.sanction,rid,flagf1:v.flagf1??0}));
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:null,rid,flagf1:v.flagf1??0}));
             } catch (E) {
                 console.log(E);
                 res.writeHead(404).end();
@@ -341,6 +384,21 @@ const accPWResetScheme = {
 const friendReqScheme = {
     "id": "string"
 };
+/**@type {JSONScheme} */
+const sanctionScheme = {
+    "acc": "string",
+    "id": "number",
+    "bypass": "boolean",
+    "value": "number",
+    "expires": "number",
+    "appeals": "number",
+    "notes": "string"
+};
+/**@type {JSONScheme} */
+const appealScheme = {
+    "refid": "number",
+    "message": "string"
+};
 
 /**
  * @param {string} email
@@ -363,6 +421,13 @@ async function sendEmailVerification(email, subject, code_href) {
  */
 function makeSessionCookie(id) {
     return `sessionId=${id}; Same-Site=Lax; Secure; Http-Only; Path=/`;
+}
+/**
+ * @param {string} id
+ * @returns {string}
+ */
+function makeASessionCookie(id) {
+    return `AsessionId=${id}; Same-Site=Lax; Secure; Http-Only; Path=/`;
 }
 
 // used to process requests for account management and public data fetching
@@ -391,14 +456,17 @@ const public_server = http.createServer(async (req, res) => {
         await processPubFetch(req, res, url, log);
         return;
     }
-    console.log(req.headers["content-type"]);
-    console.log(req.headers["sec-fetch-site"]);
+    if (url.pathname.startsWith(ACC_ADMIN_PREFIX)) {
+        await processAdminFetch(req, res, url, log);
+        return;
+    }
+    // console.log(req.headers["content-type"]);
+    // console.log(req.headers["sec-fetch-site"]);
     if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
         res.writeHead(400).end();
         return;
     }
-    console.log(req.headers.cookie);
-    // AUTHENTICATION NOT IMPLEMENTED
+    // console.log(req.headers.cookie);
     const body = req.method === "GET"?"":await new Promise((r, s) => {
         let d = "";
         req.on("data", (data) => {d += data});
@@ -620,6 +688,41 @@ const public_server = http.createServer(async (req, res) => {
                     }
                     return;
                 }
+                case "/acc/make-appeal": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, appealScheme)) {
+                        res.writeHead(400).end("misformatted request");
+                        return;
+                    }
+                    const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
+                    if (!accid) {
+                        res.writeHead(403).end("not logged in");
+                        return;
+                    }
+                    try {
+                        /**@type {AccountRecord} */
+                        const rec = await collection.findOne({id:accid});
+                        /**@type {SanctionRecord} */
+                        const sanc = rec.sanction.find(v => v.refid === data.refid);
+                        if (!sanc) {
+                            res.writeHead(404).end("sanction refid not found");
+                            return;
+                        }
+                        if (!(Date.now()>=sanc.appealable_date && sanc.appeal === null && sanc.appeals_left > 0 && sanc.appealable_date !== 0 && (Date.now()<sanc.expires||sanc.expires===0))) {
+                            res.writeHead(403).end("appealing this request is not permitted at this time");
+                            return;
+                        }
+                        if ((await collection.updateOne({id:accid},{"$set":{"sanction.$[a].appeal":data.message,"sanction.$[a].appeal_date":Date.now()},"$inc":{"sanction.$[a].appeals_left":-1}},{arrayFilters:[{"a.refid":{"$eq":data.refid}}]})).modifiedCount) {
+                            res.writeHead(200).end();
+                            return;
+                        }
+                        res.writeHead(500).end("unknown failure");
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                    }
+                    return;
+                }
             }
             res.writeHead(404).end();
             return;
@@ -700,7 +803,7 @@ const public_server = http.createServer(async (req, res) => {
                         pwdata:auth.makePwData(data.pw),
                         level:0,
                         priv_level:0,
-                        sanction:null,
+                        sanction:[],
                         timeoutid:setTimeout(()=>{delete account_creation_info[code];}, ACC_CREAT_TIMEOUT)
                     };
                     res.writeHead(200).end();
@@ -775,13 +878,8 @@ const public_server = http.createServer(async (req, res) => {
                         res.writeHead(422).end("name too long");
                         return;
                     }
-                    const p = req.headers.cookie.indexOf("sessionId");
-                    if (p === -1) {
-                        res.writeHead(403).end();
-                        return;
-                    }
-                    const e = req.headers.cookie.indexOf(";", p+10);
-                    if (!SessionManager.verifySession(req.headers.cookie.substring(p+10, e>0?e:undefined), data.id)) {
+                    const sessid = extractSessionId(req.headers.cookie);
+                    if (!sessid || !SessionManager.verifySession(sessid, data.id)) {
                         res.writeHead(403).end();
                         return;
                     }
@@ -803,6 +901,268 @@ const public_server = http.createServer(async (req, res) => {
         }
     }
 });
+
+/**@type {JSONScheme} */
+const adminSancManScheme = {
+    "acc": "string",
+    "refid": "number",
+    "cancel?": "boolean",
+    "value?": "number",
+    "expires?": "number",
+    "notes?": "string",
+    "appeal?": "any"
+};
+/**@type {JSONScheme} */
+const adminSancManAppealScheme = {
+    "accept": "boolean",
+    "notes?": "string",
+    "value?": "number"
+};
+/**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
+
+/**
+ * processes the admin fetch operations
+ * @param {http.IncomingMessage} req
+ * @param {http.ServerResponse} res
+ * @param {URL} url
+ * @param {(p:string,d:string)=>void} log
+ */
+async function processAdminFetch(req, res, url, log) {
+    const stripped = url.pathname.substring(ACC_ADMIN_PREFIX.length);
+    if (stripped === "/logout") {
+        ASessionManager.deleteToken(extractASessionId(req.headers.cookie));
+        res.writeHead(200).end();
+        return;
+    }
+    if (stripped === "/check") {
+        const id = ASessionManager.getAccountId(extractASessionId(req.headers.cookie))
+        if (id) {
+            res.writeHead(200).end(JSON.stringify({name:id}));
+        } else {
+            res.writeHead(400).end();
+        }
+        return;
+    }
+    if ((req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") && req.method !== "GET") {
+        res.writeHead(400).end();
+        return;
+    }
+    const body = req.method === "GET"?"":await new Promise((r, s) => {
+        let d = "";
+        req.on("data", (data) => {d += data});
+        req.on("end", ()=>r(d));
+        req.on("error", s);
+    });
+    if (stripped === "/login") {
+        const data = JSON.parse(body);
+        if (!validateJSONScheme(data, accLoginScheme)) {
+            res.writeHead(422).end();
+            return;
+        }
+        try {
+            /**@type {AccountRecord} */
+            const doc = await collection.findOne({id:data.id});
+            if (doc === null) {
+                res.writeHead(404).end();
+                return;
+            }
+            const privs = await getEffectivePrivs(doc);
+            if (!check_permission(privs, Permissions.MODERATE)) {
+                res.writeHead(403).end("account is not an admin");
+                return;
+            }
+            if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
+                // res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
+                res.writeHead(200, {"Set-Cookie":makeASessionCookie(ASessionManager.createSession(data.id))}).end();
+                return;
+            } else {
+                res.writeHead(403).end();
+                return;
+            }
+        } catch (E) {
+            log(EERROR, E.toString()+`\n${E.stack}`);
+            res.writeHead(500).end();
+            return;
+        }
+    }
+    const sessid = extractASessionId(req.headers.cookie);
+    const accid = ASessionManager.getAccountId(sessid);
+    if (!sessid || !accid) {
+        res.writeHead(403).end("not logged in");
+        return;
+    }
+    switch (req.method) {
+        case "GET":{
+            switch (stripped) {
+                case "/priv-group-info": {
+                    const target = url.searchParams.get("id");
+                    if (!target) {
+                        res.writeHead(400).end("no target");
+                        return;
+                    }
+                    try {
+                        /**@type {PrivGroupRecord} */
+                        const rec = await priv_groups.findOne({gid:target});
+                        if (!rec) {
+                            res.writeHead(404).end("target not found");
+                            return;
+                        }
+                        res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(rec));
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
+                case "/info": {
+                    const target = url.searchParams.get("id");
+                    if (!target) {
+                        res.writeHead(400).end("no target");
+                        return;
+                    }
+                    try {
+                        /**@type {AccountRecord} */
+                        const rec = await collection.findOne({id:target});
+                        if (!rec) {
+                            res.writeHead(404).end("target not found");
+                            return;
+                        }
+                        delete rec["pwdata"];
+                        res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(rec));
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
+            }
+            res.writeHead(404).end();
+            return;
+        }
+        case "POST":{
+            switch (stripped) {
+                // normal sanction
+                case "/Nsanction": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, sanctionScheme)) {
+                        res.writeHead(400).end("misformed");
+                        return;
+                    }
+                    try {
+                        /**@type {AccountRecord} */
+                        const source_rec = await collection.findOne({id:accid});
+                        const source_privs = await getEffectivePrivs(source_rec);
+                        /**@type {AccountRecord} */
+                        const target_rec = await collection.findOne({id:data.acc});
+                        const target_privs = await getEffectivePrivs(target_rec);
+                        if (!check_can_moderate(source_privs, target_privs)) {
+                            log(EBADMOD, `'${accid}'->'${data.acc}' (${data.id}) [canmod]`);
+                            res.writeHead(403).end("insufficient permissions, this attempt has been logged");
+                            return;
+                        }
+                        if (!check_sanction_allowed(source_privs, data.id)) {
+                            log(EBADMOD, `'${accid}'->'${data.acc}' (${data.id}) [sancallow]`);
+                            res.writeHead(403).end("insufficient permissions, this attempt has been logged");
+                            return;
+                        }
+                        /**@type {SanctionRecord} */
+                        const sobj = {
+                            "appeal":null,
+                            "appealable_date":data.appeals?(data.expires?data.expires-((data.expires-Date.now())/2):180*86400*1000):0,
+                            "appeals_left":data.appeals,
+                            "applied":Date.now(),
+                            "expires":data.expires,
+                            "sanction_id":data.id,
+                            "notes":data.notes,
+                            "rejections":[],
+                            "source":accid,
+                            "value":data.value,
+                            "appeal_date":0,
+                            "appeal_granted":0,
+                            "granted_by":null,
+                            "refid":target_rec.next_refid
+                        };
+                        if ((await collection.updateOne({id:data.acc},{"$push":{"sanction":sobj},"$inc":{"next_refid":1}})).modifiedCount) {
+                            res.writeHead(200).end();
+                            return;
+                        }
+                        res.writeHead(500).end("unknown failure");
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
+                default:
+                    res.writeHead(404).end();
+                    return;
+            }
+        }
+        case "PATCH": {
+            switch (stripped) {
+                // manage sanction
+                case "/Msanction": {
+                    /**@type {AdminSancManData} */
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, adminSancManScheme)) {
+                        res.writeHead(400).end("misformed man data");
+                        return;
+                    }
+                    if ("appeal" in data && !validateJSONScheme(data.appeal, adminSancManAppealScheme)) {
+                        res.writeHead(400).end("misformed appeal man");
+                        return;
+                    }
+                    try {
+                        /**@type {SanctionRecord} */
+                        const rec = await collection.find({id:data.acc}).project({sanction:{$elemMatch:{refid:data.refid}}}).tryNext();
+                        if (rec === null) {
+                            res.writeHead(404).end("sanction not found");
+                            return;
+                        }
+                        const upd = {"$set":{},"$bit":{},"$push":{}};
+                        const sanction = "sanction.$[a]";
+                        if ("cancel" in data) {
+                            upd["$bit"][`${sanction}.sanction_id`] = {"and":0x5fffffff,"or":data.cancel?0x20000000:0};
+                        }
+                        if ("appeal" in data) {
+                            if (data.appeal.accept) {
+                                upd["$bit"][`${sanction}.sanction_id`] = {"or":0x20000000};
+                                upd["$set"][`${sanction}.appeal_granted`] = Date.now();
+                                upd["$set"][`${sanction}.granted_by`] = accid;
+                            } else {
+                                upd["$push"][`${sanction}.rejections`] = {"source":accid,"date":Date.now(),"notes":data.appeal.notes??"<no notes>","value":data.appeal.value??0,"appeal":rec.appeal,"adate":rec.appeal_date};
+                                upd["$set"][`${sanction}.appeal`] = null;
+                                upd["$set"][`${sanction}.appeal_date`] = 0;
+                            }
+                        }
+                        if ("expires" in data) {
+                            upd["$set"][`${sanction}.expires`] = data.expires;
+                        }
+                        if ("notes" in data) {
+                            upd["$set"][`${sanction}.notes`] = data.notes;
+                        }
+                        if ("value" in data) {
+                            upd["$set"][`${sanction}.value`] = data.value;
+                        }
+                        if ((await collection.updateOne({id:data.acc},upd,{arrayFilters:[{"a.refid":{"$eq":data.refid}}]})).modifiedCount) {
+                            res.writeHead(200).end();
+                            return;
+                        }
+                        res.writeHead(500).end("unknown failure");
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized ?? "Internal Error");
+                    }
+                    return;
+                }
+                default:
+                    res.writeHead(404).end();
+                    return;
+            }
+        }
+    }
+}
+
 const internal_server = http.createServer(async (req, res) => {
     const url = new URL("http://localhost"+req.url);
     const TIME = new Date();
@@ -833,6 +1193,48 @@ const internal_server = http.createServer(async (req, res) => {
             res.writeHead(503).end();
             return;
         }
+        case "/perms":{
+            if (req.method !== "GET") {
+                res.writeHead(405).end();
+                return;
+            }
+            if (url.searchParams.get("id") === "%40guest") {
+                res.writeHead(200).end(Buffer.alloc(6,0).toString("base64url"));
+                return;
+            }
+            const id = SessionManager.getAccountId(url.searchParams.get("id"));
+            if (id) {
+                try {
+                    /**@type {AccountRecord} */
+                    const rec = await collection.findOne({id});
+                    if (!rec) {
+                        res.writeHead(404).end();
+                        return;
+                    }
+                    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+                    const effective_priv = (rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0));
+                    const buf = Buffer.alloc(6,0);
+                    buf[0] = (rec.sanction?.find(v => v.sanction_id===9)?.value??0)<<4;
+                    buf[0] |= (rec.sanction?.find(v => v.sanction_id===8)?.value??0);
+                    buf.writeInt32BE(effective_priv, 1);
+                    buf[5] = assembleByte(
+                        rec.sanction?.some(v=>v.sanction_id===0),
+                        rec.sanction?.some(v=>v.sanction_id===1),
+                        rec.sanction?.some(v=>v.sanction_id===3),
+                        rec.sanction?.some(v=>v.sanction_id===4),
+                        rec.sanction?.some(v=>v.sanction_id===10),
+                        rec.sanction?.some(v=>v.sanction_id===11)
+                    );
+                    res.writeHead(200).end(buf.toString("base64url"));
+                } catch (E) {
+                    console.log(E);
+                    res.writeHead(500).end();
+                }
+            } else {
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/get-privs":{
             if (req.method !== "GET") {
                 res.writeHead(405).end();
@@ -848,7 +1250,7 @@ const internal_server = http.createServer(async (req, res) => {
                         return;
                     }
                     const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
-                    res.writeHead(200).end((rec.priv_level | groups.reduce((pv, cv) => pv | cv, 0)).toString());
+                    res.writeHead(200).end((rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0)).toString());
                 } catch (E) {
                     console.log(E);
                     res.writeHead(500).end();
@@ -1000,6 +1402,93 @@ class SessionManager {
 SessionManager.load();
 process.on("SIGINT", ()=>{SessionManager.save();});
 // process.on("SIGTERM", SessionManager.save);
+
+/**
+ * manages admin login sessions
+ * like standard SessionManager, but without sessions being preserved across restarts
+ */
+class ASessionManager {
+    /**@type {Record<string,[string,number]>} */
+    static #sessions = {};
+    /**@type {Record<string, string>} */
+    static #inverse_map = {};
+    /**
+     * @returns {string}
+     */
+    static #generateToken() {
+        let t;
+        do {
+            t = randomBytes(32).toString("base64url");
+        } while (t in this.#inverse_map);
+        return t;
+    }
+    /**
+     * returns base64url encoded token
+     * @param {string} id account id to create the token for
+     * @returns {string}
+     */
+    static createSession(id) {
+        if (id in this.#sessions) {
+            this.refreshSession(id);
+            return this.#sessions[id][0];
+        }
+        const token = this.#generateToken();
+        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT)];
+        this.#inverse_map[token] = id;
+        return token;
+    }
+    /**
+     * @param {string} sessionid
+     * @returns {string}
+     */
+    static getAccountId(sessionid) {
+        return this.#inverse_map[sessionid];
+    }
+    /**
+     * verifies that the session token corresponds to the given account id
+     * @param {string} token
+     * @param {string} id
+     * @returns {boolean}
+     */
+    static verifySession(token, id) {
+        if (!(id in this.#sessions)) return;
+        return this.#sessions[id][0] === token;
+    }
+    /**
+     * @param {string} id
+     */
+    static refreshSession(id) {
+        if (!(id in this.#sessions)) return false;
+        clearTimeout(this.#sessions[id][1]);
+        this.#sessions[id][1] = setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT);
+        return true;
+    }
+    /**
+     * @param {string} token
+     */
+    static deleteToken(token) {
+        if (!(token in this.#inverse_map)) return;
+        clearTimeout(this.#sessions[this.#inverse_map[token]][0]);
+        this.#expireToken(this.#inverse_map[token]);
+    }
+    /**
+     * @param {string} id
+     */
+    static #expireToken(id) {
+        if (!(id in this.#sessions)) return;
+        delete this.#inverse_map[this.#sessions[id][0]];
+        delete this.#sessions[id];
+    }
+}
+
+/**
+ * @param {AccountRecord} rec
+ * @returns {Promise<number>}
+ */
+async function getEffectivePrivs(rec) {
+    const groups = await priv_groups.find({gid:{$in:rec.priv_groups?.filter(v=>!(v&0x80000000))??[]}}).project({privs:1}).toArray();
+    return (rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0));
+}
 
 
 public_server.listen(settings.AUTHPORT);

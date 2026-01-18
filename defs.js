@@ -1,3 +1,4 @@
+const __dname = process.cwd();
 const codeChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "4", "5", "6", "7", "8", "9"];// THE LENGTH OF `codeChars' MUST BE A POWER OF TWO
 const crypto = require("crypto");
 const os = require("os");
@@ -59,6 +60,14 @@ class Player {
         this.is_bot = false;
         /**@type {string} */
         this.accId = null;
+        /**@type {string} */
+        this.botq = null;
+        /**@type {number} */
+        this.res_time = null;
+        /**@type {number} */
+        this.set_time = null;
+        /**@type {boolean} */
+        this.needs_resume = false;
     }
     /**
      * @param {Game} game
@@ -78,9 +87,12 @@ class Player {
         }
         if (!cb) return;
         if (!game.rules.turnTime.limit) return;
+        this.timeout_cb = cb;
+        this.set_time = Date.now();
         switch (game.rules.turnTime.style) {
             case "per turn":
-                this.turn_timer = setTimeout(cb, game.rules.turnTime.limit);
+                this.turn_timer = setTimeout(cb, this.res_time ?? game.rules.turnTime.limit);
+                this.res_time = null;
                 break;
             case "chess":
                 this.turn_timer = setInterval(() => {
@@ -228,6 +240,72 @@ class Game {
     //     this._buffer = v;
     // }
     /**
+     * @param {string} key
+     * @param {Buffer} value
+     */
+    setMeta(key, value) {
+        const globi = key.indexOf("_");
+        if (globi !== -1) {
+            let c = 0;
+            const s = key.slice(0, globi);
+            // console.log(`globi: ${globi}, s: ${s}`);
+            for (let i = 0, l = value.length; i < l; i += 0xffff) {
+                const k = s+(c.toString(36).padStart(2,'0'));
+                // console.log(`key: ${k}`);
+                this.setMeta(k, value.subarray(i, Math.min(i+0xffff,l)));
+            }
+            return;
+        }
+        let k = key.charCodeAt(0)<<24;
+        // console.log(k);
+        k |= key.charCodeAt(1)<<16;
+        // console.log(k);
+        k |= key.charCodeAt(2)<<8;
+        // console.log(k);
+        k |= key.charCodeAt(3);
+        // console.log(k);
+        this.__extmeta[k] = value;
+    }
+    resumeTimers() {
+        this.players.forEach(v => {
+            if (!v) return;
+            if (v.needs_resume) v.resetTimer(this, v.timeout_cb);
+        });
+    }
+    pauseTimers() {
+        const now = Date.now();
+        this.players.forEach(v => {
+            if (!v) return;
+            if (v.turn_timer !== null) {
+                v.needs_resume = true;
+                switch (this.rules.turnTime.style) {
+                    case "per turn":
+                        v.res_time = now-v.set_time + 1500;
+                        break;
+                    case "chess":
+                        v.time_left += 1;
+                        break;
+                }
+            }
+            v.resetTimer(this);
+        });
+    }
+    stopTimers() {
+        this.players.forEach(v => v?.resetTimer(this));
+    }
+    addExportMeta() {
+        const pens = ["random", "skip", "lose"];
+        const styles = ["per turn", "chess"];
+        const rulz = Buffer.from([(this.rules.turnTime.limit?
+            [1,
+                pens.indexOf(this.rules.turnTime.penalty),
+                styles.indexOf(this.rules.turnTime.style),
+                this.rules.turnTime.style==="chess"?this.players.map(v=>nbytes(v?.time_left??0,4)):nbytes(this.rules.turnTime.limit/1000,4)
+            ]
+            :[0])].flat(5));
+        this.setMeta("rlz_", rulz);
+    }
+    /**
      * @param {number|string} entid
      * @param {string} accid
      */
@@ -244,9 +322,10 @@ class Game {
     }
     /**
      * @param {string} key
+     * @param {string} bot
      * @returns {string}
      */
-    addBot(key) {
+    addBot(key, bot) {
         if (this.stats.playing === this.stats.maxPlayers) {
             return "";
         }
@@ -254,6 +333,7 @@ class Game {
         this.players[pN] = new Player(null, ((pN-1)%settings.MAX_TEAMS)+1);
         this.players[pN].is_bot = true;
         this.players[pN].rejoin_key = key;
+        this.players[pN].botq = bot;
         const that = this;
         this.players[pN].timeoutid = setTimeout(() => {
             if (that.state.state !== 0) {
@@ -312,6 +392,8 @@ class Game {
                 break;
             }
         }
+        const playerdata = Buffer.from([this.players.map(v=>!v?0:[Number(v.is_bot)+1,!v.is_bot?[]:[v.botq.length,v.botq.split("").map(w=>w.charCodeAt(0))],v.accId?[v.accId.length,v.accId.split("").map(w=>w.charCodeAt(0))]:0])].flat(5));
+        this.setMeta("pn__", playerdata);
     }
     /**
      * @param {number} tile
@@ -544,7 +626,7 @@ exports.Game = Game;
  * WEBCONTENT_DIR:string,
  * URL_MAP:Record<string,string>,
  * URL_MAP_GROUPS:Record<string,string[]>,
- * DEVOPTS:{expr_webpath:boolean},
+ * DEVOPTS:{expr_webpath:boolean,pid_dir:string,log_dir:string},
  * REPLAYS:{ENABLED:boolean,TIMESTAMP:boolean,COLLATE:boolean},
  * MAX_TEAMS:number,
  * DB_CONFIG:{URI:string},
@@ -579,6 +661,9 @@ const extend = (e, o) => {
 	const prefs = JSON.parse(fs.readFileSync(prefsPath, {encoding:"utf-8"}));
 	extend(settings, prefs);
     }
+}
+if (settings.DEVOPTS?.pid_dir?.startsWith("./")) {
+    settings.DEVOPTS.pid_dir = _path.join(__dname, settings.DEVOPTS.pid_dir);
 }
 
 class NetData {
@@ -907,6 +992,19 @@ class NetData {
         static Timeup(playerNum) {
             return this.Misc("timeup", {n:playerNum});
         }
+        /**
+         * @param {number} time_left
+         * @returns {string}
+         */
+        static Pause(time_left) {
+            return this.Misc("pause", {t:time_left??0});
+        }
+        /**
+         * @returns {string}
+         */
+        static Resume() {
+            return this.Misc("resume", {});
+        }
     }
     /**
      * @param {string?} kind
@@ -916,6 +1014,13 @@ class NetData {
         return NetData.Misc("ping", {kind:kind??"default"});
     }
     static Bin = class {
+        /**
+         * @param {Game} game
+         * @returns {Buffer}
+         */
+        static Export(game) {
+            return Buffer.concat([Buffer.of(2), Buffer.concat(game.buffer.slice(0, game.__ended))]);
+        }
         /**
          * @param {Game} game
          * @returns {Buffer}
@@ -1174,20 +1279,25 @@ function nbytes(n, c) {
 function validateJSONScheme(obj, scheme) {
     try {
         const allow_extensions = scheme["*"] === "any";
-        if (Object.keys(scheme).filter(v => !(v in obj)).some(v => !v.endsWith("?"))) {
+        if (Object.keys(scheme).filter(v => !v.endsWith("?")).some(v => !(v in obj))) {
             return false;
         }
-        for (const key in obj) {
+        for (const _key in obj) {
+            let key = _key;
+            if ((key+"?") in scheme) {
+                key = key + "?";
+            }
+            // console.log(key);
             if (key in scheme) {
                 if (typeof scheme[key] === "string") {
-                    if (typeof obj[key] !== scheme[key] && scheme[key] !== "any") {
+                    if (typeof obj[_key] !== scheme[key] && scheme[key] !== "any") {
                         return false;
                     }
                 } else if (Array.isArray(scheme[key])) {
-                    if (!Array.isArray(obj[key])) {
+                    if (!Array.isArray(obj[_key])) {
                         return false;
                     }
-                    if (!obj[key].every(v => (typeof scheme[key][0] === "object") ? validateJSONScheme(obj, scheme[key][0]) : (scheme[key][0] === "any" || typeof v === scheme[key][0]))) {
+                    if (!obj[_key].every(v => (typeof scheme[key][0] === "object") ? validateJSONScheme(obj, scheme[key][0]) : (scheme[key][0] === "any" || typeof v === scheme[key][0]))) {
                         return false;
                     }
                 }
@@ -1201,8 +1311,6 @@ function validateJSONScheme(obj, scheme) {
     }
 }
 
-const __dname = process.cwd();
-
 /**
  * @param {string} fpath
  */
@@ -1210,16 +1318,18 @@ function ensureFile(fpath) {
     const parts = fpath.split(_path.sep);
     // console.log(fpath);
     // console.log(parts);
+    const _dname = _path.isAbsolute(fpath) ? "/" : __dname;
+    // console.log(_dname);
     parts.slice(0, parts.length-1).forEach((v, i, a) => {
         const seg = _path.join(...a.slice(0, i+1));
         // console.log(seg);
         // console.log(`${v} :: ${i} :: ${a}`);
-        if (!fs.existsSync(_path.join(__dname, seg))) {
-            fs.mkdirSync(_path.join(__dname, seg));
+        if (!fs.existsSync(_path.join(_dname, seg))) {
+            fs.mkdirSync(_path.join(_dname, seg));
         }
     });
-    if (!fs.existsSync(_path.join(__dname, fpath))) {
-        fs.writeFileSync(_path.join(__dname, fpath), "");
+    if (!fs.existsSync(_path.join(_dname, fpath))) {
+        fs.writeFileSync(_path.join(_dname, fpath), "");
     }
 }
 
@@ -1238,8 +1348,24 @@ function logStamp(lpath) {
     addLog(lpath, `\n\n${new Date()} - STARTUP\n\n`);
 }
 
+/**
+ * @param  {boolean} bit7
+ * @param  {boolean} bit6
+ * @param  {boolean} bit5
+ * @param  {boolean} bit4
+ * @param  {boolean} bit3
+ * @param  {boolean} bit2
+ * @param  {boolean} bit1
+ * @param  {boolean} bit0
+ * @returns {number}
+ */
+function assembleByte(bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0) {
+    return [bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0].reduce((pv, cv, ci) => pv | ((cv?1:0)<<(7-ci)),0);
+}
+
 exports.__dname = __dname;
 exports.extend = extend;
+exports.assembleByte = assembleByte;
 exports.ensureFile = ensureFile;
 exports.addLog = addLog;
 exports.logStamp = logStamp;

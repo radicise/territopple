@@ -36,11 +36,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 state.game.players[state.playerNum].alive = false;
                 emit("player:lose", {n:state.playerNum});
                 if (state.game.players.filter(v => v&&v.alive).every((v, _, a) => v.team === a[0].team)) {
-                    if (globals.state.saveReplays) {
-                        onRecordReplay(state.game);
-                    } else {
-                        state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
-                    }
+                    onRecordReplay(state.game, {suppress_write:!globals.state.saveReplays});
                     state.game.__ended = state.game.buffer.length;
                     emit("game:turn", {n:state.game.nextPlayer().turn,t:false});
                     state.game.state.state = 2;
@@ -95,6 +91,15 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             change("close");
         }
     });
+    on("game:export", () => {
+        change("error", {data:"Room closed for export",redirect:"/play-online",store:"Room closed for export"});
+    });
+    onall("game:pause", () => {
+        sock.send(NetData.Game.Pause(state.game.players.map(v=>(v??{})[state.game.rules.turnTime.style==="chess"?"time_left":"res_time"]??0)));
+    });
+    onall("game:resume", () => {
+        sock.send(NetData.Game.Resume());
+    });
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
@@ -113,6 +118,30 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
         switch (data.type) {
+            case "game:pause":{
+                if (state.isHost) {
+                    state.game.pauseTimers();
+                    emit("game:pause");
+                }
+                break;
+            }
+            case "game:resume":{
+                if (state.isHost) {
+                    emit("game:resume");
+                    state.game.resumeTimers();
+                }
+                break;
+            }
+            case "game:export":{
+                if (state.isHost) {
+                    state.game.stopTimers();
+                    state.game.addExportMeta();
+                    onRecordReplay(state.game, {suppress_write:true});
+                    state.game.__ended = state.game.buffer.length;
+                    sock.send(NetData.Bin.Export(state.game));
+                }
+                break;
+            }
             case "game:download":{
                 sock.send(NetData.Bin.Replay(state.game));
                 break;
@@ -128,12 +157,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     emit("game:out:move", {"n":data.payload["n"],"t":state.game.players[state.playerNum].team});
                     let res = state.game.move(data.payload["n"], state.playerNum);
                     if (res.win) {
-                        if (globals.state.saveReplays) {
-                            onRecordReplay(state.game);
-                        } else {
-                            // console.log("end buffer");
-                            state.game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
-                        }
+                        onRecordReplay(state.game, {suppress_write:!globals.state.saveReplays});
                         state.game.__ended = state.game.buffer.length;
                         state.game.state.state = 2;
                         emit("?phase");

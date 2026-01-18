@@ -67,7 +67,7 @@ on("main", "game:bot", (data) => {
     //     console.log(E)
     // }
     const key = crypto.randomBytes(64).toString("base64url");
-    const n = games[data["#gameid"]].addBot(key);
+    const n = games[data["#gameid"]].addBot(key, data.bot);
     const u = `http://localhost:${settings.BOTPORT}/${data["#gameid"]}/${data.bot}?k=${key}${n}`;
     // console.log(u);
     // const req = http.request(u, {method:"GET",timeout:200})

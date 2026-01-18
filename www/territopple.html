@@ -74,6 +74,7 @@
                         <input type="button" id="startbutton" value="start" class="FLAG-host-only">
                         <input type="button" id="botbutton" value="bots" class="FLAG-host-only">
                         <input type="button" id="colorbutton" value="colors" class="FLAG-host-only">
+                        <input type="button" id="pausebutton" value="pause" class="FLAG-host-only">
                     </span>
                     <span id="underboard-right">
                         <span id="turn-time">Time: --:--</span>
@@ -97,7 +98,15 @@
             <input type="button" value="Download Replay">
             <a hidden></a>
         </div>
-        <div id="teamcolor-modal" hidden>
+        <div id="pause-modal" class="modal" hidden>
+            <div>
+                <p>
+                    Exporting your game allows you to resume it later, would you like to export?
+                </p>
+                <input type="button" value="Export Game" id="pm-export"><input type="button" value="Cancel" id="pm-cancel">
+            </div>
+        </div>
+        <div id="teamcolor-modal" class="modal" hidden>
             <div>
                 Neutral: <input type="color" id="tcm-0"><br>
                 Team 1: <input type="color" id="tcm-1"><br>
