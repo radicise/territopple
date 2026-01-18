@@ -1,16 +1,9 @@
-# Jan 17, 2026 (DEV20260hY0)
+# Jan 17, 2026 (Alpha 1.7.5)
 added ability to pause and export games (note: pausing a game does pause any turn time rules server-side, but not on the client)
 fixed issue #58
-
-# Jan 15, 2026 (DEV20260fY0)
 got admin page to a workable state
-
-# Jan 10, 2026 (DEV202609Y0)
-changed how sanctions work
 added ability to view sanctions placed on your account
 added ability to appeal sanctions
-
-# Jan 2, 2026 (DEV202601Y0)
 began work on moderation tools
 
 # Dec 13, 2025 [hotfix] (Alpha 1.7.4)
