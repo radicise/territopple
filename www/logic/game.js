@@ -270,4 +270,4 @@ class Game {
     }
 }
 
-if (exports)exports.Game = Game;
+if (typeof exports !== "undefined")exports.Game = Game;
