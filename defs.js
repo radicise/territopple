@@ -260,7 +260,7 @@ class Game {
                 v.needs_resume = true;
                 switch (this.rules.turnTime.style) {
                     case "per turn":
-                        v.res_time = now-v.set_time + 1500;
+                        v.res_time = this.rules.turnTime.limit - (now-v.set_time) + 1500;
                         break;
                     case "chess":
                         v.time_left += 1;
