@@ -138,6 +138,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             }
             case "game:export":{
                 if (state.isHost) {
+                    if (state.game.state.state !== 1) {
+                        sock.send(NetData.Bin.Replay(state.game));
+                        break;
+                    }
                     state.game.stopTimers();
                     state.game.addExportMeta();
                     onRecordReplay(state.game, {suppress_write:true});
