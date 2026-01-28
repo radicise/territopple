@@ -95,7 +95,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         change("error", {data:"Room closed for export",redirect:"/play-online",store:"Room closed for export"});
     });
     onall("game:pause", () => {
-        sock.send(NetData.Game.Pause(state.game.players.map(v=>(v??{})[state.game.rules.turnTime.style==="chess"?"time_left":"res_time"]??0)));
+        sock.send(NetData.Game.Pause((state.game.players[state.game.state.turn]??{})[state.game.rules.turnTime.style==="chess"?"time_left":"res_time"]??0));
     });
     onall("game:resume", () => {
         sock.send(NetData.Game.Resume());

@@ -39,12 +39,13 @@ GAME TO CLIENT:
         move (n [tile num]: number, t [team id]: number)
         win (t [team id]: number, d [download available]: boolean)
         reconnected ()
-        rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
+        rules (...) see "./detail/game_rules.txt"
         timeup (n [player num]: number)
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
-        pause (t [time left]: number[])
+        pause (t [time left]: number)
         resume ()
     ping: (kind: string | null)
+    sync: (...) see "./detail/sync.txt"
 
 BINARY GAME TO CLIENT:
     0:

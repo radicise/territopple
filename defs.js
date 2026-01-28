@@ -1184,6 +1184,56 @@ function clear(tag) {
         }
     }
 }
+/**
+ * @param {string} tag
+ * @returns {boolean}
+ */
+function tag_inuse(tag) {
+    for (const name in EventRegistry) {
+        if (EventRegistry[name].some(v=>v.tag===tag)) {
+            return true;
+        }
+    }
+    return false;
+}
+/**
+ * @typedef EvSysProfile
+ * @type {({'':0} & Record<string,[[string,number]])|({'':string|null} & Record<string,[number,string[]]>)}
+ */
+/**
+ * returns information about the subscribing tag, if tag is not provided
+ * returns information about the event system as a whole
+ * if tag is a truthy value, returns data about that tag
+ * if tag is null, returns the total registered handlers and the set of tags used to register them
+ * if tag is falsey and not null, returns a seperate count for each tag
+ * @param {string?} tag
+ * @returns {EvSysProfile}
+ */
+function profile_events(tag) {
+    const profile = {};
+    profile[""] = tag;
+    if (tag) {
+        for (const name in EventRegistry) {
+            const l = EventRegistry[name];
+            profile[name] = [[tag, l.reduce((pv,cv)=>pv+(cv.tag===tag?1:0),0)]];
+        }
+    } else {
+        if (tag === null) {
+            for (const name in EventRegistry) {
+                const l = EventRegistry[name];
+                profile[name] = [l.length,[...new Set(l)]];
+            }
+        } else {
+            for (const name in EventRegistry) {
+                const l = EventRegistry[name];
+                const o = {};
+                l.forEach(v => {o[v.tag]=(o[v.tag]??0)+1});
+                profile[name] = Object.entries(o);
+            }
+        }
+    }
+    return profile;
+}
 
 class Random {
     /**
@@ -1372,6 +1422,8 @@ exports.logStamp = logStamp;
 exports.emit = emit;
 exports.on = on;
 exports.clear = clear;
+exports.tag_inuse = tag_inuse;
+exports.profile_events = profile_events;
 exports.nbytes = nbytes;
 exports.validateJSONScheme = validateJSONScheme;
 this.JSONScheme = undefined;

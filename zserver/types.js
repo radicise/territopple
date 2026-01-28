@@ -29,7 +29,7 @@ const { Game, HostingSettings } = require("../defs");
 //, emit: (name: string, data?: DataRecord) => {void}, on: (name: string, cb: (data: DataRecord) => {void}) => {void}
 /**
  * @typedef SocketHandler
- * @type {(sock: import("ws").WebSocket, globals: GlobalRecord, _:{change: (to: string, args?: DataRecord) => void, emit: TaggedEmitFunction, onall: TaggedOnFunction, on: TaggedOnFunction}, args: DataRecord, state: HandlerState) => {messageL?:()=>any,closeL?:()=>any,errorL?:()=>any}}
+ * @type {(sock: import("ws").WebSocket, globals: GlobalRecord, _:{change: (to: string, args?: DataRecord) => void, emit: TaggedEmitFunction, onall: TaggedOnFunction, on: TaggedOnFunction}, args: DataRecord, state: HandlerState) => {messageL?:()=>any,closeL?:()=>any,errorL?:()=>any,invokeError?:string}}
  */
 /**
  * @typedef TaggedEmitFunction
@@ -51,6 +51,10 @@ const { Game, HostingSettings } = require("../defs");
  * @typedef ClearFunction
  * @type {(tag: string) => void}
  */
+/**
+ * @typedef CheckFunction
+ * @type {(tag: string) => boolean}
+ */
 
 // /**@type {SocketHandler} */
 // let x = (sock,globals,{change, emit, on}) => {
@@ -58,13 +62,25 @@ const { Game, HostingSettings } = require("../defs");
 //     emit;
 // };
 
+class HandlerInvocationError extends Error {
+    /**
+     * @param {String} message - error message
+     */
+    constructor (message) {
+        super(message);
+        this.name = "HandlerInvocationError";
+    }
+}
+
 exports.SocketHandler = this.SocketHandler;
 exports.TaggedEmitFunction = this.TaggedEmitFunction;
 exports.TaggedOnFunction = this.TaggedOnFunction;
 exports.EmitFunction = this.EmitFunction;
 exports.OnFunction = this.OnFunction;
 exports.ClearFunction = this.ClearFunction;
+exports.CheckFunction = this.CheckFunction;
 exports.DataRecord = this.DataRecord;
 exports.GlobalRecord = this.GlobalRecord;
 exports.GlobalState = this.GlobalState;
 exports.HandlerState = this.HandlerState;
+exports.HandlerInvocationError = HandlerInvocationError;

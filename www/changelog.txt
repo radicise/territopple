@@ -1,3 +1,6 @@
+# Jan 26, 2026 (DEV20260pY0)
+added debugging tools
+
 # Jan 17, 2026 (Alpha 1.7.5)
 added ability to pause and export games (note: pausing a game does pause any turn time rules server-side, but not on the client)
 fixed issue #58

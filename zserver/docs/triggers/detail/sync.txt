@@ -1,0 +1,16 @@
+this file documents the "sync" server->client event. the full list of events can be found in "../game-client_events.txt".
+
+the sync event is used to synchronize data between the client and server, it should be used for data which is either not obvious to clients entering a game or for data which changes over time in an unpredictable way (eg. timers that may be paused).
+
+the sync event allows arbitrary fields to be synced across the client-server boundary by targeting certain types of data. this targeting is done in an abstract manner, such that clients may have different in-memory representations of the data and still remain capable of synchronization.
+
+data is encoded in the payload in the following form {[KEY]: [VALUE]}, where "KEY" is a list of specifiers separated by dots ('.'), and "VALUE" is data of the same type as the specified target.
+
+top level specifiers target specific categories of game mechanics, the list is as follows:
+"PLAYER" - data about players
+"BOARD" - data about the board
+
+the PLAYER specifier always has two subspecifiers: N and FIELD.
+N is a number that targets the player with specified player number
+FIELD is one of the following:
+"time_left" - for turnTime rules. amount of time remaining

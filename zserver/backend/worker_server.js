@@ -3,12 +3,14 @@ const fs = require("fs");
 const path = require("path");
 const ws = require("ws");
 const socks = require("../socks/handlers.js");
-const { settings, validateJSONScheme, JSONScheme, Game, emit, on, clear, NetData, loadPromise, ensureFile, logStamp, addLog } = require("../../defs.js");
-const { GlobalState } = require("../types.js");
+const { settings, validateJSONScheme, JSONScheme, Game, emit, on, clear, NetData, loadPromise, ensureFile, logStamp, addLog, tag_inuse, profile_events } = require("../../defs.js");
+const { GlobalState, HandlerInvocationError } = require("../types.js");
 const { PerformanceError } = require("./errors.js");
 const crypto = require("crypto");
 
 const LOGF = `logs/worker/${process.pid}.txt`;
+const ERRLOG = `logs/worker/error.txt`;
+ensureFile(ERRLOG);
 
 const LOGGING = false;
 
@@ -52,7 +54,7 @@ function updateLoadFactors() {
     process.send({factor_update:{connections:CONNECTION_COUNT,complexity:COMPLEXITY,turnaround:MAX_TURN}});
 }
 
-socks.setGlobals({state:globals, settings:settings}, emit, on, clear);
+socks.setGlobals({state:globals, settings:settings}, emit, on, clear, tag_inuse);
 on("main", "game:bot", (data) => {
     // try {
     //     new ws.WebSocket("ws://localhost", {port:settings.BOTPORT, path:data.bot}).on("open", (s) => {
@@ -142,6 +144,17 @@ on("main", "game:add", (data) => {
     COMPLEXITY += game.complexity;
     http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating}));
 });
+on("main", "?fatalerr", (data) => {
+    const now = new Date();
+    if (data["#gameid"]) {
+        /**@type {Game} */
+        const game = data["#gameid"];
+        addLog(ERRLOG, `${now} (${process.pid}:${WORK_ID}) - FATALERR (GAME), SOURCE: ${data.source}\nGstart: ${game.timestamp}\n${new Error().stack}\n`);
+        terminateGame(data["#gameid"]);
+    } else {
+        addLog(ERRLOG, `${now} (${process.pid}:${WORK_ID}) - FATALERR (ORPHAN), SOURCE: ${data.source}\n${new Error().stack}\n`);
+    }
+});
 function terminateGame(id) {
     // console.log(`${new Error().stack}`);
     if (!(id in games)) return;
@@ -177,10 +190,23 @@ process.once("message", (id) => {
             // }
             if ("cmd" in req) {
                 if (process.argv.includes("--debug")) {
-                    try {
-                        console.log(eval(req.cmd));
-                    } catch (E) {
-                        console.error(E.stack);
+                    if (req.cmd.startsWith(".")) {
+                        switch (req.cmd.split(' ')[0]) {
+                            case ".tagprofile": {
+                                console.log(profile_events(req.cmd.split(' ')[1]==="-detail"?0:req.cmd.split(' ')??null));
+                                break;
+                            }
+                            default: {
+                                console.log("UNKNOWN COMMAND");
+                                break;
+                            }
+                        }
+                    } else {
+                        try {
+                            console.log(eval(req.cmd));
+                        } catch (E) {
+                            console.error(E.stack);
+                        }
                     }
                 }
                 return;
@@ -257,7 +283,16 @@ process.once("message", (id) => {
                                     return;
                                 }
                                 gameid = data;
-                                socks.handle("create", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc}, state);
+                                try {
+                                    socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc}, state);
+                                } catch (E) {
+                                    if (E instanceof HandlerInvocationError) {
+                                        if (LOGGING) addLog(WCRASH, `${new Date()} - HIE: ${E.message}\n${E.stack}\n`);
+                                        socks.handle("error", sock, {data:E.message,redirect:"/play-online",store:E.message}, state);
+                                    } else {
+                                        throw E;
+                                    }
+                                }
                             } catch (E) {
                                 if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
                             }
