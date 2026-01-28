@@ -1,3 +1,6 @@
+# Jan 28, 2026 (DEV20260rY0)
+fixed a visual bug that caused client turn timers to desync when the game was paused
+
 # Jan 28, 2026 (DEV20260rX0)
 changed how save files are generated with turn time rules
 
