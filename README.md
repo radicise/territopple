@@ -21,4 +21,5 @@ Connecting clients may then open '/index.html' on a modern web browser and play 
 
 # Documentation
 All server documentation can be found in the `/zserver/docs` directory. All replay format documentation can be found in the `/replay-format` directory. Puzzle documentation can be found in the `/puzzles/format.txt` file. TerriTopple Virtual Machine documentation can be found in the `/ttvm` directory.  
-The `/protocol.txt` file is incomplete and outdated.
+The `/protocol.txt` file is incomplete and outdated.  
+High level documentation on '.topl', '.stpl', '.ctpl', and '.ttpl' files can be found in the `/replay-format/variant-notes.txt` file.

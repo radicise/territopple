@@ -38,3 +38,6 @@ reserved for future use
 b"rlz0"-b"rlzz" (restricted):
 rules data
 format: "./restrictkeys/rlz_.txt"
+
+b"stpl" (restricted):
+format reserved
