@@ -3,8 +3,8 @@ document.getElementById("pingbutton").disabled = true;
 document.getElementById("pingbutton").value = "back";
 /**@type {typeof import("../topology/topology.js")} */
 const topology = await import("topology/topology.js");
-/**@type {typeof import("../../www/replay/parsers.js")} */
-const parser = await import("./parsers.js");
+/**@type {typeof import("../../www/replay/parsers.mjs")} */
+const parser = await import("./parsers.mjs");
 const TEAM_COUNT = 7;
 
 /**@type {HTMLInputElement} */

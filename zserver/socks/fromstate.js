@@ -1,9 +1,9 @@
 const { NetPayload, NetData } = require("../../defs.js");
 const { SocketHandler } = require("../types.js");
-/**@type {typeof import("../../www/replay/parsers.js")} */
+/**@type {typeof import("../../www/replay/parsers.mjs")} */
 let parser;
 const loadPromise = new Promise(r => {
-    import("../../www/replay/parsers.js").then(m => {parser = m;r();});
+    import("../../www/replay/parsers.mjs").then(m => {parser = m;r();});
 });
 
 /**@type {SocketHandler} */
