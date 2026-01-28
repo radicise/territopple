@@ -77,11 +77,17 @@ function handle(name, sock, args, state, __tag) {
     const genTag = __tag || `sock:handler:${tagcount++}`;
     tagcount %= 100_000_000;
     if (!__tag) {
-        if (tag_inuse(genTag)) {}
-        on(genTag, "?tagcollide", () => {
+        if (tag_inuse(genTag)) {
+            emit(genTag, "?tagcollide");
             emit(genTag, "?fatalerr", {"#gameid":state.game?.ident,"source":"?tagcollide"});
-            clear(genTag);
             sock.terminate();
+        }
+        on(genTag, "?tagcollide", (_, tag) => {
+            if (tag === genTag) {
+                emit(genTag, "?fatalerr", {"#gameid":state.game?.ident,"source":"?tagcollide"});
+                clear(genTag);
+                sock.terminate();
+            }
         });
     }
     state.tag = genTag;
