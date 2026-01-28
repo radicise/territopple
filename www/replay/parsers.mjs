@@ -483,3 +483,137 @@ class Version5 {
 }
 
 const PARSERS = {4:Version4,5:Version5};
+
+
+/**
+ * @typedef STPLPlayer
+ * @type {{isbot:true,botq:string,accid:string|null}|{isbot:false,accid:string|null}}
+ * @typedef STPLPlayers
+ * @type {Array<null|STPLPlayer>}
+ * @typedef STPLTurnTime
+ * @type {null|(({style:"per turn",penalty:"random"|"skip"|"lose"}|{style:"chess",penalty:"lose"})&{limit:number})}
+ * @typedef STPLRules
+ * @type {{turnTime:STPLTurnTime}}
+ */
+
+
+export class STPLParser {
+    static _STYLES = ["per turn", "chess"];
+    static _PENALTIES = ["random", "skip", "lose"];
+    /**
+     * @param {AParser} parser
+     */
+    constructor(parser) {
+        /**@type {STPLPlayers} */
+        this.players = [];
+        /**@type {STPLRules} */
+        this.rules = {};
+        const rawpd = new ConsumableBytes(getMetatableEntry(parser.header.metatable, "pn__"));
+        for (let i = 0; i < parser.header.player_count; i ++) {
+            const b = rawpd.consume();
+            if (b === 0) {
+                this.players.push(null);
+            } else {
+                const v = {};
+                if (b === 1) {
+                    v.isbot = false;
+                } else if (b === 2) {
+                    v.isbot = true;
+                    v.botq = String.fromCharCode(...rawpd.consume(rawpd.consume()));
+                }
+                const al = rawpd.consume();
+                if (al === 0) {
+                    v.accid = null;
+                } else {
+                    v.accid = String.fromCharCode(...rawpd.consume(al));
+                }
+                this.players.push(v);
+            }
+        }
+        const rawtt = new ConsumableBytes(getMetatableEntry(parser.header.metatable, "rlz_"));
+        if (rawtt.consume()) {
+            this.rules.turnTime = {};
+            this.rules.turnTime.penalty = STPLParser._PENALTIES[rawtt.consume()];
+            this.rules.turnTime.style = STPLParser._STYLES[rawtt.consume()];
+            switch (this.rules.turnTime.style) {
+                case "per turn": {
+                    this.rules.turnTime.limit = fromBytes(rawtt.consume(4)) * 1000;
+                    break;
+                }
+                case "chess": {
+                    this.rules.turnTime.limit = fromBytes(rawtt.consume(4)) * 1000;
+                    for (let i = 0; i < parser.header.player_count; i ++) {
+                        const timel = fromBytes(rawtt.consume(4));
+                        if (this.players[i]) {
+                            this.players[i].time_left = timel;
+                        }
+                    }
+                    break;
+                }
+            }
+        } else {
+            this.rules.turnTime = null;
+        }
+    }
+}
+
+/**
+ * @param {Record<number,Uint8Array>} table
+ * @param {string} key
+ * @param {Uint8Array} value
+ * @returns {void}
+ */
+function setMetatableEntry(table, key, value) {
+    const globi = key.indexOf("_");
+    if (globi !== -1) {
+        let c = 0;
+        const s = key.slice(0, globi);
+        // console.log(`globi: ${globi}, s: ${s}`);
+        for (let i = 0, l = value.length; i < l; i += 0xffff) {
+            const k = s+(c.toString(36).padStart(4-globi,'0'));
+            // console.log(`key: ${k}`);
+            setMetatableEntry(table, k, value.subarray(i, Math.min(i+0xffff,l)));
+        }
+        return;
+    }
+    let k = key.charCodeAt(0)<<24;
+    // console.log(k);
+    k |= key.charCodeAt(1)<<16;
+    // console.log(k);
+    k |= key.charCodeAt(2)<<8;
+    // console.log(k);
+    k |= key.charCodeAt(3);
+    // console.log(k);
+    table[k] = value;
+}
+/**
+ * @param {Record<number,Uint8Array>} table
+ * @param {string} key
+ * @returns {Uint8Array}
+ */
+function getMetatableEntry(table, key) {
+    const globi = key.indexOf("_");
+    if (globi !== -1) {
+        let c = 0;
+        const bufs = [];
+        const s = key.slice(0, globi);
+        // console.log(`globi: ${globi}, s: ${s}`);
+        for (; c < 36; c ++) {
+            const v = getMetatableEntry(table, s+(c.toString(36).padStart(4-globi,'0')));
+            if (!v) {
+                break;
+            }
+            bufs.push(v);
+        }
+        return Uint8Array.from(bufs.map(v=>[...v]).flat());
+    }
+    let k = key.charCodeAt(0)<<24;
+    // console.log(k);
+    k |= key.charCodeAt(1)<<16;
+    // console.log(k);
+    k |= key.charCodeAt(2)<<8;
+    // console.log(k);
+    k |= key.charCodeAt(3);
+    // console.log(k);
+    return table[k];
+}
