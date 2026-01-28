@@ -40,6 +40,8 @@ game:
 
 ping: (n [player num]: number, kind: string | null)
 
+sync: (t [target]: string)
+
 ?borked: () // used for fatally invalid conditions within a game
 ?phase: () // used to signal a transition between play states
 ?tagcollide: () // used to notify a handler that there has been a collision with its generated tag

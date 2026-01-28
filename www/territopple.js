@@ -420,14 +420,14 @@ conn.addEventListener("open", async function(event) {
                     pme.disabled = false;
                     pause_modal.hidden = false;
                 }
-                // game.handlePause(data.payload["t"]);
+                game.handlePause();
                 break;
             }
             case "game:resume": {
                 pause_modal.hidden = true;
                 ifmt.turn = ifmt.pause_turn;
                 updScr("status", `Player ${ifmt.turn}'s turn`);
-                // game.handleResume();
+                game.handleResume();
                 break;
             }
             case "account:found": {
@@ -583,6 +583,42 @@ conn.addEventListener("open", async function(event) {
                 addJListSelf(data.payload["n"]);
                 if (ifmt.room) {
                     updScr("info", `Room ${game.ident}, Spectator ${ifmt.pln}`);
+                }
+                break;
+            }
+            case "sync": {
+                for (const k in data.payload) {
+                    const parts = k.split(".");
+                    switch (parts[0]) {
+                        case "PLAYER": {
+                            const n = Number(parts[1]);
+                            switch (parts[2]) {
+                                case "time_left": {
+                                    /**@type {number} */
+                                    const t = data.payload[k];
+                                    switch (game.rules.turnTime.style) {
+                                        case "per turn": {
+                                            setJListTime(n, t);
+                                            if (ifmt.pln === n) {
+                                                game.timer = t;
+                                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(t)}`;
+                                            }
+                                            break;
+                                        } case "chess": {
+                                            setJListTime(n, t);
+                                            game.playerList[n].time = t;
+                                            if (ifmt.pln === n) {
+                                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(t)}`;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
                 }
                 break;
             }

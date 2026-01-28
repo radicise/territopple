@@ -41,6 +41,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             change("close");
         }
     });
+    on("sync", (data) => {
+        sock.send(NetData.Sync(state.game, data["t"]));
+    });
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });

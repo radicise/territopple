@@ -45,6 +45,45 @@ class Game {
         this.timertarget = null;
         this.rules_loaded = false;
     }
+    handlePause() {
+        if (this.timerid) {
+            clearInterval(this.timerid);
+            this.timerid = null;
+        }
+    }
+    handleResume() {
+        const that = this;
+        this.timerid = setInterval(() => {that._ONTICK_timer();}, 1000);
+    }
+    _ONTICK_timer() {
+        switch (this.rules.turnTime.style) {
+            case "per turn":{
+                if (this.timer) {
+                    this.timer --;
+                    setJListTime(this.timertarget, this.timer);
+                    if (ifmt.pln === this.timertarget)
+                        document.getElementById("turn-time").textContent = `Time: ${formatTimer(this.timer)}`;
+                } else {
+                    clearInterval(this.timerid);
+                    this.timerid = null;
+                }
+                break;
+            }
+            case "chess":{
+                if (this.playerList[this.timertarget]?.time) {
+                    this.playerList[this.timertarget].time --;
+                    setJListTime(this.timertarget, this.playerList[this.timertarget].time);
+                    if (ifmt.pln === this.timertarget) {
+                        document.getElementById("turn-time").textContent = `Time: ${formatTimer(this.playerList[this.timertarget].time)}`;
+                    }
+                } else {
+                    clearInterval(this.timerid);
+                    this.timerid = null;
+                }
+                break;
+            }
+        }
+    }
     stopTimer() {
         if (this.timerid) {
             clearInterval(this.timerid);
@@ -63,35 +102,8 @@ class Game {
         this.timer = this.rules.turnTime.limit/1000;
         if (this.timer) {
             setJListTime(this.timertarget, this.timer);
-            this.timerid = setInterval(() => {
-                switch (this.rules.turnTime.style) {
-                    case "per turn":{
-                        if (this.timer) {
-                            this.timer --;
-                            setJListTime(this.timertarget, this.timer);
-                            if (ifmt.pln === this.timertarget)
-                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(this.timer)}`;
-                        } else {
-                            clearInterval(this.timerid);
-                            this.timerid = null;
-                        }
-                        break;
-                    }
-                    case "chess":{
-                        if (this.playerList[this.timertarget]?.time) {
-                            this.playerList[this.timertarget].time --;
-                            setJListTime(this.timertarget, this.playerList[this.timertarget].time);
-                            if (ifmt.pln === this.timertarget) {
-                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(this.playerList[this.timertarget].time)}`;
-                            }
-                        } else {
-                            clearInterval(this.timerid);
-                            this.timerid = null;
-                        }
-                        break;
-                    }
-                }
-            }, 1000);
+            const that = this;
+            this.timerid = setInterval(() => {that._ONTICK_timer();}, 1000);
         }
     }
     /**
@@ -258,4 +270,4 @@ class Game {
     }
 }
 
-// exports.Game = Game;
+if (exports)exports.Game = Game;

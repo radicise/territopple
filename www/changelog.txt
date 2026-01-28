@@ -1,3 +1,6 @@
+# Jan 28, 2026 (DEV20260rX0)
+changed how save files are generated with turn time rules
+
 # Jan 26, 2026 (DEV20260pY0)
 added debugging tools
 

@@ -100,6 +100,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     onall("game:resume", () => {
         sock.send(NetData.Game.Resume());
     });
+    onall("sync", (data) => {
+        sock.send(NetData.Sync(state.game, data["t"]));
+    });
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
     // });
@@ -122,6 +125,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 if (state.isHost) {
                     state.game.pauseTimers();
                     emit("game:pause");
+                    emit("sync", {t:"time"});
                 }
                 break;
             }

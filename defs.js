@@ -580,6 +580,29 @@ class Game {
             }
         }
     }
+    /**
+     * @param {string} target
+     * @returns {{}}
+     */
+    generateSync(target) {
+        const payload = {};
+        switch (target) {
+            case "time": {
+                for (let i = 0; i < this.players.length; i ++) {
+                    if (this.players[i]) {
+                        const k = `PLAYER.${i}.time_left`;
+                        if (this.players[i].time_left ?? null !== null) {
+                            payload[k] = this.players[i].time_left;
+                        } else if (this.players[i].res_time ?? null !== null) {
+                            payload[k] = Math.ceil(this.players[i].res_time/1000);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        return payload;
+    }
 }
 /**
  * @param {Record<number,Buffer>} table
@@ -937,6 +960,14 @@ class NetData {
         static TeamCols(colors) {
             return this.Misc("teamcols", {c:colors});
         }
+    }
+    /**
+     * @param {Game} game
+     * @param {string} target
+     * @returns {string}
+     */
+    static Sync(game, target) {
+        return this.Misc("sync", game.generateSync(target));
     }
     static Game = class {
         /**
