@@ -244,27 +244,7 @@ class Game {
      * @param {Buffer} value
      */
     setMeta(key, value) {
-        const globi = key.indexOf("_");
-        if (globi !== -1) {
-            let c = 0;
-            const s = key.slice(0, globi);
-            // console.log(`globi: ${globi}, s: ${s}`);
-            for (let i = 0, l = value.length; i < l; i += 0xffff) {
-                const k = s+(c.toString(36).padStart(2,'0'));
-                // console.log(`key: ${k}`);
-                this.setMeta(k, value.subarray(i, Math.min(i+0xffff,l)));
-            }
-            return;
-        }
-        let k = key.charCodeAt(0)<<24;
-        // console.log(k);
-        k |= key.charCodeAt(1)<<16;
-        // console.log(k);
-        k |= key.charCodeAt(2)<<8;
-        // console.log(k);
-        k |= key.charCodeAt(3);
-        // console.log(k);
-        this.__extmeta[k] = value;
+        setMetatableEntry(this.__extmeta, key, value);
     }
     resumeTimers() {
         this.players.forEach(v => {
@@ -300,10 +280,11 @@ class Game {
             [1,
                 pens.indexOf(this.rules.turnTime.penalty),
                 styles.indexOf(this.rules.turnTime.style),
-                this.rules.turnTime.style==="chess"?this.players.map(v=>nbytes(v?.time_left??0,4)):nbytes(this.rules.turnTime.limit/1000,4)
+                this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
             ]
             :[0])].flat(5));
         this.setMeta("rlz_", rulz);
+        this.setMeta("stpl", Buffer.of(1));
     }
     /**
      * @param {number|string} entid
@@ -600,7 +581,69 @@ class Game {
         }
     }
 }
+/**
+ * @param {Record<number,Buffer>} table
+ * @param {string} key
+ * @param {Buffer} value
+ * @returns {void}
+ */
+function setMetatableEntry(table, key, value) {
+    const globi = key.indexOf("_");
+    if (globi !== -1) {
+        let c = 0;
+        const s = key.slice(0, globi);
+        // console.log(`globi: ${globi}, s: ${s}`);
+        for (let i = 0, l = value.length; i < l; i += 0xffff) {
+            const k = s+(c.toString(36).padStart(4-globi,'0'));
+            // console.log(`key: ${k}`);
+            setMetatableEntry(table, k, value.subarray(i, Math.min(i+0xffff,l)));
+        }
+        return;
+    }
+    let k = key.charCodeAt(0)<<24;
+    // console.log(k);
+    k |= key.charCodeAt(1)<<16;
+    // console.log(k);
+    k |= key.charCodeAt(2)<<8;
+    // console.log(k);
+    k |= key.charCodeAt(3);
+    // console.log(k);
+    table[k] = value;
+}
+/**
+ * @param {Record<number,Buffer>} table
+ * @param {string} key
+ * @returns {Buffer}
+ */
+function getMetatableEntry(table, key) {
+    const globi = key.indexOf("_");
+    if (globi !== -1) {
+        let c = 0;
+        const bufs = [];
+        const s = key.slice(0, globi);
+        // console.log(`globi: ${globi}, s: ${s}`);
+        for (; c < 36; c ++) {
+            const v = getMetatableEntry(table, s+(c.toString(36).padStart(4-globi,'0')));
+            if (!v) {
+                break;
+            }
+            bufs.push(v);
+        }
+        return Buffer.concat(bufs);
+    }
+    let k = key.charCodeAt(0)<<24;
+    // console.log(k);
+    k |= key.charCodeAt(1)<<16;
+    // console.log(k);
+    k |= key.charCodeAt(2)<<8;
+    // console.log(k);
+    k |= key.charCodeAt(3);
+    // console.log(k);
+    return table[k];
+}
 exports.Game = Game;
+exports.setMetatableEntry = setMetatableEntry;
+exports.getMetatableEntry = getMetatableEntry;
 
 /**
  * @typedef HostingSettings

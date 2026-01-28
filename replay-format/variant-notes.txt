@@ -1,0 +1,35 @@
+this file documents the variants of replay files used for special purposes.
+
+NOTE: ALL replay files use the file specified in './replay-fmt.txt', these variants make use of EXTMETA and EXTEVS to include additional information
+
+.topl (dot topple):
+    standard variant, this file is a replay of a game that has been completed (either by win or all players quitting)
+    
+    .topl files (and all derived variants) may OPTIONALLY contain the following EXTMETA table entries:
+        'pn__' (see "./restrictkeys/pn__.txt") - player information
+        'rlz_' (see "./restrictkeys/rlz_.txt") - rules information
+        'col_' (see "./replay-mt-keys.txt") - team color information
+
+.stpl (dot stopple):
+    'suspended' topple, this file is the result of exporting an in-progress game to a file for the purpose of resuming it later
+    
+    .stpl files MUST contain the following EXTMETA table entries:
+        'stpl' - format currently reserved, so meaningless data, but acts as a marker (the generator in this reposity initializes it to an array of length 1 containing 0x01 as the only element)
+        'pn__' (see "./restrictkeys/pn__.txt") - player information, used to reconstruct which physical player is each particular player in the game
+        'rlz_' (see "./restrictkeys/rlz_.txt") - rules information, used to reconstruct rules and the current state that players have within those rules (eg. time remain on turn timers)
+
+.ctpl (see topple):
+    'challenge' topple, this file represents a specific challenging scenario
+    challenge topples are free from normal constraints on rendering (and thus dimensionality), as there
+    is no option for a user to change any dimensions.
+    this also allows challenge topples to use custom graphics without restriction.
+    
+    .ctpl files do not currently have a defined format, the extension is reserved for this purpose
+
+.ttpl (tee topple):
+    'template' topple, this file represents a template for a scenario
+    template topples have some restrictions, namely in regards to rendering, as they must be able to
+    render valid boards with arbitrary dimensions.
+    some use of custom graphics is allowable.
+
+    .ttpl files do not currently have a defined format, the extension is reserved for this purpose

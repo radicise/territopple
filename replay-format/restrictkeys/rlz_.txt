@@ -12,6 +12,7 @@ IF (game.rules HAS turnTime) {
             BYTE[4] .turnTime.limit IN seconds
         }
         CASE "chess" {
+            BYTE[4] original limit IN seconds
             FOR EACH player IN game.players {
                 IF (player IS null) {
                     BYTE[4] 0
