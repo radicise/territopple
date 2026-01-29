@@ -295,7 +295,7 @@ class Game {
      */
     extendEvent(eventid, field, generator, clobber) {
         clobber = clobber??3;
-        const evextd = {name:field.name,condflag:field.condition??null===null,producer:generator};
+        const evextd = {name:field.name,condflag:(field.condition??null)!==null,producer:generator};
         if (typeof field.condition === "number") {
             evextd.flag_byte = field.condition>>3;
             evextd.flag_bit = field.condition&7;
