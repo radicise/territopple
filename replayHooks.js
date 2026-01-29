@@ -221,7 +221,7 @@ function onRecordMetadata(game) {
         buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
     }
     if (Object.keys(game.__extevds).length) {
-        console.log(JSON.stringify(game.__extevds));
+        // console.log(JSON.stringify(game.__extevds));
         game.buffer[0][9] |= 2;
         buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => 
             [
