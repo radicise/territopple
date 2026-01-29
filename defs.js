@@ -308,8 +308,9 @@ class Game {
         }
         if (eventid in this.__extevds) {
             const l = this.__extevds[eventid];
+            // console.log(JSON.stringify(l));
             if (typeof field.condition === "object") {
-                for (let i = 1; i < l.length; i ++) {
+                for (let i = 1; i <= l.length; i ++) {
                     if (l[l.length-i].name === field.condition[0]) {
                         evextd.offset = i-1;
                         break;
