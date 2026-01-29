@@ -1,3 +1,7 @@
+# Jan 29, 2026 (DEV20260sY0)
+moved to replay file v6
+did a lot of backend work for the server, should be much easier to add stuff to replays now
+
 # Jan 28, 2026 (DEV20260rY0)
 fixed a visual bug that caused client turn timers to desync when the game was paused
 
