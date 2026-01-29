@@ -149,9 +149,6 @@ function onGameStarted(game, idstrategy, team_map) {
     }
     game.buffer.push(Buffer.of(...allocGameId(), ...fingerprint));
     game.buffer.push("@META");
-    if (Object.keys(game.__extevds).length) {
-        game.buffer[0][9] |= 2;
-    }
     game.buffer.push(Buffer.of(0xf0, 0x0f));
 }
 
@@ -195,7 +192,8 @@ function onRecordMetadata(game) {
     }
     if (Object.keys(game.__extevds).length) {
         console.log(JSON.stringify(game.__extevds));
-        game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => 
+        game.buffer[0][9] |= 2;
+        buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => 
             [
                 Number(v[0]),
                 v[1].length,v[1].map((iv,i,a) => [
