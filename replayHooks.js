@@ -32,6 +32,17 @@ const fingerprint = defs.fingerprint;
 const FORMAT_VERSION = 6;
 
 /**
+ * @param {number[]} b
+ * @returns {number}
+ */
+function fromBytes(b, _) {
+    let acc = 0n;
+    for (let i = b.length-1; i >= 0; i --) {
+        acc |= BigInt(b[i])<<BigInt(8*(b.length-i-1));
+    }
+    return Number(acc);
+}
+/**
  * @param {number|BigInt} n
  * @param {number} c
  * @returns {number[]}
@@ -163,12 +174,31 @@ function onEvent(game, id, ...a) {
     if (id > 2) {
         game.buffer.push(Buffer.of(id));
     }
+    let extvals = {};
     for (let i = 0, l = game.__extevds[id].length; i < l; i ++) {
         const d = game.__extevds[id][i];
         if (d.condflag) {
-            if ((game.__extflags[d.flag_byte] & (1<<(7-d.flag_bit))) === 0) continue;
+            if (d.check !== null) {
+                const c = game.__extevds[id][id-d.offset-1].name;
+                if (!(c in extvals)) continue;
+                const value = fromBytes(extvals[c]);
+                switch (d.check) {
+                    case 0:if(value!==d.test)continue;break;
+                    case 1:if(value===d.test)continue;break;
+                    case 2:if(value<=d.test)continue;break;
+                    case 3:if(value>=d.test)continue;break;
+                    case 4:if(value<d.test)continue;break;
+                    case 5:if(value>d.test)continue;break;
+                    case 6:if(value%d.test!==0)continue;break;
+                    case 6:if(value%d.test===0)continue;break;
+                }
+            } else if ((game.__extflags[d.flag_byte] & (1<<(7-d.flag_bit))) === 0) {
+                continue;
+            }
         }
-        game.buffer.push(d.producer(game, a));
+        const v = d.producer(game, a);
+        extvals[d.name] = v;
+        game.buffer.push(v);
     }
 }
 
