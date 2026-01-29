@@ -3,6 +3,8 @@ const fs = require("fs");
 const { SocketHandler, DataRecord, GlobalRecord, EmitFunction, OnFunction, ClearFunction, CheckFunction, HandlerInvocationError } = require("../types.js");
 const plugin = require("../extmeta/plugin.js");
 
+const loadedplugs = new Set();
+
 /**
  * @returns {Record<string, SocketHandler>}
  */
@@ -11,7 +13,7 @@ function getHandlers() {
     let record = {};
     fs.readdirSync(__dirname).filter(v => !v.startsWith("handlers")).forEach((v) => {
         const mod = require(`./${v}`);
-        mod.plugins?.forEach(v=>plugin.pluginit(v));
+        mod.plugins?.forEach(v=>loadedplugs.add(v));
         record[v.slice(0, v.indexOf("."))] = mod.handler;
     });
     return record;
@@ -165,6 +167,8 @@ function setGlobals(value, emitf, onf, clearf, tag_inusef) {
     clear = clearf;
     tag_inuse = tag_inusef;
     plugin.setGlobals(value, emitf, onf, clearf);
+    loadedplugs.forEach(v => plugin.pluginit(v));
+    loadedplugs.clear();
 }
 function getGlobals() {
     return globals;
