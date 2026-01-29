@@ -194,7 +194,28 @@ function onRecordMetadata(game) {
         buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
     }
     if (Object.keys(game.__extevds).length) {
-        game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => [Number(v[0]),v[1].length,v[1].map((iv,i,a) => [iv.name.length,...iv.name.split('').map(vj=>vj.charCodeAt(0)),iv.condflag?(iv.check===null?[128|iv.flag_byte,(iv.flag_bit<<5)|iv.size]:[192|(iv.offset<<3)|(iv.check),...nbytes(iv.test,a[i-iv.offset-1].size),iv.size]):(iv.size)])]).flat(4)));
+        console.log(JSON.stringify(game.__extevds));
+        game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => 
+            [
+                Number(v[0]),
+                v[1].length,v[1].map((iv,i,a) => [
+                        iv.name.length,...iv.name.split('').map(vj=>vj.charCodeAt(0)),
+                        iv.condflag?(
+                            iv.check===null?[
+                                128|iv.flag_byte,
+                                (iv.flag_bit<<5)|iv.size
+                            ]:[
+                                192|(iv.offset<<3)|(iv.check),
+                                ...nbytes(iv.test,a[i-iv.offset-1].size),
+                                iv.size
+                            ]
+                        ):(
+                            iv.size
+                        )
+                    ]
+                )
+            ]
+        ).flat(4)));
     }
     game.buffer[game.buffer.indexOf("@META")] = Buffer.concat(buffer);
 }
