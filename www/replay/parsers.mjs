@@ -370,10 +370,10 @@ class Version5 {
             for (let i = 0; i < emc; i ++) {
                 const l = fromBytes(data.consume(2));
                 if (l === 0) {
-                    this.header.metatable[fromBytes(data.consume(4))] = [];
+                    this.header.metatable[String.fromCharCode(...data.consume(4))] = [];
                     continue;
                 }
-                this.header.metatable[fromBytes(data.consume(4))] = l===1?[data.consume()]:[...data.consume(l)];
+                this.header.metatable[String.fromCharCode(...data.consume(4))] = l===1?[data.consume()]:[...data.consume(l)];
             }
         }
         if (this.header.EXTEVS) {
@@ -550,10 +550,10 @@ class Version6 {
             for (let i = 0; i < emc; i ++) {
                 const l = fromBytes(data.consume(2));
                 if (l === 0) {
-                    this.header.metatable[fromBytes(data.consume(4))] = [];
+                    this.header.metatable[String.fromCharCode(...data.consume(4))] = [];
                     continue;
                 }
-                this.header.metatable[fromBytes(data.consume(4))] = l===1?[data.consume()]:[...data.consume(l)];
+                this.header.metatable[String.fromCharCode(...data.consume(4))] = l===1?[data.consume()]:[...data.consume(l)];
             }
         }
         if (this.header.EXTEVS) {

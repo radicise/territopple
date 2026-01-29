@@ -116,7 +116,8 @@ class Replayer {
             {
                 const clist = [];
                 for (let i = 0; i < 10; i ++) {
-                    const ind = 1668246528|(48+i);
+                    // const ind = 1668246528|(48+i);
+                    const ind = `col${i}`;
                     if (this.parser.header.metatable[ind]) {
                         const cols = this.parser.header.metatable[ind];
                         for (let j = 0; j < cols.length; j += 3) {
