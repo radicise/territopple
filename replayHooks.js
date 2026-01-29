@@ -179,7 +179,7 @@ function onEvent(game, id, ...a) {
         const d = game.__extevds[id][i];
         if (d.condflag) {
             if (d.check !== null) {
-                const c = game.__extevds[id][id-d.offset-1].name;
+                const c = game.__extevds[id][i-d.offset-1].name;
                 if (!(c in extvals)) continue;
                 const value = fromBytes(extvals[c]);
                 switch (d.check) {
