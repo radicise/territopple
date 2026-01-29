@@ -80,11 +80,12 @@ export class ConsumableBytes {
  * @prop {boolean?} EXTEVS
  * @prop {number[]} extra_flags
  * @prop {Record<number,number[]>} metatable
- * @prop {Record<number,{condflag:boolean,size:number,flag_byte:number?,flag_bit:number?}[]>?} extev_descriptors
+ * @prop {Record<number,{name:string,condflag:boolean,size:number,flag_byte:number?,flag_bit:number?}[]>?} extev_descriptors
  */
 /**
+ * @typedef {number[][]|Record<string,number[]|null>} _ExtFieldValues
  * @typedef ReplayEvent
- * @type {{type:0,time_delta:number,player:number,ext:number[][]}|{type:1,time_delta:number,player:number,tile:number,ext:number[][]}|{type:2,time_delta:number,ext:number[][]}|{type:number,time_delta:number,ext:number[][]}}
+ * @type {{type:0,time_delta:number,player:number,ext:_ExtFieldValues}|{type:1,time_delta:number,player:number,tile:number,ext:_ExtFieldValues}|{type:2,time_delta:number}|{type:number,time_delta?:number,ext:_ExtFieldValues}}
  */
 
 /**
@@ -384,7 +385,7 @@ class Version5 {
                 this.header.extev_descriptors[id] = [];
                 for (let j = 0; j < fc; j ++) {
                     const b1 = data.consume();
-                    const f = {};
+                    const f = {name:""};
                     if (b1 & 0x80) {
                         f.flag_byte = b1 & 0x7f;
                         f.condflag = true;
@@ -482,7 +483,217 @@ class Version5 {
     }
 }
 
-const PARSERS = {4:Version4,5:Version5};
+class Version6 {
+    /**
+     * @param {ConsumableBytes} data
+     */
+    constructor(data) {
+        /**@type {ConsumableBytes} */
+        this.data = data;
+        /**@type {ReplayHeader} */
+        this.header = {};
+        this.header.version = this.data.consume();
+        this.header.name = [...this.data.consume(8)].map(v => String.fromCharCode(v)).join('');
+        /**@type {number} */
+        const flags = this.data.consume();
+        this.header.TIMESTAMP = (flags>>7) !== 0;
+        this.header.SIZE = (flags>>5)&3;
+        this.header.ORDER = ((flags>>4)&1) !== 0;
+        this.header.CTOPOLOGY = ((flags>>3)&1) !== 0;
+        this.header.EXTMETA = ((flags>>2)&1) !== 0;
+        this.header.EXTEVS = (flags&2) !== 0
+        this.header.start_time = fromBytes(data.consume(8), true);
+        this.header.tile_count = fromBytes(data.consume(4));
+        this.header.player_count = data.consume();
+        if (this.header.ORDER) {
+            this.header.order_strategy = data.consume();
+            if (this.header.order_strategy !== 0) {
+                throw new Error("standard order not supported yet");
+            }
+            // data.consume();
+            this.header.team_table = [];
+            for (let i = 0; i < this.header.player_count; i ++) {
+                this.header.team_table.push(data.consume());
+            }
+            // if (this.header.player_count%2 !== 0) {
+            //     data.consume();
+            // }
+        }
+        this.header.topology_data = {params:[]};
+        if (this.header.CTOPOLOGY) {
+            throw new Error("CTOPOLOGY not supported yet");
+        } else {
+            this.header.topology_id = fromBytes(data.consume(2));
+            if (this.header.topology_id < 4) {
+                this.header.topology_data.params[0] = fromBytes(data.consume(2));
+                this.header.topology_data.params[1] = this.header.tile_count/this.header.topology_data.params[0];
+            } else {
+                throw new Error("invalid topology id");
+            }
+        }
+        this.header.game_sid = fromBytes(data.consume(8), true);
+        this.header.server_id = [...data.consume(16)].map((v,i) => v.toString(16).padStart(2,"0")+((i+1)%4===0)?"-":"").join("");
+        // console.log(this.header);
+        // console.log(data._bytes.slice(data._pos));
+        if (this.header.EXTMETA) {
+            const efc = data.consume();
+            if (efc) {
+                this.header.extra_flags = data.consume(efc);
+                if (typeof this.header.extra_flags === "number") {
+                    this.header.extra_flags = [this.header.extra_flags];
+                } else {
+                    this.header.extra_flags = [...this.header.extra_flags];
+                }
+            }
+            const emc = fromBytes(data.consume(2));
+            this.header.metatable = {};
+            for (let i = 0; i < emc; i ++) {
+                const l = fromBytes(data.consume(2));
+                if (l === 0) {
+                    this.header.metatable[fromBytes(data.consume(4))] = [];
+                    continue;
+                }
+                this.header.metatable[fromBytes(data.consume(4))] = l===1?[data.consume()]:[...data.consume(l)];
+            }
+        }
+        if (this.header.EXTEVS) {
+            this.header.extev_descriptors = {};
+            const eec = data.consume();
+            // console.log(eec);
+            for (let i = 0; i < eec; i ++) {
+                const id = data.consume();
+                const fc = data.consume();
+                // console.log(`${id}, ${fc}`);
+                this.header.extev_descriptors[id] = [];
+                for (let j = 0; j < fc; j ++) {
+                    const f = {name:String.fromCharCode(...data.consume(data.consume()))};
+                    const b1 = data.consume();
+                    // console.log(b1);
+                    if (b1 & 0x80) {
+                        f.condflag = true;
+                        if (b1 & 0x40) {
+                            f.offset = ((b1>>3)&7) + 1;
+                            f.check = b1&7;
+                            // console.log(`${f.offset}, ${f.check}:`);
+                            f.test = fromBytes(data.consume(this.header.extev_descriptors[id][this.header.extev_descriptors[id].length-f.offset].size));
+                            f.size = data.consume();
+                        } else {
+                            f.flag_byte = b1 & 0x7f;
+                            const b2 = data.consume();
+                            f.flag_bit = b2 >> 5;
+                            f.size = b2 & 0x1f;
+                        }
+                    } else {
+                        f.condflag = false;
+                        f.size = b1 & 0x7f;
+                    }
+                    this.header.extev_descriptors[id].push(f);
+                }
+            }
+        }
+        // console.log(this.header.extev_descriptors)
+        let c = 0;
+        while (true) { // find start of events
+            if (c++ >= 4) {
+                console.log(data._bytes);
+                console.log(this.header);
+                throw new Error("RUNAWAY LOOP");
+            }
+            if (cmpLists(data.consume(2), [0xf0,0x0f])) {
+                break;
+            }
+        }
+    }
+    /**
+     * @returns {ReplayEvent}
+     */
+    nextEvent() {
+        if (cmpLists(this.data.peek(4), [0xff,0xf0,0x0f,0xff])) {
+            return null;
+        }
+        /**@type {ReplayEvent} */
+        const ev = {};
+        ev.type = this.data.consume();
+        if (ev.type < 2 && this.header.TIMESTAMP) {
+            ev.time_delta = fromBytes(this.data.consume(2));
+        }
+        switch (ev.type) {
+            case 0: {
+                ev.player = this.data.consume();
+                break;
+            }
+            case 1: {
+                inner: switch (this.header.SIZE) {
+                    case 0: {
+                        const b = this.data.consume();
+                        ev.player = b >> 5;
+                        ev.tile = b & 0x1f;
+                        break inner;
+                    }
+                    case 1: {
+                        const b = fromBytes(this.data.consume(2));
+                        ev.player = b >> 10;
+                        ev.tile = b & 0x3ff;
+                        break inner;
+                    }
+                    case 2: {
+                        ev.player = this.data.consume();
+                        ev.tile = fromBytes(this.data.consume(2));
+                        break inner;
+                    }
+                    case 3: {
+                        const b = fromBytes(this.data.consume(4));
+                        ev.player = b >> 20;
+                        ev.tile = b & 0xfffff;
+                        break inner;
+                    }
+                }
+                break;
+            }
+            case 2: {
+                ev.time_delta = fromBytes(this.data.consume(3));
+                break;
+            }
+        }
+        if (this.header.EXTEVS && ev.type in this.header.extev_descriptors) {
+            ev.ext = {};
+            this.header.extev_descriptors[ev.type].forEach((fd,i,a) => {
+                fd.present = false;
+                if (fd.condflag) {
+                    // console.log(fd.flag_bit);
+                    // console.log(fd.flag_byte);
+                    // console.log(this.header.extra_flags);
+                    // console.log(this.header.extra_flags[fd.flag_byte]>>fd.flag_bit);
+                    if (fd.offset !== undefined) {
+                        if (!a[i-fd.offset].present) return;
+                        const value = fromBytes(ev.ext[a[i-fd.offset].name]);
+                        switch (fd.check) {
+                            case 0:if(value!==fd.test)return;break;
+                            case 1:if(value===fd.test)return;break;
+                            case 2:if(value<=fd.test)return;break;
+                            case 3:if(value>=fd.test)return;break;
+                            case 4:if(value<fd.test)return;break;
+                            case 5:if(value>fd.test)return;break;
+                            case 6:if(value%fd.test!==0)return;break;
+                            case 6:if(value%fd.test===0)return;break;
+                        }
+                    } else if (((this.header.extra_flags[fd.flag_byte]>>fd.flag_bit) & 1) === 0) {
+                        return;
+                    }
+                }
+                fd.present = true;
+                if (fd.size === 0) {
+                    ev.ext[fd.name] = null;
+                } else {
+                    ev.ext[fd.name] = fd.size===1?[this.data.consume()]:[...this.data.consume(fd.size)];
+                }
+            });
+        }
+        return ev;
+    }
+}
+
+const PARSERS = {4:Version4,5:Version5,6:Version6};
 
 
 /**
@@ -552,7 +763,7 @@ export class STPLParser {
                 }
             }
         } else {
-            this.rules.turnTime = null;
+            this.rules.turnTime = {style:"per turn",limit:null,penalty:"skip"};
         }
     }
 }

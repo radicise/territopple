@@ -1,6 +1,7 @@
 // const { handle: playHandle } = require("./play.js");
 const fs = require("fs");
-const { SocketHandler, DataRecord, GlobalRecord, EmitFunction, OnFunction, ClearFunction, CheckFunction, HandlerInvocationError } = require("../types");
+const { SocketHandler, DataRecord, GlobalRecord, EmitFunction, OnFunction, ClearFunction, CheckFunction, HandlerInvocationError } = require("../types.js");
+const plugin = require("../extmeta/plugin.js");
 
 /**
  * @returns {Record<string, SocketHandler>}
@@ -9,7 +10,9 @@ function getHandlers() {
     /**@type {Record<string, SocketHandler>} */
     let record = {};
     fs.readdirSync(__dirname).filter(v => !v.startsWith("handlers")).forEach((v) => {
-        record[v.slice(0, v.indexOf("."))] = require(`./${v}`).handler;
+        const mod = require(`./${v}`);
+        mod.plugins?.forEach(v=>plugin.pluginit(v));
+        record[v.slice(0, v.indexOf("."))] = mod.handler;
     });
     return record;
 }
@@ -85,6 +88,7 @@ function handle(name, sock, args, state, __tag) {
         on(genTag, "?tagcollide", (_, tag) => {
             if (tag === genTag) {
                 emit(genTag, "?fatalerr", {"#gameid":state.game?.ident,"source":"?tagcollide"});
+                // emit(`${genTag}:plug`, "@deinit");
                 clear(genTag);
                 sock.terminate();
             }
@@ -130,7 +134,7 @@ function handle(name, sock, args, state, __tag) {
         sock.removeListener("HOLD", __);
         sock.removeListener("CONT", ___);
         handle(name, sock, args, state, genTag);
-    }, emit:(name, data) => {data=data??{};data["#gameid"]=state.game?.ident??"!pregame";emit(genTag, name, data);}, onall:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident)cb(data, tag);});}, on:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident&&tag!==genTag)cb(data, tag);});}}, args||{}, state);
+    }, emit:(name, data) => {data=data??{};data["#gameid"]=state.game?.ident??"!pregame";emit(genTag, name, data);}, onall:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident)cb(data, tag);});}, on:(name, cb) => {on(genTag, name, (data, tag) => {if (data["#gameid"]===state.game.ident&&tag!==genTag)cb(data, tag);});}, activateplug:(plug)=>{plugin.activate(plug, state);}, invokeplug:(plug, target)=>{plugin.invoke(plug, target, state);}}, args||{}, state);
     if (m.invokeError) {
         throw new HandlerInvocationError(m.invokeError);
     }
@@ -140,6 +144,9 @@ function handle(name, sock, args, state, __tag) {
     if (messageL) sock.on("_message", (...a) => {if(!HOLDING)messageL(...a);});
     if (errorL) sock.on("_error", (...a) => {if(!HOLDING)errorL(...a);else ebuf.push(a);});
     if (closeL) sock.on("_close", (...a) => {if(!HOLDING)closeL(...a);else cbuf.push(a);});
+    // if (!(messageL || errorL || closeL)) {
+    //     emit(`${genTag}:plug`, "@deinit");
+    // }
     return genTag;
 }
 
@@ -157,6 +164,7 @@ function setGlobals(value, emitf, onf, clearf, tag_inusef) {
     on = onf;
     clear = clearf;
     tag_inuse = tag_inusef;
+    plugin.setGlobals(value, emitf, onf, clearf);
 }
 function getGlobals() {
     return globals;

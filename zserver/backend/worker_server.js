@@ -158,6 +158,7 @@ on("main", "?fatalerr", (data) => {
 function terminateGame(id) {
     // console.log(`${new Error().stack}`);
     if (!(id in games)) return;
+    emit("main", "@deactivate", {"#gameid":id});
     games[id].sendAll(NetData.Game.Close());
     games[id].kill();
     COMPLEXITY -= games[id].complexity;

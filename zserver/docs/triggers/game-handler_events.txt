@@ -47,6 +47,8 @@ sync: (t [target]: string)
 ?tagcollide: () // used to notify a handler that there has been a collision with its generated tag
 ?fatalerr: (source [triggering event name]: string) // used to signal that a game has had a fatal error and must be terminated
 
+@deactivate: () // used to signal that a certain game is being released, and child listeners should deinitialize themselves
+
 HANDLER ARGS:
     ~~error (code: number, data: string)~~
     error (data: string, redirect?: string)

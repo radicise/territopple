@@ -7,6 +7,7 @@ exports.onRecordReplay = onRecordReplay;
 exports.onPlayerRemoved = onPlayerRemoved;
 exports.onMove = onMove;
 exports.onRecordMetadata = onRecordMetadata;
+exports.onEvent = onEvent;
 
 if (!fs.existsSync("gameid.bin")) {
     fs.writeFileSync("gameid.bin", Buffer.alloc(8, 0));
@@ -28,7 +29,7 @@ const defs = require("./defs.js");
 const topology = defs.topology;
 const fingerprint = defs.fingerprint;
 
-const FORMAT_VERSION = 5;
+const FORMAT_VERSION = 6;
 
 /**
  * @param {number|BigInt} n
@@ -150,9 +151,28 @@ function onGameStarted(game, idstrategy, team_map) {
     game.buffer.push("@META");
     if (Object.keys(game.__extevds).length) {
         game.buffer[0][9] |= 2;
-        game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => [Number(v[0]),v[1].length,v[1].map(iv => iv.condflag?[128|iv.flag_byte,(iv.flag_bit<<5)|iv.size]:(iv.size))]).flat(3)));
     }
     game.buffer.push(Buffer.of(0xf0, 0x0f));
+}
+
+/**
+ * @param {defs.Game} game
+ * @param {number} id
+ * @param {...any} a
+ */
+function onEvent(game, id, ...a) {
+    // event extensions not present
+    if (!(id in game.__extevds)) return;
+    if (id > 2) {
+        game.buffer.push(Buffer.of(id));
+    }
+    for (let i = 0, l = game.__extevds[id].length; i < l; i ++) {
+        const d = game.__extevds[id][i];
+        if (d.condflag) {
+            if ((game.__extflags[d.flag_byte] & (1<<(7-d.flag_bit))) === 0) continue;
+        }
+        game.buffer.push(d.producer(game, a));
+    }
 }
 
 /**
@@ -172,6 +192,9 @@ function onRecordMetadata(game) {
             game.__extmeta[1668246576] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
         }
         buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
+    }
+    if (Object.keys(game.__extevds).length) {
+        game.buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => [Number(v[0]),v[1].length,v[1].map((iv,i,a) => [iv.name.length,...iv.name.split('').map(vj=>vj.charCodeAt(0)),iv.condflag?(iv.check===null?[128|iv.flag_byte,(iv.flag_bit<<5)|iv.size]:[192|(iv.offset<<3)|(iv.check),...nbytes(iv.test,a[i-iv.offset-1].size),iv.size]):(iv.size)])]).flat(4)));
     }
     game.buffer[game.buffer.indexOf("@META")] = Buffer.concat(buffer);
 }
@@ -232,6 +255,7 @@ function onPlayerRemoved(game, playerNum) {
 		game.buffer.push(Buffer.of(0));
 	}
 	game.buffer.push(Buffer.of(playerNum));
+    onEvent(game, 0, playerNum);
 }
 /**
  * @summary records a player move
@@ -279,4 +303,5 @@ function onMove(game, tile, id) {
     }
     game.buffer.push(md);
     // game.buffer.push(Buffer.of(row&0xff, col&0xff));
+    onEvent(game, 1, tile, id);
 }

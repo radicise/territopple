@@ -2,8 +2,10 @@ const { NetPayload, NetData, Random, settings } = require("../../defs.js");
 const { onRecordReplay, onPlayerRemoved } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
+const plugins = ["stpl"];
+
 /**@type {SocketHandler} */
-const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
+const handler = (sock, globals, {change, emit, onall, on, activateplug, invokeplug}, args, state) => {
     let messageL;
     let closeL;
     let errorL;
@@ -144,6 +146,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     }
                     state.game.stopTimers();
                     state.game.addExportMeta();
+                    activateplug("stpl");
+                    invokeplug("stpl", "suspend");
                     onRecordReplay(state.game, {suppress_write:true});
                     state.game.__ended = state.game.buffer.length;
                     sock.send(NetData.Bin.Export(state.game));
@@ -187,3 +191,4 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
 };
 
 exports.handler = handler;
+exports.plugins = plugins;

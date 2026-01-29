@@ -222,7 +222,7 @@ class Game {
         this.__extflags = [];
         /**@type {Record<number,Buffer>} */
         this.__extmeta = {};
-        /**@type {Record<number,{condflag:boolean,flag_byte:number?,flag_bit:number?,size:number,producer:()=>Buffer}[]} */
+        /**@type {Record<number,{name:string,condflag:boolean,flag_byte:number?,flag_bit:number?,offset:number?,test:number?,check:number?,size:number,producer:(game:Game,a:any[])=>Buffer}[]} */
         this.__extevds = {};
         this.stdmeta = {
             colors: null
@@ -285,6 +285,59 @@ class Game {
             :[0])].flat(5));
         this.setMeta("rlz_", rulz);
         this.setMeta("stpl", Buffer.of(1));
+    }
+    /**
+     * extends an event
+     * @param {number} eventid event id to extend
+     * @param {{condition?:number|[string,string,number],size:number,name:string}} field field spec
+     * @param {(game: Game, a: any[])=>Buffer} generator function to generate field value
+     * @param {0|1|2|3} clobber 0 is insert both, 1 is overwrite, 2 is fail silent, 3 is fail loud
+     */
+    extendEvent(eventid, field, generator, clobber) {
+        clobber = clobber??3;
+        const evextd = {name:field.name,condflag:field.condition??null===null,producer:generator};
+        if (typeof field.condition === "number") {
+            evextd.flag_byte = field.condition>>3;
+            evextd.flag_bit = field.condition&7;
+            evextd.offset = null;
+            evextd.test = null;
+            evextd.check = null;
+        } else {
+            evextd.flag_byte = null;
+            evextd.flag_bit = null;
+        }
+        if (eventid in this.__extevds) {
+            const l = this.__extevds[eventid];
+            if (typeof field.condition === "object") {
+                for (let i = 1; i < l.length; i ++) {
+                    if (l[l.length-i].name === field.condition[0]) {
+                        evextd.offset = i-1;
+                        break;
+                    }
+                }
+                if (evextd.offset === undefined) {
+                    throw new Error("cannot find target extension name");
+                }
+                evextd.check = ['=','!=','>','<','>=','<=','%0','!%0'].indexOf(field.condition[1]);
+                evextd.test = field.condition[2];
+            }
+            const i = l.findIndex(v => v.name === field.name);
+            if (i >= 0) {
+                if (clobber === 0) {
+                    l.push(evextd);
+                } else if (clobber === 1) {
+                    l[i] = evextd;
+                } else if (clobber === 2) {
+                    return;
+                } else if (clobber === 3) {
+                    throw new Error("EXTEVD CLOBBERED");
+                }
+            } else {
+                l.push(evextd);
+            }
+        } else {
+            this.__extevds[eventid] = [evextd];
+        }
     }
     /**
      * @param {number|string} entid
