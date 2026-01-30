@@ -216,9 +216,9 @@ conn.addEventListener("open", async function(event) {
         stplmodal.hidden = false;
         /**@type {HTMLInputElement} */
         const fi = stplmodal.querySelector("input[type=\"file\"]");
-        stplmodal.querySelector("input[type=\"button\"]").onclick = () => {
+        stplmodal.querySelector("input[type=\"button\"]").onclick = async () => {
             stplmodal.hidden = true;
-            conn.send(fi.files[0]);
+            conn.send(await fi.files[0].bytes());
         };
     }
     // readyButton.addEventListener("click", () => {
