@@ -272,6 +272,7 @@ process.once("message", (id) => {
                 }
                 CONNECTION_COUNT += capacity;
                 process.send({hid:req.hid, v:true});
+                console.log("workerhandoff");
                 wss.handleUpgrade(req, socket, [], (sock) => {
                     startPings(sock);
                     http.request(`http://localhost:${settings.INTERNALPORT}/room-id`, {method:"GET"}, (res) => {
@@ -285,6 +286,7 @@ process.once("message", (id) => {
                                 }
                                 gameid = data;
                                 try {
+                                    console.log("handling");
                                     socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc}, state);
                                 } catch (E) {
                                     if (E instanceof HandlerInvocationError) {
