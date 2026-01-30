@@ -57,7 +57,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 }
                 const stplmeta = new parser.STPLParser(p);
                 try {
-                    state.game = new Game(args["id"], head.player_count, {topology: topology.m.makeTopology(topology.m.formatDimensions([head.topology_id, ...head.topology_data.params])), public: args["public"], observable: args["observable"]});
+                    state.game = new Game(args["id"], head.player_count, {topology: topology.m.makeTopology(topology.m.formatDimensions([head.topology_id, ...head.topology_data.params])), public: false, observable: args["spectators"]});
                 } catch (E) {
                     if (E instanceof PerfError) {
                         change("error", {data:"Not Cute",redirect:"/errors/no-create"});

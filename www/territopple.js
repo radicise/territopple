@@ -84,6 +84,7 @@ let cols = parseInt(queries.get("w") ?? "6") || 6;
 let dims = queries.get("d");
 let players = parseInt(queries.get("p") ?? "2") || 2;
 let port = parseInt(queries.get("port") ?? "noport");
+let res = queries.get("res");
 if (isNaN(port)) {
 	// port = 8300;
     port = null;
@@ -124,8 +125,12 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
     serv = `wss://${host}/?t=3&g=${gameid}&i=${pn}&k=${rkey}`;
 } else {
     if (t > 0 && t < 3) {
-        const allow_spectators = queries.get("s") ?? "1";
-        serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
+        if (res==="1") {
+            serv = `wss://${host}/?t=1&res=1`;
+        } else {
+            const allow_spectators = queries.get("s") ?? "1";
+            serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
+        }
     } else {
         gameid = queries.get("g") ?? "g";
         serv = `wss://${host}/?t=${t}&g=${gameid}`;
@@ -206,6 +211,16 @@ const spectating = {};
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
 conn.addEventListener("open", async function(event) {
+    if (res==="1") {
+        const stplmodal = document.getElementById("stpl-modal");
+        stplmodal.hidden = false;
+        /**@type {HTMLInputElement} */
+        const fi = stplmodal.querySelector("input[type=\"file\"]");
+        stplmodal.querySelector("input[type=\"button\"]").onclick = () => {
+            stplmodal.hidden = true;
+            conn.send(fi.files[0]);
+        };
+    }
     // readyButton.addEventListener("click", () => {
     //     if (game.started) return;
     //     amready = !amready;
