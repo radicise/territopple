@@ -126,7 +126,7 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
 } else {
     if (t > 0 && t < 3) {
         if (res==="1") {
-            serv = `wss://${host}/?t=1&res=1`;
+            serv = `wss://${host}/?t=1&res=1&p=1`;
         } else {
             const allow_spectators = queries.get("s") ?? "1";
             serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
