@@ -354,6 +354,7 @@ use event id 3 for any purpose
 FIELD_DESCRIPTOR:
 BYTE - NLEN
 BYTE[NLEN] - field name
+NOTE: replay files MUST NOT be generated in such a way that two fields within the same event have the same name
 BIT - conditional flag (CFLAG)
 IF (NOT CFLAG):
     BIT[7] - field size

@@ -291,7 +291,7 @@ class Game {
      * @param {number} eventid event id to extend
      * @param {{condition?:number|[string,string,number],size:number,name:string}} field field spec
      * @param {(game: Game, a: any[])=>Buffer} generator function to generate field value
-     * @param {0|1|2|3} clobber 0 is insert both, 1 is overwrite, 2 is fail silent, 3 is fail loud
+     * @param {1|2|3} clobber 1 is overwrite, 2 is fail silent, 3 is fail loud, defaults to 3
      */
     extendEvent(eventid, field, generator, clobber) {
         clobber = clobber??3;
@@ -325,7 +325,8 @@ class Game {
             const i = l.findIndex(v => v.name === field.name);
             if (i >= 0) {
                 if (clobber === 0) {
-                    l.push(evextd);
+                    // l.push(evextd);
+                    throw new Error("clobber value 0 is not valid")
                 } else if (clobber === 1) {
                     l[i] = evextd;
                 } else if (clobber === 2) {
@@ -433,9 +434,10 @@ class Game {
     /**
      * @param {number} tile
      * @param {number} player
+     * @param {boolean} _suppress_replay_events
      * @returns {{win:boolean,turn:number}}
      */
-    move(tile, player) {
+    move(tile, player, _suppress_replay_events) {
         this.firstTurn = false;
         const adds = [tile];
         const p = this.players[player];
@@ -447,16 +449,16 @@ class Game {
         // const trow = (tile-tcol)/w;
         // onMove(this, trow, tcol, player);
         // console.log("move recorded");
-        onMove(this, tile, player);
+        if (!_suppress_replay_events)onMove(this, tile, player);
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
                     // console.log("team eliminated");
-                    this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
+                    this.players.forEach((v, i) => {if(v&&v.team===tb[t]){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
                     if (tb[t] === 0) {
-                        this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){onPlayerRemoved(this, i);v.alive=false;}});
+                        this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
                     }
                 }
                 this.state.owned[p.team] ++;
@@ -1541,6 +1543,18 @@ function assembleByte(bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0) {
     return [bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0].reduce((pv, cv, ci) => pv | ((cv?1:0)<<(7-ci)),0);
 }
 
+/**
+ * @param {number[]} b
+ * @returns {number}
+ */
+function fromBytes(b, _) {
+    let acc = 0n;
+    for (let i = b.length-1; i >= 0; i --) {
+        acc |= BigInt(b[i])<<BigInt(8*(b.length-i-1));
+    }
+    return Number(acc);
+}
+
 exports.__dname = __dname;
 exports.extend = extend;
 exports.assembleByte = assembleByte;
@@ -1553,6 +1567,7 @@ exports.clear = clear;
 exports.tag_inuse = tag_inuse;
 exports.profile_events = profile_events;
 exports.nbytes = nbytes;
+exports.fromBytes = fromBytes;
 exports.validateJSONScheme = validateJSONScheme;
 this.JSONScheme = undefined;
 exports.JSONScheme = this.JSONScheme;

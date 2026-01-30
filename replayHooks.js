@@ -29,7 +29,11 @@ const defs = require("./defs.js");
 const topology = defs.topology;
 const fingerprint = defs.fingerprint;
 
+const COMPAT_VERSIONS = new Set(6);
+exports.COMPAT_VERSIONS = COMPAT_VERSIONS;
+
 const FORMAT_VERSION = 6;
+exports.FORMAT_VERSION = FORMAT_VERSION;
 
 /**
  * @param {number[]} b
