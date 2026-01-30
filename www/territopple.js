@@ -217,7 +217,7 @@ conn.addEventListener("open", async function(event) {
         /**@type {HTMLInputElement} */
         const fi = stplmodal.querySelector("input[type=\"file\"]");
         stplmodal.querySelector("input[type=\"button\"]").onclick = async () => {
-            console.log(fi.files);
+            console.log(fi.files[0]);
             stplmodal.hidden = true;
             conn.send(await fi.files[0].bytes());
         };
