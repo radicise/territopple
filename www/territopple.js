@@ -219,7 +219,7 @@ conn.addEventListener("open", async function(event) {
         stplmodal.querySelector("input[type=\"button\"]").onclick = async () => {
             console.log(fi.files[0]);
             stplmodal.hidden = true;
-            conn.send(await fi.files[0].bytes());
+            conn.send(await fi.files[0].arrayBuffer());
         };
     }
     // readyButton.addEventListener("click", () => {
