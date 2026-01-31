@@ -456,7 +456,7 @@ class Game {
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
-                    console.log("team eliminated");
+                    // console.log("team eliminated");
                     this.players.forEach((v, i) => {if(v&&v.team===tb[t]){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
                     if (tb[t] === 0) {
                         this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
@@ -508,8 +508,8 @@ class Game {
                 return {win:true,turn:-1};
             }
             // if (this.players[i] !== null && (this.state.owned[0]||this.state.owned[this.players[i].team])) {
-            console.log(`I: ${i}`);
-            console.log(this.players[i]);
+            // console.log(`I: ${i}`);
+            // console.log(this.players[i]);
             if (this.players[i] !== null && this.players[i].alive) {
                 this.state.turn = i;
                 break;

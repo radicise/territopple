@@ -87,11 +87,13 @@ function handle(name, sock, args, state, __tag) {
             emit(genTag, "?fatalerr", {"#gameid":state.game?.ident,"source":"?tagcollide"});
             sock.terminate();
         }
+        sock.once("close", () => {clear(genTag);});
+        sock.once("error", () => {clear(genTag);});
         on(genTag, "?tagcollide", (_, tag) => {
             if (tag === genTag) {
+                clear(genTag);
                 emit(genTag, "?fatalerr", {"#gameid":state.game?.ident,"source":"?tagcollide"});
                 // emit(`${genTag}:plug`, "@deinit");
-                clear(genTag);
                 sock.terminate();
             }
         });

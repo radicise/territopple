@@ -336,6 +336,16 @@ http.createServer((req, res) => {
         res.end(formatServerList((Number(url.searchParams.get("page")) || 1) - 1, filter));
         return;
     }
+    if (url.pathname === "/isres") {
+        const id = url.searchParams.get("id");
+        if (id === null || !(id in gameInfo) || gameInfo[id] === null) {
+            res.writeHead(404).end();
+            return;
+        }
+        res.writeHead(200);
+        res.end(gameInfo[id].worker.toString());
+        return;
+    }
     if (url.pathname === "/bots") {
         res.writeHead(200, {"content-type":"application/json"});
         res.end(JSON.stringify(TTBot.index));

@@ -221,14 +221,30 @@
             </form>
         </div>
         <div class="action-box">
-            <form action="territopple" method="get">
+            <form action="territopple" method="get" id="join-form">
                 <h2 class="action-title">Join a Room</h2>
                 <input type="hidden" name="port" value="80">
                 <input type="hidden" name="t" value="0">
+                <input type="hidden" name="res" value="0" id="private-join-res">
                 <div class="form-row">
                     <label for="private-join-g">Room ID:</label>
                     <input name="g" id="private-join-g">
-                    <input type="submit" value="Join">
+                    <input type="button" value="Join" onclick="preJoin();">
+                    <script>
+                        function preJoin() {
+                            fetch(`https://${document.location.hostname}/isres&id=${document.getElementById("private-join-g").value}`).then(v => {
+                                if (v.ok) {
+                                    v.text().then(j => {
+                                        const res = document.getElementById("private-join-res");
+                                        if (j === "1") {
+                                            res.value = "1";
+                                        }
+                                        document.getElementById("join-form").submit();
+                                    });
+                                }
+                            });
+                        }
+                    </script>
                 </div>
             </form>
         </div>
