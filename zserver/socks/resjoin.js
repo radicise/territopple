@@ -28,6 +28,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     }
     state.game = game;
     sock.send(NetData.ResJoin.Available(game));
+    game.stats.connected ++;
+    game.stats.playing ++;
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
@@ -49,8 +51,6 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             if (args.isHost) {
                 game.state.hostNum = n;
             }
-            game.stats.connected ++;
-            game.stats.playing ++;
             sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
             sock.send(NetData.Game.Roomid(state.game.ident));
             sock.send(NetData.Game.JList(game));
@@ -60,8 +60,23 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             });
         }
     }
-    closeL = () => {emit("?checkalive");};
-    errorL = () => {emit("?checkalive");};
+    let mutexflag = true;
+    closeL = () => {
+        if (mutexflag) {
+            game.stats.connected --;
+            game.stats.playing --;
+            emit("?checkalive");
+        }
+        mutexflag = false;
+    };
+    errorL = () => {
+        if (mutexflag) {
+            game.stats.connected --;
+            game.stats.playing --;
+            emit("?checkalive");
+        }
+        mutexflag = false;
+    };
     })();
     return {messageL, closeL, errorL};
 };
