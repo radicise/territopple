@@ -336,7 +336,7 @@ http.createServer((req, res) => {
         res.end(formatServerList((Number(url.searchParams.get("page")) || 1) - 1, filter));
         return;
     }
-    if (url.pathname === "/isres") {
+    if (url.pathname === "/d/isres") {
         const id = url.searchParams.get("id");
         console.log(`ISRES: ${id}`);
         if (id === null || !(id in gameInfo) || gameInfo[id] === null) {
