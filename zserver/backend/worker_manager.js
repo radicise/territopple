@@ -167,7 +167,7 @@ server.on("upgrade", (req, socket) => {
             connErr(req, socket, {data:"Bad Player Count",redirect:"/play-online",store:"Bad Player Count"});
             return;
         }
-        console.log("handoff");
+        // console.log("handoff");
         handlePass(capacity, req, socket);
         return;
     }
