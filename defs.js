@@ -455,6 +455,7 @@ class Game {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
+                this.state.owned[p.team] ++;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
                     console.log({owned:this.state.owned,bb,tb,t});
                     console.log(this.players.map((v,i)=>v?{t:v.team,n:i,a:v.alive}:{}))
@@ -464,7 +465,6 @@ class Game {
                         this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
                     }
                 }
-                this.state.owned[p.team] ++;
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
                     console.log("win returned");
