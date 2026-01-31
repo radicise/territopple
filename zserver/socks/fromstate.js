@@ -143,7 +143,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 // sock.send(NetData.Game.Roomid(state.game.ident));
                 // sock.send(NetData.Bin.Board(game), () => {
                 // });
-                change("resjoin", {isHost:true,res:playerdata});
+                change("resjoin", {isHost:true,res:playerdata,id:args["id"],acc:args["acc"]});
             }
         } else {
             if (!state_processed) {
