@@ -49,6 +49,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             if (args.isHost) {
                 game.state.hostNum = n;
             }
+            game.stats.connected ++;
+            game.stats.playing ++;
             sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
             sock.send(NetData.Game.Roomid(state.game.ident));
             sock.send(NetData.Game.JList(game));

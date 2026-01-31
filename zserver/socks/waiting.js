@@ -143,6 +143,12 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 if (state.isHost) {
                     if (!args.res) {
                         onGameStarted(state.game, 0, state.game.players.slice(1).map(v => v?v.team:0));
+                    } else {
+                        for (let i = 1; i < state.game.players.length; i ++) {
+                            if (!state.game.players[i]?.conn) {
+                                state.game.players[i] = null;
+                            }
+                        }
                     }
                     state.game.start();
                     if (args.res) {
