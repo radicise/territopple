@@ -232,7 +232,7 @@
                     <input type="button" value="Join" onclick="preJoin();">
                     <script>
                         function preJoin() {
-                            fetch(`https://${document.location.hostname}/d/isres&id=${document.getElementById("private-join-g").value}`).then(v => {
+                            fetch(`https://${document.location.hostname}/d/isres?id=${document.getElementById("private-join-g").value}`).then(v => {
                                 if (v.ok) {
                                     v.text().then(j => {
                                         const res = document.getElementById("private-join-res");
