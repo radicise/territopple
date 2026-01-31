@@ -30,7 +30,6 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
     });
     let playerdata;
     messageL = (_data, isbinary) => {
-        console.log(_data);
         const enotstpl = () => change("error", {data:"not a suspended topple",redirect:"/play-online",store:"not a suspended topple"});
         if (isbinary) {
             if (state_processed) return;
