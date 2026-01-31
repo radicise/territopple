@@ -1,3 +1,7 @@
+# Jan 30, 2026 (DEV20260tY0)
+implemented resuming
+fixed an obscure bug that caused players to be eliminated inappropriately
+
 # Jan 29, 2026 (DEV20260sY0)
 moved to replay file v6
 did a lot of backend work for the server, should be much easier to add stuff to replays now
