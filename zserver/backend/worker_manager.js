@@ -4,10 +4,10 @@ const path = require("path");
 const ws = require("ws");
 const child_process = require("child_process");
 const socks = require("../socks/handlers.js");
-const { settings, validateJSONScheme, JSONScheme, InvariantViolationError, emit, on, clear } = require("../../defs.js");
+const { settings, validateJSONScheme, JSONScheme, InvariantViolationError, emit, on, clear, tag_inuse } = require("../../defs.js");
 const { PerformanceError } = require("./errors.js");
 
-socks.setGlobals({}, emit, on, clear);
+socks.setGlobals({}, emit, on, clear, tag_inuse);
 
 /**
  * @typedef {{proc:child_process.ChildProcess,factor_update_notif:[Promise<void>, Function]|null,load_factors:{connections:number,complexity:number,turnaround:number}}} WorkerServer
