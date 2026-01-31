@@ -268,6 +268,7 @@ function onRecordReplay(game, options) {
     options = options ?? {};
     options.filepath = path.join(__dirname, options.filepath ?? `replays/${game.ident}.topl`);
     options.append = options.append ?? false;
+    console.log(game.buffer);
     onRecordMetadata(game);
     game.buffer.push(Buffer.of(0xff, 0xf0, 0x0f, 0xff));
     const data = Buffer.concat(game.buffer);
