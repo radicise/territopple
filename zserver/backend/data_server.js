@@ -353,6 +353,7 @@ http.createServer((req, res) => {
         res.end(JSON.stringify(TTBot.index));
         return;
     }
+    console.log(url.pathname);
     res.writeHead(404).end("bad path");
 }).listen(settings.DATAPORT);
 
