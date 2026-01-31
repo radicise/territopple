@@ -44,6 +44,9 @@ GAME TO CLIENT:
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
         pause (t [time left]: number)
         resume ()
+    resjoin:
+        select: ()
+        available: (p [player data]: {n [pnum]:number, a [accid]: string|null, t [team]: number}[])
     ping: (kind: string | null)
     sync: (...) see "./detail/sync.txt"
 
@@ -81,4 +84,6 @@ CLIENT TO GAME:
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
         pause ()
         resume ()
+    resjoin:
+        select: (n [pnum]: number)
     ping: (n [player num]: number, kind: string | null)

@@ -142,7 +142,7 @@ on("main", "game:add", (data) => {
     // games[data["id"]].sort_key = GAME_COUNTER;
     // GAME_COUNTER ++;
     COMPLEXITY += game.complexity;
-    http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating}));
+    http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating,res:game.res}));
 });
 on("main", "?fatalerr", (data) => {
     const now = new Date();
@@ -324,6 +324,10 @@ process.once("message", (id) => {
                         if (connType === 5) {
                             if (LOGGING) log(`botjoin - ${gid} - ${url.searchParams.get('n')}`);
                             socks.handle("botjoin", sock, {"id":gid, "n":url.searchParams.get("n"), "a":decodeURI(url.searchParams.get("a")??""), "key":url.searchParams.get("k")}, state);
+                            return;
+                        }
+                        if (url.searchParams.get("res")==="1") {
+                            socks.handle("resjoin", sock, {"id":gid, "acc":acc}, state);
                             return;
                         }
                         socks.handle("join", sock, {"id":gid, "asSpectator":connType===4, "acc":acc}, state);

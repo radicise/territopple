@@ -133,7 +133,7 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
         }
     } else {
         gameid = queries.get("g") ?? "g";
-        serv = `wss://${host}/?t=${t}&g=${gameid}`;
+        serv = `wss://${host}/?t=${t}&g=${gameid}&res=${res??"0"}`;
     }
 }
 
@@ -212,20 +212,25 @@ const spectating = {};
 // let amready = false;
 conn.addEventListener("open", async function(event) {
     if (res==="1") {
-        const stplmodal = document.getElementById("stpl-modal");
-        stplmodal.hidden = false;
-        /**@type {HTMLInputElement} */
-        const fi = stplmodal.querySelector("input[type=\"file\"]");
-        stplmodal.querySelector("input[type=\"button\"]").onclick = async () => {
-            console.log(fi.files[0]);
-            stplmodal.hidden = true;
-            const data = new ArrayBuffer(fi.files[0].size+2);
-            const view = new Uint8Array(data);
-            view[0] = 0x55;
-            view[1] = 0x99;
-            view.set(new Uint8Array(await fi.files[0].arrayBuffer()), 2);
-            conn.send(view);
-        };
+        if (t > 0 && t < 3) {
+            const stplmodal = document.getElementById("stpl-modal");
+            stplmodal.hidden = false;
+            /**@type {HTMLInputElement} */
+            const fi = stplmodal.querySelector("input[type=\"file\"]");
+            stplmodal.querySelector("input[type=\"button\"]").onclick = async () => {
+                console.log(fi.files[0]);
+                stplmodal.hidden = true;
+                const data = new ArrayBuffer(fi.files[0].size+2);
+                const view = new Uint8Array(data);
+                view[0] = 0x55;
+                view[1] = 0x99;
+                view.set(new Uint8Array(await fi.files[0].arrayBuffer()), 2);
+                conn.send(view);
+            };
+        } else {
+            const selmodal = document.getElementById("resjsel-modal");
+            selmodal.hidden = false;
+        }
     }
     // readyButton.addEventListener("click", () => {
     //     if (game.started) return;
@@ -433,6 +438,24 @@ conn.addEventListener("open", async function(event) {
             //     //
             //     break;
             // }
+            case "resjoin:select": {
+                document.getElementById("resjsel-modal").hidden = true;
+                break;
+            }
+            case "resjoin:available": {
+                /**@type {{n:number,accid:string?,t:number}[]} */
+                const p = data.payload["p"];
+                const sell = document.getElementById("resjsel-modal").querySelector("div").querySelector("div");
+                p.forEach(v => {
+                    const s = document.createElement("span");
+                    s.textContent = `Player ${v.n} (${v.accid??"Guest"}) Team ${v.t}`;
+                    sell.appendChild(s);
+                    const b = document.createElement("input");
+                    b.type = "button";
+                    b.onclick = () => {conn.send(`{\"type\":\"resjoin:select\",\"payload\":{\"n\":${v.n}}}`);sell.replaceChildren();};
+                });
+                break;
+            }
             case "game:pause": {
                 updScr("status", "Game paused");
                 ifmt.pause_turn = ifmt.turn;

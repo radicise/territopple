@@ -1026,6 +1026,23 @@ class NetData {
     static Sync(game, target) {
         return this.Misc("sync", game.generateSync(target));
     }
+    static ResJoin = class {
+        /**
+         * @param {string} type
+         * @param {Record<string,any>?} data
+         * @returns {string}
+         */
+        static Misc(type, data) {
+            return NetData.Misc(`resjoin:${type}`, data);
+        }
+        /**
+         * @param {Game} game
+         * @returns {string}
+         */
+        static Available(game) {
+            return this.Misc("available", {p:game.players.map((v,i)=>((!v)||v.is_bot||v.conn)?null:{n:i,a:v.accId,t:v.team}).filter(v=>v!==null)});
+        }
+    }
     static Game = class {
         /**
          * @param {string} type
