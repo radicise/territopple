@@ -142,7 +142,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
                 sock.send(NetData.Game.Roomid(state.game.ident));
                 sock.send(NetData.Bin.Board(game), () => {
-                    change("waiting", {isHost:true});
+                    change("waiting", {isHost:true,res:playerdata});
                 });
             }
         } else {

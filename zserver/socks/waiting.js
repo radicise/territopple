@@ -141,8 +141,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 break;
             case "waiting:start":
                 if (state.isHost) {
-                    onGameStarted(state.game, 0, state.game.players.slice(1).map(v => v?v.team:0));
+                    if (!args.res) {
+                        onGameStarted(state.game, 0, state.game.players.slice(1).map(v => v?v.team:0));
+                    }
                     state.game.start();
+                    if (args.res) {
+                        state.game.setMeta("pn__", args.res);
+                    }
                     emit("?phase");
                     emit("waiting:start");
                 }
