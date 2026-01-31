@@ -118,7 +118,7 @@
                 <input type="button" value="ok" onclick="document.getElementById('error-popup').hidden=true;">
             </div>
         </div>
-        <a href="/">Home</a><input type="button" value="Resume Game" onclick="location.href='/territopple?t=1&res=1'">
+        <a href="/">Home</a>
         <div class="action-box">
             <form action="territopple" method="get" id="create-form">
                 <input type="hidden" name="port" value="80">
@@ -219,6 +219,10 @@
                     <input type="button" value="Create a New Room" onclick="preSubmit();">
                 </div>
             </form>
+        </div>
+        <div class="action-box">
+            <h2 class="action-title">Resume a Game</h2>
+            <input type="button" value="Resume Game" onclick="location.href='/territopple?t=1&res=1'">
         </div>
         <div class="action-box">
             <form action="territopple" method="get" id="join-form">
