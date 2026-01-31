@@ -88,6 +88,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         player.is_bot = pd.isbot;
                     }
                 }
+                console.log(game);
                 while (true) {
                     const ev = p.parser.nextEvent();
                     if (ev === null) break;
