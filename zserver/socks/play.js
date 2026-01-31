@@ -151,6 +151,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                     onRecordReplay(state.game, {suppress_write:true});
                     state.game.__ended = state.game.buffer.length;
                     sock.send(NetData.Bin.Export(state.game));
+                    emit("game:export");
                 }
                 break;
             }
