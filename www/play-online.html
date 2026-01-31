@@ -229,20 +229,33 @@
                 <div class="form-row">
                     <label for="private-join-g">Room ID:</label>
                     <input name="g" id="private-join-g">
-                    <input type="button" value="Join" onclick="preJoin();">
+                    <input type="submit" value="Join">
                     <script>
-                        function preJoin() {
-                            fetch(`https://${document.location.hostname}/d/isres?id=${document.getElementById("private-join-g").value}`).then(v => {
-                                if (v.ok) {
-                                    v.text().then(j => {
-                                        const res = document.getElementById("private-join-res");
-                                        if (j === "1") {
-                                            res.value = "1";
-                                        }
-                                        document.getElementById("join-form").submit();
-                                    });
+                        {
+                            let allowsubmit = false;
+                            document.getElementById("join-form").addEventListener("submit", (ev) => {
+                                if (!allowsubmit) {
+                                    ev.preventDefault();
+                                    preJoin();
+                                    return false;
+                                } else {
+                                    allowsubmit = false;
                                 }
                             });
+                            function preJoin() {
+                                fetch(`https://${document.location.hostname}/d/isres?id=${document.getElementById("private-join-g").value}`).then(v => {
+                                    if (v.ok) {
+                                        v.text().then(j => {
+                                            const res = document.getElementById("private-join-res");
+                                            if (j === "1") {
+                                                res.value = "1";
+                                            }
+                                            allowsubmit = true;
+                                            document.getElementById("join-form").submit();
+                                        });
+                                    }
+                                });
+                            }
                         }
                     </script>
                 </div>
