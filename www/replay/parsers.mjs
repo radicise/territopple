@@ -728,7 +728,7 @@ export class STPLParser {
         /**@type {STPLRules} */
         this.rules = {};
         const rawpd = new ConsumableBytes(getMetatableEntry(parser.header.metatable, "pn__"));
-        for (let i = 0; i < parser.header.player_count; i ++) {
+        for (let i = 0; i < parser.header.player_count+1; i ++) {
             const b = rawpd.consume();
             if (b === 0) {
                 this.players.push(null);
