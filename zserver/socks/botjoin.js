@@ -38,7 +38,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     const g = game;
     sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
     sock.send(NetData.Game.Roomid(state.game.ident));
-    sock.send(NetData.Game.JList(g), () => {
+    const cb = () => {
         emit("player:join", {n:state.playerNum, t:state.game.players[state.playerNum].team});
         emit("account:isbot", {n:state.playerNum, a:game.players[pnum].accId});
         change("waiting", {isHost:pnum===g.state.hostNum});
@@ -55,7 +55,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         //         change("play");
         //     });
         // });
-    });
+    };
+    sock.send(NetData.Game.JList(g), g.res?()=>{
+        sock.send(NetData.Bin.Board(g), cb);
+    }:cb);
     })();
     return {messageL, closeL, errorL};
 };

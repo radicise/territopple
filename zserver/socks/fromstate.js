@@ -75,6 +75,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 // console.log(stplmeta);
                 emit("game:add", {id:args["id"],game:state.game});
                 const game = state.game;
+                game.res = true;
                 onGameCreated(game, true, 1);
                 game.addRules(stplmeta.rules);
                 const secev_start = p.tell();

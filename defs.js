@@ -164,6 +164,7 @@ class Game {
      * @param {{topology:import("./topology/topology.js").TopologyParams,public:boolean,observable:boolean}} state
      */
     constructor (ident, players, state) {
+        this.res = false;
         this.complexity = 1;
         /**@type {string} */
         this.ident = ident;
