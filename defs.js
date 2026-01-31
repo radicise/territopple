@@ -456,6 +456,8 @@ class Game {
             if (tb[t] !== p.team) {
                 this.state.owned[tb[t]] --;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
+                    console.log({owned:this.state.owned,bb,tb,t});
+                    console.log(this.players.map((v,i)=>v?{t:v.team,n:i,a:v.alive}:{}))
                     console.log("team eliminated");
                     this.players.forEach((v, i) => {if(v&&v.team===tb[t]){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
                     if (tb[t] === 0) {
@@ -503,16 +505,16 @@ class Game {
         // console.log(this.players);
         while (true) {
             i += 1;
-            let str = `I0: ${i}`;
+            // let str = `I0: ${i}`;
             i = i % this.players.length;
-            console.log(`${str}, I1: ${i}`);
+            // console.log(`${str}, I1: ${i}`);
             if (i === this.state.turn) {
                 return {win:true,turn:-1};
             }
             // if (this.players[i] !== null && (this.state.owned[0]||this.state.owned[this.players[i].team])) {
             // console.log(`I: ${i}`);
-            const p = this.players[i];
-            console.log(p?{team:p.team,alive:p.alive,i}:null);
+            // const p = this.players[i];
+            // console.log(p?{team:p.team,alive:p.alive,i}:null);
             if (this.players[i] !== null && this.players[i].alive) {
                 this.state.turn = i;
                 break;
