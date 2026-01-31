@@ -30,6 +30,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
     });
     let playerdata;
     messageL = (_data, isbinary) => {
+        console.log(_data);
         const enotstpl = () => change("error", {data:"not a suspended topple",redirect:"/play-online",store:"not a suspended topple"});
         if (isbinary) {
             if (state_processed) return;
@@ -40,6 +41,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                     change("error", {data:"format version incompatible",redirect:"/play-online",store:"format version incompatible"});
                     return;
                 }
+                console.log(head);
                 if (!head.EXTMETA) {
                     enotstpl();
                     return;
