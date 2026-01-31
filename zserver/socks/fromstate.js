@@ -59,13 +59,18 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 }
                 const stplmeta = new parser.STPLParser(p);
                 try {
-                    state.game = new Game(args["id"], head.player_count, {topology: topology.m.makeTopology(topology.m.formatDimensions([head.topology_id, ...head.topology_data.params])), public: false, observable: args["spectators"]});
+                    const dims = topology.m.formatDimensions([head.topology_id, ...head.topology_data.params]);
+                    console.log(dims);
+                    state.game = new Game(args["id"], head.player_count, {topology: topology.m.makeTopology(dims), public: false, observable: args["spectators"]});
                 } catch (E) {
+                    console.log(E);
                     if (E instanceof PerfError) {
                         change("error", {data:"Not Cute",redirect:"/errors/no-create"});
                         return;
+                    } else {
+                        change("error", {data:"internal error"});
+                        return;
                     }
-                    console.log(E);
                 }
                 console.log(state.game);
                 emit("game:add", {id:args["id"],game:state.game});
