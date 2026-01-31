@@ -135,6 +135,7 @@ function onGameCreated(game, timestamp, order) {
  * MUST be called when the game state changes to being in progress
  */
 function onGameStarted(game, idstrategy, team_map) {
+    console.log("started");
     game.timestamp = Date.now();
     if (getFlag(game, 4, 1) === 1) {
         game.idstrategy = idstrategy;
