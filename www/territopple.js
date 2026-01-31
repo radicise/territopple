@@ -443,6 +443,8 @@ conn.addEventListener("open", async function(event) {
                 break;
             }
             case "resjoin:available": {
+                const selmodal = document.getElementById("resjsel-modal");
+                selmodal.hidden = false;
                 /**@type {{n:number,accid:string?,t:number}[]} */
                 const p = data.payload["p"];
                 const sell = document.getElementById("resjsel-modal").querySelector("div").querySelector("div");

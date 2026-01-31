@@ -117,9 +117,9 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 game.buffer.push(p.raw_data._bytes.subarray(secev_start, p.tell()));
                 activateplug("stpl");
                 invokeplug("stpl", "resume");
-                game.state.hostNum = game.players.findIndex(v => v&&v.alive&&!v.is_bot);
-                state.playerNum = game.state.hostNum;
-                game.players[state.playerNum].conn = sock;
+                // game.state.hostNum = game.players.findIndex(v => v&&v.alive&&!v.is_bot);
+                // state.playerNum = game.state.hostNum;
+                // game.players[state.playerNum].conn = sock;
                 state.isHost = true;
                 for (let i = 1; i < game.players.length; i ++) {
                     const player = game.players[i];
@@ -139,11 +139,11 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 }
                 game.firstTurn = true;
                 state_processed = true;
-                sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
-                sock.send(NetData.Game.Roomid(state.game.ident));
-                sock.send(NetData.Bin.Board(game), () => {
-                    change("waiting", {isHost:true,res:playerdata});
-                });
+                // sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
+                // sock.send(NetData.Game.Roomid(state.game.ident));
+                // sock.send(NetData.Bin.Board(game), () => {
+                // });
+                change("resjoin", {isHost:true,res:playerdata});
             }
         } else {
             if (!state_processed) {
