@@ -86,6 +86,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         player.accId = pd.accid;
                         player.botq = pd.botq;
                         player.is_bot = pd.isbot;
+                        game.players.push(player);
                     }
                 }
                 console.log(game);
