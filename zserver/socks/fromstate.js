@@ -65,7 +65,9 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         change("error", {data:"Not Cute",redirect:"/errors/no-create"});
                         return;
                     }
+                    console.log(E);
                 }
+                console.log(state.game);
                 emit("game:add", {id:args["id"],game:state.game});
                 const game = state.game;
                 onGameCreated(game, true, 1);
