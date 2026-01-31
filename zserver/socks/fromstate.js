@@ -61,7 +61,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 try {
                     const dims = topology.m.formatDimensions([head.topology_id, ...head.topology_data.params]);
                     console.log(dims);
-                    state.game = new Game(args["id"], head.player_count, {topology: topology.m.makeTopology(dims), public: false, observable: args["spectators"]});
+                    state.game = new Game(args["id"], head.player_count, {topology: dims, public: false, observable: args["spectators"]});
                 } catch (E) {
                     console.log(E);
                     if (E instanceof PerfError) {
