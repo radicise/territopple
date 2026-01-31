@@ -128,8 +128,8 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         const key = crypto.randomBytes(64).toString("base64url");
                         player.rejoin_key = key;
                         const req = http.get(`http://localhost:${settings.BOTPORT}/${game.ident}/${player.botq}?k=${key}&n=${i}`);
-                        req.once("response", (res) => {res.on("error", () => {});});
-                        req.on("error", () => {});
+                        req.once("response", (res) => {res.on("error", (e) => {console.log(e);});});
+                        req.on("error", (e) => {console.log(e);});
                         player.timeoutid = setTimeout(() => {
                             game.sendAll(NetData.Player.Leave(i));
                             game.players[i] = null;
@@ -140,7 +140,9 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 state_processed = true;
                 sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
                 sock.send(NetData.Game.Roomid(state.game.ident));
-                change("waiting", {isHost:true});
+                sock.send(NetData.Bin.Board(game), () => {
+                    change("waiting", {isHost:true});
+                });
             }
         } else {
             if (!state_processed) {
