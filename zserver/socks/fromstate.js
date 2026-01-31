@@ -47,9 +47,9 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                     return;
                 }
                 const table = head.metatable;
-                playerdata = getMetatableEntry(table, "pn__");
-                const stplhead = getMetatableEntry(table, "stpl");
-                const colors = getMetatableEntry(table, "col_");
+                playerdata = p.parser.getMetatableEntry("pn__");
+                const stplhead = p.parser.getMetatableEntry("stpl");
+                const colors = p.parser.getMetatableEntry("col_");
                 if (!(playerdata.length && stplhead.length)) {
                     enotstpl();
                     return;

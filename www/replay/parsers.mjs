@@ -148,6 +148,11 @@ class AParser {
      * @returns {ReplayEvent}
      */
     nextEvent() {}
+    /**
+     * @param {string} key
+     * @returns {Uint8Array}
+     */
+    getMetatableEntry(key) {}
 }
 
 /**
@@ -691,6 +696,9 @@ class Version6 {
         }
         return ev;
     }
+    getMetatableEntry(key) {
+        return getMetatableEntry(this.header.metatable, key);
+    }
 }
 
 const PARSERS = {4:Version4,5:Version5,6:Version6};
@@ -818,13 +826,14 @@ function getMetatableEntry(table, key) {
         }
         return Uint8Array.from(bufs.map(v=>[...v]).flat());
     }
-    let k = key.charCodeAt(0)<<24;
-    // console.log(k);
-    k |= key.charCodeAt(1)<<16;
-    // console.log(k);
-    k |= key.charCodeAt(2)<<8;
-    // console.log(k);
-    k |= key.charCodeAt(3);
-    // console.log(k);
-    return table[k];
+    // let k = key.charCodeAt(0)<<24;
+    // // console.log(k);
+    // k |= key.charCodeAt(1)<<16;
+    // // console.log(k);
+    // k |= key.charCodeAt(2)<<8;
+    // // console.log(k);
+    // k |= key.charCodeAt(3);
+    // // console.log(k);
+    // return table[k];
+    return table[key];
 }
