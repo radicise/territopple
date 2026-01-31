@@ -114,7 +114,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 // initialize enough of the header that the event data can be copied in
                 onGameStarted(game, head.order_strategy, head.team_table);
                 // copy event records into the game's replay buffer
-                game.buffer.push(p.raw_data._bytes.subarray(secev_start, p.tell()-4));
+                game.buffer.push(p.raw_data._bytes.subarray(secev_start, p.tell()));
                 activateplug("stpl");
                 invokeplug("stpl", "resume");
                 game.state.hostNum = game.players.findIndex(v => v&&v.alive&&!v.is_bot);
