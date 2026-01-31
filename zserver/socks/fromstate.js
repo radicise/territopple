@@ -41,7 +41,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                     change("error", {data:"format version incompatible",redirect:"/play-online",store:"format version incompatible"});
                     return;
                 }
-                console.log(head);
+                // console.log(head);
                 if (!head.EXTMETA) {
                     enotstpl();
                     return;
@@ -72,7 +72,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         return;
                     }
                 }
-                console.log(stplmeta);
+                // console.log(stplmeta);
                 emit("game:add", {id:args["id"],game:state.game});
                 const game = state.game;
                 onGameCreated(game, true, 1);
@@ -89,7 +89,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         game.players.push(player);
                     }
                 }
-                console.log(game);
+                // console.log(game);
                 while (true) {
                     const ev = p.parser.nextEvent();
                     if (ev === null) break;
@@ -103,8 +103,8 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         }
                         case 1: {
                             game.state.turn = ev.player;
-                            console.log(ev.player);
-                            console.log(game.players[ev.player]);
+                            // console.log(ev.player);
+                            // console.log(game.players[ev.player]);
                             game.move(ev.tile, game.state.turn, true);
                             break;
                         }
