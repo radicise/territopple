@@ -85,6 +85,14 @@ on("main", "game:bot", (data) => {
 on("main", "?phase", (data) => {
     updateDataServerStats(data["#gameid"]);
 });
+on("main", "?checkalive", (data) => {
+    /**@type {string} */
+    const gameid = data["#gameid"];
+    if (!(gameid in games)) return;
+    if (games[gameid].stats.playing === 0) {
+        terminateGame(gameid);
+    }
+});
 on("main", "player:leave", (data) => {
     /**@type {string} */
     const gameid = data["#gameid"];

@@ -60,6 +60,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             });
         }
     }
+    closeL = () => {emit("?checkalive");};
+    errorL = () => {emit("?checkalive");};
     })();
     return {messageL, closeL, errorL};
 };
