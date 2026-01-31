@@ -457,6 +457,7 @@ class Game {
                 this.state.owned[tb[t]] --;
                 this.state.owned[p.team] ++;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
+                    // console.log({owned:this.state.owned,t,tb:tb[t],pt:p.team});
                     // console.log({owned:this.state.owned,bb,tb,t});
                     // console.log(this.players.map((v,i)=>v?{t:v.team,n:i,a:v.alive}:{}))
                     // console.log("team eliminated");
