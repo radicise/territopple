@@ -453,6 +453,8 @@ conn.addEventListener("open", async function(event) {
                     const b = document.createElement("input");
                     b.type = "button";
                     b.onclick = () => {conn.send(`{\"type\":\"resjoin:select\",\"payload\":{\"n\":${v.n}}}`);sell.replaceChildren();};
+                    sell.appendChild(b);
+                    sell.appendChild(document.createElement("br"));
                 });
                 break;
             }
