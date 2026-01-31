@@ -338,12 +338,14 @@ http.createServer((req, res) => {
     }
     if (url.pathname === "/isres") {
         const id = url.searchParams.get("id");
+        console.log(`ISRES: ${id}`);
         if (id === null || !(id in gameInfo) || gameInfo[id] === null) {
             res.writeHead(404).end();
             return;
         }
+        console.log(`returned: ${gameInfo[id].res}`);
         res.writeHead(200);
-        res.end(gameInfo[id].worker.toString());
+        res.end(gameInfo[id].res?"1":"0");
         return;
     }
     if (url.pathname === "/bots") {
