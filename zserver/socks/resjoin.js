@@ -49,8 +49,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             sock.send(NetData.Player.Ownid(state.playerNum, state.game.players[state.playerNum].team));
             sock.send(NetData.Game.Roomid(state.game.ident));
             sock.send(NetData.Game.JList(game));
-            emit("player:join", {n:state.playerNum, t:state.game.players[state.playerNum].team});
-            change("waiting");
+            sock.send(NetData.Bin.Board(game), () => {
+                emit("player:join", {n:state.playerNum, t:state.game.players[state.playerNum].team});
+                change("waiting");
+            });
         }
     }
     })();
