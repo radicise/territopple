@@ -30,7 +30,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
     });
     let playerdata;
     messageL = (_data, isbinary) => {
-        console.log(_data);
+        // console.log(_data);
         const enotstpl = () => change("error", {data:"not a suspended topple",redirect:"/play-online",store:"not a suspended topple"});
         if (isbinary) {
             if (state_processed) return;
@@ -60,7 +60,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 const stplmeta = new parser.STPLParser(p);
                 try {
                     const dims = topology.m.formatDimensions([head.topology_id, ...head.topology_data.params]);
-                    console.log(dims);
+                    // console.log(dims);
                     state.game = new Game(args["id"], head.player_count, {topology: dims, public: false, observable: args["spectators"]});
                 } catch (E) {
                     console.log(E);
@@ -72,7 +72,7 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         return;
                     }
                 }
-                console.log(state.game);
+                console.log(stplmeta);
                 emit("game:add", {id:args["id"],game:state.game});
                 const game = state.game;
                 onGameCreated(game, true, 1);
@@ -101,6 +101,8 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         }
                         case 1: {
                             game.state.turn = ev.player;
+                            console.log(ev.player);
+                            console.log(game.players[ev.player]);
                             game.move(ev.tile, game.state.turn, true);
                             break;
                         }
