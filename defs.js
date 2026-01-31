@@ -511,7 +511,8 @@ class Game {
             }
             // if (this.players[i] !== null && (this.state.owned[0]||this.state.owned[this.players[i].team])) {
             // console.log(`I: ${i}`);
-            console.log(this.players[i]);
+            const p = this.players[i];
+            console.log(p?{team:p.team,alive:p.alive,i}:null);
             if (this.players[i] !== null && this.players[i].alive) {
                 this.state.turn = i;
                 break;
