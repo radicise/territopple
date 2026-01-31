@@ -223,7 +223,7 @@ conn.addEventListener("open", async function(event) {
             const view = new Uint8Array(data);
             view[0] = 0x55;
             view[1] = 0x99;
-            view.set(new Uint8Array(await fi.files[0].arrayBuffer), 2);
+            view.set(new Uint8Array(await fi.files[0].arrayBuffer()), 2);
             conn.send(view);
         };
     }
