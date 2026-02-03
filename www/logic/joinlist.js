@@ -134,6 +134,7 @@ function addJListSelf(n) {
     row.append(makeTD(typeof n === "number" ? (n === game.hostNum ? "Host" : "Player") : "Spectator"));
     // row.append(...makeJListActions("self"));
     row.append(makeTD("--:--"));
+    row.append(makeTD("-"));
     row.append(makeJListActions("self"));
     joinedList.append(row);
 }
@@ -147,6 +148,7 @@ function addJListPlayer(n) {
     row.append(makeTD(`${n[0]} (${n[2]??"Guest"}) - ${n[1]}`, ["JLIST-id"]));
     row.append(makeTD(n === game.hostNum ? "Host" : "Player"));
     row.append(makeTD("--:--"));
+    row.append(makeTD("-"));
     // row.append(...makeJListActions("player", n));
     row.append(makeJListActions("player", n[0]));
     joinedList.append(row);
@@ -170,6 +172,7 @@ function addJListSpectator(n) {
     row.append(makeTD(`${n[0]} (${n[1]??"Guest"})`, ["JLIST-id"]));
     row.append(makeTD("Spectator"));
     row.append(makeTD(""));
+    row.append(makeTD(""));
     // row.append(...makeJListActions("spectator", n));
     row.append(makeJListActions("spectator", n[0]));
     // const lspecs = joinedList.querySelectorAll(".spectator");
@@ -185,10 +188,23 @@ function removeJListSpectator(n) {
     joinedList.removeChild(c);
 }
 
+/**
+ * @param {number} n
+ * @param {number} v
+ */
 function setJListTime(n, v) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
     c.children[2].textContent = formatTimer(v);
+}
+/**
+ * @param {number} n
+ * @param {number|null} v
+ */
+function setJListScore(n, v) {
+    const c = document.getElementById(`JLIST-player-${n}`);
+    if (!c) return;
+    c.children[2].textContent = v??"-";
 }
 
 function formatTimer(v) {

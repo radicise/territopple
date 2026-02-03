@@ -575,7 +575,7 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:join":{
                 game.joinedPlayers ++;
-                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null,accId:null};
+                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null,accId:null,score:null};
                 createBanner({type:"info",content:`Player ${data.payload['n']} has joined`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 if (ifmt.pln !== data.payload["n"]) addJListPlayer([data.payload["n"], data.payload["t"], null]);

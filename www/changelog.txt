@@ -1,3 +1,6 @@
+# Feb 1, 2026 (DEV202610Y0)
+added client side alternate scoring
+
 # Jan 30, 2026 (DEV20260tY0)
 implemented resuming
 fixed an obscure bug that caused players to be eliminated inappropriately
