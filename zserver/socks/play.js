@@ -152,6 +152,8 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                     state.game.__ended = state.game.buffer.length;
                     sock.send(NetData.Bin.Export(state.game));
                     emit("game:export");
+                    state.game.stats.playing = 0;
+                    emit("?checkalive");
                 }
                 break;
             }
