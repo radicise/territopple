@@ -582,6 +582,9 @@ conn.addEventListener("open", async function(event) {
                 if (game.rules?.turnTime?.style === "chess") {
                     setJListTime(data.payload["n"], game.playerList[data.payload["n"]].time);
                 }
+                if ((game.rules?.scoring?.style??"elim") !== "elim") {
+                    setJListScore(data.payload["n"], 0);
+                }
 				break;
             }
             case "player:leave":{
@@ -742,6 +745,7 @@ conn.addEventListener("open", async function(event) {
                     game.joinedPlayers ++;
                     game.playerList[p[0]] = {team:p[1],accId:p[2]};
                     addJListPlayer(p);
+                    setJListScore(p[0], (game.rules?.scoring?.style??"elim")!=="elim"?0:null);
                 }
                 for (const s of sl) {
                     spectating[s[0]] = s[1];

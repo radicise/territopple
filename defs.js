@@ -300,9 +300,9 @@ class Game {
             ),
             (this.rules.scoring?.style?
                 [1,
-                    scoring.indexOf(this.rules.scoring.style),
-                    this.state.scores.length,
-                    this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                    scoring.indexOf(this.rules.scoring.style)
+                    // this.state.scores.length,
+                    // this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
                 ]:[0]
             )
         ].flat(5));
@@ -470,9 +470,9 @@ class Game {
             ),
             (this.rules.scoring?.style?
                 [1,
-                    scoring.indexOf(this.rules.scoring.style),
-                    this.state.scores.length,
-                    this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                    scoring.indexOf(this.rules.scoring.style)
+                    // this.state.scores.length,
+                    // this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
                 ]:[0]
             )
         ].flat(5));
