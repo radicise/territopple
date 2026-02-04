@@ -456,6 +456,27 @@ class Game {
         }
         const playerdata = Buffer.from([this.players.map(v=>!v?0:[Number(v.is_bot)+1,!v.is_bot?[]:[v.botq.length,v.botq.split("").map(w=>w.charCodeAt(0))],v.accId?[v.accId.length,v.accId.split("").map(w=>w.charCodeAt(0))]:0])].flat(5));
         this.setMeta("pn__", playerdata);
+        const pens = ["random", "skip", "lose"];
+        const styles = ["per turn", "chess"];
+        const scoring = ["elim", "tile", "piece"];
+        const rulz = Buffer.from([
+            (this.rules.turnTime.limit?
+                [1,
+                    pens.indexOf(this.rules.turnTime.penalty),
+                    styles.indexOf(this.rules.turnTime.style),
+                    this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
+                ]
+                :[0]
+            ),
+            (this.rules.scoring?.style?
+                [1,
+                    scoring.indexOf(this.rules.scoring.style),
+                    this.state.scores.length,
+                    this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                ]:[0]
+            )
+        ].flat(5));
+        this.setMeta("rlz_", rulz);
     }
     /**
      * @param {number} tile
