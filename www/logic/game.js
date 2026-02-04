@@ -124,6 +124,7 @@ class Game {
         this.maxPlayers = players;
         this.elim_score = players;
         this.elim_scores = {};
+        this.scores = new Array(players+1).fill((this.rules.scoring?.style??"elim")==="elim"?null:0);
         // this.joinedPlayers = 0;
         this.spectators = 0;
         const tc = this.topology.tileCount;
@@ -167,29 +168,30 @@ class Game {
     }
     updateScores() {
         const style = this.rules.scoring?.style ?? "elim";
-        for (let i = 1; i < this.playerList.length; i ++) {
-            const p = this.playerList[i];
-            if (p) {
-                switch (style) {
-                    case "elim": {
-                        if (this.owned[0] === 0 && this.owned[p.team] === 0 && p.score === null) {
-                            if (!this.elim_scores[p.team]) {
-                                this.elim_scores[p.team] = this.elim_score --;
-                            }
-                            p.score = this.elim_scores[p.team];
+        for (let i = 1; i < this.scores.length; i ++) {
+            switch (style) {
+                case "elim": {
+                    if (this.owned[0] === 0 && this.owned[i] === 0 && this.scores[i] === null) {
+                        if (!this.elim_scores[i]) {
+                            this.elim_scores[i] = this.elim_score --;
                         }
-                        break;
+                        this.scores[i] = this.elim_scores[i];
                     }
-                    case "tile": {
-                        p.score += this.owned[p.team];
-                        break;
-                    }
-                    case "piece": {
-                        p.score += this.owned_pieces[p.team];
-                        break;
-                    }
+                    break;
                 }
-                setJListScore(i, p.score);
+                case "tile": {
+                    this.scores[i] += this.owned[i];
+                    break;
+                }
+                case "piece": {
+                    this.scores[i] += this.owned_pieces[i];
+                    break;
+                }
+            }
+            for (let j = 0; j < this.playerList.length; j ++) {
+                if (this.playerList[j]?.team === i) {
+                    setJListScore(j, this.scores[i]);
+                }
             }
         }
     }

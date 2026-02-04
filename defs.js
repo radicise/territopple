@@ -126,10 +126,13 @@ class Player {
  * @prop {"per turn"|"chess"} style style of turn timer
  * @prop {number|null} limit null defines unlimited time
  * @prop {"random"|"skip"|"lose"} penalty random move or skip turn
+ * @typedef ScoringSettings
+ * @prop {"elim"|"tile"|"piece"} style style of scoring
  */
 /**
  * @typedef GameRules
  * @prop {TurnTimerSettings} turnTime
+ * @prop {ScoringSettings} scoring
  */
 /**
  * @typedef Stats
@@ -155,6 +158,10 @@ class Player {
  * @prop {boolean} observable
  * @prop {number} hostNum
  * @prop {boolean} firstTurn
+ * @prop {number[]} owned_pieces
+ * @prop {Record<number,number>} elim_scores
+ * @prop {number} elim_score
+ * @prop {Array<number|null>} scores
  */
 
 class Game {
@@ -183,6 +190,7 @@ class Game {
             owned_pieces: new Array(settings.MAX_TEAMS+1).fill(0),
             elim_scores: {},
             elim_score: players,
+            scores: new Array(settings.MAX_TEAMS+1).fill(null),
             move: -1,
             turn: -1,
             // _turn: -1,
@@ -280,13 +288,24 @@ class Game {
     addExportMeta() {
         const pens = ["random", "skip", "lose"];
         const styles = ["per turn", "chess"];
-        const rulz = Buffer.from([(this.rules.turnTime.limit?
-            [1,
-                pens.indexOf(this.rules.turnTime.penalty),
-                styles.indexOf(this.rules.turnTime.style),
-                this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
-            ]
-            :[0])].flat(5));
+        const scoring = ["elim", "tile", "piece"];
+        const rulz = Buffer.from([
+            (this.rules.turnTime.limit?
+                [1,
+                    pens.indexOf(this.rules.turnTime.penalty),
+                    styles.indexOf(this.rules.turnTime.style),
+                    this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
+                ]
+                :[0]
+            ),
+            (this.rules.scoring?.style?
+                [1,
+                    scoring.indexOf(this.rules.scoring.style),
+                    this.state.scores.length,
+                    this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                ]:[0]
+            )
+        ].flat(5));
         this.setMeta("rlz_", rulz);
         this.setMeta("stpl", Buffer.of(1));
     }
@@ -388,6 +407,9 @@ class Game {
      */
     addRules(rules) {
         extend(this.rules, rules);
+        if ((this.rules.scoring?.style??"elim")!=="elim") {
+            this.state.scores.fill(0);
+        }
     }
     /**
      * kills all connections
@@ -509,29 +531,25 @@ class Game {
     }
     updateScores() {
         const style = this.rules.scoring?.style ?? "elim";
-        for (let i = 1; i < this.players.length; i ++) {
-            const p = this.players[i];
-            if (p) {
-                switch (style) {
-                    case "elim": {
-                        if (this.state.owned[0] === 0 && this.state.owned[p.team] === 0 && p.score === null) {
-                            if (!this.state.elim_scores[p.team]) {
-                                this.state.elim_scores[p.team] = this.state.elim_score --;
-                            }
-                            p.score = this.state.elim_scores[p.team];
+        for (let i = 1; i < this.state.scores.length; i ++) {
+            switch (style) {
+                case "elim": {
+                    if (this.state.owned[0] === 0 && this.state.owned[i] === 0 && this.state.scores[i] === null) {
+                        if (!this.state.elim_scores[i]) {
+                            this.state.elim_scores[i] = this.state.elim_score --;
                         }
-                        break;
+                        this.state.scores[i] = this.state.elim_scores[i];
                     }
-                    case "tile": {
-                        p.score += this.state.owned[p.team];
-                        break;
-                    }
-                    case "piece": {
-                        p.score += this.state.owned_pieces[p.team];
-                        break;
-                    }
+                    break;
                 }
-                setJListScore(i, p.score);
+                case "tile": {
+                    this.state.scores[i] += this.state.owned[i];
+                    break;
+                }
+                case "piece": {
+                    this.state.scores[i] += this.state.owned_pieces[i];
+                    break;
+                }
             }
         }
     }

@@ -711,14 +711,16 @@ const PARSERS = {4:Version4,5:Version5,6:Version6};
  * @type {Array<null|STPLPlayer>}
  * @typedef STPLTurnTime
  * @type {null|(({style:"per turn",penalty:"random"|"skip"|"lose"}|{style:"chess",penalty:"lose"})&{limit:number})}
+ * @typedef {null|{style:"elim"|"tile"|"piece",score:number[]}} STPLScoring
  * @typedef STPLRules
- * @type {{turnTime:STPLTurnTime}}
+ * @type {{turnTime:STPLTurnTime,scoring:STPLScoring}}
  */
 
 
 export class STPLParser {
     static _STYLES = ["per turn", "chess"];
     static _PENALTIES = ["random", "skip", "lose"];
+    static _SCORING = ["elim", "tile", "piece"];
     /**
      * @param {AParser} parser
      */
@@ -772,6 +774,16 @@ export class STPLParser {
             }
         } else {
             this.rules.turnTime = {style:"per turn",limit:null,penalty:"skip"};
+        }
+        if (rawtt._pos < rawtt._bytes.length) {
+            if (rawtt.consume()) {
+                this.rules.scoring = {style:STPLParser._SCORING[rawtt.consume()]};
+                this.rules.scoring.score = [];
+                for (let i = 0, l = rawtt.consume(); i < l; i ++) {
+                    const v = fromBytes(rawtt.consume(6));
+                    this.rules.scoring.score.push((this.rules.scoring.style==="elim"&&v===0)?null:v);
+                }
+            }
         }
     }
 }
