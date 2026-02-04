@@ -639,16 +639,23 @@ conn.addEventListener("open", async function(event) {
                 break;
             }
             case "sync": {
+                // const need_sync = {scores:false};
                 for (const k in data.payload) {
                     const parts = k.split(".");
                     switch (parts[0]) {
                         case "TEAM": {
+                            // need_sync.scores = true;
                             const n = Number(parts[1]);
                             switch (parts[2]) {
                                 case "score": {
                                     /**@type {number|null} */
                                     const s = data.payload[k];
                                     game.scores[n] = s;
+                                    game.playerList.forEach((v, i) => {
+                                        if (v && v.team === n) {
+                                            setJListScore(i, s);
+                                        }
+                                    });
                                     break;
                                 }
                             }
