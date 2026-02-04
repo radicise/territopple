@@ -642,6 +642,18 @@ conn.addEventListener("open", async function(event) {
                 for (const k in data.payload) {
                     const parts = k.split(".");
                     switch (parts[0]) {
+                        case "TEAM": {
+                            const n = Number(parts[1]);
+                            switch (parts[2]) {
+                                case "score": {
+                                    /**@type {number|null} */
+                                    const s = data.payload[k];
+                                    game.scores[n] = s;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case "PLAYER": {
                             const n = Number(parts[1]);
                             switch (parts[2]) {

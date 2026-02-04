@@ -725,6 +725,13 @@ class Game {
     generateSync(target) {
         const payload = {};
         switch (target) {
+            case "score": {
+                for (let i = 0; i < this.state.scores.length; i ++) {
+                    const k = `TEAM.${i}.score`;
+                    payload[k] = this.state.scores[i];
+                }
+                break;
+            }
             case "time": {
                 for (let i = 0; i < this.players.length; i ++) {
                     if (this.players[i]) {

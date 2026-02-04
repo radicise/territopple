@@ -20,7 +20,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Config(g), () => {
             // sock.send(NetData.Bin.Board(state.game), {"binary":true});
         });
-        sock.send(NetData.Game.Rules(g));
+        sock.send(NetData.Game.Rules(g), () => {
+            if (args.res) {
+                sock.send(NetData.Sync("score"));
+            }
+        });
         // sock.send(Buffer.of(10,10), {"binary":true});
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {
