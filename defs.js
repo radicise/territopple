@@ -1199,7 +1199,7 @@ class NetData {
         static JList(game) {
             const players = game.players.map((v, i) => (v && (v.conn || v.is_bot)) ? [i, v.team, v.accId] : null).filter(v => v !== null);
             const spectators = Object.keys(game.spectators).map(v => [v, game.spectators[v].accId]);
-            return this.Misc("jlist", {p:players,s:spectators});
+            return this.Misc("jlist", {p:players,s:spectators,ts:game.state.scores});
         }
         /**
          * @returns {string}

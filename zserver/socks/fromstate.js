@@ -126,12 +126,14 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                     if (!player.alive) {
                         game.players[i] = null;
                     } else if (player.is_bot) {
+                        game.stats.playing ++;
                         const key = crypto.randomBytes(64).toString("base64url");
                         player.rejoin_key = key;
                         const req = http.get(`http://localhost:${settings.BOTPORT}/${game.ident}/${player.botq}?k=${key}&n=${i}`);
                         req.once("response", (res) => {res.on("error", (e) => {console.log(e);});});
                         req.on("error", (e) => {console.log(e);});
                         player.timeoutid = setTimeout(() => {
+                            game.stats.playing --;
                             game.sendAll(NetData.Player.Leave(i));
                             game.players[i] = null;
                         }, settings.BOT_TO);

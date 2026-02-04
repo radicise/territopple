@@ -738,6 +738,7 @@ conn.addEventListener("open", async function(event) {
                 const pl = data.payload["p"];
                 /**@type {[string,string|null][]} */
                 const sl = data.payload["s"];
+                game.scores = data.payload["ts"];
                 for (const p of pl) {
                     if (ifmt.pln) {
                         if (p[0] === ifmt.pln) continue;
@@ -745,7 +746,7 @@ conn.addEventListener("open", async function(event) {
                     game.joinedPlayers ++;
                     game.playerList[p[0]] = {team:p[1],accId:p[2]};
                     addJListPlayer(p);
-                    setJListScore(p[0], (game.rules?.scoring?.style??"elim")!=="elim"?0:null);
+                    setJListScore(p[0], game.scores[p[1]]);
                 }
                 for (const s of sl) {
                     spectating[s[0]] = s[1];
