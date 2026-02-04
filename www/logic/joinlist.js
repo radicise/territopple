@@ -204,7 +204,7 @@ function setJListTime(n, v) {
 function setJListScore(n, v) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
-    c.children[2].textContent = v??"-";
+    c.children[3].textContent = v??"-";
 }
 
 function formatTimer(v) {

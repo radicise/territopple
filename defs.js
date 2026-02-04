@@ -481,7 +481,7 @@ class Game {
             const t = adds.pop();
             if (tb[t] !== p.team) {
                 if (tb[t]>0) this.state.owned_pieces[tb[t]] -= bb[t];
-                this.state.owned_pieces[team] += bb[t];
+                this.state.owned_pieces[p.team] += bb[t];
                 this.state.owned[tb[t]] --;
                 this.state.owned[p.team] ++;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
