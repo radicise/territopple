@@ -1,3 +1,7 @@
+# Feb 4, 2026 (DEV202613Y0)
+fixed a bug that created ghost rooms when exported games
+added scoring rules
+
 # Feb 1, 2026 (DEV202610Y0)
 added client side alternate scoring
 

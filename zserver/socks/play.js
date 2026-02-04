@@ -176,7 +176,16 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                         state.game.__ended = state.game.buffer.length;
                         state.game.state.state = 2;
                         emit("?phase");
-                        emit("game:win", {t:state.game.players[state.playerNum].team,d:settings.REPLAYS.ENABLED});
+                        let t = state.game.players[state.playerNum].team;
+                        if ((state.game.rules.scoring?.style??"elim") !== "elim") {
+                            const s = state.game.state.scores;
+                            for (let i = 1; i < s.length; i ++) {
+                                if (s[i] > s[t]) {
+                                    t = i;
+                                }
+                            }
+                        }
+                        emit("game:win", {t,d:settings.REPLAYS.ENABLED});
                     } else {
                         emit("game:turn", {n:res.turn});
                     }
