@@ -22,7 +22,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         });
         sock.send(NetData.Game.Rules(g), () => {
             if (args.res) {
-                sock.send(NetData.Sync("score"));
+                sock.send(NetData.Sync(g, "score"));
             }
         });
         // sock.send(Buffer.of(10,10), {"binary":true});
