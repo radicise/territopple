@@ -215,11 +215,11 @@
                             </script>
                         </div>
                         <div class="form-row">
-                            <label for="room-rules-scoring">Turn Timers: </label>
+                            <label for="room-rules-scoring">Scoring Rules: </label>
                             <select id="room-rules-scoring">
-                                <option value="0" selected>Elimination</option>
-                                <option value="1">Tiles</option>
-                                <option value="2">Pieces</option>
+                                <option value="elim" selected>Elimination</option>
+                                <option value="tile">Tiles</option>
+                                <option value="piece">Pieces</option>
                             </select>
                         </div>
                     </div>
@@ -304,6 +304,8 @@
                 document.querySelector(".dimensions.show").classList.remove("show");
                 dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
             }
+            /**@type {HTMLSelectElement} */
+            const rules_scoring_sel = document.getElementById("room-rules-scoring");
             function preSubmit() {
                 /**@type {HTMLFormElement} */
                 const form = document.getElementById("create-form");
@@ -320,7 +322,7 @@
                     }
                 }
                 diminput.value = list.join(",");
-                let game_rules = {turnTime:{limit:null,style:"per turn",penalty:"random"}};
+                let game_rules = {turnTime:{limit:null,style:"per turn",penalty:"random"},scoring:{style:rules_scoring_sel.value}};
                 if (!room_rules_timers_enable.checked) {
                     delete game_rules["turnTime"];
                 } else {

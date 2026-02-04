@@ -180,6 +180,9 @@ class Game {
             board: null,
             teamboard: null,
             owned: new Array(settings.MAX_TEAMS+1).fill(0),
+            owned_pieces: new Array(settings.MAX_TEAMS+1).fill(0),
+            elim_scores: {},
+            elim_score: players,
             move: -1,
             turn: -1,
             // _turn: -1,
@@ -444,6 +447,7 @@ class Game {
         const p = this.players[player];
         const tb = this.state.teamboard;
         const bb = this.state.board;
+        this.state.owned_pieces[p.team] ++;
         // const w = this.state.cols;
         // const h = this.state.rows;
         // const tcol = tile % w;
@@ -454,6 +458,8 @@ class Game {
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
+                if (tb[t]>0) this.state.owned_pieces[tb[t]] -= bb[t];
+                this.state.owned_pieces[team] += bb[t];
                 this.state.owned[tb[t]] --;
                 this.state.owned[p.team] ++;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
@@ -468,6 +474,7 @@ class Game {
                 }
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
+                    this.updateScores();
                     // console.log("win returned");
                     return {win:true,turn:-1};
                 }
@@ -497,7 +504,36 @@ class Game {
                 adds.push(...neighbors);
             }
         }
+        this.updateScores();
         return this.nextPlayer();
+    }
+    updateScores() {
+        const style = this.rules.scoring?.style ?? "elim";
+        for (let i = 1; i < this.players.length; i ++) {
+            const p = this.players[i];
+            if (p) {
+                switch (style) {
+                    case "elim": {
+                        if (this.state.owned[0] === 0 && this.state.owned[p.team] === 0 && p.score === null) {
+                            if (!this.state.elim_scores[p.team]) {
+                                this.state.elim_scores[p.team] = this.state.elim_score --;
+                            }
+                            p.score = this.state.elim_scores[p.team];
+                        }
+                        break;
+                    }
+                    case "tile": {
+                        p.score += this.state.owned[p.team];
+                        break;
+                    }
+                    case "piece": {
+                        p.score += this.state.owned_pieces[p.team];
+                        break;
+                    }
+                }
+                setJListScore(i, p.score);
+            }
+        }
     }
     nextPlayer() {
         let i = this.state.turn;

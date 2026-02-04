@@ -205,11 +205,12 @@ class Game {
         // const h = this.rows;
         const boardold = Array.from(this.board);
         const teamboardold = Array.from(this.teamboard);
+        this.owned_pieces[team] ++;
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== team) {
-                if (tb[t]>0) this.owned_pieces[tb[t]] --;
-                this.owned_pieces[team] ++;
+                if (tb[t]>0) this.owned_pieces[tb[t]] -= bb[t];
+                this.owned_pieces[team] += bb[t];
                 this.owned[tb[t]] --;
                 this.owned[team] ++;
                 tb[t] = team;
