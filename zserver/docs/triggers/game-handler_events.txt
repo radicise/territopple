@@ -24,6 +24,7 @@ player:
 
 game:
     add (id [game id]: string, game [game object]: Game)
+    bot (bot [bot resource]: string)
     win (t [team id]: number)
     turn (n [player num]: number)
     kick (n [player num | spectator id]: number | string)
@@ -38,6 +39,15 @@ game:
         timeup (n [player num]: number, t [timer = true]: boolean)
 
 ping: (n [player num]: number, kind: string | null)
+
+sync: (t [target]: string)
+
+?borked: () // used for fatally invalid conditions within a game
+?phase: () // used to signal a transition between play states
+?tagcollide: () // used to notify a handler that there has been a collision with its generated tag
+?fatalerr: (source [triggering event name]: string) // used to signal that a game has had a fatal error and must be terminated
+
+@deactivate: () // used to signal that a certain game is being released, and child listeners should deinitialize themselves
 
 HANDLER ARGS:
     ~~error (code: number, data: string)~~

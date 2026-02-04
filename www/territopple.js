@@ -84,6 +84,7 @@ let cols = parseInt(queries.get("w") ?? "6") || 6;
 let dims = queries.get("d");
 let players = parseInt(queries.get("p") ?? "2") || 2;
 let port = parseInt(queries.get("port") ?? "noport");
+let res = queries.get("res");
 if (isNaN(port)) {
 	// port = 8300;
     port = null;
@@ -124,11 +125,15 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
     serv = `wss://${host}/?t=3&g=${gameid}&i=${pn}&k=${rkey}`;
 } else {
     if (t > 0 && t < 3) {
-        const allow_spectators = queries.get("s") ?? "1";
-        serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
+        if (res==="1") {
+            serv = `wss://${host}/?t=1&res=1&p=1`;
+        } else {
+            const allow_spectators = queries.get("s") ?? "1";
+            serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
+        }
     } else {
         gameid = queries.get("g") ?? "g";
-        serv = `wss://${host}/?t=${t}&g=${gameid}`;
+        serv = `wss://${host}/?t=${t}&g=${gameid}&res=${res??"0"}`;
     }
 }
 
@@ -206,6 +211,27 @@ const spectating = {};
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
 conn.addEventListener("open", async function(event) {
+    if (res==="1") {
+        if (t > 0 && t < 3) {
+            const stplmodal = document.getElementById("stpl-modal");
+            stplmodal.hidden = false;
+            /**@type {HTMLInputElement} */
+            const fi = stplmodal.querySelector("input[type=\"file\"]");
+            stplmodal.querySelector("input[type=\"button\"]").onclick = async () => {
+                console.log(fi.files[0]);
+                stplmodal.hidden = true;
+                const data = new ArrayBuffer(fi.files[0].size+2);
+                const view = new Uint8Array(data);
+                view[0] = 0x55;
+                view[1] = 0x99;
+                view.set(new Uint8Array(await fi.files[0].arrayBuffer()), 2);
+                conn.send(view);
+            };
+        } else {
+            const selmodal = document.getElementById("resjsel-modal");
+            selmodal.hidden = false;
+        }
+    }
     // readyButton.addEventListener("click", () => {
     //     if (game.started) return;
     //     amready = !amready;
@@ -412,6 +438,29 @@ conn.addEventListener("open", async function(event) {
             //     //
             //     break;
             // }
+            case "resjoin:select": {
+                document.getElementById("resjsel-modal").hidden = true;
+                break;
+            }
+            case "resjoin:available": {
+                const selmodal = document.getElementById("resjsel-modal");
+                selmodal.hidden = false;
+                /**@type {{n:number,accid:string?,t:number}[]} */
+                const p = data.payload["p"];
+                const sell = document.getElementById("resjsel-modal").querySelector("div").querySelector("div");
+                p.forEach(v => {
+                    const s = document.createElement("span");
+                    s.textContent = `Player ${v.n} (${v.accid??"Guest"}) Team ${v.t}`;
+                    sell.appendChild(s);
+                    const b = document.createElement("input");
+                    b.type = "button";
+                    b.value = "select";
+                    b.onclick = () => {conn.send(`{\"type\":\"resjoin:select\",\"payload\":{\"n\":${v.n}}}`);sell.replaceChildren();};
+                    sell.appendChild(b);
+                    sell.appendChild(document.createElement("br"));
+                });
+                break;
+            }
             case "game:pause": {
                 updScr("status", "Game paused");
                 ifmt.pause_turn = ifmt.turn;
@@ -420,14 +469,14 @@ conn.addEventListener("open", async function(event) {
                     pme.disabled = false;
                     pause_modal.hidden = false;
                 }
-                // game.handlePause(data.payload["t"]);
+                game.handlePause();
                 break;
             }
             case "game:resume": {
                 pause_modal.hidden = true;
                 ifmt.turn = ifmt.pause_turn;
                 updScr("status", `Player ${ifmt.turn}'s turn`);
-                // game.handleResume();
+                game.handleResume();
                 break;
             }
             case "account:found": {
@@ -526,12 +575,15 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:join":{
                 game.joinedPlayers ++;
-                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null,accId:null};
+                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null,accId:null,score:null};
                 createBanner({type:"info",content:`Player ${data.payload['n']} has joined`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 if (ifmt.pln !== data.payload["n"]) addJListPlayer([data.payload["n"], data.payload["t"], null]);
                 if (game.rules?.turnTime?.style === "chess") {
                     setJListTime(data.payload["n"], game.playerList[data.payload["n"]].time);
+                }
+                if ((game.rules?.scoring?.style??"elim") !== "elim") {
+                    setJListScore(data.payload["n"], 0);
                 }
 				break;
             }
@@ -583,6 +635,61 @@ conn.addEventListener("open", async function(event) {
                 addJListSelf(data.payload["n"]);
                 if (ifmt.room) {
                     updScr("info", `Room ${game.ident}, Spectator ${ifmt.pln}`);
+                }
+                break;
+            }
+            case "sync": {
+                // const need_sync = {scores:false};
+                for (const k in data.payload) {
+                    const parts = k.split(".");
+                    switch (parts[0]) {
+                        case "TEAM": {
+                            // need_sync.scores = true;
+                            const n = Number(parts[1]);
+                            switch (parts[2]) {
+                                case "score": {
+                                    /**@type {number|null} */
+                                    const s = data.payload[k];
+                                    game.scores[n] = s;
+                                    game.playerList.forEach((v, i) => {
+                                        if (v && v.team === n) {
+                                            setJListScore(i, s);
+                                        }
+                                    });
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case "PLAYER": {
+                            const n = Number(parts[1]);
+                            switch (parts[2]) {
+                                case "time_left": {
+                                    /**@type {number} */
+                                    const t = data.payload[k];
+                                    switch (game.rules.turnTime.style) {
+                                        case "per turn": {
+                                            setJListTime(n, t);
+                                            if (ifmt.pln === n) {
+                                                game.timer = t;
+                                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(t)}`;
+                                            }
+                                            break;
+                                        } case "chess": {
+                                            setJListTime(n, t);
+                                            game.playerList[n].time = t;
+                                            if (ifmt.pln === n) {
+                                                document.getElementById("turn-time").textContent = `Time: ${formatTimer(t)}`;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
                 }
                 break;
             }
@@ -650,6 +757,7 @@ conn.addEventListener("open", async function(event) {
                 const pl = data.payload["p"];
                 /**@type {[string,string|null][]} */
                 const sl = data.payload["s"];
+                game.scores = data.payload["ts"];
                 for (const p of pl) {
                     if (ifmt.pln) {
                         if (p[0] === ifmt.pln) continue;
@@ -657,6 +765,7 @@ conn.addEventListener("open", async function(event) {
                     game.joinedPlayers ++;
                     game.playerList[p[0]] = {team:p[1],accId:p[2]};
                     addJListPlayer(p);
+                    setJListScore(p[0], game.scores[p[1]]);
                 }
                 for (const s of sl) {
                     spectating[s[0]] = s[1];

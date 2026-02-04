@@ -54,7 +54,7 @@ logStamp(IERROR);
 logStamp(EXLOG);
 
 /**
- * @typedef {{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint,dbase:string,dparams:number,phase:"wait"|"play"|"over"}} GameInfo
+ * @typedef {{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint,dbase:string,dparams:number,phase:"wait"|"play"|"over",res:boolean}} GameInfo
  */
 
 /**
@@ -72,7 +72,8 @@ const roomCreateScheme = {
     "dstr": "string",
     "can_spectate": "boolean",
     "playing": "number",
-    "spectating": "number"
+    "spectating": "number",
+    "res": "boolean"
 };
 
 let IREQNUM_CNT = 0;
@@ -335,11 +336,24 @@ http.createServer((req, res) => {
         res.end(formatServerList((Number(url.searchParams.get("page")) || 1) - 1, filter));
         return;
     }
+    if (url.pathname === "/d/isres") {
+        const id = url.searchParams.get("id");
+        // console.log(`ISRES: ${id}`);
+        if (id === null || !(id in gameInfo) || gameInfo[id] === null) {
+            res.writeHead(404).end();
+            return;
+        }
+        // console.log(`returned: ${gameInfo[id].res}`);
+        res.writeHead(200);
+        res.end(gameInfo[id].res?"1":"0");
+        return;
+    }
     if (url.pathname === "/bots") {
         res.writeHead(200, {"content-type":"application/json"});
         res.end(JSON.stringify(TTBot.index));
         return;
     }
+    // console.log(url.pathname);
     res.writeHead(404).end("bad path");
 }).listen(settings.DATAPORT);
 
@@ -416,7 +430,8 @@ function formatServerList(page, filter) {
             spectating:v[1].spectating,
             dstr:v[1].dstr,
             can_spectate:v[1].can_spectate,
-            phase:v[1].phase
+            phase:v[1].phase,
+            res:v[1].res
         };
     }));
 }

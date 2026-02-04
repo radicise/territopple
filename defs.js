@@ -126,10 +126,13 @@ class Player {
  * @prop {"per turn"|"chess"} style style of turn timer
  * @prop {number|null} limit null defines unlimited time
  * @prop {"random"|"skip"|"lose"} penalty random move or skip turn
+ * @typedef ScoringSettings
+ * @prop {"elim"|"tile"|"piece"} style style of scoring
  */
 /**
  * @typedef GameRules
  * @prop {TurnTimerSettings} turnTime
+ * @prop {ScoringSettings} scoring
  */
 /**
  * @typedef Stats
@@ -155,6 +158,10 @@ class Player {
  * @prop {boolean} observable
  * @prop {number} hostNum
  * @prop {boolean} firstTurn
+ * @prop {number[]} owned_pieces
+ * @prop {Record<number,number>} elim_scores
+ * @prop {number} elim_score
+ * @prop {Array<number|null>} scores
  */
 
 class Game {
@@ -164,6 +171,7 @@ class Game {
      * @param {{topology:import("./topology/topology.js").TopologyParams,public:boolean,observable:boolean}} state
      */
     constructor (ident, players, state) {
+        this.res = false;
         this.complexity = 1;
         /**@type {string} */
         this.ident = ident;
@@ -179,6 +187,10 @@ class Game {
             board: null,
             teamboard: null,
             owned: new Array(settings.MAX_TEAMS+1).fill(0),
+            owned_pieces: new Array(settings.MAX_TEAMS+1).fill(0),
+            elim_scores: {},
+            elim_score: players,
+            scores: new Array(settings.MAX_TEAMS+1).fill(null),
             move: -1,
             turn: -1,
             // _turn: -1,
@@ -222,7 +234,7 @@ class Game {
         this.__extflags = [];
         /**@type {Record<number,Buffer>} */
         this.__extmeta = {};
-        /**@type {Record<number,{condflag:boolean,flag_byte:number?,flag_bit:number?,size:number,producer:()=>Buffer}[]} */
+        /**@type {Record<number,{name:string,condflag:boolean,flag_byte:number?,flag_bit:number?,offset:number?,test:number?,check:number?,size:number,producer:(game:Game,a:any[])=>Buffer}[]} */
         this.__extevds = {};
         this.stdmeta = {
             colors: null
@@ -244,27 +256,7 @@ class Game {
      * @param {Buffer} value
      */
     setMeta(key, value) {
-        const globi = key.indexOf("_");
-        if (globi !== -1) {
-            let c = 0;
-            const s = key.slice(0, globi);
-            // console.log(`globi: ${globi}, s: ${s}`);
-            for (let i = 0, l = value.length; i < l; i += 0xffff) {
-                const k = s+(c.toString(36).padStart(2,'0'));
-                // console.log(`key: ${k}`);
-                this.setMeta(k, value.subarray(i, Math.min(i+0xffff,l)));
-            }
-            return;
-        }
-        let k = key.charCodeAt(0)<<24;
-        // console.log(k);
-        k |= key.charCodeAt(1)<<16;
-        // console.log(k);
-        k |= key.charCodeAt(2)<<8;
-        // console.log(k);
-        k |= key.charCodeAt(3);
-        // console.log(k);
-        this.__extmeta[k] = value;
+        setMetatableEntry(this.__extmeta, key, value);
     }
     resumeTimers() {
         this.players.forEach(v => {
@@ -280,7 +272,7 @@ class Game {
                 v.needs_resume = true;
                 switch (this.rules.turnTime.style) {
                     case "per turn":
-                        v.res_time = now-v.set_time + 1500;
+                        v.res_time = this.rules.turnTime.limit - (now-v.set_time) + 1500;
                         break;
                     case "chess":
                         v.time_left += 1;
@@ -296,14 +288,81 @@ class Game {
     addExportMeta() {
         const pens = ["random", "skip", "lose"];
         const styles = ["per turn", "chess"];
-        const rulz = Buffer.from([(this.rules.turnTime.limit?
-            [1,
-                pens.indexOf(this.rules.turnTime.penalty),
-                styles.indexOf(this.rules.turnTime.style),
-                this.rules.turnTime.style==="chess"?this.players.map(v=>nbytes(v?.time_left??0,4)):nbytes(this.rules.turnTime.limit/1000,4)
-            ]
-            :[0])].flat(5));
+        const scoring = ["elim", "tile", "piece"];
+        const rulz = Buffer.from([
+            (this.rules.turnTime.limit?
+                [1,
+                    pens.indexOf(this.rules.turnTime.penalty),
+                    styles.indexOf(this.rules.turnTime.style),
+                    this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
+                ]
+                :[0]
+            ),
+            (this.rules.scoring?.style?
+                [1,
+                    scoring.indexOf(this.rules.scoring.style)
+                    // this.state.scores.length,
+                    // this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                ]:[0]
+            )
+        ].flat(5));
         this.setMeta("rlz_", rulz);
+        this.setMeta("stpl", Buffer.of(1));
+    }
+    /**
+     * extends an event
+     * @param {number} eventid event id to extend
+     * @param {{condition?:number|[string,string,number],size:number,name:string}} field field spec
+     * @param {(game: Game, a: any[])=>Buffer} generator function to generate field value
+     * @param {1|2|3} clobber 1 is overwrite, 2 is fail silent, 3 is fail loud, defaults to 3
+     */
+    extendEvent(eventid, field, generator, clobber) {
+        clobber = clobber??3;
+        const evextd = {name:field.name,condflag:(field.condition??null)!==null,size:field.size,producer:generator};
+        if (typeof field.condition === "number") {
+            evextd.flag_byte = field.condition>>3;
+            evextd.flag_bit = field.condition&7;
+            evextd.offset = null;
+            evextd.test = null;
+            evextd.check = null;
+        } else {
+            evextd.flag_byte = null;
+            evextd.flag_bit = null;
+        }
+        if (eventid in this.__extevds) {
+            const l = this.__extevds[eventid];
+            // console.log(JSON.stringify(l));
+            if (typeof field.condition === "object") {
+                for (let i = 1; i <= l.length; i ++) {
+                    if (l[l.length-i].name === field.condition[0]) {
+                        evextd.offset = i-1;
+                        break;
+                    }
+                }
+                if (evextd.offset === undefined) {
+                    throw new Error("cannot find target extension name");
+                }
+                evextd.check = ['=','!=','>','<','>=','<=','%0','!%0'].indexOf(field.condition[1]);
+                evextd.test = field.condition[2];
+            }
+            const i = l.findIndex(v => v.name === field.name);
+            if (i >= 0) {
+                if (clobber === 0) {
+                    // l.push(evextd);
+                    throw new Error("clobber value 0 is not valid")
+                } else if (clobber === 1) {
+                    l[i] = evextd;
+                } else if (clobber === 2) {
+                    return;
+                } else if (clobber === 3) {
+                    throw new Error("EXTEVD CLOBBERED");
+                }
+            } else {
+                l.push(evextd);
+            }
+        } else {
+            this.__extevds[eventid] = [evextd];
+        }
     }
     /**
      * @param {number|string} entid
@@ -348,6 +407,9 @@ class Game {
      */
     addRules(rules) {
         extend(this.rules, rules);
+        if ((this.rules.scoring?.style??"elim")!=="elim") {
+            this.state.scores.fill(0);
+        }
     }
     /**
      * kills all connections
@@ -394,39 +456,68 @@ class Game {
         }
         const playerdata = Buffer.from([this.players.map(v=>!v?0:[Number(v.is_bot)+1,!v.is_bot?[]:[v.botq.length,v.botq.split("").map(w=>w.charCodeAt(0))],v.accId?[v.accId.length,v.accId.split("").map(w=>w.charCodeAt(0))]:0])].flat(5));
         this.setMeta("pn__", playerdata);
+        const pens = ["random", "skip", "lose"];
+        const styles = ["per turn", "chess"];
+        const scoring = ["elim", "tile", "piece"];
+        const rulz = Buffer.from([
+            (this.rules.turnTime.limit?
+                [1,
+                    pens.indexOf(this.rules.turnTime.penalty),
+                    styles.indexOf(this.rules.turnTime.style),
+                    this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
+                ]
+                :[0]
+            ),
+            (this.rules.scoring?.style?
+                [1,
+                    scoring.indexOf(this.rules.scoring.style)
+                    // this.state.scores.length,
+                    // this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                ]:[0]
+            )
+        ].flat(5));
+        this.setMeta("rlz_", rulz);
     }
     /**
      * @param {number} tile
      * @param {number} player
+     * @param {boolean} _suppress_replay_events
      * @returns {{win:boolean,turn:number}}
      */
-    move(tile, player) {
+    move(tile, player, _suppress_replay_events) {
         this.firstTurn = false;
         const adds = [tile];
         const p = this.players[player];
         const tb = this.state.teamboard;
         const bb = this.state.board;
+        this.state.owned_pieces[p.team] ++;
         // const w = this.state.cols;
         // const h = this.state.rows;
         // const tcol = tile % w;
         // const trow = (tile-tcol)/w;
         // onMove(this, trow, tcol, player);
         // console.log("move recorded");
-        onMove(this, tile, player);
+        if (!_suppress_replay_events)onMove(this, tile, player);
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
+                if (tb[t]>0) this.state.owned_pieces[tb[t]] -= bb[t];
+                this.state.owned_pieces[p.team] += bb[t];
                 this.state.owned[tb[t]] --;
+                this.state.owned[p.team] ++;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
+                    // console.log({owned:this.state.owned,t,tb:tb[t],pt:p.team});
+                    // console.log({owned:this.state.owned,bb,tb,t});
+                    // console.log(this.players.map((v,i)=>v?{t:v.team,n:i,a:v.alive}:{}))
                     // console.log("team eliminated");
-                    this.players.forEach((v, i) => {if(v&&v.team===tb[t]){onPlayerRemoved(this, i);v.alive=false;}});
+                    this.players.forEach((v, i) => {if(v&&v.team===tb[t]){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
                     if (tb[t] === 0) {
-                        this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){onPlayerRemoved(this, i);v.alive=false;}});
+                        this.players.forEach((v, i) => {if(v&&v.alive&&this.state.owned[v.team]===0){if(!_suppress_replay_events)onPlayerRemoved(this, i);v.alive=false;}});
                     }
                 }
-                this.state.owned[p.team] ++;
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
+                    this.updateScores();
                     // console.log("win returned");
                     return {win:true,turn:-1};
                 }
@@ -456,7 +547,32 @@ class Game {
                 adds.push(...neighbors);
             }
         }
+        this.updateScores();
         return this.nextPlayer();
+    }
+    updateScores() {
+        const style = this.rules.scoring?.style ?? "elim";
+        for (let i = 1; i < this.state.scores.length; i ++) {
+            switch (style) {
+                case "elim": {
+                    if (this.state.owned[0] === 0 && this.state.owned[i] === 0 && this.state.scores[i] === null) {
+                        if (!this.state.elim_scores[i]) {
+                            this.state.elim_scores[i] = this.state.elim_score --;
+                        }
+                        this.state.scores[i] = this.state.elim_scores[i];
+                    }
+                    break;
+                }
+                case "tile": {
+                    this.state.scores[i] += this.state.owned[i];
+                    break;
+                }
+                case "piece": {
+                    this.state.scores[i] += this.state.owned_pieces[i];
+                    break;
+                }
+            }
+        }
     }
     nextPlayer() {
         let i = this.state.turn;
@@ -465,13 +581,16 @@ class Game {
         // console.log(this.players);
         while (true) {
             i += 1;
+            // let str = `I0: ${i}`;
             i = i % this.players.length;
+            // console.log(`${str}, I1: ${i}`);
             if (i === this.state.turn) {
                 return {win:true,turn:-1};
             }
             // if (this.players[i] !== null && (this.state.owned[0]||this.state.owned[this.players[i].team])) {
             // console.log(`I: ${i}`);
-            // console.log(this.players[i]);
+            // const p = this.players[i];
+            // console.log(p?{team:p.team,alive:p.alive,i}:null);
             if (this.players[i] !== null && this.players[i].alive) {
                 this.state.turn = i;
                 break;
@@ -599,8 +718,100 @@ class Game {
             }
         }
     }
+    /**
+     * @param {string} target
+     * @returns {{}}
+     */
+    generateSync(target) {
+        const payload = {};
+        switch (target) {
+            case "score": {
+                for (let i = 0; i < this.state.scores.length; i ++) {
+                    const k = `TEAM.${i}.score`;
+                    payload[k] = this.state.scores[i];
+                }
+                break;
+            }
+            case "time": {
+                for (let i = 0; i < this.players.length; i ++) {
+                    if (this.players[i]) {
+                        const k = `PLAYER.${i}.time_left`;
+                        if (this.players[i].time_left ?? null !== null) {
+                            payload[k] = this.players[i].time_left;
+                        } else if (this.players[i].res_time ?? null !== null) {
+                            payload[k] = Math.ceil(this.players[i].res_time/1000);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        return payload;
+    }
+}
+/**
+ * @param {Record<number,Buffer>} table
+ * @param {string} key
+ * @param {Buffer} value
+ * @returns {void}
+ */
+function setMetatableEntry(table, key, value) {
+    const globi = key.indexOf("_");
+    if (globi !== -1) {
+        let c = 0;
+        const s = key.slice(0, globi);
+        // console.log(`globi: ${globi}, s: ${s}`);
+        for (let i = 0, l = value.length; i < l; i += 0xffff) {
+            const k = s+(c.toString(36).padStart(4-globi,'0'));
+            // console.log(`key: ${k}`);
+            setMetatableEntry(table, k, value.subarray(i, Math.min(i+0xffff,l)));
+        }
+        return;
+    }
+    let k = key.charCodeAt(0)<<24;
+    // console.log(k);
+    k |= key.charCodeAt(1)<<16;
+    // console.log(k);
+    k |= key.charCodeAt(2)<<8;
+    // console.log(k);
+    k |= key.charCodeAt(3);
+    // console.log(k);
+    table[k] = value;
+}
+/**
+ * @param {Record<number,Buffer>} table
+ * @param {string} key
+ * @returns {Buffer}
+ */
+function getMetatableEntry(table, key) {
+    const globi = key.indexOf("_");
+    if (globi !== -1) {
+        let c = 0;
+        const bufs = [];
+        const s = key.slice(0, globi);
+        // console.log(`globi: ${globi}, s: ${s}`);
+        for (; c < 36; c ++) {
+            const v = getMetatableEntry(table, s+(c.toString(36).padStart(4-globi,'0')));
+            if (!v) {
+                break;
+            }
+            bufs.push(v);
+        }
+        return Buffer.concat(bufs);
+    }
+    let k = key.charCodeAt(0)<<24;
+    // console.log(k);
+    k |= key.charCodeAt(1)<<16;
+    // console.log(k);
+    k |= key.charCodeAt(2)<<8;
+    // console.log(k);
+    k |= key.charCodeAt(3);
+    // console.log(k);
+    return table[k];
 }
 exports.Game = Game;
+exports.setMetatableEntry = setMetatableEntry;
+exports.getMetatableEntry = getMetatableEntry;
 
 /**
  * @typedef HostingSettings
@@ -895,6 +1106,31 @@ class NetData {
             return this.Misc("teamcols", {c:colors});
         }
     }
+    /**
+     * @param {Game} game
+     * @param {string} target
+     * @returns {string}
+     */
+    static Sync(game, target) {
+        return this.Misc("sync", game.generateSync(target));
+    }
+    static ResJoin = class {
+        /**
+         * @param {string} type
+         * @param {Record<string,any>?} data
+         * @returns {string}
+         */
+        static Misc(type, data) {
+            return NetData.Misc(`resjoin:${type}`, data);
+        }
+        /**
+         * @param {Game} game
+         * @returns {string}
+         */
+        static Available(game) {
+            return this.Misc("available", {p:game.players.map((v,i)=>((!v)||v.is_bot||v.conn)?null:{n:i,a:v.accId,t:v.team}).filter(v=>v!==null)});
+        }
+    }
     static Game = class {
         /**
          * @param {string} type
@@ -968,9 +1204,9 @@ class NetData {
          * @returns {string}
          */
         static JList(game) {
-            const players = game.players.map((v, i) => v ? [i, v.team, v.accId] : null).filter(v => v !== null);
+            const players = game.players.map((v, i) => (v && (v.conn || v.is_bot)) ? [i, v.team, v.accId] : null).filter(v => v !== null);
             const spectators = Object.keys(game.spectators).map(v => [v, game.spectators[v].accId]);
-            return this.Misc("jlist", {p:players,s:spectators});
+            return this.Misc("jlist", {p:players,s:spectators,ts:game.state.scores});
         }
         /**
          * @returns {string}
@@ -1184,6 +1420,56 @@ function clear(tag) {
         }
     }
 }
+/**
+ * @param {string} tag
+ * @returns {boolean}
+ */
+function tag_inuse(tag) {
+    for (const name in EventRegistry) {
+        if (EventRegistry[name].some(v=>v.tag===tag)) {
+            return true;
+        }
+    }
+    return false;
+}
+/**
+ * @typedef EvSysProfile
+ * @type {({'':0} & Record<string,[[string,number]])|({'':string|null} & Record<string,[number,string[]]>)}
+ */
+/**
+ * returns information about the subscribing tag, if tag is not provided
+ * returns information about the event system as a whole
+ * if tag is a truthy value, returns data about that tag
+ * if tag is null, returns the total registered handlers and the set of tags used to register them
+ * if tag is falsey and not null, returns a seperate count for each tag
+ * @param {string?} tag
+ * @returns {EvSysProfile}
+ */
+function profile_events(tag) {
+    const profile = {};
+    profile[""] = tag;
+    if (tag) {
+        for (const name in EventRegistry) {
+            const l = EventRegistry[name];
+            profile[name] = [[tag, l.reduce((pv,cv)=>pv+(cv.tag===tag?1:0),0)]];
+        }
+    } else {
+        if (tag === null) {
+            for (const name in EventRegistry) {
+                const l = EventRegistry[name];
+                profile[name] = [l.length,[...new Set(l)]];
+            }
+        } else {
+            for (const name in EventRegistry) {
+                const l = EventRegistry[name];
+                const o = {};
+                l.forEach(v => {o[v.tag]=(o[v.tag]??0)+1});
+                profile[name] = Object.entries(o);
+            }
+        }
+    }
+    return profile;
+}
 
 class Random {
     /**
@@ -1363,6 +1649,18 @@ function assembleByte(bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0) {
     return [bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0].reduce((pv, cv, ci) => pv | ((cv?1:0)<<(7-ci)),0);
 }
 
+/**
+ * @param {number[]} b
+ * @returns {number}
+ */
+function fromBytes(b, _) {
+    let acc = 0n;
+    for (let i = b.length-1; i >= 0; i --) {
+        acc |= BigInt(b[i])<<BigInt(8*(b.length-i-1));
+    }
+    return Number(acc);
+}
+
 exports.__dname = __dname;
 exports.extend = extend;
 exports.assembleByte = assembleByte;
@@ -1372,7 +1670,10 @@ exports.logStamp = logStamp;
 exports.emit = emit;
 exports.on = on;
 exports.clear = clear;
+exports.tag_inuse = tag_inuse;
+exports.profile_events = profile_events;
 exports.nbytes = nbytes;
+exports.fromBytes = fromBytes;
 exports.validateJSONScheme = validateJSONScheme;
 this.JSONScheme = undefined;
 exports.JSONScheme = this.JSONScheme;

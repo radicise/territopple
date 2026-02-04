@@ -17,7 +17,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 emit("game:turn", {n:res.turn});
             }
         } else {
-            state.game.removePlayer(state.playerNum);
+            if (state.game.res) {
+                state.game.players[state.playerNum].conn = null;
+            } else {
+                state.game.removePlayer(state.playerNum);
+            }
         }
         emit("player:leave", {n:state.playerNum});
         if (args.isHost??false) {

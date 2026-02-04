@@ -20,7 +20,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Config(g), () => {
             // sock.send(NetData.Bin.Board(state.game), {"binary":true});
         });
-        sock.send(NetData.Game.Rules(g));
+        sock.send(NetData.Game.Rules(g), () => {
+            if (args.res) {
+                sock.send(NetData.Sync(g, "score"));
+            }
+        });
         // sock.send(Buffer.of(10,10), {"binary":true});
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {
@@ -141,8 +145,19 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 break;
             case "waiting:start":
                 if (state.isHost) {
-                    onGameStarted(state.game, 0, state.game.players.slice(1).map(v => v?v.team:0));
+                    if (!args.res) {
+                        onGameStarted(state.game, 0, state.game.players.slice(1).map(v => v?v.team:0));
+                    } else {
+                        for (let i = 1; i < state.game.players.length; i ++) {
+                            if (!state.game.players[i]?.conn) {
+                                state.game.players[i] = null;
+                            }
+                        }
+                    }
                     state.game.start();
+                    if (args.res) {
+                        state.game.setMeta("pn__", args.res);
+                    }
                     emit("?phase");
                     emit("waiting:start");
                 }

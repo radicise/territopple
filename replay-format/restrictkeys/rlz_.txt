@@ -3,6 +3,7 @@ use version as specified by fmt_, version is 0 if fmt_ is undefined
 version 0:
 LET _STYLES = ["per turn","chess"]
 LET _PENALTIES = ["random", "skip", "lose"]
+LET _SCORING = ["elim", "tile", "piece"]
 IF (game.rules HAS turnTime) {
     BYTE 1
     BYTE _PENALTIES.indexOf(.turnTime.penalty)
@@ -12,6 +13,7 @@ IF (game.rules HAS turnTime) {
             BYTE[4] .turnTime.limit IN seconds
         }
         CASE "chess" {
+            BYTE[4] original limit IN seconds
             FOR EACH player IN game.players {
                 IF (player IS null) {
                     BYTE[4] 0
@@ -23,4 +25,12 @@ IF (game.rules HAS turnTime) {
     }
 } ELSE {
     BYTE 0
+}
+IF (game.rules HAS scoring) {
+    BYTE 1
+    BYTE _SCORING.indexOf(.scoring.style)
+    BYTE player team count
+    FOR EACH player team {
+        BYTE[6] team score
+    }
 }

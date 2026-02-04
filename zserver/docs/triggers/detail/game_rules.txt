@@ -1,0 +1,5 @@
+this file documents the "game:rules" server->client event. the full list of events can be found in "../game-client_events.txt".
+
+the game:rules payload contains the following fields:
+
+turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"}

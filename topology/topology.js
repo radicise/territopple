@@ -532,6 +532,7 @@ export function makeTopology(params) {
             return new TBWrap2D({width:params.x,height:params.y});
         }
         default:{
+            console.log(params.type);
             throw new ValueError("unkown topology type identifier");
         }
     }

@@ -87,6 +87,7 @@
                     <th scope="col">Local Id</th>
                     <th scope="col">Role</th>
                     <th scope="col">Time</th>
+                    <th scope="col">Score</th>
                     <!-- column for buttons to kick/promote -->
                     <th scope="col">Actions</th>
                 </thead>
@@ -116,6 +117,19 @@
                 Team 5: <input type="color" id="tcm-5"><br>
                 Team 6: <input type="color" id="tcm-6"><br>
                 <input type="button" id="tcm-apply" value="apply"><input type="button" id="tcm-cancel" value="cancel"><input type="button" id="tcm-reset" value="reset to defaults">
+            </div>
+        </div>
+        <div id="stpl-modal" class="modal" style="background: white;" hidden>
+            <div>
+                Pick a .stpl file: <input type="file" accept=".stpl">.<br>
+                <input type="button" value="upload"><input type="button" value="cancel" onclick="location.href='/play-online'">
+            </div>
+        </div>
+        <div id="resjsel-modal" class="modal" style="background: white;" hidden>
+            <div>
+                Pick a player to play as:<br>
+                <input type="button" value="cancel" onclick="location.href='/play-online'">
+                <div></div>
             </div>
         </div>
 		<!-- <div id="gameboard" class="container m1"></div> -->

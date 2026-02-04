@@ -18,3 +18,8 @@ The game implementation exists a clients-and-server system accessible as a web p
 The webpages are to be hosted by HTTP, and the rest of the server is written for Node.js.
 To run the server, run 'npm run start' with the working directory being the root of the repository with the '/www' directory hosted as the root directory of an HTTP server.
 Connecting clients may then open '/index.html' on a modern web browser and play the game.
+
+# Documentation
+All server documentation can be found in the `/zserver/docs` directory. All replay format documentation can be found in the `/replay-format` directory. Puzzle documentation can be found in the `/puzzles/format.txt` file. TerriTopple Virtual Machine documentation can be found in the `/ttvm` directory.  
+The `/protocol.txt` file is incomplete and outdated.  
+High level documentation on '.topl', '.stpl', '.ctpl', and '.ttpl' files can be found in the `/replay-format/variant-notes.txt` file.

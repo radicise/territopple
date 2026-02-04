@@ -34,17 +34,21 @@ GAME TO CLIENT:
     game:
         roomid (g [room id]: string)
         config (c [tile count]: number, t [topology]: number, d [necessary dimensions (see Topology class)]: Record<string,number>, p [max players]: number, l [host player num]: number, tc [team colors]: number[] | null)
-        jlist (p [player list]: [number [player num], number [team id], string | null [account id]][], s [spectator list]: [string, string | null [account id]][])
+        jlist (p [player list]: [number [player num], number [team id], string | null [account id]][], s [spectator list]: [string, string | null [account id]][], ts [team scores]: (number|null)[])
         turn (n [player num]: number, t [do timer]: boolean)
         move (n [tile num]: number, t [team id]: number)
         win (t [team id]: number, d [download available]: boolean)
         reconnected ()
-        rules (turnTime: {style:"per turn"|"chess",limit:number|null,penalty:"random"|"skip"})
+        rules (...) see "./detail/game_rules.txt"
         timeup (n [player num]: number)
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
-        pause (t [time left]: number[])
+        pause (t [time left]: number)
         resume ()
+    resjoin:
+        select: ()
+        available: (p [player data]: {n [pnum]:number, a [accid]: string|null, t [team]: number}[])
     ping: (kind: string | null)
+    sync: (...) see "./detail/sync.txt"
 
 BINARY GAME TO CLIENT:
     0:
@@ -80,4 +84,6 @@ CLIENT TO GAME:
         kick (n [player num | spectator id]: number | string, infer spectator: boolean [typeof n === 'string'])
         pause ()
         resume ()
+    resjoin:
+        select: (n [pnum]: number)
     ping: (n [player num]: number, kind: string | null)

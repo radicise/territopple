@@ -174,6 +174,7 @@
                                 <option value="1" selected>Per Turn</option>
                                 <option value="2">Chess</option>
                             </select>
+                            <br>
                             <!-- <div> -->
                                 <label for="room-rules-timers-penalty">Penalty: </label>
                                 <select id="room-rules-timers-penalty">
@@ -213,6 +214,14 @@
                                 const room_rules_timers_limit_seconds = document.getElementById("room-rules-timers-limit-seconds");
                             </script>
                         </div>
+                        <div class="form-row">
+                            <label for="room-rules-scoring">Scoring Rules: </label>
+                            <select id="room-rules-scoring">
+                                <option value="elim" selected>Elimination</option>
+                                <option value="tile">Tiles</option>
+                                <option value="piece">Pieces</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -221,14 +230,47 @@
             </form>
         </div>
         <div class="action-box">
-            <form action="territopple" method="get">
+            <h2 class="action-title">Resume a Game</h2>
+            <input type="button" value="Resume Game" onclick="location.href='/territopple?t=1&res=1'">
+        </div>
+        <div class="action-box">
+            <form action="territopple" method="get" id="join-form">
                 <h2 class="action-title">Join a Room</h2>
                 <input type="hidden" name="port" value="80">
                 <input type="hidden" name="t" value="0">
+                <input type="hidden" name="res" value="0" id="private-join-res">
                 <div class="form-row">
                     <label for="private-join-g">Room ID:</label>
                     <input name="g" id="private-join-g">
                     <input type="submit" value="Join">
+                    <script>
+                        {
+                            let allowsubmit = false;
+                            document.getElementById("join-form").addEventListener("submit", (ev) => {
+                                if (!allowsubmit) {
+                                    ev.preventDefault();
+                                    preJoin();
+                                    return false;
+                                } else {
+                                    allowsubmit = false;
+                                }
+                            });
+                            function preJoin() {
+                                fetch(`https://${document.location.hostname}/d/isres?id=${document.getElementById("private-join-g").value}`).then(v => {
+                                    if (v.ok) {
+                                        v.text().then(j => {
+                                            const res = document.getElementById("private-join-res");
+                                            if (j === "1") {
+                                                res.value = "1";
+                                            }
+                                            allowsubmit = true;
+                                            document.getElementById("join-form").submit();
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    </script>
                 </div>
             </form>
         </div>
@@ -262,6 +304,8 @@
                 document.querySelector(".dimensions.show").classList.remove("show");
                 dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
             }
+            /**@type {HTMLSelectElement} */
+            const rules_scoring_sel = document.getElementById("room-rules-scoring");
             function preSubmit() {
                 /**@type {HTMLFormElement} */
                 const form = document.getElementById("create-form");
@@ -278,7 +322,7 @@
                     }
                 }
                 diminput.value = list.join(",");
-                let game_rules = {turnTime:{limit:null,style:"per turn",penalty:"random"}};
+                let game_rules = {turnTime:{limit:null,style:"per turn",penalty:"random"},scoring:{style:rules_scoring_sel.value}};
                 if (!room_rules_timers_enable.checked) {
                     delete game_rules["turnTime"];
                 } else {

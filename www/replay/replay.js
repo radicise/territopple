@@ -3,8 +3,8 @@ document.getElementById("pingbutton").disabled = true;
 document.getElementById("pingbutton").value = "back";
 /**@type {typeof import("../topology/topology.js")} */
 const topology = await import("topology/topology.js");
-/**@type {typeof import("../../www/replay/parsers.js")} */
-const parser = await import("./parsers.js");
+/**@type {typeof import("../../www/replay/parsers.mjs")} */
+const parser = await import("./parsers.mjs");
 const TEAM_COUNT = 7;
 
 /**@type {HTMLInputElement} */
@@ -116,7 +116,8 @@ class Replayer {
             {
                 const clist = [];
                 for (let i = 0; i < 10; i ++) {
-                    const ind = 1668246528|(48+i);
+                    // const ind = 1668246528|(48+i);
+                    const ind = `col${i}`;
                     if (this.parser.header.metatable[ind]) {
                         const cols = this.parser.header.metatable[ind];
                         for (let j = 0; j < cols.length; j += 3) {

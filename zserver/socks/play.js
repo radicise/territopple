@@ -2,8 +2,10 @@ const { NetPayload, NetData, Random, settings } = require("../../defs.js");
 const { onRecordReplay, onPlayerRemoved } = require("../../replayHooks.js");
 const { SocketHandler } = require("../types.js");
 
+const plugins = ["stpl"];
+
 /**@type {SocketHandler} */
-const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
+const handler = (sock, globals, {change, emit, onall, on, activateplug, invokeplug}, args, state) => {
     let messageL;
     let closeL;
     let errorL;
@@ -95,10 +97,13 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         change("error", {data:"Room closed for export",redirect:"/play-online",store:"Room closed for export"});
     });
     onall("game:pause", () => {
-        sock.send(NetData.Game.Pause(state.game.players.map(v=>(v??{})[state.game.rules.turnTime.style==="chess"?"time_left":"res_time"]??0)));
+        sock.send(NetData.Game.Pause((state.game.players[state.game.state.turn]??{})[state.game.rules.turnTime.style==="chess"?"time_left":"res_time"]??0));
     });
     onall("game:resume", () => {
         sock.send(NetData.Game.Resume());
+    });
+    onall("sync", (data) => {
+        sock.send(NetData.Sync(state.game, data["t"]));
     });
     // on("spectator:leave", (data) => {
     //     sock.send(NetData.Spectator.Leave(data["n"]));
@@ -122,6 +127,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 if (state.isHost) {
                     state.game.pauseTimers();
                     emit("game:pause");
+                    emit("sync", {t:"time"});
                 }
                 break;
             }
@@ -134,11 +140,20 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             }
             case "game:export":{
                 if (state.isHost) {
+                    if (state.game.state.state !== 1) {
+                        sock.send(NetData.Bin.Replay(state.game));
+                        break;
+                    }
                     state.game.stopTimers();
                     state.game.addExportMeta();
+                    activateplug("stpl");
+                    invokeplug("stpl", "suspend");
                     onRecordReplay(state.game, {suppress_write:true});
                     state.game.__ended = state.game.buffer.length;
                     sock.send(NetData.Bin.Export(state.game));
+                    emit("game:export");
+                    state.game.stats.playing = 0;
+                    emit("?checkalive");
                 }
                 break;
             }
@@ -161,7 +176,16 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                         state.game.__ended = state.game.buffer.length;
                         state.game.state.state = 2;
                         emit("?phase");
-                        emit("game:win", {t:state.game.players[state.playerNum].team,d:settings.REPLAYS.ENABLED});
+                        let t = state.game.players[state.playerNum].team;
+                        if ((state.game.rules.scoring?.style??"elim") !== "elim") {
+                            const s = state.game.state.scores;
+                            for (let i = 1; i < s.length; i ++) {
+                                if (s[i] > s[t]) {
+                                    t = i;
+                                }
+                            }
+                        }
+                        emit("game:win", {t,d:settings.REPLAYS.ENABLED});
                     } else {
                         emit("game:turn", {n:res.turn});
                     }
@@ -179,3 +203,4 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
 };
 
 exports.handler = handler;
+exports.plugins = plugins;
