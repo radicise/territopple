@@ -1,0 +1,72 @@
+this file documents the lifecycle of Game objects on the server.
+
+Pre-Initialization Tasks:
+- obtain identifier from the data server
+- obtain player count, topology, public, spectators allowed from user
+
+Initialization Tasks:
+- construct game object
+ - provide identifier
+ - provide player count
+ - provide topology
+ - provide public
+ - provide spectators allowed
+
+- add game object to worker registry
+ - associate the game object with its identifier
+
+- add game data to data server registry
+ - associate the identifier with topology, players, public, spectators allowed, worker id
+
+Waiting Phase Tasks:
+- add/remove players
+
+- add/remove spectators
+
+Play Phase Transition Tasks:
+- emit the "?phase" event
+
+- ensure that the replay buffer is in an acceptable state
+
+Play Phase Tasks:
+- do moves
+
+- record moves in replay buffer
+
+Pause Phase Transition Tasks:
+- stop all turn timers and remember what they were
+
+- sync turn timers with clients
+
+Resume Transition Tasks:
+- resume turn timers
+
+Completed Phase Transition Tasks:
+- set game state to 2
+
+- alert clients of winner
+
+- emit the "?phase" event
+
+Export Transition Tasks:
+- activate the "stpl" plugin and invoke the "pause" function
+
+- send the export file to the client
+
+- set playing statistic to zero
+
+- emit the "?checkalive" event to trigger termination
+
+Import Transition Tasks:
+- perform Pre-Initialization Tasks and Initialization Tasks
+
+- replay the events in the export file
+
+Termination Tasks:
+- emit the "@deactivate" event to notify attached plugins
+
+- notify all clients and terminate all sockets
+
+- notify data server of game termination
+
+- remove the game object from the registry
