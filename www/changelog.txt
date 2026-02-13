@@ -1,3 +1,6 @@
+# Feb 13, 2026 (DEV20261cY0)
+allowed spectators to host rooms
+
 # Feb 4, 2026 (Alpha 1.8.0)
 FEATURE: added ability to resume an exported game
 FEATURE: added new scoring rules
