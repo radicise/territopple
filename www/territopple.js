@@ -131,6 +131,9 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
             const allow_spectators = queries.get("s") ?? "1";
             serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
         }
+        if (queries.get("S") === "1") {
+            serv += "&S=1";
+        }
     } else {
         gameid = queries.get("g") ?? "g";
         serv = `wss://${host}/?t=${t}&g=${gameid}&res=${res??"0"}`;

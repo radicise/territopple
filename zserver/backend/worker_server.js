@@ -295,7 +295,7 @@ process.once("message", (id) => {
                                 gameid = data;
                                 try {
                                     // console.log("handling");
-                                    socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc}, state);
+                                    socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc, "asspec":url.searchParams.get("S")==="1"}, state);
                                 } catch (E) {
                                     if (E instanceof HandlerInvocationError) {
                                         if (LOGGING) addLog(WCRASH, `${new Date()} - HIE: ${E.message}\n${E.stack}\n`);
