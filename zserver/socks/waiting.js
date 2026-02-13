@@ -121,14 +121,6 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
-        if (state.spectating) {
-            switch (data.type) {
-                case "waiting:leave":
-                    change("leave");
-                    break;
-            }
-            return;
-        }
         switch (data.type) {
             // case "waiting:setready":
             //     emit("waiting:setready", {n:state.playerNum,r:data.payload["r"]});
@@ -182,23 +174,23 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     emit("waiting:teamcols", {c:data.payload["c"]});
                 }
                 break;
-            case "player:spectate":
-                state.spectating = true;
-                state.spectatorId = state.game.addSpectator(sock);
-                state.game.removePlayer(state.playerNum);
-                emit("player:spectate", {n:state.playerNum, id:state.spectatorId});
-                delete state["playerNum"];
-                if (state.isHost) {
-                    state.isHost = false;
-                    emit("waiting:need-promote");
-                }
-                // on(`#META:${state.tag}`, (data) => {
-                //     state.spectating = true;
-                //     state.spectatorId = data["#id"];
-                //     delete state["playerNum"];
-                //     change("spectating");
-                // });
-                break;
+            // case "player:spectate":
+            //     state.spectating = true;
+            //     state.spectatorId = state.game.addSpectator(sock);
+            //     state.game.removePlayer(state.playerNum);
+            //     emit("player:spectate", {n:state.playerNum, id:state.spectatorId});
+            //     delete state["playerNum"];
+            //     if (state.isHost) {
+            //         state.isHost = false;
+            //         emit("waiting:need-promote");
+            //     }
+            //     // on(`#META:${state.tag}`, (data) => {
+            //     //     state.spectating = true;
+            //     //     state.spectatorId = data["#id"];
+            //     //     delete state["playerNum"];
+            //     //     change("spectating");
+            //     // });
+            //     break;
             case "ping":{
                 emit("ping", {n:data.payload.n,kind:data.payload.kind});
                 break;
