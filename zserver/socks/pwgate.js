@@ -12,10 +12,10 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     const pw = globals.state.games[args["id"]]?.password;
-    console.log(args["id"]);
-    console.log(pw);
+    // console.log(args["id"]);
+    // console.log(pw);
     if (typeof pw !== "string") {
-        console.log("NO PASS");
+        // console.log("NO PASS");
         change(args["to"], args);
         return;
     }
@@ -25,7 +25,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         if (data.type === "game:password") {
             console.log(`${data.payload['pw']} = ${pw}?`);
             if (data.payload["pw"] === pw) {
-                console.log("GOOD");
+                // console.log("GOOD");
                 change(args["to"], args);
                 return;
             } else {
