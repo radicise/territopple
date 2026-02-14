@@ -321,17 +321,18 @@ process.once("message", (id) => {
                                 res.on("end", () => {
                                     const b = Buffer.from(data, "base64url");
                                     if (check_permission(b.readUInt32BE(1), Permissions.MANAGE_EVENTS)) {
-                                        r(sid);
+                                        r(true);
                                     } else {
-                                        r("@@@@@");
+                                        r(false);
                                     }
                                 });
                             });
                         });
                     } else {
-                        sidprom = Promise.resolve("@@@@@");
+                        sidprom = Promise.resolve(false);
                     }
-                    http.request(`http://localhost:${settings.INTERNALPORT}/room-id?sid=${await sidprom}`, {method:"GET"}, (res) => {
+                    console.log(await sidprom);
+                    http.request(`http://localhost:${settings.INTERNALPORT}/room-id?sid=${(await sidprom)?sid:"@@@@@"}`, {method:"GET"}, (res) => {
                         let data = "";
                         res.on("data", (chunk) => {data += chunk;});
                         res.on("end", () => {
