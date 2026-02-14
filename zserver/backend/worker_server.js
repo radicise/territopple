@@ -309,6 +309,7 @@ process.once("message", (id) => {
                 wss.handleUpgrade(req, socket, [], async (sock) => {
                     startPings(sock);
                     const sid = url.searchParams.get("sid");
+                    console.log(url.toString());
                     console.log(sid);
                     console.log(typeof sid);
                     if (typeof sid === "string")console.log((/^[a-zA-Z0-9]{5}$/.test(sid)));
