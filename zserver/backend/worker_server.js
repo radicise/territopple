@@ -309,41 +309,43 @@ process.once("message", (id) => {
                 wss.handleUpgrade(req, socket, [], async (sock) => {
                     startPings(sock);
                     const sid = url.searchParams.get("sid");
-                    console.log(url.toString());
-                    console.log(sid);
-                    console.log(typeof sid);
+                    // console.log(url.toString());
+                    // console.log(sid);
+                    // console.log(typeof sid);
                     if (typeof sid === "string")console.log((/^[a-zA-Z0-9]{5}$/.test(sid)));
                     let sidprom;
                     if (typeof sid === "string" && (/^[a-zA-Z0-9]{5}$/.test(sid))) {
                         if (accpres) {
                             await accPromise;
                         }
-                        console.log(acc);
+                        // console.log(acc);
                         sidprom = new Promise(r => {
                             http.request(`http://localhost:${settings.AUTHINTERNALPORT}/perms?id=${sessid}`, {method:"GET"}, (res) => {
                                 let data = "";
                                 res.on("data", (chunk) => {data += chunk;});
                                 res.on("end", () => {
                                     if (res.statusCode !== 200) {
-                                        console.log(res.statusCode);
-                                        console.log(data);
+                                        // console.log(res.statusCode);
+                                        // console.log(data);
                                         r(false);
                                         return;
                                     }
                                     const b = Buffer.from(data, "base64url");
-                                    console.log(b);
+                                    // console.log(b);
                                     if (check_permission(b.readUInt32BE(1), Permissions.MANAGE_EVENTS)) {
                                         r(true);
                                     } else {
                                         r(false);
                                     }
                                 });
-                            }).once("error", (e) => {console.log(e);}).end();
+                            })
+                            // .once("error", (e) => {console.log(e);})
+                            .end();
                         });
                     } else {
                         sidprom = Promise.resolve(false);
                     }
-                    console.log(await sidprom);
+                    // console.log(await sidprom);
                     http.request(`http://localhost:${settings.INTERNALPORT}/room-id?sid=${(await sidprom)?sid:"@@@@@"}`, {method:"GET"}, (res) => {
                         let data = "";
                         res.on("data", (chunk) => {data += chunk;});

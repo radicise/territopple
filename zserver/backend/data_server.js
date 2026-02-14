@@ -292,6 +292,7 @@ function generateRoomCode(sid) {
         for (let i = 1; i < 4; i ++) {
             code += codeChars[codeArr[settings.ROOM_CODE_LENGTH - i] % codeChars.length];
         }
+        code += sid;
         if (code in gameInfo) {
             throw new PerformanceError("room code generation (SID)");
         }
