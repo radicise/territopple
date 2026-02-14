@@ -262,7 +262,7 @@ async function processPubFetch(req, res, url, log) {
         }
         case "/perms": {
             if (!self) {
-                res.writeHead(403).end("can only see own sanctions");
+                res.writeHead(403).end("can only see own perms");
                 return;
             }
             try {
