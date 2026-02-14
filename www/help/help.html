@@ -21,6 +21,8 @@
         <input type="button" value="home" onclick="location.href='/'">
         <h1>Contents</h1>
         <a href="#quick-start">Quick Start</a><br>
+        <a href="#rules">Rules</a><br>
+        <a href="#rules-scoring" class="subheading-link">Scoring Options</a><br>
         <a href="#reference">Reference</a><br>
         <a href="#reference-topology" class="subheading-link">Topology</a><br>
         <a href="#reference-bro" class="subheading-link">Board Rendering Options</a><br>
@@ -46,6 +48,17 @@
             If the number of pieces on a tile exceeds the number of neighbors that tile has, the tile will topple. Toppling resets a tile to having one piece, and adds a piece to each of its neighbors. This can cause chain reactions.<br>
             Any tile that is toppled onto will become owned by the team that just played their move.<br>
             Toppling is the only way to claim tiles that are already owned by other teams.<br>
+        </p>
+        <h1 id="rules">Rules</h1>
+        <p>This section has a complete set of information about optional rules.</p>
+        <p>
+            <h2 id="rules-scoring">Scoring Options</h2>
+            <h3>Elimination (Default)</h3>
+            This is the default scoring option, and assigns players scores based on when they were eliminated. The last player standing wins.
+            <h3>Tiles</h3>
+            This mode calculates score as the sum of the number of tiles owned by the player after each move.
+            <h3>Pieces</h3>
+            This mode calculates score as the sum of the number of pieces owned by the player after each move.
         </p>
         <h1 id="reference">Reference</h1>
         <p>This section has a more complete set of information about Territopple.</p>

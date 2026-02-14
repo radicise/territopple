@@ -54,7 +54,7 @@ logStamp(IERROR);
 logStamp(EXLOG);
 
 /**
- * @typedef {{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint,dbase:string,dparams:number,phase:"wait"|"play"|"over",res:boolean}} GameInfo
+ * @typedef {{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint,dbase:string,dparams:number,phase:"wait"|"play"|"over",res:boolean,has_pw:boolean}} GameInfo
  */
 
 /**
@@ -73,7 +73,8 @@ const roomCreateScheme = {
     "can_spectate": "boolean",
     "playing": "number",
     "spectating": "number",
-    "res": "boolean"
+    "res": "boolean",
+    "has_pw": "boolean"
 };
 
 let IREQNUM_CNT = 0;
@@ -98,7 +99,7 @@ http.createServer((req, res) => {
             switch (url.pathname) {
                 case "/room-id":{
                     try {
-                        const code = generateRoomCode();
+                        const code = generateRoomCode(url.searchParams.get("sid")??"@@@@@");
                         gameInfo[code] = null;
                         res.writeHead(200);
                         res.end(code);
@@ -277,13 +278,27 @@ const codeArr = new Uint8Array(settings.ROOM_CODE_LENGTH);
 /**
  * generates a room code, the generated code is guaranteed to not already be in use
  * throws a PerformanceError if a code takes too long to be generated
+ * @param {string} sid
  * @throws {PerformanceError}
  * @returns {string}
  */
-function generateRoomCode() {
+function generateRoomCode(sid) {
     let code = "";
     let c = 0;
     const day = Math.floor(Date.now()/86400000)-20358;
+    if (sid && sid !== "@@@@@") {
+        codeArr[settings.ROOM_CODE_LENGTH-1] = (day>>16)&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-2] = (day>>8)&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-3] = day&0xff;
+        for (let i = 1; i < 4; i ++) {
+            code += codeChars[codeArr[settings.ROOM_CODE_LENGTH - i] % codeChars.length];
+        }
+        code += sid;
+        if (code in gameInfo) {
+            throw new PerformanceError("room code generation (SID)");
+        }
+        return code;
+    }
     while (true) {
         if (c > 50) {
             throw new PerformanceError("room code generation");
@@ -431,7 +446,8 @@ function formatServerList(page, filter) {
             dstr:v[1].dstr,
             can_spectate:v[1].can_spectate,
             phase:v[1].phase,
-            res:v[1].res
+            res:v[1].res,
+            pw:v[1].has_pw
         };
     }));
 }

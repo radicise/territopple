@@ -34,7 +34,7 @@ GAME TO CLIENT:
     game:
         roomid (g [room id]: string)
         config (c [tile count]: number, t [topology]: number, d [necessary dimensions (see Topology class)]: Record<string,number>, p [max players]: number, l [host player num]: number, tc [team colors]: number[] | null)
-        jlist (p [player list]: [number [player num], number [team id], string | null [account id]][], s [spectator list]: [string, string | null [account id]][])
+        jlist (p [player list]: [number [player num], number [team id], string | null [account id]][], s [spectator list]: [string, string | null [account id]][], ts [team scores]: (number|null)[])
         turn (n [player num]: number, t [do timer]: boolean)
         move (n [tile num]: number, t [team id]: number)
         win (t [team id]: number, d [download available]: boolean)

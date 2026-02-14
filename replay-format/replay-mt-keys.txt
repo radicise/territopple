@@ -41,3 +41,6 @@ format: "./restrictkeys/rlz_.txt"
 
 b"stpl" (restricted):
 format reserved
+
+b"mbd0"-b"mbdz" (restricted):
+information about other files embedded in this file

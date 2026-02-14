@@ -218,6 +218,10 @@ process.stdin.on("data", (d) => {
                 console.log("MALFORMED");
                 return;
             }
+            if (uparts[1] === "LIST") {
+                console.log(Object.keys(children));
+                return;
+            }
             if (uparts[1] === "SEL") {
                 if (parts.length < 3 || uparts[2] === "NULL") {
                     selChild = null;

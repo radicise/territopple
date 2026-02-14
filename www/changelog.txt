@@ -1,3 +1,27 @@
+# Feb 13, 2026 (DEV20261cY2)
+added password protected rooms
+
+# Feb 13, 2026 (DEV20261cY1)
+allowed event managers to create rooms with set ids
+
+# Feb 13, 2026 (DEV20261cY0)
+allowed spectators to host rooms
+
+# Feb 4, 2026 (Alpha 1.8.0)
+FEATURE: added ability to resume an exported game
+FEATURE: added new scoring rules
+BUG: fixed a bug that caused players to be eliminated inappropriately
+BUG: fixed a bug that created ghost rooms when exporting games
+INFRA: did a lot of backend work on the server
+INFRA: moved to replay file format v6
+
+# Feb 4, 2026 (DEV202613Y0)
+fixed a bug that created ghost rooms when exporting games
+added scoring rules
+
+# Feb 1, 2026 (DEV202610Y0)
+added client side alternate scoring
+
 # Jan 30, 2026 (DEV20260tY0)
 implemented resuming
 fixed an obscure bug that caused players to be eliminated inappropriately

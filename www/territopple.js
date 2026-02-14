@@ -131,6 +131,16 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
             const allow_spectators = queries.get("s") ?? "1";
             serv = `wss://${host}/?t=${t}&s=${allow_spectators}&d=${dims}&p=${players}`;
         }
+        if (queries.get("S") === "1") {
+            serv += "&S=1";
+        }
+        if (queries.get("sid")) {
+            serv += `&sid=${queries.get("sid")}`;
+        }
+        if (sessionStorage.getItem("pw")) {
+            serv += `&pw=${sessionStorage.getItem("pw")}`;
+            sessionStorage.removeItem("pw");
+        }
     } else {
         gameid = queries.get("g") ?? "g";
         serv = `wss://${host}/?t=${t}&g=${gameid}&res=${res??"0"}`;
@@ -211,6 +221,17 @@ const spectating = {};
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
 conn.addEventListener("open", async function(event) {
+    if (sessionStorage.getItem("pw")) {
+        conn.send(JSON.stringify({"type":"game:password","payload":{"pw":sessionStorage.getItem("pw")}}));
+        sessionStorage.removeItem("pw");
+    } else if (queries.get("pw") === "1") {
+        const pwmodal = document.getElementById("roompw-modal");
+        pwmodal.hidden = false;
+        document.getElementById("roompw-btn").onclick = () => {
+            pwmodal.hidden = true;
+            conn.send(JSON.stringify({"type":"game:password","payload":{"pw":document.getElementById("roompw-input").value}}));
+        };
+    }
     if (res==="1") {
         if (t > 0 && t < 3) {
             const stplmodal = document.getElementById("stpl-modal");
@@ -575,12 +596,15 @@ conn.addEventListener("open", async function(event) {
             }
             case "player:join":{
                 game.joinedPlayers ++;
-                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null,accId:null};
+                game.playerList[data.payload["n"]] = {team:data.payload["t"],time:((game.rules?.turnTime?.limit||0)/1000)||null,accId:null,score:null};
                 createBanner({type:"info",content:`Player ${data.payload['n']} has joined`});
                 updScr("status", `${game.joinedPlayers} player(s) present in room, ${game.maxPlayers} players max`);
                 if (ifmt.pln !== data.payload["n"]) addJListPlayer([data.payload["n"], data.payload["t"], null]);
                 if (game.rules?.turnTime?.style === "chess") {
                     setJListTime(data.payload["n"], game.playerList[data.payload["n"]].time);
+                }
+                if ((game.rules?.scoring?.style??"elim") !== "elim") {
+                    setJListScore(data.payload["n"], 0);
                 }
 				break;
             }
@@ -636,9 +660,28 @@ conn.addEventListener("open", async function(event) {
                 break;
             }
             case "sync": {
+                // const need_sync = {scores:false};
                 for (const k in data.payload) {
                     const parts = k.split(".");
                     switch (parts[0]) {
+                        case "TEAM": {
+                            // need_sync.scores = true;
+                            const n = Number(parts[1]);
+                            switch (parts[2]) {
+                                case "score": {
+                                    /**@type {number|null} */
+                                    const s = data.payload[k];
+                                    game.scores[n] = s;
+                                    game.playerList.forEach((v, i) => {
+                                        if (v && v.team === n) {
+                                            setJListScore(i, s);
+                                        }
+                                    });
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case "PLAYER": {
                             const n = Number(parts[1]);
                             switch (parts[2]) {
@@ -735,6 +778,7 @@ conn.addEventListener("open", async function(event) {
                 const pl = data.payload["p"];
                 /**@type {[string,string|null][]} */
                 const sl = data.payload["s"];
+                game.scores = data.payload["ts"];
                 for (const p of pl) {
                     if (ifmt.pln) {
                         if (p[0] === ifmt.pln) continue;
@@ -742,6 +786,7 @@ conn.addEventListener("open", async function(event) {
                     game.joinedPlayers ++;
                     game.playerList[p[0]] = {team:p[1],accId:p[2]};
                     addJListPlayer(p);
+                    setJListScore(p[0], game.scores[p[1]]);
                 }
                 for (const s of sl) {
                     spectating[s[0]] = s[1];

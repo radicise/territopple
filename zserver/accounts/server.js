@@ -260,6 +260,23 @@ async function processPubFetch(req, res, url, log) {
             }
             return;
         }
+        case "/perms": {
+            if (!self) {
+                res.writeHead(403).end("can only see own perms");
+                return;
+            }
+            try {
+                /**@type {AccountRecord} */
+                const v = await collection.findOne({id:target});
+                const t = Date.now();
+                const p = await getEffectivePrivs(v);
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({p}));
+            } catch (E) {
+                console.log(E);
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/info": {
             try {
                 const v = await collection.findOne({id:target});
@@ -1198,6 +1215,10 @@ const internal_server = http.createServer(async (req, res) => {
                 res.writeHead(405).end();
                 return;
             }
+            if (url.searchParams.get("id") === null) {
+                res.writeHead(400).end("NO ID");
+                return;
+            }
             if (url.searchParams.get("id") === "%40guest") {
                 res.writeHead(200).end(Buffer.alloc(6,0).toString("base64url"));
                 return;
@@ -1208,10 +1229,10 @@ const internal_server = http.createServer(async (req, res) => {
                     /**@type {AccountRecord} */
                     const rec = await collection.findOne({id});
                     if (!rec) {
-                        res.writeHead(404).end();
+                        res.writeHead(404).end("ID NOT FOUND");
                         return;
                     }
-                    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+                    const groups = await priv_groups.find({gid:{$in:(rec.priv_groups??[]).filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
                     const effective_priv = (rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0));
                     const buf = Buffer.alloc(6,0);
                     buf[0] = (rec.sanction?.find(v => v.sanction_id===9)?.value??0)<<4;
@@ -1231,7 +1252,7 @@ const internal_server = http.createServer(async (req, res) => {
                     res.writeHead(500).end();
                 }
             } else {
-                res.writeHead(404).end();
+                res.writeHead(404).end("NO SESSION");
             }
             return;
         }
@@ -1249,7 +1270,7 @@ const internal_server = http.createServer(async (req, res) => {
                         res.writeHead(404).end();
                         return;
                     }
-                    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+                    const groups = await priv_groups.find({gid:{$in:(rec.priv_groups??[]).filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
                     res.writeHead(200).end((rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0)).toString());
                 } catch (E) {
                     console.log(E);

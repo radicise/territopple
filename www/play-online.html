@@ -118,7 +118,7 @@
                 <input type="button" value="ok" onclick="document.getElementById('error-popup').hidden=true;">
             </div>
         </div>
-        <a href="/">Home</a><input type="button" value="Resume Game" onclick="location.href='/territopple?t=1&res=1'">
+        <a href="/">Home</a>
         <div class="action-box">
             <form action="territopple" method="get" id="create-form">
                 <input type="hidden" name="port" value="80">
@@ -131,6 +131,11 @@
                             <select name="t" id="room-create-t">
                             <option value="1">Public</option>
                             <option value="2">Private</option>
+                            </select>
+                            <label for="room-create-S">As: </label>
+                            <select name="S" id="room-create-S">
+                                <option value="0">Player</option>
+                                <option value="1">Spectator</option>
                             </select>
                         </div>
                         <div class="form-row">
@@ -174,6 +179,7 @@
                                 <option value="1" selected>Per Turn</option>
                                 <option value="2">Chess</option>
                             </select>
+                            <br>
                             <!-- <div> -->
                                 <label for="room-rules-timers-penalty">Penalty: </label>
                                 <select id="room-rules-timers-penalty">
@@ -213,12 +219,35 @@
                                 const room_rules_timers_limit_seconds = document.getElementById("room-rules-timers-limit-seconds");
                             </script>
                         </div>
+                        <div class="form-row">
+                            <label for="room-rules-scoring">Scoring Rules: </label>
+                            <select id="room-rules-scoring">
+                                <option value="elim" selected>Elimination</option>
+                                <option value="tile">Tiles</option>
+                                <option value="piece">Pieces</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-column">
+                        <h2 class="action-title">Config</h2>
+                        <div class="form-row">
+                            <label for="room-config-pw">Password: </label>
+                            <input type="text" id="room-config-pw" pattern="[a-zA-Z0-9_=]{0,20}">
+                        </div>
+                        <div class="form-row">
+                            <label for="room-config-setid">Room ID: </label>
+                            <input type="text" name="sid" id="room-config-setid" disabled maxlength="5" pattern="([a-zA-Z0-9]{5})|.{0}">
+                        </div>
                     </div>
                 </div>
                 <div class="form-row">
                     <input type="button" value="Create a New Room" onclick="preSubmit();">
                 </div>
             </form>
+        </div>
+        <div class="action-box">
+            <h2 class="action-title">Resume a Game</h2>
+            <input type="button" value="Resume Game" onclick="location.href='/territopple?t=1&res=1'">
         </div>
         <div class="action-box">
             <form action="territopple" method="get" id="join-form">
@@ -228,7 +257,9 @@
                 <input type="hidden" name="res" value="0" id="private-join-res">
                 <div class="form-row">
                     <label for="private-join-g">Room ID:</label>
-                    <input name="g" id="private-join-g">
+                    <input name="g" id="private-join-g"><br>
+                    <label for="private-join-pw">Password:</label>
+                    <input type="text" id="private-join-pw">
                     <input type="submit" value="Join">
                     <script>
                         {
@@ -247,8 +278,12 @@
                                     if (v.ok) {
                                         v.text().then(j => {
                                             const res = document.getElementById("private-join-res");
+                                            const pw = document.getElementById("private-join-pw");
                                             if (j === "1") {
                                                 res.value = "1";
+                                            }
+                                            if (pw.value.length) {
+                                                sessionStorage.setItem("pw", pw.value);
                                             }
                                             allowsubmit = true;
                                             document.getElementById("join-form").submit();
@@ -281,17 +316,51 @@
             </table>
         </div>
         <script>
+            /**@type {HTMLInputElement} */
+            const roomsid = document.getElementById("room-config-setid");
+            fetch(`https://${document.location.hostname}/acc/pub/%40self/perms`, {method:"GET"}).then(res => {
+                if (res.ok) {
+                    res.json().then(v => {
+                        if (v.p&(1<<8)) {
+                            roomsid.disabled = false;
+                            roomsid.onchange = () => {
+                                // if (!roomsid.checkValidity()) {
+                                //     roomsid.setCustomValidity("Room ID must be exactly five alphanumeric characters.");
+                                // }
+                                roomsid.reportValidity();
+                            };
+                        }
+                    });
+                }
+            });
             /**@type {HTMLDivElement} */
             const dimscont = document.getElementById("dimensions-container");
             /**@type {HTMLInputElement} */
             const toptype = document.getElementById("room-create-topology");
             /**@type {HTMLInputElement} */
             const diminput = document.getElementById("room-create-dims");
+            /**@type {HTMLInputElement} */
+            const pwinput = document.getElementById("room-config-pw");
             toptype.onchange = () => {
                 document.querySelector(".dimensions.show").classList.remove("show");
                 dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
             }
+            /**@type {HTMLSelectElement} */
+            const rules_scoring_sel = document.getElementById("room-rules-scoring");
             function preSubmit() {
+                let fail = false;
+                if (!roomsid.validity.valid) {
+                    roomsid.reportValidity();
+                    fail = true;
+                }
+                if (!pwinput.validity.valid) {
+                    pwinput.reportValidity();
+                    fail = true;
+                }
+                if (fail) return;
+                if (pwinput.value.length) {
+                    sessionStorage.setItem("pw", pwinput.value);
+                }
                 /**@type {HTMLFormElement} */
                 const form = document.getElementById("create-form");
                 const list = [toptype.value];
@@ -307,7 +376,7 @@
                     }
                 }
                 diminput.value = list.join(",");
-                let game_rules = {turnTime:{limit:null,style:"per turn",penalty:"random"}};
+                let game_rules = {turnTime:{limit:null,style:"per turn",penalty:"random"},scoring:{style:rules_scoring_sel.value}};
                 if (!room_rules_timers_enable.checked) {
                     delete game_rules["turnTime"];
                 } else {

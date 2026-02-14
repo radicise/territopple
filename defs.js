@@ -126,10 +126,13 @@ class Player {
  * @prop {"per turn"|"chess"} style style of turn timer
  * @prop {number|null} limit null defines unlimited time
  * @prop {"random"|"skip"|"lose"} penalty random move or skip turn
+ * @typedef ScoringSettings
+ * @prop {"elim"|"tile"|"piece"} style style of scoring
  */
 /**
  * @typedef GameRules
  * @prop {TurnTimerSettings} turnTime
+ * @prop {ScoringSettings} scoring
  */
 /**
  * @typedef Stats
@@ -155,6 +158,10 @@ class Player {
  * @prop {boolean} observable
  * @prop {number} hostNum
  * @prop {boolean} firstTurn
+ * @prop {number[]} owned_pieces
+ * @prop {Record<number,number>} elim_scores
+ * @prop {number} elim_score
+ * @prop {Array<number|null>} scores
  */
 
 class Game {
@@ -170,6 +177,8 @@ class Game {
         this.ident = ident;
         /**@type {Stats} */
         this.stats = {maxPlayers:players,playing:0,connected:0,spectating:0,reservedSlots:0};
+        /**@type {string|null} */
+        this.password = null;
         /**@type {State} */
         this.state = {
             // rows: state.rows,
@@ -180,6 +189,10 @@ class Game {
             board: null,
             teamboard: null,
             owned: new Array(settings.MAX_TEAMS+1).fill(0),
+            owned_pieces: new Array(settings.MAX_TEAMS+1).fill(0),
+            elim_scores: {},
+            elim_score: players,
+            scores: new Array(settings.MAX_TEAMS+1).fill(null),
             move: -1,
             turn: -1,
             // _turn: -1,
@@ -277,13 +290,24 @@ class Game {
     addExportMeta() {
         const pens = ["random", "skip", "lose"];
         const styles = ["per turn", "chess"];
-        const rulz = Buffer.from([(this.rules.turnTime.limit?
-            [1,
-                pens.indexOf(this.rules.turnTime.penalty),
-                styles.indexOf(this.rules.turnTime.style),
-                this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
-            ]
-            :[0])].flat(5));
+        const scoring = ["elim", "tile", "piece"];
+        const rulz = Buffer.from([
+            (this.rules.turnTime.limit?
+                [1,
+                    pens.indexOf(this.rules.turnTime.penalty),
+                    styles.indexOf(this.rules.turnTime.style),
+                    this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
+                ]
+                :[0]
+            ),
+            (this.rules.scoring?.style?
+                [1,
+                    scoring.indexOf(this.rules.scoring.style)
+                    // this.state.scores.length,
+                    // this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                ]:[0]
+            )
+        ].flat(5));
         this.setMeta("rlz_", rulz);
         this.setMeta("stpl", Buffer.of(1));
     }
@@ -385,6 +409,9 @@ class Game {
      */
     addRules(rules) {
         extend(this.rules, rules);
+        if ((this.rules.scoring?.style??"elim")!=="elim") {
+            this.state.scores.fill(0);
+        }
     }
     /**
      * kills all connections
@@ -431,6 +458,27 @@ class Game {
         }
         const playerdata = Buffer.from([this.players.map(v=>!v?0:[Number(v.is_bot)+1,!v.is_bot?[]:[v.botq.length,v.botq.split("").map(w=>w.charCodeAt(0))],v.accId?[v.accId.length,v.accId.split("").map(w=>w.charCodeAt(0))]:0])].flat(5));
         this.setMeta("pn__", playerdata);
+        const pens = ["random", "skip", "lose"];
+        const styles = ["per turn", "chess"];
+        const scoring = ["elim", "tile", "piece"];
+        const rulz = Buffer.from([
+            (this.rules.turnTime.limit?
+                [1,
+                    pens.indexOf(this.rules.turnTime.penalty),
+                    styles.indexOf(this.rules.turnTime.style),
+                    this.rules.turnTime.style==="chess"?[nbytes(this.rules.turnTime.limit/1000,4),this.players.map(v=>nbytes(v?.time_left??0,4))]:nbytes(this.rules.turnTime.limit/1000,4)
+                ]
+                :[0]
+            ),
+            (this.rules.scoring?.style?
+                [1,
+                    scoring.indexOf(this.rules.scoring.style)
+                    // this.state.scores.length,
+                    // this.state.scores.map(v=>v===null?nbytes(0,6):nbytes(v,6))
+                ]:[0]
+            )
+        ].flat(5));
+        this.setMeta("rlz_", rulz);
     }
     /**
      * @param {number} tile
@@ -444,6 +492,7 @@ class Game {
         const p = this.players[player];
         const tb = this.state.teamboard;
         const bb = this.state.board;
+        this.state.owned_pieces[p.team] ++;
         // const w = this.state.cols;
         // const h = this.state.rows;
         // const tcol = tile % w;
@@ -454,9 +503,12 @@ class Game {
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== p.team) {
+                if (tb[t]>0) this.state.owned_pieces[tb[t]] -= bb[t];
+                this.state.owned_pieces[p.team] += bb[t];
                 this.state.owned[tb[t]] --;
                 this.state.owned[p.team] ++;
                 if (this.state.owned[0] === 0 && this.state.owned[tb[t]] === 0) {
+                    // console.log({owned:this.state.owned,t,tb:tb[t],pt:p.team});
                     // console.log({owned:this.state.owned,bb,tb,t});
                     // console.log(this.players.map((v,i)=>v?{t:v.team,n:i,a:v.alive}:{}))
                     // console.log("team eliminated");
@@ -467,6 +519,7 @@ class Game {
                 }
                 tb[t] = p.team;
                 if (this.state.owned[p.team] === bb.length) {
+                    this.updateScores();
                     // console.log("win returned");
                     return {win:true,turn:-1};
                 }
@@ -496,7 +549,32 @@ class Game {
                 adds.push(...neighbors);
             }
         }
+        this.updateScores();
         return this.nextPlayer();
+    }
+    updateScores() {
+        const style = this.rules.scoring?.style ?? "elim";
+        for (let i = 1; i < this.state.scores.length; i ++) {
+            switch (style) {
+                case "elim": {
+                    if (this.state.owned[0] === 0 && this.state.owned[i] === 0 && this.state.scores[i] === null) {
+                        if (!this.state.elim_scores[i]) {
+                            this.state.elim_scores[i] = this.state.elim_score --;
+                        }
+                        this.state.scores[i] = this.state.elim_scores[i];
+                    }
+                    break;
+                }
+                case "tile": {
+                    this.state.scores[i] += this.state.owned[i];
+                    break;
+                }
+                case "piece": {
+                    this.state.scores[i] += this.state.owned_pieces[i];
+                    break;
+                }
+            }
+        }
     }
     nextPlayer() {
         let i = this.state.turn;
@@ -649,6 +727,13 @@ class Game {
     generateSync(target) {
         const payload = {};
         switch (target) {
+            case "score": {
+                for (let i = 0; i < this.state.scores.length; i ++) {
+                    const k = `TEAM.${i}.score`;
+                    payload[k] = this.state.scores[i];
+                }
+                break;
+            }
             case "time": {
                 for (let i = 0; i < this.players.length; i ++) {
                     if (this.players[i]) {
@@ -1123,7 +1208,7 @@ class NetData {
         static JList(game) {
             const players = game.players.map((v, i) => (v && (v.conn || v.is_bot)) ? [i, v.team, v.accId] : null).filter(v => v !== null);
             const spectators = Object.keys(game.spectators).map(v => [v, game.spectators[v].accId]);
-            return this.Misc("jlist", {p:players,s:spectators});
+            return this.Misc("jlist", {p:players,s:spectators,ts:game.state.scores});
         }
         /**
          * @returns {string}

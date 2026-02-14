@@ -20,7 +20,11 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         sock.send(NetData.Game.Config(g), () => {
             // sock.send(NetData.Bin.Board(state.game), {"binary":true});
         });
-        sock.send(NetData.Game.Rules(g));
+        sock.send(NetData.Game.Rules(g), () => {
+            if (args.res) {
+                sock.send(NetData.Sync(g, "score"));
+            }
+        });
         // sock.send(Buffer.of(10,10), {"binary":true});
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {
@@ -84,10 +88,12 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         }
     });
     onall("account:found", (data) => {
+        // console.log(data["n"]);
+        // console.log(state.game?.ident);
         let d = true;
-        if (data["n"] === state.playerNum) {
+        if (typeof state.playerNum === "number" && data["n"] === state.playerNum) {
             state.game.players[state.playerNum].accId = data["a"];
-        } else if (data["n"] === state.spectatorId) {
+        } else if (typeof state.spectatorId === "string" && data["n"] === state.spectatorId) {
             state.game.spectators[state.spectatorId].accId = data["a"];
         } else {
             d = false;
@@ -117,14 +123,6 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     messageL = (_data) => {
         /**@type {NetPayload} */
         const data = JSON.parse(_data);
-        if (state.spectating) {
-            switch (data.type) {
-                case "waiting:leave":
-                    change("leave");
-                    break;
-            }
-            return;
-        }
         switch (data.type) {
             // case "waiting:setready":
             //     emit("waiting:setready", {n:state.playerNum,r:data.payload["r"]});
@@ -178,23 +176,23 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                     emit("waiting:teamcols", {c:data.payload["c"]});
                 }
                 break;
-            case "player:spectate":
-                state.spectating = true;
-                state.spectatorId = state.game.addSpectator(sock);
-                state.game.removePlayer(state.playerNum);
-                emit("player:spectate", {n:state.playerNum, id:state.spectatorId});
-                delete state["playerNum"];
-                if (state.isHost) {
-                    state.isHost = false;
-                    emit("waiting:need-promote");
-                }
-                // on(`#META:${state.tag}`, (data) => {
-                //     state.spectating = true;
-                //     state.spectatorId = data["#id"];
-                //     delete state["playerNum"];
-                //     change("spectating");
-                // });
-                break;
+            // case "player:spectate":
+            //     state.spectating = true;
+            //     state.spectatorId = state.game.addSpectator(sock);
+            //     state.game.removePlayer(state.playerNum);
+            //     emit("player:spectate", {n:state.playerNum, id:state.spectatorId});
+            //     delete state["playerNum"];
+            //     if (state.isHost) {
+            //         state.isHost = false;
+            //         emit("waiting:need-promote");
+            //     }
+            //     // on(`#META:${state.tag}`, (data) => {
+            //     //     state.spectating = true;
+            //     //     state.spectatorId = data["#id"];
+            //     //     delete state["playerNum"];
+            //     //     change("spectating");
+            //     // });
+            //     break;
             case "ping":{
                 emit("ping", {n:data.payload.n,kind:data.payload.kind});
                 break;

@@ -11,7 +11,7 @@ const TEAM_COUNT = 7;
 
 /**
  * @typedef Player
- * @type {{team:number,ready:boolean,time:number,accId:string|null}}
+ * @type {{team:number,ready:boolean,time:number,accId:string|null,score:number|null}}
  */
 
 class Game {
@@ -35,6 +35,7 @@ class Game {
         /**@type {number[]} */
         this.teamboard = null;
         this.owned = new Array(TEAM_COUNT).fill(0);
+        this.owned_pieces = new Array(TEAM_COUNT).fill(0);
         /**@type {Player[]} */
         this.playerList = [];
         this.started = false;
@@ -121,6 +122,9 @@ class Game {
         // this.rows = height;
         // this.cols = width;
         this.maxPlayers = players;
+        this.elim_score = players;
+        this.elim_scores = {};
+        this.scores = new Array(players+1).fill((this.rules.scoring?.style??"elim")==="elim"?null:0);
         // this.joinedPlayers = 0;
         this.spectators = 0;
         const tc = this.topology.tileCount;
@@ -135,10 +139,14 @@ class Game {
                 if (this.rules.turnTime.style === "chess") {
                     setJListTime(i, playerList[i].time);
                 }
+                if (this.rules.scoring) {
+                    playerList[i].score = ((this.rules.scoring?.style??"elim")==="elim")?null:0;
+                    setJListScore(i, playerList[i].score);
+                }
             }
         }
         this.playerList = playerList;
-        this.playerList[0] = {team:0};
+        this.playerList[0] = {team:0,score:null};
         /**@type {HTMLSelectElement} */
         const bro = document.getElementById("board-rendering-option");
         createBoard(this.topology, this.board, this.teamboard, Number(bro.value)-1);
@@ -158,6 +166,35 @@ class Game {
             this.owned[this.teamboard[i]] ++;
         }
     }
+    updateScores() {
+        const style = this.rules.scoring?.style ?? "elim";
+        for (let i = 1; i < this.scores.length; i ++) {
+            switch (style) {
+                case "elim": {
+                    if (this.owned[0] === 0 && this.owned[i] === 0 && this.scores[i] === null) {
+                        if (!this.elim_scores[i]) {
+                            this.elim_scores[i] = this.elim_score --;
+                        }
+                        this.scores[i] = this.elim_scores[i];
+                    }
+                    break;
+                }
+                case "tile": {
+                    this.scores[i] += this.owned[i];
+                    break;
+                }
+                case "piece": {
+                    this.scores[i] += this.owned_pieces[i];
+                    break;
+                }
+            }
+            for (let j = 0; j < this.playerList.length; j ++) {
+                if (this.playerList[j]?.team === i) {
+                    setJListScore(j, this.scores[i]);
+                }
+            }
+        }
+    }
     /**
      * @param {number} tile
      * @param {number} team
@@ -170,9 +207,12 @@ class Game {
         // const h = this.rows;
         const boardold = Array.from(this.board);
         const teamboardold = Array.from(this.teamboard);
+        this.owned_pieces[team] ++;
         while (adds.length) {
             const t = adds.pop();
             if (tb[t] !== team) {
+                if (tb[t]>0) this.owned_pieces[tb[t]] -= bb[t];
+                this.owned_pieces[team] += bb[t];
                 this.owned[tb[t]] --;
                 this.owned[team] ++;
                 tb[t] = team;
@@ -209,6 +249,7 @@ class Game {
                 adds.push(...neighbors);
             }
         }
+        this.updateScores();
         this.updateBoard(boardold, teamboardold);
     }
     /**
