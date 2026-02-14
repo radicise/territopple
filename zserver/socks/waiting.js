@@ -88,8 +88,8 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         }
     });
     onall("account:found", (data) => {
-        console.log(data["n"]);
-        console.log(state.game?.ident);
+        // console.log(data["n"]);
+        // console.log(state.game?.ident);
         let d = true;
         if (typeof state.playerNum === "number" && data["n"] === state.playerNum) {
             state.game.players[state.playerNum].accId = data["a"];
