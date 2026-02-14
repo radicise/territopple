@@ -236,7 +236,7 @@
                         </div>
                         <div class="form-row">
                             <label for="room-config-setid">Room ID: </label>
-                            <input type="text" name="sid" id="room-config-setid" error-popup="Not Allowed" maxlength="0">
+                            <input type="text" name="sid" id="room-config-setid" disabled maxlength="5" pattern="([a-zA-Z0-9]{5})|.{0}">
                         </div>
                     </div>
                 </div>
@@ -310,6 +310,20 @@
             </table>
         </div>
         <script>
+            /**@type {HTMLInputElement} */
+            const roomsid = document.getElementById("room-config-setid");
+            fetch(`https://${document.location.hostname}/pub/perms`, {method:"GET"}).then(res => {
+                if (res.ok) {
+                    res.json().then(v => {
+                        if (v.p&(1<<8)) {
+                            roomsid.disabled = false;
+                            roomsid.onchange = () => {
+                                roomsid.reportValidity();
+                            };
+                        }
+                    });
+                }
+            });
             /**@type {HTMLDivElement} */
             const dimscont = document.getElementById("dimensions-container");
             /**@type {HTMLInputElement} */
@@ -323,6 +337,10 @@
             /**@type {HTMLSelectElement} */
             const rules_scoring_sel = document.getElementById("room-rules-scoring");
             function preSubmit() {
+                if (!roomsid.validity.valid) {
+                    roomsid.focus();
+                    return;
+                }
                 /**@type {HTMLFormElement} */
                 const form = document.getElementById("create-form");
                 const list = [toptype.value];

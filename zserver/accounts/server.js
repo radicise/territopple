@@ -260,6 +260,23 @@ async function processPubFetch(req, res, url, log) {
             }
             return;
         }
+        case "/perms": {
+            if (!self) {
+                res.writeHead(403).end("can only see own sanctions");
+                return;
+            }
+            try {
+                /**@type {AccountRecord} */
+                const v = await collection.findOne({id:target});
+                const t = Date.now();
+                const p = await getEffectivePrivs(v);
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({p}));
+            } catch (E) {
+                console.log(E);
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/info": {
             try {
                 const v = await collection.findOne({id:target});
