@@ -320,6 +320,7 @@ process.once("message", (id) => {
                                 res.on("data", (chunk) => {data += chunk;});
                                 res.on("end", () => {
                                     const b = Buffer.from(data, "base64url");
+                                    console.log(b);
                                     if (check_permission(b.readUInt32BE(1), Permissions.MANAGE_EVENTS)) {
                                         r(true);
                                     } else {
