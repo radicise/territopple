@@ -12,6 +12,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     const pw = globals.state.games[args["id"]]?.password;
+    console.log(pw);
     if (typeof pw !== "string") {
         change(args["to"], args);
         return;
