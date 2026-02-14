@@ -312,7 +312,7 @@ process.once("message", (id) => {
                     // console.log(url.toString());
                     // console.log(sid);
                     // console.log(typeof sid);
-                    if (typeof sid === "string")console.log((/^[a-zA-Z0-9]{5}$/.test(sid)));
+                    // if (typeof sid === "string")console.log((/^[a-zA-Z0-9]{5}$/.test(sid)));
                     let sidprom;
                     if (typeof sid === "string" && (/^[a-zA-Z0-9]{5}$/.test(sid))) {
                         if (accpres) {
