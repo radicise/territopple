@@ -151,7 +151,7 @@ on("main", "game:add", (data) => {
     // games[data["id"]].sort_key = GAME_COUNTER;
     // GAME_COUNTER ++;
     COMPLEXITY += game.complexity;
-    http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating,res:game.res}));
+    http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating,res:game.res,has_pw:game.password!==null}));
 });
 on("main", "?fatalerr", (data) => {
     const now = new Date();
