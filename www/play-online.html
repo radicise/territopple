@@ -312,7 +312,7 @@
         <script>
             /**@type {HTMLInputElement} */
             const roomsid = document.getElementById("room-config-setid");
-            fetch(`https://${document.location.hostname}/pub/perms`, {method:"GET"}).then(res => {
+            fetch(`https://${document.location.hostname}/acc/pub/perms`, {method:"GET"}).then(res => {
                 if (res.ok) {
                     res.json().then(v => {
                         if (v.p&(1<<8)) {
