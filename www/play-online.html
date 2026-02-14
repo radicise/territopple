@@ -228,6 +228,17 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-column">
+                        <h2 class="action-title">Config</h2>
+                        <div class="form-row">
+                            <label for="room-config-pw">Password: </label>
+                            <input type="text" name="pw" id="room-config-pw">
+                        </div>
+                        <div class="form-row">
+                            <label for="room-config-setid">Room ID: </label>
+                            <input type="text" name="sid" id="room-config-setid" error-popup="Not Allowed" maxlength="0">
+                        </div>
+                    </div>
                 </div>
                 <div class="form-row">
                     <input type="button" value="Create a New Room" onclick="preSubmit();">
