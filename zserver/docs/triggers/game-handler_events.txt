@@ -55,5 +55,5 @@ HANDLER ARGS:
     join (id [game id]: string, asSpectator: boolean, acc? [account id]: string)
     leave (isHost: boolean)
     waiting (isHost: boolean)
-    create (type [conn type]: number, width: string, height: string, players: string, id [game id to use]: string, acc? [account id]: string, asspec [as spectator]: boolean)
+    create (type [conn type]: number, width: string, height: string, players: string, id [game id to use]: string, acc? [account id]: string, asspec [as spectator]: boolean, pw [password]: string)
     rejoin (id [game id]: string, n [player num]: string, key [rejoin key]: string, acc? [account id]: string)

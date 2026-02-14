@@ -7,6 +7,7 @@ const { settings, validateJSONScheme, JSONScheme, Game, emit, on, clear, NetData
 const { GlobalState, HandlerInvocationError } = require("../types.js");
 const { PerformanceError } = require("./errors.js");
 const crypto = require("crypto");
+const { Permissions, check_permission } = require("../accounts/perms.js");
 
 const LOGF = `logs/worker/${process.pid}.txt`;
 const ERRLOG = `logs/worker/error.txt`;
@@ -184,6 +185,26 @@ function hSwitch(rid) {
     games[rid].players.forEach(p => p.conn.emit("HOLD"));
 }
 
+/**
+ * @param {string} cookie
+ * @returns {string|null}
+ */
+function extractSessionId(cookie) {
+    if (!cookie) return null;
+    let p = cookie.indexOf("; sessionId");
+    if (p === -1) {
+        if (cookie.startsWith("sessionId")) {
+            p = 0;
+        } else {
+            return null;
+        }
+    } else {
+        p += 2;
+    }
+    const e = cookie.indexOf(";", p+10);
+    return cookie.substring(p+10, e>0?e:undefined);
+}
+
 process.once("message", (id) => {
     WORK_ID = id;
     const WCRASH = `logs/worker_server/${id}_crashes.txt`;
@@ -249,11 +270,13 @@ process.once("message", (id) => {
             let acc;
             let state = {};
             console.log(req.headers.cookie);
-            const p = req.headers.cookie?.indexOf("sessionId");
-            if (p !== undefined && p !== -1) {
-                const e = req.headers.cookie.indexOf(";", p+10);
-                const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
-                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${id}`, (res) => {
+            const accid = extractSessionId(req.headers.cookie);
+            let accpres;
+            const accPromise = new Promise(r => {accpres = r;});
+            if (accid) {
+                // const e = req.headers.cookie.indexOf(";", p+10);
+                // const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
+                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${accid}`, (res) => {
                     if (res.statusCode !== 200) {
                         return;
                     }
@@ -264,6 +287,8 @@ process.once("message", (id) => {
                         if (gameid) {
                             emit("main", "account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});
                         }
+                        accpres();
+                        accpres = false;
                     });
                 });
             }
@@ -281,9 +306,32 @@ process.once("message", (id) => {
                 CONNECTION_COUNT += capacity;
                 process.send({hid:req.hid, v:true});
                 // console.log("workerhandoff");
-                wss.handleUpgrade(req, socket, [], (sock) => {
+                wss.handleUpgrade(req, socket, [], async (sock) => {
                     startPings(sock);
-                    http.request(`http://localhost:${settings.INTERNALPORT}/room-id`, {method:"GET"}, (res) => {
+                    const sid = url.searchParams.get("sid");
+                    let sidprom;
+                    if (typeof sid === "string" && (/^[a-zA-Z0-9]{5}$/.test(sid))) {
+                        if (accpres) {
+                            await accPromise;
+                        }
+                        sidprom = new Promise(r => {
+                            http.request(`http://localhost:${settings.AUTHINTERNALPORT}/perms?id=${acc}`, {method:"GET"}, (res) => {
+                                let data = "";
+                                res.on("data", (chunk) => {data += chunk;});
+                                res.on("end", () => {
+                                    const b = Buffer.from(data, "base64url");
+                                    if (check_permission(b.readUInt32BE(1), Permissions.MANAGE_EVENTS)) {
+                                        r(sid);
+                                    } else {
+                                        r("@@@@@");
+                                    }
+                                });
+                            });
+                        });
+                    } else {
+                        sidprom = Promise.resolve("@@@@@");
+                    }
+                    http.request(`http://localhost:${settings.INTERNALPORT}/room-id?sid=${await sidprom}`, {method:"GET"}, (res) => {
                         let data = "";
                         res.on("data", (chunk) => {data += chunk;});
                         res.on("end", () => {
@@ -295,7 +343,7 @@ process.once("message", (id) => {
                                 gameid = data;
                                 try {
                                     // console.log("handling");
-                                    socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc, "asspec":url.searchParams.get("S")==="1"}, state);
+                                    socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc, "asspec":url.searchParams.get("S")==="1", "pw":url.searchParams.get("pw")}, state);
                                 } catch (E) {
                                     if (E instanceof HandlerInvocationError) {
                                         if (LOGGING) addLog(WCRASH, `${new Date()} - HIE: ${E.message}\n${E.stack}\n`);

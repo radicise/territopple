@@ -98,7 +98,7 @@ http.createServer((req, res) => {
             switch (url.pathname) {
                 case "/room-id":{
                     try {
-                        const code = generateRoomCode();
+                        const code = generateRoomCode(url.searchParams.get("sid")??"@@@@@");
                         gameInfo[code] = null;
                         res.writeHead(200);
                         res.end(code);
@@ -277,13 +277,25 @@ const codeArr = new Uint8Array(settings.ROOM_CODE_LENGTH);
 /**
  * generates a room code, the generated code is guaranteed to not already be in use
  * throws a PerformanceError if a code takes too long to be generated
+ * @param {string} sid
  * @throws {PerformanceError}
  * @returns {string}
  */
-function generateRoomCode() {
+function generateRoomCode(sid) {
     let code = "";
     let c = 0;
     const day = Math.floor(Date.now()/86400000)-20358;
+    if (sid && sid !== "@@@@@") {
+        codeArr[settings.ROOM_CODE_LENGTH-1] = (day>>16)&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-2] = (day>>8)&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-3] = day&0xff;
+        for (let i = 1; i < 4; i ++) {
+            code += codeChars[codeArr[settings.ROOM_CODE_LENGTH - i] % codeChars.length];
+        }
+        if (code in gameInfo) {
+            throw new PerformanceError("room code generation (SID)");
+        }
+    }
     while (true) {
         if (c > 50) {
             throw new PerformanceError("room code generation");
