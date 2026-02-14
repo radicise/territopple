@@ -1225,8 +1225,7 @@ const internal_server = http.createServer(async (req, res) => {
                     /**@type {AccountRecord} */
                     const rec = await collection.findOne({id});
                     if (!rec) {
-                        console.log("NOT FOUND");
-                        res.writeHead(404).end();
+                        res.writeHead(404).end("ID NOT FOUND");
                         return;
                     }
                     const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
@@ -1249,7 +1248,7 @@ const internal_server = http.createServer(async (req, res) => {
                     res.writeHead(500).end();
                 }
             } else {
-                res.writeHead(404).end();
+                res.writeHead(404).end("NO ID");
             }
             return;
         }
