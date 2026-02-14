@@ -1,3 +1,6 @@
+# Feb 13, 2026 (DEV20261cY1)
+allowed event managers to create rooms with set ids
+
 # Feb 13, 2026 (DEV20261cY0)
 allowed spectators to host rooms
 
