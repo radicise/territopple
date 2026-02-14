@@ -295,6 +295,7 @@ function generateRoomCode(sid) {
         if (code in gameInfo) {
             throw new PerformanceError("room code generation (SID)");
         }
+        return code;
     }
     while (true) {
         if (c > 50) {

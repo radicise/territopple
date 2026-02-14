@@ -337,7 +337,7 @@ process.once("message", (id) => {
                                         r(false);
                                     }
                                 });
-                            }).once("error", (e) => {console.log(e);});
+                            }).once("error", (e) => {console.log(e);}).end();
                         });
                     } else {
                         sidprom = Promise.resolve(false);
