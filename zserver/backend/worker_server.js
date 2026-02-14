@@ -269,7 +269,7 @@ process.once("message", (id) => {
             let gameid;
             let acc;
             let state = {};
-            console.log(req.headers.cookie);
+            // console.log(req.headers.cookie);
             const accid = extractSessionId(req.headers.cookie);
             let accpres;
             const accPromise = new Promise(r => {accpres = r;});
@@ -309,6 +309,9 @@ process.once("message", (id) => {
                 wss.handleUpgrade(req, socket, [], async (sock) => {
                     startPings(sock);
                     const sid = url.searchParams.get("sid");
+                    console.log(sid);
+                    console.log(typeof sid);
+                    if (typeof sid === "string")console.log((/^[a-zA-Z0-9]{5}$/.test(sid)));
                     let sidprom;
                     if (typeof sid === "string" && (/^[a-zA-Z0-9]{5}$/.test(sid))) {
                         if (accpres) {
