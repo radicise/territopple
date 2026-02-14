@@ -1215,6 +1215,10 @@ const internal_server = http.createServer(async (req, res) => {
                 res.writeHead(405).end();
                 return;
             }
+            if (url.searchParams.get("id") === null) {
+                res.writeHead(400).end("NO ID");
+                return;
+            }
             if (url.searchParams.get("id") === "%40guest") {
                 res.writeHead(200).end(Buffer.alloc(6,0).toString("base64url"));
                 return;
@@ -1248,7 +1252,7 @@ const internal_server = http.createServer(async (req, res) => {
                     res.writeHead(500).end();
                 }
             } else {
-                res.writeHead(404).end("NO ID");
+                res.writeHead(404).end("NO SESSION");
             }
             return;
         }

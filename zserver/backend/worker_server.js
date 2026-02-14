@@ -270,13 +270,13 @@ process.once("message", (id) => {
             let acc;
             let state = {};
             // console.log(req.headers.cookie);
-            const accid = extractSessionId(req.headers.cookie);
+            const sessid = extractSessionId(req.headers.cookie);
             let accpres;
             const accPromise = new Promise(r => {accpres = r;});
-            if (accid) {
+            if (sessid) {
                 // const e = req.headers.cookie.indexOf(";", p+10);
                 // const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
-                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${accid}`, (res) => {
+                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${sessid}`, (res) => {
                     if (res.statusCode !== 200) {
                         return;
                     }
@@ -320,7 +320,7 @@ process.once("message", (id) => {
                         }
                         console.log(acc);
                         sidprom = new Promise(r => {
-                            http.request(`http://localhost:${settings.AUTHINTERNALPORT}/perms?id=${acc}`, {method:"GET"}, (res) => {
+                            http.request(`http://localhost:${settings.AUTHINTERNALPORT}/perms?id=${sessid}`, {method:"GET"}, (res) => {
                                 let data = "";
                                 res.on("data", (chunk) => {data += chunk;});
                                 res.on("end", () => {
