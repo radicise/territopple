@@ -1225,6 +1225,7 @@ const internal_server = http.createServer(async (req, res) => {
                     /**@type {AccountRecord} */
                     const rec = await collection.findOne({id});
                     if (!rec) {
+                        console.log("NOT FOUND");
                         res.writeHead(404).end();
                         return;
                     }

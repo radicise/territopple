@@ -318,6 +318,7 @@ process.once("message", (id) => {
                         if (accpres) {
                             await accPromise;
                         }
+                        console.log(acc);
                         sidprom = new Promise(r => {
                             http.request(`http://localhost:${settings.AUTHINTERNALPORT}/perms?id=${acc}`, {method:"GET"}, (res) => {
                                 let data = "";
