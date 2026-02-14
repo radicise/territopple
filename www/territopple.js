@@ -134,6 +134,12 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
         if (queries.get("S") === "1") {
             serv += "&S=1";
         }
+        if (queries.get("pw")) {
+            serv += `&pw=${queries.get("pw")}`;
+        }
+        if (queries.get("sid")) {
+            serv += `&sid=${queries.get("sid")}`;
+        }
     } else {
         gameid = queries.get("g") ?? "g";
         serv = `wss://${host}/?t=${t}&g=${gameid}&res=${res??"0"}`;
