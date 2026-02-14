@@ -318,10 +318,10 @@
                         if (v.p&(1<<8)) {
                             roomsid.disabled = false;
                             roomsid.onchange = () => {
-                                if (!roomsid.checkValidity()) {
-                                    roomsid.setCustomValidity("Room ID must be exactly five alphanumeric characters.");
-                                    roomsid.reportValidity();
-                                }
+                                // if (!roomsid.checkValidity()) {
+                                //     roomsid.setCustomValidity("Room ID must be exactly five alphanumeric characters.");
+                                // }
+                                roomsid.reportValidity();
                             };
                         }
                     });
