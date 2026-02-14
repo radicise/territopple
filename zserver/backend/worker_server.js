@@ -323,6 +323,12 @@ process.once("message", (id) => {
                                 let data = "";
                                 res.on("data", (chunk) => {data += chunk;});
                                 res.on("end", () => {
+                                    if (res.statusCode !== 200) {
+                                        console.log(res.statusCode);
+                                        console.log(data);
+                                        r(false);
+                                        return;
+                                    }
                                     const b = Buffer.from(data, "base64url");
                                     console.log(b);
                                     if (check_permission(b.readUInt32BE(1), Permissions.MANAGE_EVENTS)) {
@@ -331,7 +337,7 @@ process.once("message", (id) => {
                                         r(false);
                                     }
                                 });
-                            });
+                            }).once("error", (e) => {console.log(e);});
                         });
                     } else {
                         sidprom = Promise.resolve(false);
