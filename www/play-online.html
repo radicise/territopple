@@ -312,6 +312,7 @@
         <script>
             /**@type {HTMLInputElement} */
             const roomsid = document.getElementById("room-config-setid");
+            roomsid.setCustomValidity("Room ID must be exactly five alphanumeric characters.");
             fetch(`https://${document.location.hostname}/acc/pub/%40self/perms`, {method:"GET"}).then(res => {
                 if (res.ok) {
                     res.json().then(v => {
@@ -339,6 +340,7 @@
             function preSubmit() {
                 if (!roomsid.validity.valid) {
                     roomsid.focus();
+                    roomsid.reportValidity();
                     return;
                 }
                 /**@type {HTMLFormElement} */
