@@ -232,7 +232,7 @@
                         <h2 class="action-title">Config</h2>
                         <div class="form-row">
                             <label for="room-config-pw">Password: </label>
-                            <input type="text" name="pw" id="room-config-pw">
+                            <input type="text" name="pw" id="room-config-pw" pattern="[a-zA-Z0-9_=]{0,20}">
                         </div>
                         <div class="form-row">
                             <label for="room-config-setid">Room ID: </label>
@@ -333,6 +333,8 @@
             const toptype = document.getElementById("room-create-topology");
             /**@type {HTMLInputElement} */
             const diminput = document.getElementById("room-create-dims");
+            /**@type {HTMLInputElement} */
+            const pwinput = document.getElementById("room-config-pw");
             toptype.onchange = () => {
                 document.querySelector(".dimensions.show").classList.remove("show");
                 dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
@@ -340,11 +342,16 @@
             /**@type {HTMLSelectElement} */
             const rules_scoring_sel = document.getElementById("room-rules-scoring");
             function preSubmit() {
+                let fail = false;
                 if (!roomsid.validity.valid) {
-                    roomsid.focus();
                     roomsid.reportValidity();
-                    return;
+                    fail = true;
                 }
+                if (!pwinput.validity.valid) {
+                    pwinput.reportValidity();
+                    fail = true;
+                }
+                if (fail) return;
                 /**@type {HTMLFormElement} */
                 const form = document.getElementById("create-form");
                 const list = [toptype.value];
