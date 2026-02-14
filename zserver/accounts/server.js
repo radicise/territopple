@@ -1232,7 +1232,7 @@ const internal_server = http.createServer(async (req, res) => {
                         res.writeHead(404).end("ID NOT FOUND");
                         return;
                     }
-                    const groups = await priv_groups.find({gid:{$in:rec.priv_groups.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
+                    const groups = await priv_groups.find({gid:{$in:rec.priv_groups?.filter(v=>!(v&0x80000000))}}).project({privs:1}).toArray();
                     const effective_priv = (rec.priv_level | groups.reduce((pv, cv) => pv | cv.privs, 0));
                     const buf = Buffer.alloc(6,0);
                     buf[0] = (rec.sanction?.find(v => v.sanction_id===9)?.value??0)<<4;
