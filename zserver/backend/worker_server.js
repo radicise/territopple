@@ -401,7 +401,7 @@ process.once("message", (id) => {
                             socks.handle("resjoin", sock, {"id":gid, "acc":acc}, state);
                             return;
                         }
-                        socks.handle("join", sock, {"id":gid, "asSpectator":connType===4, "acc":acc}, state);
+                        socks.handle("pwgate", sock, {"to":"join", "id":gid, "asSpectator":connType===4, "acc":acc}, state);
                     } catch (E) {
                         if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
                     }

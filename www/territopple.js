@@ -134,11 +134,12 @@ if (sessionStorage.getItem("rejoin_key") !== null) {
         if (queries.get("S") === "1") {
             serv += "&S=1";
         }
-        if (queries.get("pw")) {
-            serv += `&pw=${queries.get("pw")}`;
-        }
         if (queries.get("sid")) {
             serv += `&sid=${queries.get("sid")}`;
+        }
+        if (sessionStorage.getItem("pw")) {
+            serv += `&pw=${sessionStorage.getItem("pw")}`;
+            sessionStorage.removeItem("pw");
         }
     } else {
         gameid = queries.get("g") ?? "g";
@@ -220,6 +221,17 @@ const spectating = {};
 // const readyButton = document.getElementById("readybutton");
 // let amready = false;
 conn.addEventListener("open", async function(event) {
+    if (sessionStorage.getItem("pw")) {
+        conn.send(JSON.stringify({"type":"game:password","payload":{"pw":sessionStorage.getItem("pw")}}));
+        sessionStorage.removeItem("pw");
+    } else if (queries.get("pw") === "1") {
+        const pwmodal = document.getElementById("roompw-modal");
+        pwmodal.hidden = false;
+        document.getElementById("roompw-btn").onclick = () => {
+            pwmodal.hidden = true;
+            conn.send(JSON.stringify({"type":"game:password","payload":{"pw":document.getElementById("roompw-input").value}}));
+        };
+    }
     if (res==="1") {
         if (t > 0 && t < 3) {
             const stplmodal = document.getElementById("stpl-modal");

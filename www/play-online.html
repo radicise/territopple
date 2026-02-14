@@ -232,7 +232,7 @@
                         <h2 class="action-title">Config</h2>
                         <div class="form-row">
                             <label for="room-config-pw">Password: </label>
-                            <input type="text" name="pw" id="room-config-pw" pattern="[a-zA-Z0-9_=]{0,20}">
+                            <input type="text" id="room-config-pw" pattern="[a-zA-Z0-9_=]{0,20}">
                         </div>
                         <div class="form-row">
                             <label for="room-config-setid">Room ID: </label>
@@ -257,7 +257,9 @@
                 <input type="hidden" name="res" value="0" id="private-join-res">
                 <div class="form-row">
                     <label for="private-join-g">Room ID:</label>
-                    <input name="g" id="private-join-g">
+                    <input name="g" id="private-join-g"><br>
+                    <label for="private-join-pw">Password:</label>
+                    <input type="text" id="private-join-pw">
                     <input type="submit" value="Join">
                     <script>
                         {
@@ -276,8 +278,12 @@
                                     if (v.ok) {
                                         v.text().then(j => {
                                             const res = document.getElementById("private-join-res");
+                                            const pw = document.getElementById("private-join-pw");
                                             if (j === "1") {
                                                 res.value = "1";
+                                            }
+                                            if (pw.value.length) {
+                                                sessionStorage.setItem("pw", pw.value);
                                             }
                                             allowsubmit = true;
                                             document.getElementById("join-form").submit();
@@ -352,6 +358,9 @@
                     fail = true;
                 }
                 if (fail) return;
+                if (pwinput.value.length) {
+                    sessionStorage.setItem("pw", pwinput.value);
+                }
                 /**@type {HTMLFormElement} */
                 const form = document.getElementById("create-form");
                 const list = [toptype.value];

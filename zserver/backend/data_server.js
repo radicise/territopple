@@ -54,7 +54,7 @@ logStamp(IERROR);
 logStamp(EXLOG);
 
 /**
- * @typedef {{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint,dbase:string,dparams:number,phase:"wait"|"play"|"over",res:boolean}} GameInfo
+ * @typedef {{worker:number,public:boolean,capacity:number,dstr:string,can_spectate:boolean,playing:number,spectating:number,sort_key:bigint,dbase:string,dparams:number,phase:"wait"|"play"|"over",res:boolean,has_pw:boolean}} GameInfo
  */
 
 /**
@@ -73,7 +73,8 @@ const roomCreateScheme = {
     "can_spectate": "boolean",
     "playing": "number",
     "spectating": "number",
-    "res": "boolean"
+    "res": "boolean",
+    "has_pw": "boolean"
 };
 
 let IREQNUM_CNT = 0;
@@ -445,7 +446,8 @@ function formatServerList(page, filter) {
             dstr:v[1].dstr,
             can_spectate:v[1].can_spectate,
             phase:v[1].phase,
-            res:v[1].res
+            res:v[1].res,
+            pw:v[1].has_pw
         };
     }));
 }

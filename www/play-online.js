@@ -12,7 +12,7 @@ window.addEventListener("pageshow", () => {
 });
 function displayRooms(text) {
     table.replaceChildren();
-    /**@type {{ident:string,capacity:number,playing:number,spectating:number,dstr:string,can_spectate:boolean,phase:"wait"|"play"|"over",res:boolean}[]} */
+    /**@type {{ident:string,capacity:number,playing:number,spectating:number,dstr:string,can_spectate:boolean,phase:"wait"|"play"|"over",res:boolean,has_pw:boolean}[]} */
     const games = JSON.parse(text);
     for (const game of games) {
         if (!game) {
@@ -33,7 +33,7 @@ function displayRooms(text) {
                 const link = document.createElement("a");
                 link.textContent = game.ident;
                 // link.appendChild(document.createTextNode(game.ident));
-                link.href = `http://${document.location.host}/territopple?t=0&g=${game.ident}`+(game.res?"&res=1":"");
+                link.href = `http://${document.location.host}/territopple?t=0&g=${game.ident}`+(game.res?"&res=1":"")+(game.has_pw?"&pw=1":"");
 
         const roomEntry = document.createElement("td");
         roomEntry.appendChild(link);

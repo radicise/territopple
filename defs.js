@@ -177,6 +177,8 @@ class Game {
         this.ident = ident;
         /**@type {Stats} */
         this.stats = {maxPlayers:players,playing:0,connected:0,spectating:0,reservedSlots:0};
+        /**@type {string|null} */
+        this.password = null;
         /**@type {State} */
         this.state = {
             // rows: state.rows,

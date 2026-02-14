@@ -48,6 +48,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
         }
     }
     onGameCreated(state.game, true, 1);
+    if (args["pw"]) {
+        state.game.password = args["pw"];
+    }
     if (asSpectator) {
         state.spectatorId = state.game.addSpectator(sock);
         state.spectating = true;
