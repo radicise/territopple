@@ -320,8 +320,8 @@
                             roomsid.onchange = () => {
                                 if (!roomsid.checkValidity()) {
                                     roomsid.setCustomValidity("Room ID must be exactly five alphanumeric characters.");
+                                    roomsid.reportValidity();
                                 }
-                                // roomsid.reportValidity();
                             };
                         }
                     });
