@@ -1147,7 +1147,7 @@ export class TTVM {
             throw new Error("symbol does not exist");
         }
         this.#pc = entry.offset;
-        this.#execute();
+        if (!this.#debugger)this.#execute();
     }
     /**
      * info:
@@ -1188,7 +1188,10 @@ export class TTVM {
                 break;
             }
             case "mem": {
-                lines.push("MEMDUMP NOT IMPL");
+                // lines.push("MEMDUMP NOT IMPL");
+                xtra = Number(xtra[0]);
+                const l = this.#offsetLoc(xtra);
+                lines.push(`${[...this.#getSegment(xtra).mem.subarray(l,l+16)].map(v=>v.toString(16).padStart(2, '0')).join(" ")}`);
                 break;
             }
         }
@@ -1219,7 +1222,11 @@ export class TTVM {
                 }
                 case "step":
                 case "s": {
-                    this.#execute();
+                    let n = 1;
+                    if (parts.length > 1) {
+                        n = Number(parts[1]);
+                    }
+                    for (let i = 0; i < n; i ++) this.#execute();
                     break;
                 }
                 case "brk":case "brkpoint":
@@ -1237,7 +1244,7 @@ export class TTVM {
                     if (parts.length === 1) {
                         this.#dump_core();
                     } else {
-                        const out = this.#dump(parts[1]);
+                        const out = this.#dump(parts[1],parts.slice(2));
                         console.log(out.length?out:`${PUR}no output${DEF}`);
                     }
                     break;
@@ -1635,6 +1642,7 @@ const _debugger = {
         [
             "USAGE:",
             "(d|dump) {info?}",
+            "(d|dump) {xinfo} {x}",
             "#i+",
             "Dumps the specified information",
             "If info is omitted, the VM performs a core dump",
@@ -1648,9 +1656,14 @@ const _debugger = {
             "ror - dumps the values of all readonly registers",
             "cvr - dumps the values of all constant value registers",
             "smr - dumps the values of all specific meaning registers",
-            "mem - dumps memory",
             "#a:",
             "#i-",
+            "XINFO:",
+            IND,
+            STDAL,
+            "mem - dumps 16 bytes of memory begining at address 'x'",
+            ENDAL,
+            UND,
             "Output Format:",
             IND,
             "Any dumped registers will be output in the following manner:",

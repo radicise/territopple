@@ -44,13 +44,6 @@ BYTE[5] - b'.code'
 
 BYTE[4] - length of section
 
-// generic function
-NAMED
-SSTR - name, MUST NOT begin with '@'
-BYTE - parameter count
-SSTR[parameter count] - parameter names
-TYPE[parameter count] - parameter types
-TYPE - return type
 BYTECODE
 
 TYPE:
@@ -70,6 +63,8 @@ NOTE: numeric types must have sizes that are powers of two
 NOTE: the '@init' function acts as an entry for vm code where '@constructor' is unsuitable for initialization, it is declared in the same manner as a generic function
 the '@init' function must not be present if the '@constructor' function is present
 the '@init' function must return void
+
+The following functions do not have typing included in the .code section, rather the types are still in the index entry, but those that are specified below must not be present in the index
 
 // constructor
 NAMED
@@ -146,6 +141,10 @@ BYTE[4] - offset
 NOTE: the offset, if present, must be the offset of the first byte of the bytecode
 INTERPRET: offset==0, offset unspecified
 INTERPRET: offset>0, symbol resides at specified offset from the .text section
+BYTE - parameter count
+SSTR[parameter count] - parameter names
+TYPE[parameter count] - parameter types
+TYPE - return type
 
 DATAVAR:
 BYTE - type - 0, 1, 2, 3
@@ -159,6 +158,7 @@ SWITCH (type) {
     3 ->:
         BYTE[2] - size
         NOTE: size is used to allocate an uninitialized array of 'size' bytes
+        NOTE: implementations are STRONGLY ENCOURAGED to initialize these bytes to avoid leaking potentially sensitive data
 }
 
 

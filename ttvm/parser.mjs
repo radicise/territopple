@@ -246,7 +246,7 @@ export class TTVMParser {
          */
         this._code = {
             /**
-             * @type {Record<string,{name:string,params:Record<string,VMTYPE>,codelen:number,rtype:VMTYPE}>}
+             * @type {Record<string,{name:string,codelen:number}>}
              * @readonly
              */
             symbols: null,
@@ -256,7 +256,7 @@ export class TTVMParser {
          */
         this._indx = {
             /**
-             * @type {Array<{symbol:string,offset:number}>}
+             * @type {Array<{symbol:string,params:Array<[string,VMTYPE]>,rtype:VMTYPE,offset:number}>}
              * @readonly
              */
             entries: null,
@@ -289,7 +289,11 @@ export class TTVMParser {
         }
         return this._data;
     }
+    /**
+     * @deprecated
+     */
     get code() {
+        throw new Error("DEPRECATED");
         if (this._code.symbols === null) {
             this._code.symbols = {};
             this.#data.seek(this._sectable[SECTABLE.CODE<<1], 1);
@@ -370,7 +374,59 @@ export class TTVMParser {
             this.#data.seek(16);
             this._indx.entries = new Array(this.#data.readUIntBE(2));
             for (let i = 0; i < this._indx.entries.length; i ++) {
-                this._indx.entries[i] = Object.freeze({symbol:this.#data.readZSTR(1),offset:this.#data.readUIntBE(4)});
+                const ent = {symbol:this.#data.readZSTR(1),offset:this.#data.readUIntBE(4),params:[],rtype:VMTYPE.VOID};
+                switch (ent.symbol) {
+                    case "@constructor":{
+                        const pc = this.#data.readUIntBE(1);
+                        for (let j = 0; j < pc; j ++) ent.params.push([this.#data.readZSTR(1), VMTYPE.U32]);
+                        break;
+                    }
+                    case "@getpositionof":{
+                        ent.params.push(["tindex",VMTYPE.U32],["mode",VMTYPE.U16]);
+                        ent.rtype = VMTYPE.UNSIZEDARR|VMTYPE.U16;
+                        break;
+                    }
+                    case "@getneighbors":{
+                        ent.params.push(["tindex",VMTYPE.U32]);
+                        ent.rtype = VMTYPE.UNSIZEDARR|VMTYPE.U32;
+                        break;
+                    }
+                    case "@think":{
+                        ent.params.push(["tindex",VMTYPE.PTR|VMTYPE.OPAQUESTRUCT]);
+                        ent.rtype = VMTYPE.U32;
+                        break;
+                    }
+                    default:{
+                        const readType = () => {
+                            let prim = this.#data.readUIntBE(1);
+                            switch (prim << 8) {
+                                case VMTYPE.PTR:case VMTYPE.SIZEDARR:{
+                                    prim = prim << 8;
+                                    prim |= this.#data.readUIntBE(1);
+                                    break;
+                                }
+                                default:{
+                                    if ((prim<<8)&VMTYPE.SIZEDARR === VMTYPE.SIZEDARR) {
+                                        prim = prim << 8;
+                                        prim |= this.#data.readUIntBE(1);
+                                    }
+                                    break;
+                                }
+                            }
+                            return prim;
+                        };
+                        const pc = this.#data.readUIntBE(1);
+                        for (let j = 0; j < pc; j ++) {
+                            ent.params.push([this.#data.readZSTR(1),null]);
+                        }
+                        for (let j = 0; j < pc; j ++) {
+                            ent.params[j][1] = readType();
+                        }
+                        ent.rtype = readType();
+                        break;
+                    }
+                }
+                this._indx.entries[i] = Object.freeze(ent);
             }
             this._indx.entries = Object.freeze(this._indx.entries);
             this._indx = Object.freeze(this._indx);
@@ -381,7 +437,10 @@ export class TTVMParser {
      * @returns {Buffer}
      */
     copyCode() {
-        return this.#data._bytes.subarray(this._sectable[SECTABLE.CODE<<1]+16, this._sectable[SECTABLE.CODE<<1]+this._sectable[(SECTABLE.CODE<<1)+1]);
+        const s = this._sectable[SECTABLE.CODE<<1]+16;
+        const e = this._sectable[SECTABLE.CODE<<1]+this._sectable[(SECTABLE.CODE<<1)+1]+16;
+        // console.log(`${s}-${e}`);
+        return this.#data._bytes.subarray(s, e);
     }
     /**
      * @param {SECTABLE} sec

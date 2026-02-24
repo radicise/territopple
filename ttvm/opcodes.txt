@@ -74,8 +74,8 @@ CMP(era compat,fp compat):
 00011101 | xxxx|yyyy - rx.ry -> cf
 00011110 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> cf
 00011111 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> cf
-(era) 00011101 | xxxxxxx | yyyyyyyy - rx.ry -> cf
-(era) 00011110 | xxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> cf
+(era) 00011101 | xxxxxxxx | yyyyyyyy - rx.ry -> cf
+(era) 00011110 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> cf
 (era) 00011111 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> cf
 TST(era compat):
 00011101 | xxxx|1111 - rx.ZERO -> cf

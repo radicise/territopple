@@ -25,8 +25,11 @@ if (ptest) {
     console.log(parser.version);
     console.log(JSON.stringify(parser.conf));
     console.log(JSON.stringify(parser.data));
-    console.log(JSON.stringify(parser.code));
+    // console.log(JSON.stringify(parser.code));
     console.log(JSON.stringify(parser.indx));
+    for (let i = 0; i < 8; i ++) {
+        console.log(parser._sectable[i]);
+    }
 
     console.log(parser.copyCode().subarray(0,10).toString("hex"));
 }
