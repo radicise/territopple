@@ -1,6 +1,9 @@
 this document describes the format used to store programs to be executed on the TerriTopple Virtual Machine (".tttr", ".3tr", or ".ttvm").
 ttvm may also be known as version 1 of the topology rules format
 
+T*: pointer to T
+BYTE[4] - address
+
 SSTR:
 BYTE - length
 BYTE[length]
@@ -18,13 +21,17 @@ SECTION .conf
 BYTE[7] b'SECTION'
 BYTE[5] b'.conf'
 
+BYTE[4] - length of section
+
 BYTE - purpose
 INTERPRET: purpose==0 is topology rules
 INTERPRET: purpose==1 is general purpose code
+INTERPRET: purpose==2 is bot code
+INTERPRET: purpose==3 is scenario behavior code
 
 SSTR - name - may be length zero to indicate an unnamed/anonymous implementation
 
-BYTE - invar count
+BYTE - invar count, invariants are four bytes and are only writeable within @constructor and @init
 
 // render restrictions
 BYTE[2] - SOME, flags, LSB maps to "any"
@@ -35,11 +42,39 @@ SECTION .code
 BYTE[7] - b'SECTION'
 BYTE[5] - b'.code'
 
+BYTE[4] - length of section
+
+// generic function
+NAMED
+SSTR - name, MUST NOT begin with '@'
+BYTE - parameter count
+SSTR[parameter count] - parameter names
+TYPE[parameter count] - parameter types
+TYPE - return type
+BYTECODE
+
+TYPE:
+1|s|f|zzzzz - numeric type, 'z' bytes, signed if 's' is 1, unsigned otherwise, int if 'f' is 0, float otherwise
+NOTE: floats must have size 4 or 8
+NOTE: numeric types must have sizes that are powers of two
+00000000 - void
+00000001 | TYPE - TYPE*
+00000010 - SSTR
+00000011 - LSTR
+01|zzzzzz | TYPE - TYPE[z]
+00000100 | TYPE - TYPE[]
+00000101 - OPAQUE STRUCT
+00000110 - TRANSPARENT STRUCT
+
+NOTE: the '@init' function acts as an entry for vm code where '@constructor' is unsuitable for initialization, it is declared in the same manner as a generic function
+the '@init' function must not be present if the '@constructor' function is present
+the '@init' function must return void
+
 // constructor
 NAMED
-SSTR 'constructor'
+SSTR '@constructor'
 BYTE - parameter count
-SSTR[parameter count] - parameter names // binds the given names to parameters in the order of declaration
+SSTR[parameter count] - parameter names // binds the given names to parameters in the order of declaration as UINT32
 NOTE: in the case that the purpose of the program is topology rules, the VMTarget will have the specified parameter names used to set dimension properties
 returns void
 BYTECODE
@@ -47,40 +82,42 @@ BYTECODE
 // getPositionOf
 [TOPOLOGY ONLY]
 NAMED
-SSTR 'getpositionof'
-automatically binds parameter 0 (tindex) as number
+SSTR '@getpositionof'
+automatically binds parameter 0 (tindex) as UINT32
 automatically binds parameter 1 (mode) as 16bit flag set where LSB maps to "any"
-returns number[], ret[0] is the index into the tile position class list to use, ret[0]==0 indicates an error
+returns U16[], ret[0] is the index into the tile position class list to use, ret[0]==0 indicates an error
 BYTECODE
 
 // getNeighbors
 [TOPOLOGY ONLY]
 NAMED
-SSTR 'getneighbors'
-automatically binds parameter 0 (tindex) as number
-returns number[], an array of tile indicies that neighbor the given index
+SSTR '@getneighbors'
+automatically binds parameter 0 (tindex) as UINT32
+returns U32[], an array of tile indicies that neighbor the given index
 BYTECODE
 
 // getRequiredBits
 [TOPOLOGY ONLY]
 NAMED
-SSTR 'getrequiredbits'
-automatically binds parameter 0 (tindex) as number
-returns number, the number of bits required to store this tile's value
+SSTR '@getrequiredbits'
+automatically binds parameter 0 (tindex) as UINT32
+returns U8, the number of bits required to store this tile's value
 BYTECODE
 
 // think
 [BOT ONLY]
 NAMED
-SSTR 'think'
-automatically binds parameter 0 (state) as GameState
-returns number, the tile index to move at
+SSTR '@think'
+automatically binds parameter 0 (state) as GameState*
+returns U32, the tile index to move at
 BYTECODE
 
 // constant data
 SECTION .data
 BYTE[7] - b'SECTION'
 BYTE[5] - b'.data'
+
+BYTE[4] - length of section
 
 LSTR - format string, any NUL byte shall be followed by the bound number of a constructor parameter, must not contain spaces, must not contain numeric characters
 -- becomes `${name} ${evalfmtstr}`
@@ -95,6 +132,8 @@ SECTION .indx
 BYTE[7] - b'SECTION'
 BYTE[5] - b'.indx'
 
+BYTE[4] - length of section
+
 BYTE[2] - entry count (IEC)
 INDEX_ENTRY[IEC] - entries
 NOTE: symbols are accessed from the table via their indicies
@@ -103,24 +142,29 @@ NOTE: symbols are accessed from the table via their indicies
 INDEX_ENTRY:
 SSTR - symbol
 BYTE[4] - offset
+NOTE: the offset, if present, must be the offset of the first byte of the bytecode
 INTERPRET: offset==0, offset unspecified
 INTERPRET: offset>0, symbol resides at specified offset from the .text section
 
 DATAVAR:
-BYTE - type - 0, 1, 2
+BYTE - type - 0, 1, 2, 3
 SWITCH (type) {
     0 ->:
-        BYTE[4] - s64BE
+        BYTE[4] - s32BE
     1 ->:
         SSTR - string
     2 ->:
         BYTE[8] - f64BE
+    3 ->:
+        BYTE[2] - size
+        NOTE: size is used to allocate an uninitialized array of 'size' bytes
 }
 
 
 BYTECODE:
 all code must end with a RET instruction
 the termination of bytecode is denoted with the HLT instruction
+all bytecode is prepended with BYTE[4] length
 
 RO indicates read only
 CW indicates constructor writeable

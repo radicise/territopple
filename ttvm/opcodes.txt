@@ -10,35 +10,42 @@ r16 (SP) - stack pointer
 r17 (BP) - base pointer
 r18 (PC) - program counter (RO)
 r19 (CF) - compare flags (RO)
+r20-r25 (rf0-rf5) - floating point Registers
 
 Binary Representation:
 
-ADD(era compat):
+ADD(era compat,fp compat):
 00000000 | xxxx|yyyy - rx.ry -> rx
 00000001 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
 00000010 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
 (era) 00000000 | xxxxxxxx | yyyyyyyy - rx.ry -> rx
 (era) 00000001 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> rx
 (era) 00000010 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> rx
-SUB(era compat):
+SUB(era compat,fp compat):
 00000011 | xxxx|yyyy - rx.ry -> rx
 00000100 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
 00000101 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
 (era) 00000011 | xxxxxxxx | yyyyyyyy - rx.ry -> rx
 (era) 00000100 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> rx
 (era) 00000101 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> rx
-MUL:
+MUL(era compat,sign compat,fp compat):
 00000110 | xxxx|yyyy - rx.ry -> rx
 00000111 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
 00001000 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
+(era) 00000110 | xxxxxxxx | yyyyyyyy - rx.ry -> rx
+(era) 00000111 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> rx
+(era) 00001000 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> rx
 UNUSED:
 00001001
 00001010
 00001011
-IDIV:
+DIV(era compat,sign compat,fp compat):
 00001100 | xxxx|yyyy - rx.ry -> s1.s0
 00001101 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> s1.s0
 00001110 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> s1.s0
+(era) 00001100 | xxxxxxxx | yyyyyyyy - rx.ry -> rx
+(era) 00001101 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> rx
+(era) 00001110 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> rx
 SHL:
 00001111 | xxxx|yyyy - rx.ry -> rx
 SHR:
@@ -63,7 +70,7 @@ PSH:
 00011011 | xxxxxxxx - rx -> s0.rx
 POP:
 00011100 | xxxxxxxx - rx -> s0.rx
-CMP(era compat):
+CMP(era compat,fp compat):
 00011101 | xxxx|yyyy - rx.ry -> cf
 00011110 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> cf
 00011111 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> cf
@@ -105,11 +112,11 @@ RET:
 SYSCALL:
 00101010 - r0(.r1-r4)(.s*) -> r0(.r1-r4)(.s*)
 MOV(era compat):
-00101011 | xxxx|yyyy - ry -> rx (oprev compat)
-00101100 | xxxx|00ll | zzzz*(2<<l) - mz -> rx
+00101011 | xxxx|yyyy - ry -> rx (oprev compat) (fp compat)
+00101100 | xxxx|00ll | zzzz*(2<<l) - mz -> rx (oprev compat)
 00101101 | xxxx|00ll | zzzz*(2<<l) - iz -> rx
 00101110 | xxxx|yyyy - *ry -> rx (oprev compat)
-(era) 00101011 | xxxxxxxx | yyyyyyyy - ry -> rx (oprev compat)
+(era) 00101011 | xxxxxxxx | yyyyyyyy - ry -> rx (oprev compat) (fp compat)
 (era) 00101110 | xxxxxxxx | yyyyyyyy - *ry -> rx (oprev compat)
 
 MODIFIERS:
@@ -118,9 +125,12 @@ MODIFIERS:
 010001|01 - call (jump)
 010001|10 - oprev (oprev compat)
 01001|nnn - memoffset (universal)
+01001|000 | 01|nnnnnn - rv memoffset (universal)
+010100|00 - sign (sign compat)
+010100|01 - fpop (fp compat)
 
 HLT:
-11111111 - . -> .
+00111111 - . -> .
 
 Description:
 
@@ -133,7 +143,7 @@ subtracts the second operand from the first, storing the result in the first ope
 MUL(r,r/m/i):
 multiplies the operands, storing the result in the first
 
-IDIV(r,r/m/i):
+DIV(r,r/m/i):
 divides the operands, pushes the quotient and remainder to the stack, in that order
 
 SHL(r,r):
@@ -222,9 +232,18 @@ MEMOFFSET(b[nnn]):
 applies to all opcodes
 the memory address operand is interpreted as a two's compliment signed offset from the specified reference
 
-if 'nnn' is 0, the reference is the SP register
-if 'nnn' is 1, the reference is the BP register
-if 'nnn' is 2, the reference is the PC register
+if 'nnn' is 0, the reference is the start of the code section
+if 'nnn' is 1, the reference is the value of the register specified by the next modifier byte
+if 'nnn' is 2, reserved
 if 'nnn' is 3, the reference is DABS
 if 'nnn' is 4, the reference is IABS
 if 'nnn' is 5, the reference is PABS
+
+SIGN():
+applies to all opcodes that are 'sign compat'
+indicates that the arguments are signed values
+
+FPOP():
+applies to all opcodes that are 'fp compat'
+indicates that any fp registers should be processed as floating point values
+NOTE: fp MOV acts as a way to cast values to and from floating point representations

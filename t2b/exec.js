@@ -32,13 +32,45 @@ if (reverse) {
 
 const text = readFileSync(rpath, {encoding:"utf-8"}).split("\n").map(v => v.slice(0,v.includes(";")?v.indexOf(";"):undefined)).join(' ').replaceAll("|", ''); // split lines, remove comments, join with spaces
 // console.log(text.split(' ').map(v => v.trim()).filter(v => v.length>0).slice(-50));
+/**@type {Record<string,number>} */
+const MARKERS = {};
+let cpos = 0;
 const data = text.split(' ').map(v => v.trim()).filter(v => v.length>0).map((v) => {
     if (v[0] === '$') {
+        cpos ++;
         return Number.parseInt(v.slice(1).split(/[+_\-]/g).join(''), 2);
     }
     if (v[0] === '~') {
+        cpos += v.length - 1;
         return v.slice(1).split("").map(v => v.charCodeAt(0));
     }
+    if (v[0] === "#") {
+        MARKERS[v] = cpos;
+        return [];
+    }
+    if (v[0] === "%") {
+        cpos += Number(v[1]);
+        return v.replaceAll("#?", `${cpos}`);
+    }
+    cpos ++;
     return Number.parseInt(v, 16);
+}).flat().map(v => {
+    if (typeof v === "number") {
+        return v;
+    }
+    if (v[0] === "%") {
+        // console.log(v);
+        // console.log(MARKERS);
+        for (const marker in MARKERS) {
+            v = v.replaceAll(new RegExp(`${marker}(?=[+*/)\\-])`, "g"), `${MARKERS[marker]}`);
+        }
+        const num = Number(eval(v.slice(2)));
+        const r = [];
+        for (let i = 0, l = Number(v[1]); i < l; i ++) {
+            r.push((num&((0xff)<<(i*8)))>>(i*8));
+        }
+        return r.reverse();
+    }
 }).flat();
+console.log(MARKERS);
 writeFileSync(wpath, Buffer.from(data));
