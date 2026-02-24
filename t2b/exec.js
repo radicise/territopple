@@ -72,5 +72,5 @@ const data = text.split(' ').map(v => v.trim()).filter(v => v.length>0).map((v) 
         return r.reverse();
     }
 }).flat();
-console.log(MARKERS);
+// console.log(MARKERS);
 writeFileSync(wpath, Buffer.from(data));

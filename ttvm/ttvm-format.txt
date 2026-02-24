@@ -65,6 +65,7 @@ NOTE: numeric types must have sizes that are powers of two
 00000100 | TYPE - TYPE[]
 00000101 - OPAQUE STRUCT
 00000110 - TRANSPARENT STRUCT
+11111111 - INVALID
 
 NOTE: the '@init' function acts as an entry for vm code where '@constructor' is unsuitable for initialization, it is declared in the same manner as a generic function
 the '@init' function must not be present if the '@constructor' function is present

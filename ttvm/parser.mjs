@@ -133,6 +133,7 @@ export const DATATYPE = {
 export const VMTYPE = {
     VOID: 0x00,
     PTR: 0x0100,
+    IPTR: 0x01ff,
     SSTR: 0x02,
     LSTR: 0x03,
     S8: 0xb1,

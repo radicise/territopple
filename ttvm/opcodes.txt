@@ -125,12 +125,16 @@ MODIFIERS:
 010001|01 - call (jump)
 010001|10 - oprev (oprev compat)
 01001|nnn - memoffset (universal)
-01001|000 | 01|nnnnnn - rv memoffset (universal)
+01001|001 | 01|nnnnnn - rv memoffset (universal)
 010100|00 - sign (sign compat)
 010100|01 - fpop (fp compat)
 
 HLT:
 00111111 - . -> .
+
+Notes:
+Using the unsigned compare flags after using CMP on fp values is undefined behavior.
+Using a memory address that is larger than the pointer type is undefined behavior.
 
 Description:
 
@@ -181,10 +185,11 @@ compares the values of the first and third operands, if equal, stores the second
 
 JMP(r,f[r,i,a]):
 performs an absolute jump to the value specified in the register
-if 'r' is set, the jump is relative to PC+[len(instruction)]
+if 'r' is set, the jump is relative to the start of the next instruction
 if 'i' is set, the next two bytes are read as a two's compliment signed integer and used instead of the operand
-if the 'call' prefix is present, PC+[len(instruction)] is pushed to the stack before the jump
+if the 'call' prefix is present, the start of the next instruction is pushed to the stack before the jump
 if the 'call' prefex is present and 'a' is set, the call is x86 style
+if the 'call' prefix is present, the 'r' and 'i' flags must not be set
 
 JE/Z, JNE/z, JL, JB, JLE, JBE, JG, JA, JGE, JAE all have the same operands and behavior as JMP with the following changes:
 JE/Z jumps only if the zero flag in CF is set
@@ -230,14 +235,14 @@ the meanings of the operands are reversed
 
 MEMOFFSET(b[nnn]):
 applies to all opcodes
-the memory address operand is interpreted as a two's compliment signed offset from the specified reference
+the memory address operand is interpreted as a two's compliment signed offset from the specified reference unless the reference is 0
 
 if 'nnn' is 0, the reference is the start of the code section
 if 'nnn' is 1, the reference is the value of the register specified by the next modifier byte
 if 'nnn' is 2, reserved
 if 'nnn' is 3, the reference is DABS
 if 'nnn' is 4, the reference is IABS
-if 'nnn' is 5, the reference is PABS
+if 'nnn' is 5, reserved
 
 SIGN():
 applies to all opcodes that are 'sign compat'

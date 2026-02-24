@@ -210,13 +210,9 @@ const CFLAGS = {
     ZX: 0,
     NZ: 1,
     LX: 2,
-    LE: 3,
-    BX: 4,
-    BE: 5,
-    GX: 6,
-    GE: 7,
-    AX: 8,
-    AE: 9,
+    BX: 3,
+    AX: 4,
+    GX: 5,
 };
 
 /**
@@ -365,6 +361,7 @@ export class TTVM {
             // pointers are U32 in V1
             case (VMTYPE.PTR): // move this to be above whatever type a pointer is
             case (VMTYPE.U32): return buf.readUint32BE(loc);
+            case (VMTYPE.IPTR):
             case (VMTYPE.S32): return buf.readInt32BE(loc);
             case (VMTYPE.U16): return buf.readUint16BE(loc);
             case (VMTYPE.S16): return buf.readInt16BE(loc);
@@ -407,7 +404,7 @@ export class TTVM {
         switch (type) {
             case VMTYPE.U128:case VMTYPE.S128:return 16;
             case VMTYPE.U64:case VMTYPE.S64:case VMTYPE.DOUBLE:return 8;
-            case VMTYPE.U32:case VMTYPE.S32:case VMTYPE.PTR:case VMTYPE.F32:return 4;
+            case VMTYPE.U32:case VMTYPE.S32:case VMTYPE.PTR:case VMTYPE.IPTR:case VMTYPE.F32:return 4;
             case VMTYPE.U16:case VMTYPE.S16:return 2;
             case VMTYPE.U8:case VMTYPE.S8:return 1;
         }
@@ -545,7 +542,7 @@ export class TTVM {
     set #bp(v) {this.#writeReg(TTVM.#REGISTERS.BP, BigInt(v), VMTYPE.U64);}
     set #pc(v) {this.#writeReg(TTVM.#REGISTERS.PC, BigInt(v), VMTYPE.U64);}
     /**
-     * @param {number} f
+     * @param {CFLAGS} f
      * @returns {boolean}
      */
     #readCFlag(f) {
@@ -553,7 +550,7 @@ export class TTVM {
         return (this.#readReg(TTVM.#REGISTERS.CF, VMTYPE.U64)&(1n<<f)) !== 0n;
     }
     /**
-     * @param {number} f
+     * @param {CFLAGS} f
      * @param {boolean} v
      */
     #writeCFlag(f,v) {
@@ -623,7 +620,7 @@ export class TTVM {
     }
     #execute() {
         let cycles = 0;
-        main: while (!this.#debugger) {
+        main: while (!cycles || !this.#debugger) {
             if (cycles >= 5) {
                 throw new Error("CYCLE LIMIT EXCEEDED");
             }
@@ -672,6 +669,12 @@ export class TTVM {
                 PIB = PC_seg.mem[relPC];
             }
             relPC ++;
+            let memoffsetval;
+            switch (modifiers.memoffset&7) {
+                case 1:memoffsetval=this.#readReg(modifiers.memoffset>>8,VMTYPE.PTR);break;
+                case 3:memoffsetval=this.#getSegmentOffset(2);break;
+                case 4:memoffsetval=this.#getSegmentOffset(1);break;
+            }
             let mantype = [VMTYPE.U8,VMTYPE.U16,VMTYPE.U32,VMTYPE.U64][modifiers.size];
             if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(`rpc: ${relPC} fpib: ${PIB}`);
             if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(JSON.stringify(modifiers));
@@ -679,7 +682,7 @@ export class TTVM {
             let bitoff = 0;
             let bytoff = 0;
             /**
-             * @param {0|1|2} kind register|memory|immediate
+             * @param {OPK} kind register|memory|immediate
              * @param {number} size size in bits, defaults to interpreting based on context
              * @param {boolean} align if true, the offset will be increased if needed to be byte aligned after reading
              * @returns {number}
@@ -699,6 +702,7 @@ export class TTVM {
                         default: throw new Error("invalid kind parameter for readarg");
                     }
                 }
+                const os = size;
                 if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(`RAS: ${size}`);
                 let n = 0;
                 while (size + bitoff > 8) {
@@ -717,6 +721,11 @@ export class TTVM {
                 if (bitoff === 8 || (align && bitoff > 0)) {
                     bitoff = 0;
                     bytoff ++;
+                }
+                if (modifiers.memoffset !== 0) {
+                    const b = Buffer.allocUnsafe(TTVM.sizeof(PTR));
+                    TTVM.writeType(b, 0, n, VMTYPE.PTR);
+                    n = TTVM.readType(b, 0, TTVM.sizeof(PTR)===4?VMTYPE.S32:VMTYPE.S64);
                 }
                 return n;
 
@@ -737,7 +746,10 @@ export class TTVM {
                     } else {
                         t = pattern[i];
                     }
-                    const v = readarg(t, s, a);
+                    let v = readarg(t, s, a);
+                    if (t === OPK.M && modifiers.memoffset !== 0) {
+                        v += memoffsetval;
+                    }
                     al[t].push(v);
                 }
                 return al;
@@ -761,7 +773,10 @@ export class TTVM {
                         args[0]=[readarg(0,4)];
                         args[1]=[];
                         args[2]=[];
-                        const r=(PC_seg.mem[bytoff]&8)===8,i=(PC_seg.mem[bytoff]&4)===4,a=(PC_seg.mem[bytoff]&2)===2,s=(PC_seg.mem[bytoff]&1)===1;
+                        const r=(PC_seg.mem[relPC+bytoff]&8)===8,i=(PC_seg.mem[relPC+bytoff]&4)===4,a=(PC_seg.mem[relPC+bytoff]&2)===2,s=(PC_seg.mem[relPC+bytoff]&1)===1;
+                        if (DBGR_FLAGS.TRACE_INST_PARSE) {
+                            console.log(`JMPPARSE:\nb: ${PC_seg.mem[relPC+bytoff]} r: ${r} i: ${i} a: ${a} s: ${s}`);
+                        }
                         bytoff ++;
                         bitoff = 0;
                         if (i) {
@@ -844,6 +859,48 @@ export class TTVM {
                     }
                 ];
             };
+            /**
+             * @param {(a:number|bigint,b:number|bigint)=>number|bigint} f
+             * @param {boolean} i
+             * @returns {Array<(v:number|bigint,k:OPK)=>void>}
+             */
+            const logiacc = (f,i) => {
+                return [
+                    (v,k) => {
+                        acc=f(
+                            acc,
+                            k===OPK.R?
+                            (
+                                this.#tryRead(v,true,mantype)
+                            ):(
+                                k===OPK.M?
+                                this.#tryRead(v,false,mantype)
+                                :(modifiers.size===3?BigInt(v):v)
+                            )
+                        );
+                    },
+                    (!i)?undefined:(v,k)=>{
+                        return k===OPK.R?
+                        (
+                            this.#tryRead(v,true,mantype)
+                        ):(
+                            k===OPK.M?
+                            this.#tryRead(v,false,mantype)
+                            :(size===3?BigInt(v):v)
+                        );
+                    }
+                ];
+            };
+            const readArgVal = (v,k,n) => {
+                return k === OPK.R?
+                (
+                    this.#tryRead(v, true, (n&&modifiers.fpop&&TTVM.#FP_REGISTERS.includes(v))?fpeqtype:mantype)
+                ):(
+                    k === OPK.M?
+                    this.#tryRead(v,false,mantype)
+                    :(size===3?BigInt(v):v)
+                )
+            };
             const picktype = (r) => (TTVM.#FP_REGISTERS.includes(r)&&modifiers.fpop)?fpeqtype:mantype;
             switch (op) {
                 case VM_OPS.ADD: {
@@ -867,7 +924,203 @@ export class TTVM {
                     break;
                 }
                 case VM_OPS.SHL: {
-                    this.#tryWrite();
+                    const val = this.#tryRead(args[0][0], true, mantype) << this.#tryRead(args[0][1], true, mantype);
+                    this.#tryWrite(args[0][0], true, val);
+                    break;
+                }
+                case VM_OPS.SHR: {
+                    const val = this.#tryRead(args[0][0], true, mantype) >>> this.#tryRead(args[0][1], true, mantype);
+                    this.#tryWrite(args[0][0], true, val);
+                    break;
+                }
+                case VM_OPS.SAR: {
+                    const val = this.#tryRead(args[0][0], true, mantype) >> this.#tryRead(args[0][1], true, mantype);
+                    this.#tryWrite(args[0][0], true, val);
+                    break;
+                }
+                case VM_OPS.XOR: {
+                    accumulate(...logiacc((a,b)=>a^b,true));
+                    this.#tryWrite(args[0][0], true, acc, mantype);
+                    break;
+                }
+                case VM_OPS.ORR: {
+                    accumulate(...logiacc((a,b)=>a|b,true));
+                    this.#tryWrite(args[0][0], true, acc, mantype);
+                    break;
+                }
+                case VM_OPS.AND: {
+                    accumulate(...logiacc((a,b)=>a&b,true));
+                    this.#tryWrite(args[0][0], true, acc, mantype);
+                    break;
+                }
+                case VM_OPS.PSH: {
+                    const sz = TTVM.sizeof(mantype);
+                    this.#sp -= sz;
+                    this.#tryWrite(this.#sp, false, this.#readReg(args[0][0], mantype));
+                    break;
+                }
+                case VM_OPS.POP: {
+                    const sz = TTVM.sizeof(mantype);
+                    this.#tryWrite(args[0][0], true, this.#tryRead(this.#sp, false, mantype), mantype);
+                    this.#sp += sz;
+                    break;
+                }
+                case VM_OPS.CMP: {
+                    const vals = [];
+                    for (const it of args[0]) vals.push(readArgVal(it, OPK.R, true));
+                    for (const it of args[1]) vals.push(readArgVal(it, OPK.M));
+                    for (const it of args[2]) vals.push(readArgVal(it, OPK.I));
+                    let mt = mantype;
+                    mantype = [VMTYPE.S8,VMTYPE.S16,VMTYPE.S32,VMTYPE.S64][modifiers.size];
+                    for (const it of args[0]) vals.push(readArgVal(it, OPK.R, true));
+                    for (const it of args[1]) vals.push(readArgVal(it, OPK.M));
+                    for (const it of args[2]) vals.push(readArgVal(it, OPK.I));
+                    this.#writeReg(TTVM.#REGISTERS.CF, 0n, VMTYPE.U64);
+                    mantype = mt;
+                    if (vals[0] === vals[1]) {
+                        this.#writeCFlag(CFLAGS.ZX, true);
+                    } else {
+                        this.#writeCFlag(CFLAGS.NZ, true);
+                    }
+                    if (vals[0] < vals[1]) {
+                        this.#writeCFlag(CFLAGS.BX, true);
+                    } else if (vals[0] > vals[1]) {
+                        this.#writeCFlag(CFLAGS.AX, true);
+                    }
+                    if (vals[2] < vals[3]) {
+                        this.#writeCFlag(CFLAGS.LX, true);
+                    } else if (vals[2] > vals[3]) {
+                        this.#writeCFlag(CFLAGS.GX, true);
+                    }
+                    break;
+                }
+                case VM_OPS.XCHG: {
+                    const vals = [];
+                    for (const it of args[0]) vals.push(readArgVal(it, OPK.R));
+                    this.#tryWrite(args[0][0], true, vals[1], mantype);
+                    this.#tryWrite(args[0][1], true, vals[0], mantype);
+                    break;
+                }
+                case VM_OPS.CMPXCHG: {
+                    const vals = [];
+                    for (const it of args[0]) vals.push(readArgVal(it, OPK.R));
+                    for (const it of args[1]) vals.push(readArgVal(it, OPK.M));
+                    if (vals[0] === vals[2]) {
+                        // this.#tryWrite(args[0][1], true, vals[3], mantype);
+                        this.#tryWrite(args[1][1], false, vals[1], mantype);
+                    }
+                    break;
+                }
+                case VM_OPS.RET: {
+                    const sz = TTVM.sizeof(VMTYPE.PTR);
+                    this.#pc = this.#tryRead(this.#sp, false, VMTYPE.PTR);
+                    this.#sp += sz;
+                    break;
+                }
+                case VM_OPS.JMP: {
+                    let j = false;
+                    switch (PIB) {
+                        case 34: { // JMP
+                            j = true;
+                            break;
+                        }
+                        case 35: { // JZ
+                            j = this.#readCFlag(CFLAGS.ZX);
+                            break;
+                        }
+                        case 36: { // JNZ
+                            j = this.#readCFlag(CFLAGS.NZ);
+                            break;
+                        }
+                        case 37: { // JL/B
+                            j = this.#readCFlag(jmpa.s?CFLAGS.BX:CFLAGS.LX);
+                            break;
+                        }
+                        case 38: { // JL/BE
+                            j = this.#readCFlag(CFLAGS.ZX)||this.#readCFlag(jmpa.s?CFLAGS.BX:CFLAGS.LX);
+                            break;
+                        }
+                        case 39: { // JG/A
+                            j = this.#readCFlag(jmpa.s?CFLAGS.AX:CFLAGS.GX);
+                            break;
+                        }
+                        case 40: { // JG/AE
+                            j = this.#readCFlag(CFLAGS.ZX)||this.#readCFlag(jmpa.s?CFLAGS.AX:CFLAGS.GX);
+                            break;
+                        }
+                    }
+                    if(DBGR_FLAGS.TRACE_INST_PARSE){
+                        console.log(`JCOND: ${j}`);
+                        console.log(jmpa);
+                    }
+                    if (!j) break;
+                    /**@type {number} */
+                    let dst = jmpa.i?args[2][0]:this.#tryRead(args[0][0], true, VMTYPE.PTR);
+                    if (jmpa.r) {
+                        dst += this.#pc;
+                    }
+                    if (modifiers.call) {
+                        const sz = TTVM.sizeof(VMTYPE.PTR);
+                        this.#sp -= sz;
+                        this.#tryWrite(this.#sp, false, this.#pc, VMTYPE.PTR);
+                        if (jmpa.a) {
+                            this.#pc = dst;
+                        } else {
+                            this.#pc = this.info.indx.entries[dst].offset;
+                        }
+                    } else {
+                        this.#pc = dst;
+                    }
+                    break;
+                }
+                case VM_OPS.MOV: {
+                    switch (PIB) {
+                        case 43: { // MOV rx,ry
+                            let vs = this.#tryRead(args[0][1], true, picktype(args[0][1]));
+                            let vd = this.#tryRead(args[0][0], true, picktype(args[0][0]));
+                            if (DBGR_FLAGS.TRACE_INST_PARSE)console.log(`vs: ${vs} vd: ${vd}`);
+                            if (TTVM.#FP_REGISTERS.includes(args[0][1]) && modifiers.fpop) {
+                                vs = Math.trunc(vs);
+                            }
+                            if (TTVM.#FP_REGISTERS.includes(args[0][0]) && modifiers.fpop) {
+                                vd = Math.trunc(vd);
+                            }
+                            if (DBGR_FLAGS.TRACE_INST_PARSE)console.log(`vs: ${vs} vd: ${vd}`);
+                            if (modifiers.oprev) {
+                                this.#tryWrite(args[0][1], true, vd, picktype(args[0][1]));
+                            } else {
+                                this.#tryWrite(args[0][0], true, vs, picktype(args[0][0]));
+                            }
+                            break;
+                        }
+                        case 44: { // MOV rx,mz
+                            const vs = this.#tryRead(args[1][0], false, mantype);
+                            let vd = this.#tryRead(args[0][0], true, picktype(args[0][0]));
+                            if (TTVM.#FP_REGISTERS.includes(args[0][0]) && modifiers.fpop) {
+                                vd = Math.trunc(vd);
+                            }
+                            if (modifiers.oprev) {
+                                this.#tryWrite(args[1][0], false, vd, mantype);
+                            } else {
+                                this.#tryWrite(args[0][0], true, vs, mantype);
+                            }
+                            break;
+                        }
+                        case 45: { // MOV rx,iz
+                            this.#tryWrite(args[0][0], true, args[2][0], mantype);
+                            break;
+                        }
+                        case 46: { // MOV rx,[ry]
+                            const maddr = this.#tryRead(args[0][1], true, VMTYPE.PTR);
+                            const xval = this.#tryRead(args[0][0], true, mantype);
+                            if (modifiers.oprev) {
+                                this.#tryWrite(maddr, false, xval, mantype);
+                            } else {
+                                this.#tryWrite(args[0][0], true, this.#tryRead(maddr, false, mantype), mantype);
+                            }
+                            break;
+                        }
+                    }
                     break;
                 }
                 case VM_OPS.HLT: {
@@ -1326,7 +1579,7 @@ const _debugger = {
     "f,flag":
         [
             "USAGE:",
-            "(f|flag) (a|b|c) {flag}",
+            "(f|flag) (c|s|t) {flag}",
             "#i+",
             "Modifies the specified debugger flag",
             "#i-",
