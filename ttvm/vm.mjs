@@ -225,7 +225,7 @@ const CFLAGS = {
  * smr is all specific meaning registers
  */
 
-const DBGR_FLAGS = {"TRACE_INST_PARSE":false};
+const DBGR_FLAGS = {"TRACE_INST_PARSE":true};
 
 const DUMP_ALLOWED = true;
 
@@ -310,6 +310,7 @@ export class TTVM {
         this.#rconst_lock = false;
         this.#writeReg(TTVM.#REGISTERS.ONES, 0xffffffffffffffffn, VMTYPE.U64);
         this.#writeReg(TTVM.#REGISTERS.ONE, 1, VMTYPE.U8);
+        this.#sp = STACKSIZE-1;
         this.#rconst_lock = true;
         this.#memory_segments = [
             {p:VMSEGPFLAGS.EXEC,mem:this.info.copyCode()},
@@ -641,7 +642,7 @@ export class TTVM {
             if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(`rpc: ${relPC} opib: ${PIB}`);
             let modifiers = {size:2,era:false,call:false,oprev:false,memoffset:0,sign:false,fpop:false};
             while (PIB & PREFIX_BIT) { // check if instruction is a prefix
-                if ((PIB & VM_OPMODS.SIZE) === VM_OPMODS.SIZE) {
+                if ((PIB & ~3) === VM_OPMODS.SIZE) {
                     modifiers.size = PIB & 3;
                 } else if (PIB === VM_OPMODS.ERA) {
                     modifiers.era = true;
@@ -649,7 +650,7 @@ export class TTVM {
                     modifiers.call = true;
                 } else if (PIB === VM_OPMODS.OPREV) {
                     modifiers.oprev = true;
-                } else if ((PIB & VM_OPMODS.MEMOFFSET) === VM_OPMODS.MEMOFFSET) {
+                } else if ((PIB & ~7) === VM_OPMODS.MEMOFFSET) {
                     modifiers.memoffset = PIB&7;
                     if (PIB&7 === 1) {
                         relPC ++;
@@ -688,22 +689,23 @@ export class TTVM {
              * @returns {number}
              */
             const readarg = (kind, size, align) => {
-                if (typeof size !== "number") {
-                    switch (kind) {
-                        case 0:
-                            size = modifiers.era ? 8 : 4;
-                            break;
-                        case 1:
-                            size = 4*(2<<readarg(0, modifiers.era ? 8 : 4));
-                            break;
-                        case 2:
-                            size = 4*(2<<readarg(0, modifiers.era ? 8 : 4));
-                            break;
-                        default: throw new Error("invalid kind parameter for readarg");
-                    }
+                let len;
+                switch (kind) {
+                    case 0:
+                        size = size ?? (modifiers.era ? 8 : 4);
+                        break;
+                    case 1:
+                        len = readarg(0, size ?? (modifiers.era ? 8 : 4));
+                        size = 4*(2<<len);
+                        break;
+                    case 2:
+                        len = readarg(0, size ?? (modifiers.era ? 8 : 4));
+                        size = 4*(2<<len);
+                        break;
+                    default: throw new Error("invalid kind parameter for readarg");
                 }
                 const os = size;
-                if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(`RAS: ${size}`);
+                if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(`TYPE: ${kind} RAS: ${size}`);
                 let n = 0;
                 while (size + bitoff > 8) {
                     const cs = 8-bitoff;
@@ -722,11 +724,30 @@ export class TTVM {
                     bitoff = 0;
                     bytoff ++;
                 }
-                if (modifiers.memoffset !== 0) {
+                if (![0,3,4].includes(modifiers.memoffset) && kind === OPK.M) {
                     const b = Buffer.allocUnsafe(TTVM.sizeof(PTR));
                     TTVM.writeType(b, 0, n, VMTYPE.PTR);
                     n = TTVM.readType(b, 0, TTVM.sizeof(PTR)===4?VMTYPE.S32:VMTYPE.S64);
                 }
+                if (kind === OPK.I){
+                    if (modifiers.fpop) {
+                        if (os !== 4 && os !== 8) {
+                            throw new Error("INVALID FP ARG");
+                        }
+                        const b = Buffer.allocUnsafe(os/8);
+                        TTVM.writeType(b, 0, n, os===32?VMTYPE.U32:VMTYPE.U64);
+                        n = TTVM.readType(b, 0, os===32?VMTYPE.F32:VMTYPE.F64);
+                    } else if (modifiers.sign) {
+                        const b = Buffer.allocUnsafe(os/8);
+                        // console.log(os/8);
+                        // const ind = Math.log2(os/4)-1;
+                        // console.log(ind);
+                        TTVM.writeType(b, 0, n, [VMTYPE.U8,VMTYPE.U16,VMTYPE.U32,VMTYPE.U64][len]);
+                        // console.log(b);
+                        n = TTVM.readType(b, 0, [VMTYPE.S8,VMTYPE.S16,VMTYPE.S32,VMTYPE.S64][len]);
+                    }
+                }
+                if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(`RV: ${n}`);
                 return n;
 
             };
@@ -780,8 +801,8 @@ export class TTVM {
                         bytoff ++;
                         bitoff = 0;
                         if (i) {
-                            args[2].push(TTVM.readType(PC_seg.mem,relPC+bytoff,VMTYPE.S16));
-                            bytoff += 2;
+                            args[2].push(TTVM.readType(PC_seg.mem,relPC+bytoff,a?VMTYPE.S32:VMTYPE.S16));
+                            bytoff += a?4:2;
                         }
                         jmpa={r,i,a,s};
                         break;

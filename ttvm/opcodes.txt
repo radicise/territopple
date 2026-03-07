@@ -14,14 +14,14 @@ r20-r25 (rf0-rf5) - floating point Registers
 
 Binary Representation:
 
-ADD(era compat,fp compat):
+ADD(era compat,fp compat,sign compat):
 00000000 | xxxx|yyyy - rx.ry -> rx
 00000001 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
 00000010 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
 (era) 00000000 | xxxxxxxx | yyyyyyyy - rx.ry -> rx
 (era) 00000001 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.mz -> rx
 (era) 00000010 | xxxxxxxx | 000000ll | zzzz*(2<<l) - rx.iz -> rx
-SUB(era compat,fp compat):
+SUB(era compat,fp compat,sign compat):
 00000011 | xxxx|yyyy - rx.ry -> rx
 00000100 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> rx
 00000101 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> rx
@@ -70,7 +70,7 @@ PSH:
 00011011 | xxxxxxxx - rx -> s0.rx
 POP:
 00011100 | xxxxxxxx - rx -> s0.rx
-CMP(era compat,fp compat):
+CMP(era compat,fp compat,sign compat):
 00011101 | xxxx|yyyy - rx.ry -> cf
 00011110 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> cf
 00011111 | xxxx|00ll | zzzz*(2<<l) - rx.iz -> cf
@@ -111,7 +111,7 @@ RET:
 00101001 - s0 -> pc
 SYSCALL:
 00101010 - r0(.r1-r4)(.s*) -> r0(.r1-r4)(.s*)
-MOV(era compat):
+MOV(era compat,sign compat):
 00101011 | xxxx|yyyy - ry -> rx (oprev compat) (fp compat)
 00101100 | xxxx|00ll | zzzz*(2<<l) - mz -> rx (oprev compat)
 00101101 | xxxx|00ll | zzzz*(2<<l) - iz -> rx
@@ -188,8 +188,10 @@ performs an absolute jump to the value specified in the register
 if 'r' is set, the jump is relative to the start of the next instruction
 if 'i' is set, the next two bytes are read as a two's compliment signed integer and used instead of the operand
 if the 'call' prefix is present, the start of the next instruction is pushed to the stack before the jump
-if the 'call' prefex is present and 'a' is set, the call is x86 style
-if the 'call' prefix is present, the 'r' and 'i' flags must not be set
+if the 'call' prefex is present and 'a' is set, the call is x86 style (jumping to an address rather than an index entry)
+if the 'call' prefix is present, the 'r' flag no longer indicates a relative jump
+if the 'call' prefix is present and the 'i' and 'a' flags are set, the next four bytes are read instead of the next two, unless the 'r' flag is set
+if the 'call' prefix is NOT present and the 'i' and 'a' flags are set, the next four bytes are read instead of the next two
 
 JE/Z, JNE/z, JL, JB, JLE, JBE, JG, JA, JGE, JAE all have the same operands and behavior as JMP with the following changes:
 JE/Z jumps only if the zero flag in CF is set
@@ -235,7 +237,7 @@ the meanings of the operands are reversed
 
 MEMOFFSET(b[nnn]):
 applies to all opcodes
-the memory address operand is interpreted as a two's compliment signed offset from the specified reference unless the reference is 0
+the memory address operand is interpreted as a two's compliment signed offset from the specified reference unless the reference is 0, 3, or 4
 
 if 'nnn' is 0, the reference is the start of the code section
 if 'nnn' is 1, the reference is the value of the register specified by the next modifier byte
@@ -247,8 +249,10 @@ if 'nnn' is 5, reserved
 SIGN():
 applies to all opcodes that are 'sign compat'
 indicates that the arguments are signed values
+immediate values will have their most significant bit extended to the left
 
 FPOP():
 applies to all opcodes that are 'fp compat'
 indicates that any fp registers should be processed as floating point values
+any immediate value will be interpreted as a floating point value
 NOTE: fp MOV acts as a way to cast values to and from floating point representations

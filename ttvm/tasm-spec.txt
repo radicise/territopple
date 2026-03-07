@@ -1,0 +1,127 @@
+this file specifies the Territopple ASseMbly (TASM) language
+
+sections are declared as "section .section"
+memory addresses are prefixed with $
+mnemonics can have multiple prefixes
+the destination argument is first (unless otherwise stated)
+symbols to be included in the index have a declaration in the index section
+numbers can be escaped to be interpreted as words by prefixing them with '#'
+
+Sections:
+
+.conf:
+the .conf section includes all configuration for the program
+
+!purpose {value} - declare file purpose, value may be a number or one of "3tr", "gpc", "bot", "sbc"
+!name {value} - value is a string not longer than 255 characters
+!invar {value} - value is the number of invariants
+!fstr {value} - format string, not valid if purpose is not 0 or "3tr"
+!some {value} - SOME render restrict, not valid if purpose is not 0 or "3tr"
+!none {value} - NONE render restrict, not valid if purpose is not 0 or "3tr"
+
+.data:
+the .data section declares all memory available to the program
+labels should be used to refer to memory in the data section
+
+!str {value} - a string not longer than 255 characters
+!s32 {value} - a signed 32 bit integer
+!f64 {value} - an IEEE 754 double precision floating point value
+!res {value} - reserve 'value' bytes of uninitialized memory
+
+.code:
+the .code section declares all executable memory
+
+the .code section is a series of labels and instructions
+labels are /^[@a-zA-Z0-9_.]+:$/
+instructions consist of zero or more prefixes, one mnemonic, and zero or more parameters
+
+where memory addresses are used, a relative address may be used instead with syntax
+[BASE+offset] (note: offset may be negative)
+BASE can be any register or the special values 'data', 'invar'
+
+.indx:
+the .indx section contains entries to all symbols available to outside code
+
+{symbol} - include 'symbol' in the index with default signature ('() void')
+{symbol} ({ptype} {pname},...) {rtype} - include 'symbol' in the index with the given signature
+
+Types:
+u8-u128
+s8-s128
+void - VOID
+TYPE* - PTR
+sstr - SSTR
+lstr - LSTR
+TYPE[z] - SIZEDARRAY
+TYPE[] - UNSIZEDARRAY
+struct - TRANSPARENT STRUCT
+any - OPAQUE STRUCT
+!! - INVALID
+
+
+Mnemonics:
+add r/re,r/re/m/i
+sub r/re,r/re/m/i
+mul r/re,r/re/m/i
+imul r/re,r/re/m/i
+div r/re,r/re/m/i
+idiv r/re,r/re/m/i
+shl r,r
+shr r,r
+sar r,r
+xor r,r/m/i
+not r
+or r,r/m/i
+and r,r/m/i
+push re
+pop re
+cmp r/re,r/re/m/i
+test r/re
+xchg r,r
+cmpxchg re,r/re,m,m
+jmp r/i
+jz/je r/i
+jnz/jne r/i
+ja r/i
+jg r/i
+jb r/i
+jl r/i
+jae r/i
+jge r/i
+jbe r/i
+jle r/i
+ret
+syscall
+call - shorthand for (call) jmp
+mov r/re,r/re/m/i
+hlt
+
+NOTE: while the ttvm format supports both calling forms for register operands, the assembler will assume that any
+    calls with a register operand should be x86 style
+
+Prefixes:
+(byte)
+(word)
+(dword)
+(qword)
+(fp)
+(call) - turns jumps into calls
+
+
+Minimal File:
+BEGIN FILE
+!section .conf
+!purpose "gpc"
+!name "TASM_MIN"
+!invar 0
+
+!section .code
+@init:
+    add r0,r14
+    ret
+
+!section .data
+
+!section .indx
+@init () void
+END FILE
