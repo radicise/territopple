@@ -225,7 +225,7 @@ const CFLAGS = {
  * smr is all specific meaning registers
  */
 
-const DBGR_FLAGS = {"TRACE_INST_PARSE":true};
+const DBGR_FLAGS = {"TRACE_INST_PARSE":false};
 
 const DUMP_ALLOWED = true;
 
