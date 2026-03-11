@@ -369,7 +369,7 @@ process.once("message", (id) => {
                             }
                             gameid = v.value;
                             try {
-                                console.log("handling");
+                                // console.log("handling");
                                 socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":v.value, "acc":acc, "asspec":url.searchParams.get("S")==="1", "pw":url.searchParams.get("pw")}, state);
                             } catch (E) {
                                 if (E instanceof HandlerInvocationError) {
