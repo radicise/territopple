@@ -1202,14 +1202,6 @@ const internal_server = http.createServer(async (req, res) => {
             }
             return;
         }
-        case "/add-friend":{
-            if (req.method !== "POST") {
-                res.writeHead(405).end();
-                return;
-            }
-            res.writeHead(503).end();
-            return;
-        }
         case "/perms":{
             if (req.method !== "GET") {
                 res.writeHead(405).end();
