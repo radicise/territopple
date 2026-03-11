@@ -6,6 +6,7 @@ const child_process = require("child_process");
 const socks = require("../socks/handlers.js");
 const { settings, validateJSONScheme, JSONScheme, InvariantViolationError, emit, on, clear, tag_inuse } = require("../../defs.js");
 const { PerformanceError } = require("./errors.js");
+const { DataServer } = require("../interface/data.js");
 
 socks.setGlobals({}, emit, on, clear, tag_inuse);
 
@@ -46,13 +47,15 @@ function instanceWorker() {
         if (inactivate) return;
         inactivate = true;
         if (c in children) delete children[c];
-        http.request(`http://localhost:${settings.INTERNALPORT}/worker?id=${c}`, {method: "DELETE"}).end();
+        DataServer.deleteWorker(c);
+        // http.request(`http://localhost:${settings.INTERNALPORT}/worker?id=${c}`, {method: "DELETE"}).end();
     });
     child.on("exit", () => {
         if (inactivate) return;
         inactivate = true;
         if (c in children) delete children[c];
-        http.request(`http://localhost:${settings.INTERNALPORT}/worker?id=${c}`, {method: "DELETE"}).end();
+        DataServer.deleteWorker(c);
+        // http.request(`http://localhost:${settings.INTERNALPORT}/worker?id=${c}`, {method: "DELETE"}).end();
     });
     child.on("message", (msg) => {
         if (msg.factor_update !== undefined) {
@@ -176,19 +179,28 @@ server.on("upgrade", (req, socket) => {
         connErr(req, socket, {data:"Missing Game ID",redirect:"/play-online",store:"Missing Game ID"});
         return;
     }
-    http.get(`http://localhost:${settings.INTERNALPORT}/worker?id=${id}`, (res) => {
-        /**@type {number} */
-        let data = "";
-        res.on("data", (chunk) => {data += chunk;});
-        res.on("end", () => {
-            data = Number(data);
-            if (!(data in children)) {
+    DataServer.getWorkerId(id).then(v => {
+        if (v.okay) {
+            if (!(v.value in children)) {
                 connErr(req, socket, {data:"Internal Failure",redirect:"/play-online",store:"Internal Failure"});
                 return;
             }
-            children[data].proc.send({headers: req.headers, method: req.method, url: req.url}, socket);
-        });
+            children[v.value].proc.send({headers: req.headers, method: req.method, url: req.url}, socket);
+        }
     });
+    // http.get(`http://localhost:${settings.INTERNALPORT}/worker?id=${id}`, (res) => {
+    //     /**@type {number} */
+    //     let data = "";
+    //     res.on("data", (chunk) => {data += chunk;});
+    //     res.on("end", () => {
+    //         data = Number(data);
+    //         if (!(data in children)) {
+    //             connErr(req, socket, {data:"Internal Failure",redirect:"/play-online",store:"Internal Failure"});
+    //             return;
+    //         }
+    //         children[data].proc.send({headers: req.headers, method: req.method, url: req.url}, socket);
+    //     });
+    // });
 });
 
 server.listen(settings.GAMEPORT);
