@@ -26,6 +26,9 @@ function attatchListeners(req, resolve, endcb) {
             }
         });
     });
+    if (!req.writableEnded) {
+        req.end();
+    }
 }
 
 exports.attatchListeners = attatchListeners;

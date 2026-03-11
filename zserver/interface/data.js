@@ -17,7 +17,6 @@ class DataServer {
             console.log(`generating for '${setid}'`);
             const req = http.request(`http://localhost:${settings.INTERNALPORT}/room-id?sid=${setid??"@@@@@"}`, {method:"GET"});
             attatchListeners(req, resolve, (data) => data);
-            req.end();
         });
     }
     /**
