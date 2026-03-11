@@ -57,3 +57,28 @@ The TTVM section covers the ttvm format, opcodes, TASM, and the VM itself.
 | VM | Nightly |
 
 [1] - This is distinct from TTVM object files as the original format did not include a purpose or an indx section.
+
+# TTVM Types
+This section covers the stability of the representation of types in the TTVM.
+
+| Item | Stability | Notes |
+|-|-|-|
+| Numeric Types <= 64 bits | Stable |
+| Numeric Types > 64 bits | Nightly |
+| Unsized Array | Nightly |
+| Sized Array | Stable |
+| Opaque Struct | Stable |
+| Transparent Struct | Nightly |
+| SStr | Stable |
+| LStr | Stable |
+| Pointer | Stable |
+
+# TTVM 3tr
+The TTVM 3tr section covers features exclusive to the 3tr purpose.
+
+| Item | Stability | Notes |
+|-|-|-|
+| @constructor | Stable |
+| @getpositionof | Nightly | see Unsized Array |
+| @getneighbors | Nightly | see Unsized Array |
+| @getrequiredbits | Stable |

@@ -161,6 +161,7 @@ SWITCH (type) {
         NOTE: implementations are STRONGLY ENCOURAGED to initialize these bytes to avoid leaking potentially sensitive data
 }
 
+TTVM Code with a purpose corresponding to topology rules MUST populate invariant 0 with the tile count and invariant 1 with the maximum number of neighbors that any tile has.
 
 BYTECODE:
 all code must end with a RET instruction
@@ -196,10 +197,10 @@ memory areas {
 Call ABI:
 parameters are passed through r1-r4, with additional parameters being pushed onto the stack in reverse order
 return values are passed through r0
-r0-r4 are allowed to be freely manipulated, all others must be saved and restored
+r0-r7 are allowed to be freely manipulated, all others must be saved and restored
 
 Syscalls:
-the syscall invoked by the SYSCALL opcode is specified using r0
+the syscall invoked by the SYSCALL opcode is specified using r0 as u32
 parameters and return values function in the same way as the Call ABI
 
 Available Syscalls:
@@ -211,6 +212,7 @@ General Purpose
 0x0003 - set timer
 0x0004 - set max pc steps
 0x0005 - set irupt handler
+0x0006 - exit, return value is in r1 as u32
 
 Bots:
 0x8000 - obtain root board reference

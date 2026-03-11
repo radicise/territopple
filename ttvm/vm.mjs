@@ -622,7 +622,7 @@ export class TTVM {
     #execute() {
         let cycles = 0;
         main: while (!cycles || !this.#debugger) {
-            if (cycles >= 5) {
+            if (cycles >= 100) {
                 throw new Error("CYCLE LIMIT EXCEEDED");
             }
             cycles ++;
@@ -632,9 +632,9 @@ export class TTVM {
             if(DBGR_FLAGS.TRACE_INST_PARSE)console.log("INST PARSE HEAD");
             if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(`CPC: ${CPC}`);
             if (!(PC_seg?.p&VMSEGPFLAGS.EXEC)) { // check PC points to executable memory
-                console.log("ERROR SEGV");
+                // console.log("ERROR SEGV");
                 // goto the segfault handler
-                if (this.#setup_faulthandler()) continue;
+                if (this.#setup_faulthandler(VMFAULTCODE.SEGMENT)) continue;
                 return;
             }
             let relPC = this.#offsetLoc(CPC); // PC relative to segment start
@@ -656,7 +656,7 @@ export class TTVM {
                         relPC ++;
                         const rv = PC_seg.mem[relPC];
                         if (!(rv & PREFIX_BIT)) { // illegal modifier
-                            if (this.#setup_faulthandler()) continue main;
+                            if (this.#setup_faulthandler(VMFAULTCODE.GENPROT)) continue main;
                             return;
                         }
                         modifiers.memoffset |= ((rv&0x3f) << 8);
@@ -946,17 +946,17 @@ export class TTVM {
                 }
                 case VM_OPS.SHL: {
                     const val = this.#tryRead(args[0][0], true, mantype) << this.#tryRead(args[0][1], true, mantype);
-                    this.#tryWrite(args[0][0], true, val);
+                    this.#tryWrite(args[0][0], true, val, mantype);
                     break;
                 }
                 case VM_OPS.SHR: {
                     const val = this.#tryRead(args[0][0], true, mantype) >>> this.#tryRead(args[0][1], true, mantype);
-                    this.#tryWrite(args[0][0], true, val);
+                    this.#tryWrite(args[0][0], true, val, mantype);
                     break;
                 }
                 case VM_OPS.SAR: {
                     const val = this.#tryRead(args[0][0], true, mantype) >> this.#tryRead(args[0][1], true, mantype);
-                    this.#tryWrite(args[0][0], true, val);
+                    this.#tryWrite(args[0][0], true, val, mantype);
                     break;
                 }
                 case VM_OPS.XOR: {
@@ -1034,6 +1034,9 @@ export class TTVM {
                 }
                 case VM_OPS.RET: {
                     const sz = TTVM.sizeof(VMTYPE.PTR);
+                    this.#sp = this.#bp;
+                    this.#bp = this.#tryRead(this.#sp, false, VMTYPE.PTR);
+                    this.#sp += sz;
                     this.#pc = this.#tryRead(this.#sp, false, VMTYPE.PTR);
                     this.#sp += sz;
                     break;
@@ -1084,6 +1087,9 @@ export class TTVM {
                         const sz = TTVM.sizeof(VMTYPE.PTR);
                         this.#sp -= sz;
                         this.#tryWrite(this.#sp, false, this.#pc, VMTYPE.PTR);
+                        this.#sp -= sz;
+                        this.#tryWrite(this.#sp, false, this.#bp, VMTYPE.PTR);
+                        this.#bp = this.#sp;
                         if (jmpa.a) {
                             this.#pc = dst;
                         } else {
@@ -1144,6 +1150,36 @@ export class TTVM {
                     }
                     break;
                 }
+                case VM_OPS.SYSCALL: {
+                    const r0 = this.#readReg(TTVM.#REGISTERS.R0, VMTYPE.U32);
+                    switch (r0) {
+                        case 0: {
+                            break;
+                        }
+                        case 1: {
+                            break;
+                        }
+                        case 2: {
+                            break;
+                        }
+                        case 3: {
+                            break;
+                        }
+                        case 4: {
+                            break;
+                        }
+                        case 5: {
+                            break;
+                        }
+                        case 6: {
+                            return;
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case VM_OPS.HLT: {
                     if (modifiers.call) {
                         if (DUMP_ALLOWED) {
@@ -1158,17 +1194,63 @@ export class TTVM {
         }
     }
     /**
+     * @param {Array<[any, VMTYPE]>} params
+     */
+    #writeParams(params) {
+        const pmap = {};
+        for (let i = 0; i < params.length; i ++) {
+            if (params[i][1] === VMTYPE.SSTR) {
+                this.#sp -= params[i][0].length + 1;
+                pmap[i] = this.#sp;
+                const ol = this.#offsetLoc(this.#sp);
+                this.#memory_segments[3].mem[ol] = params[i][0].length;
+                this.#memory_segments[3].mem.write(params[i][0], ol+1, "ascii");
+            }
+        }
+        for (let i = 0; i < params.length; i ++) {
+            if (i < 4) {
+                const reg = [TTVM.#REGISTERS.R1,TTVM.#REGISTERS.R2,TTVM.#REGISTERS.R3,TTVM.#REGISTERS.R4][i];
+                if (params[i][1] === VMTYPE.SSTR) {
+                    this.#writeReg(reg, pmap[i], VMTYPE.PTR);
+                } else {
+                    this.#writeReg(reg, params[i][0], params[i][1]);
+                }
+            } else {
+                this.#sp -= TTVM.sizeof(params[i][1]);
+                this.#tryWrite(this.#sp, false, params[i][0], params[i][1]);
+            }
+        }
+    }
+    /**
      * @param {string} symbol
      * @param {Array<[any,VMTYPE]>} params
+     * @param {VMTYPE} rtype
      * @returns {any}
      */
-    execute(symbol, params) {
+    execute(symbol, params, rtype) {
         const entry = this.info.indx.entries.find(v=>v.symbol===symbol);
         if (!entry) {
             throw new Error("symbol does not exist");
         }
         this.#pc = entry.offset;
-        if (!this.#debugger)this.#execute();
+        if (params) {
+            this.#writeParams(params);
+        }
+        if (!this.#debugger) {
+            this.#execute();
+            switch (rtype) {
+                case VMTYPE.VOID: {
+                    return;
+                }
+                case VMTYPE.PTR:
+                case VMTYPE.UNSIZEDARR: {
+                    return this.#readReg(TTVM.#REGISTERS.R1, VMTYPE.PTR);
+                }
+                default: {
+                    return this.#readReg(TTVM.#REGISTERS.R1, rtype);
+                }
+            }
+        }
     }
     /**
      * info:
@@ -1283,6 +1365,30 @@ export class TTVM {
                         const out = this.#dump("srv", k);
                         console.log(out.length?out:color(PUR,"no output"));
                     }
+                    break;
+                }
+                case "setreg":
+                case "sr": {
+                    if (parts.length < 4) {
+                        console.log(`${RED}missing parameters, see 'h sr' for usage${DEF}`);
+                        break;
+                    }
+                    const k = parts[1].trim().toUpperCase();
+                    if (!(k in TTVM.#REGISTERS)) {
+                        console.log(color(RED,`'${k}' is not a register`));
+                        break;
+                    }
+                    const t = VMTYPE[parts[2].trim().toUpperCase()];
+                    if (t === undefined) {
+                        console.log(color(RED,`'${parts[2].trim().toUpperCase()}' is not a VMTYPE`));
+                        break;
+                    }
+                    const v = Number(parts[3].trim());
+                    if (isNaN(v)) {
+                        console.log(color(RED,"value must not be NaN"));
+                        break;
+                    }
+                    this.#writeReg(TTVM.#REGISTERS[k], v, t);
                     break;
                 }
                 case "flag":
@@ -1583,6 +1689,7 @@ const _debugger = {
             "exec (e) - setup execution at symbol",
             "dump (d) - dump vm internal state",
             "dumpreg (dr) - dump the value of a single register",
+            "setreg (sr) - sets the value of a register",
             "arbc (c,code) - execute javascript code",
             "#a:",
             "#i-",
@@ -1708,6 +1815,17 @@ const _debugger = {
             "Dumps the specified VM register, see 'h --vm registers' for details",
             "See the 'Output Format' section of the dump help page ('h dump') for output format",
             "#i-",
+        ],
+    "sr,setreg":
+        [
+            "USAGE:",
+            "(sr|setreg) {reg} {type} {value}",
+            IND,
+            "Sets the specified VM register to the provided value and type",
+            "'type' must be a concrete type",
+            "See 'h --vm registers' for registers",
+            "See 'h --vm types' for types",
+            UND,
         ],
     "c,arbc,code":
         [

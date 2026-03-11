@@ -1,4 +1,4 @@
-import { TTVMParser } from "../ttvm/parser.mjs";
+import { TTVMParser, VMTYPE } from "../ttvm/parser.mjs";
 import { TTVM } from "../ttvm/vm.mjs";
 import * as fs from "fs";
 import * as rl from "readline";
@@ -43,6 +43,7 @@ if (etest) {
         vm.debug(iface);
         iface.prompt();
     } else {
-        vm.execute("@init", []);
+        vm.execute("@init", [], VMTYPE.VOID);
+        console.log(vm.execute("_test2", [[1, VMTYPE.U32]], VMTYPE.U32));
     }
 }
