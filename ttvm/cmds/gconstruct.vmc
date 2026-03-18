@@ -1,0 +1,16 @@
+; constructs a generic topology instance
+%g["construct"]=true%
+
+; get number of paramters
+%l["pc"]=Number(await prompt("param count"))%
+%l["pl"]=[]%
+; get parameters
+%for(let i=0;i<l["pc"];i++)l["pl"].push("u32 " + await prompt(`parameter ${i}`))%
+; execute constructor
+%await executeline(`e @constructor void ${l["pl"].join(' ')}`)%
+script:silence
+; set no break so that s --exit runs through the entire constructor
+f s NO_BRK
+s --exit
+f c NO_BRK
+script:unsilence

@@ -1,0 +1,5 @@
+; construct a topology with 2 parameters
+%queue("2")%
+script:silence
+file ./gconstruct.vmc
+script:unsilence

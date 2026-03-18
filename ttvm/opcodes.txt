@@ -11,6 +11,8 @@ r17 (BP) - base pointer
 r18 (PC) - program counter (RO)
 r19 (CF) - compare flags (RO)
 r20-r25 (rf0-rf5) - floating point Registers
+r26 (INVAR) - start of the invariant segment
+r27 (DATA) - start of the data segment
 
 Binary Representation:
 
@@ -38,7 +40,8 @@ MUL(era compat,sign compat,fp compat):
 UNUSED:
 00001001
 00001010
-00001011
+BRK:
+00001011 | zzzzzzzz - . -> .
 DIV(era compat,sign compat,fp compat):
 00001100 | xxxx|yyyy - rx.ry -> s1.s0
 00001101 | xxxx|00ll | zzzz*(2<<l) - rx.mz -> s1.s0
@@ -137,6 +140,9 @@ Using the unsigned compare flags after using CMP on fp values is undefined behav
 Using a memory address that is larger than the pointer type is undefined behavior.
 
 Description:
+
+BRK(i):
+indicates a breakpoint, the 8bit immediate value may be used to identify which breakpoint was reached
 
 ADD(r/er,r/er/m/i):
 adds the second operand to the first, storing the result in the first operand

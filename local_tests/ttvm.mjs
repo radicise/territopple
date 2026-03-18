@@ -43,7 +43,9 @@ if (etest) {
         vm.debug(iface);
         iface.prompt();
     } else {
-        vm.execute("@init", [], VMTYPE.VOID);
-        console.log(vm.execute("_test2", [[1, VMTYPE.U32]], VMTYPE.U32));
+        // vm.execute("@init", [], VMTYPE.VOID);
+        // console.log(vm.execute("_test2", [[1, VMTYPE.U32]], VMTYPE.U32));
+        vm.execute("@constructor", [[5, VMTYPE.U32], [5, VMTYPE.U32]], VMTYPE.VOID);
+        console.log(vm.execute("@getpositionof", [[3, VMTYPE.U32], [2, VMTYPE.U16]], VMTYPE.UNSIZEDARR|VMTYPE.U16));
     }
 }

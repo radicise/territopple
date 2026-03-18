@@ -374,11 +374,20 @@ export class TTVMParser {
             this.#data.seek(16);
             this._indx.entries = new Array(this.#data.readUIntBE(2));
             for (let i = 0; i < this._indx.entries.length; i ++) {
-                const ent = {symbol:this.#data.readZSTR(1),offset:this.#data.readUIntBE(4),params:[],rtype:VMTYPE.VOID};
+                // console.log(`SYML @ ${this.#data._pos}: ${this.#data._bytes[this.#data._pos]}`);
+                const sn = this.#data.readZSTR(1);
+                // console.log(`${this.#data._pos} @ '${sn}'`);
+                const ent = {symbol:sn,offset:this.#data.readUIntBE(4),params:[],rtype:VMTYPE.VOID};
                 switch (ent.symbol) {
                     case "@constructor":{
                         const pc = this.#data.readUIntBE(1);
-                        for (let j = 0; j < pc; j ++) ent.params.push([this.#data.readZSTR(1), VMTYPE.U32]);
+                        // console.log(`@constructor ${pc}`);
+                        for (let j = 0; j < pc; j ++) {
+                            // console.log(this.#data._pos);
+                            const s = this.#data.readZSTR(1);
+                            ent.params.push([s, VMTYPE.U32]);
+                            // console.log(`${s} ${this.#data._pos}`);
+                        }
                         break;
                     }
                     case "@getpositionof":{
@@ -391,22 +400,31 @@ export class TTVMParser {
                         ent.rtype = VMTYPE.UNSIZEDARR|VMTYPE.U32;
                         break;
                     }
+                    case "@getrequiredbits":{
+                        ent.params.push(["tindex",VMTYPE.U32]);
+                        ent.rtype = VMTYPE.U8;
+                        break;
+                    }
                     case "@think":{
                         ent.params.push(["tindex",VMTYPE.PTR|VMTYPE.OPAQUESTRUCT]);
                         ent.rtype = VMTYPE.U32;
                         break;
                     }
                     default:{
+                        // console.log(ent.symbol);
                         const readType = () => {
                             let prim = this.#data.readUIntBE(1);
+                            // console.log(prim);
                             switch (prim << 8) {
                                 case VMTYPE.PTR:case VMTYPE.SIZEDARR:{
+                                    // console.log("xtra");
                                     prim = prim << 8;
                                     prim |= this.#data.readUIntBE(1);
                                     break;
                                 }
                                 default:{
                                     if ((prim<<8)&VMTYPE.SIZEDARR === VMTYPE.SIZEDARR) {
+                                        // console.log("xtra");
                                         prim = prim << 8;
                                         prim |= this.#data.readUIntBE(1);
                                     }
@@ -415,7 +433,10 @@ export class TTVMParser {
                             }
                             return prim;
                         };
+                        // console.log(this.#data._pos);
+                        // console.log(this.#data._bytes.subarray(this.#data._pos, this.#data._pos+16));
                         const pc = this.#data.readUIntBE(1);
+                        // console.log(pc);
                         for (let j = 0; j < pc; j ++) {
                             ent.params.push([this.#data.readZSTR(1),null]);
                         }
@@ -423,6 +444,7 @@ export class TTVMParser {
                             ent.params[j][1] = readType();
                         }
                         ent.rtype = readType();
+                        // console.log(this.#data._pos);
                         break;
                     }
                 }

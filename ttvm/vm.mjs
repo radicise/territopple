@@ -3,7 +3,11 @@
  * this file contains code for running TTVM code
  */
 
+import { existsSync, readFileSync, writeSync } from "fs";
 import { ConsumableBuffer, TTVMParser, VMTYPE, DATATYPE, PURPOSE, SECTABLE, VMTYPE_NAME } from "./parser.mjs";
+import path from "path";
+
+const dname = import.meta.dirname;
 
 const DEF = '\x1b[39m';
 const RED = '\x1b[31m';
@@ -11,6 +15,7 @@ const YEL = '\x1b[33m';
 const GRN = '\x1b[32m';
 const BLU = '\x1b[34m';
 const PUR = '\x1b[35m';
+const CYA = '\x1b[36m';
 const color = (c,t) => `${c}${t}${DEF}`;
 
 /**
@@ -120,6 +125,7 @@ const VM_OPS = {
     SYSCALL: 18,
     MOV: 19,
     HLT: 20,
+    BRK: 21,
 };
 
 const VM_OP_NAMES = {};
@@ -225,7 +231,7 @@ const CFLAGS = {
  * smr is all specific meaning registers
  */
 
-const DBGR_FLAGS = {"TRACE_INST_PARSE":false};
+const DBGR_FLAGS = {"TRACE_INST_PARSE":false,"NO_BRK":false};
 
 const DUMP_ALLOWED = true;
 
@@ -261,19 +267,21 @@ export class TTVM {
         RF3: 23,
         RF4: 24,
         RF5: 25,
+        INVAR: 26,
+        DATA: 27,
     });
     // register name pad length for dump alignment
     static #RN_PL = Math.max(...Object.keys(this.#REGISTERS).map(v=>v.length));
     /**@readonly */
-    static #RO_REGISTERS = [this.#REGISTERS.ONES, this.#REGISTERS.ONE, this.#REGISTERS.ZERO, this.#REGISTERS.PC, this.#REGISTERS.CF];
+    static #RO_REGISTERS = [this.#REGISTERS.ONES, this.#REGISTERS.ONE, this.#REGISTERS.ZERO, this.#REGISTERS.PC, this.#REGISTERS.CF, this.#REGISTERS.INVAR, this.#REGISTERS.DATA];
     /**@readonly */
-    static #CONST_REGISTERS = [this.#REGISTERS.ONES, this.#REGISTERS.ONE, this.#REGISTERS.ZERO];
+    static #CONST_REGISTERS = [this.#REGISTERS.ONES, this.#REGISTERS.ONE, this.#REGISTERS.ZERO, this.#REGISTERS.INVAR, this.#REGISTERS.DATA];
     /**@readonly */
     static #FP_REGISTERS = [this.#REGISTERS.RF0,this.#REGISTERS.RF1,this.#REGISTERS.RF2,this.#REGISTERS.RF3,this.#REGISTERS.RF4,this.#REGISTERS.RF5];
     /**@readonly */
     static #GP_REGISTERS = [this.#REGISTERS.R0,this.#REGISTERS.R1,this.#REGISTERS.R2,this.#REGISTERS.R3,this.#REGISTERS.R4,this.#REGISTERS.R5,this.#REGISTERS.R6,this.#REGISTERS.R7,this.#REGISTERS.R8,this.#REGISTERS.R9,this.#REGISTERS.R10,this.#REGISTERS.R11,this.#REGISTERS.R12];
     /**@readonly */
-    static #SM_REGISTERS = [this.#REGISTERS.BP,this.#REGISTERS.SP,,this.#REGISTERS.CF,this.#REGISTERS.PC];
+    static #SM_REGISTERS = [this.#REGISTERS.BP,this.#REGISTERS.SP,this.#REGISTERS.CF,this.#REGISTERS.PC];
     /**
      * @type {VMMemorySegment[]}
      * @description
@@ -297,6 +305,7 @@ export class TTVM {
     #fault = -1;
     #debugger = false;
     #last_types = {};
+    #exited = false;
     /**
      * @param {Buffer} raw
      */
@@ -307,16 +316,18 @@ export class TTVM {
         for (let i = 0; i < rc; i ++) {
             this.#last_types[i] = VMTYPE.U32;
         }
-        this.#rconst_lock = false;
-        this.#writeReg(TTVM.#REGISTERS.ONES, 0xffffffffffffffffn, VMTYPE.U64);
-        this.#writeReg(TTVM.#REGISTERS.ONE, 1, VMTYPE.U8);
-        this.#sp = STACKSIZE-1;
-        this.#rconst_lock = true;
         this.#memory_segments = [
             {p:VMSEGPFLAGS.EXEC,mem:this.info.copyCode()},
             {p:VMSEGPFLAGS.READ,mem:Buffer.alloc(this.info.conf.invar_count*4)},
             {p:VMSEGPFLAGS.READ|VMSEGPFLAGS.WRITE,mem:Buffer.allocUnsafe(this.info.data.datavars.reduce((pv,v)=>pv+(v.type===DATATYPE.STRING?v.value.length:(v.type===DATATYPE.F64BE?8:(v.type===DATATYPE.S32BE?4:v.value))),0))},
             {p:VMSEGPFLAGS.READ|VMSEGPFLAGS.WRITE,mem:Buffer.alloc(STACKSIZE)}];
+        this.#rconst_lock = false;
+        this.#writeReg(TTVM.#REGISTERS.ONES, 0xffffffffffffffffn, VMTYPE.U64);
+        this.#writeReg(TTVM.#REGISTERS.ONE, 1, VMTYPE.U8);
+        this.#writeReg(TTVM.#REGISTERS.INVAR, this.#memory_segments[0].mem.length, VMTYPE.PTR);
+        this.#writeReg(TTVM.#REGISTERS.DATA, this.#memory_segments[0].mem.length+this.#memory_segments[1].mem.length, VMTYPE.PTR);
+        this.#sp = STACKSIZE-1;
+        this.#rconst_lock = true;
         {
             let c = 0;
             for (const dv of this.info.data.datavars) {
@@ -370,6 +381,35 @@ export class TTVM {
             case (VMTYPE.S8): return buf.readInt8(loc);
             default: throw new Error("Invalid Concrete Type");
         }
+    }
+    /**
+     * @param {Buffer} buf
+     * @param {number} loc
+     * @param {VMTYPE} type
+     * @return {any|null}
+     */
+    static readAType(buf, loc, type) {
+        if ((type & 0xff00) === VMTYPE.UNSIZEDARR) {
+            let l = buf[loc]&0x7f;
+            if (buf[loc]&0x80) {
+                loc += 1;
+                l = l << 8;
+                l |= buf[loc];
+            }
+            loc += 1;
+            const vtype = type & 0xff;
+            const s = TTVM.sizeof(vtype);
+            if (s < 1 || (s*l+loc)>buf.length) {
+                return null;
+            }
+            const arr = new Array(l);
+            for (let i = 0; i < l; i ++) {
+                arr[i] = TTVM.readType(buf, loc, vtype);
+                loc += s;
+            }
+            return arr;
+        }
+        return null;
     }
     /**
      * @param {Buffer} buf
@@ -523,6 +563,9 @@ export class TTVM {
             const seg = this.#getSegment(loc);
             if (seg.p&VMSEGPFLAGS.READ) {
                 const off = this.#offsetLoc(loc);
+                if ((type & 0xff00) === VMTYPE.UNSIZEDARR) {
+                    return TTVM.readAType(seg.mem, off, type);
+                }
                 if (off+TTVM.sizeof(type) > seg.mem.length) {
                     return null;
                 }
@@ -652,9 +695,10 @@ export class TTVM {
                     modifiers.oprev = true;
                 } else if ((PIB & ~7) === VM_OPMODS.MEMOFFSET) {
                     modifiers.memoffset = PIB&7;
-                    if (PIB&7 === 1) {
+                    if (modifiers.memoffset === 1) {
                         relPC ++;
                         const rv = PC_seg.mem[relPC];
+                        if (DBGR_FLAGS.TRACE_INST_PARSE) console.log(`MEMOFFSET WITH REG ${rv&0x3f}`);
                         if (!(rv & PREFIX_BIT)) { // illegal modifier
                             if (this.#setup_faulthandler(VMFAULTCODE.GENPROT)) continue main;
                             return;
@@ -672,7 +716,7 @@ export class TTVM {
             relPC ++;
             let memoffsetval;
             switch (modifiers.memoffset&7) {
-                case 1:memoffsetval=this.#readReg(modifiers.memoffset>>8,VMTYPE.PTR);break;
+                case 1:memoffsetval=this.#readReg(modifiers.memoffset>>8,VMTYPE.PTR);if(DBGR_FLAGS.TRACE_INST_PARSE)console.log(color(CYA,"MEMOFFSET: ")+`(${modifiers.memoffset.toString(16).padStart(4,'0')}) ${modifiers.memoffset>>8} = ${memoffsetval}`);break;
                 case 3:memoffsetval=this.#getSegmentOffset(2);break;
                 case 4:memoffsetval=this.#getSegmentOffset(1);break;
             }
@@ -724,10 +768,15 @@ export class TTVM {
                     bitoff = 0;
                     bytoff ++;
                 }
-                if (![0,3,4].includes(modifiers.memoffset) && kind === OPK.M) {
-                    const b = Buffer.allocUnsafe(TTVM.sizeof(PTR));
-                    TTVM.writeType(b, 0, n, VMTYPE.PTR);
-                    n = TTVM.readType(b, 0, TTVM.sizeof(PTR)===4?VMTYPE.S32:VMTYPE.S64);
+                if (kind === OPK.M) {
+                    if (![0,3,4].includes(modifiers.memoffset&7)) {
+                        const b = Buffer.allocUnsafe(TTVM.sizeof(VMTYPE.PTR));
+                        TTVM.writeType(b, 0, n, VMTYPE.PTR);
+                        n = TTVM.readType(b, 0, TTVM.sizeof(VMTYPE.PTR)===4?VMTYPE.S32:VMTYPE.S64);
+                        // if ((modifiers.memoffset&7) === 1) {
+                        //     n += memoffsetval;
+                        // }
+                    }
                 }
                 if (kind === OPK.I){
                     if (modifiers.fpop) {
@@ -812,6 +861,11 @@ export class TTVM {
                     case 63:
                         op = VM_OPS.HLT;
                         break;
+                    case 11:
+                        op = VM_OPS.BRK;
+                        args[2].push(PC_seg.mem[relPC]);
+                        relPC ++;
+                        break;
                 }
             } else {
                 op = k[0];
@@ -848,6 +902,16 @@ export class TTVM {
                 }
             }
             const fpeqtype = modifiers.size === 2 ? VMTYPE.F32 : VMTYPE.F64;
+            const getvalmapper = (v,k) => {
+                return k===OPK.R?
+                (
+                    this.#tryRead(v,true,(modifiers.fpop&&TTVM.#FP_REGISTERS.includes(v))?fpeqtype:mantype)
+                ):(
+                    k===OPK.M?
+                    this.#tryRead(v,false,mantype)
+                    :(modifiers.size===3?BigInt(v):v)
+                );
+            };
             /**
              * @param {(a:number|bigint,b:number|bigint)=>number|bigint} f
              * @param {boolean} i
@@ -875,7 +939,7 @@ export class TTVM {
                         ):(
                             k===OPK.M?
                             this.#tryRead(v,false,mantype)
-                            :(size===3?BigInt(v):v)
+                            :(modifiers.size===3?BigInt(v):v)
                         );
                     }
                 ];
@@ -907,7 +971,7 @@ export class TTVM {
                         ):(
                             k===OPK.M?
                             this.#tryRead(v,false,mantype)
-                            :(size===3?BigInt(v):v)
+                            :(modifiers.size===3?BigInt(v):v)
                         );
                     }
                 ];
@@ -919,18 +983,28 @@ export class TTVM {
                 ):(
                     k === OPK.M?
                     this.#tryRead(v,false,mantype)
-                    :(size===3?BigInt(v):v)
+                    :(modifiers.size===3?BigInt(v):v)
                 )
             };
             const picktype = (r) => (TTVM.#FP_REGISTERS.includes(r)&&modifiers.fpop)?fpeqtype:mantype;
             switch (op) {
+                case VM_OPS.BRK: {
+                    if (this.#debugger) {
+                        if (DBGR_FLAGS.NO_BRK) {
+                            console.log(color(PUR, `BREAKPOINT ${args[2][0]} (NO_BRK)`));
+                            break;
+                        };
+                        throw new Error(`BREAKPOINT ${args[2][0]}`);
+                    }
+                    break;
+                }
                 case VM_OPS.ADD: {
                     accumulate(...arithacc((a,b)=>a+b));
                     this.#tryWrite(args[0][0], true, acc, picktype(args[0][0]));
                     break;
                 }
                 case VM_OPS.SUB: {
-                    accumulate(...arithacc((a,b)=>a-b));
+                    accumulate(...arithacc((a,b)=>a-b,true));
                     this.#tryWrite(args[0][0], true, acc, picktype(args[0][0]));
                     break;
                 }
@@ -940,8 +1014,21 @@ export class TTVM {
                     break;
                 }
                 case VM_OPS.DIV: {
-                    accumulate(...arithacc((a,b)=>a/b,true));
-                    this.#tryWrite(args[0][0], true, acc, picktype(args[0][0]));
+                    // accumulate(...arithacc((a,b)=>a/b,true));
+                    // this.#tryWrite(args[0][0], true, acc, picktype(args[0][0]));
+                    const vals = [...args[0].map(v=>getvalmapper(v,OPK.R)),...args[1].map(v=>getvalmapper(v,OPK.M)),...args[2].map(v=>getvalmapper(v,OPK.I))];
+                    const sz = TTVM.sizeof(mantype);
+                    if (modifiers.fpop) {
+                        this.#sp -= sz;
+                        this.#tryWrite(this.#sp, false, vals[0]/vals[1], fpeqtype);
+                        this.#sp -= sz;
+                        this.#tryWrite(this.#sp, false, vals[0]%vals[1], mantype);
+                    } else {
+                        this.#sp -= sz;
+                        this.#tryWrite(this.#sp, false, Math.floor(vals[0]/vals[1]), mantype);
+                        this.#sp -= sz;
+                        this.#tryWrite(this.#sp, false, vals[0]%vals[1], mantype);
+                    }
                     break;
                 }
                 case VM_OPS.SHL: {
@@ -1172,6 +1259,7 @@ export class TTVM {
                             break;
                         }
                         case 6: {
+                            this.#exit_cleanup();
                             return;
                         }
                         default: {
@@ -1192,6 +1280,10 @@ export class TTVM {
                 }
             }
         }
+    }
+    #exit_cleanup() {
+        this.#memory_segments[1].p &= ~VMSEGPFLAGS.WRITE;
+        this.#exited = true;
     }
     /**
      * @param {Array<[any, VMTYPE]>} params
@@ -1232,23 +1324,33 @@ export class TTVM {
         if (!entry) {
             throw new Error("symbol does not exist");
         }
+        if (symbol === "@constructor" || symbol === "@init") {
+            this.#memory_segments[1].p |= VMSEGPFLAGS.WRITE;
+        }
         this.#pc = entry.offset;
         if (params) {
             this.#writeParams(params);
         }
+        this.#exited = false;
         if (!this.#debugger) {
             this.#execute();
-            switch (rtype) {
-                case VMTYPE.VOID: {
-                    return;
-                }
-                case VMTYPE.PTR:
-                case VMTYPE.UNSIZEDARR: {
-                    return this.#readReg(TTVM.#REGISTERS.R1, VMTYPE.PTR);
-                }
-                default: {
-                    return this.#readReg(TTVM.#REGISTERS.R1, rtype);
-                }
+            return this.#getReturnV(rtype);
+        }
+    }
+    #getReturnV(rtype) {
+        if ((rtype & 0xff00) === VMTYPE.UNSIZEDARR) {
+            const ptr = this.#readReg(TTVM.#REGISTERS.R1, VMTYPE.PTR);
+            return this.#tryRead(ptr, false, rtype);
+        }
+        switch (rtype) {
+            case VMTYPE.VOID: {
+                return;
+            }
+            case VMTYPE.PTR: {
+                return this.#readReg(TTVM.#REGISTERS.R1, VMTYPE.PTR);
+            }
+            default: {
+                return this.#readReg(TTVM.#REGISTERS.R1, rtype);
             }
         }
     }
@@ -1316,20 +1418,136 @@ export class TTVM {
         const help = _helpmap(0);
         const metahelp = _helpmap(1);
         const vmhelp = _helpmap(2);
-        iface.on("line", (l) => {
+        const globals = {};
+        let filesrelto = [process.cwd()];
+        let promptqueue = [];
+        let silencestack = [];
+        let silence = 0;
+        const using = new Set();
+        /**@type {(l:string)=>Promise<void>} */
+        const linel = async (l) => {
             const parts = l.trim().split(" ");
             switch (parts[0].trim().toLowerCase()) {
                 case "quit":
                 case "q": {
                     process.exit();
                 }
+                case "using": {
+                    if (parts.length < 2) {
+                        break;
+                    }
+                    if (parts[1] === "*d") {
+                        using.add(path.join(path.relative(process.cwd(), dname), "cmds"));
+                    } else {
+                        using.add(parts[1]);
+                    }
+                    break;
+                }
+                case "lret": {
+                    if (parts.length < 2) {
+                        console.log(color(RED, "missing return type"));
+                        break;
+                    }
+                    let t;
+                    if (parts[1].toUpperCase().startsWith("UARR<") && parts[1].endsWith(">")) {
+                        const inner = parts[1].slice(5, parts[1].length-1);
+                        t = VMTYPE[inner.toUpperCase()];
+                        if (t === undefined) {
+                            console.log(color(RED, `'${inner}' is not a valid type`));
+                            break;
+                        }
+                        t |= VMTYPE.UNSIZEDARR;
+                    } else {
+                        t = VMTYPE[parts[1].toUpperCase()];
+                    }
+                    if (t === undefined) {
+                        console.log(color(RED, `'${parts[1]}' is not a valid type`));
+                        break;
+                    }
+                    console.log(this.#getReturnV(t));
+                    break;
+                }
+                case "script:silence": {silence ++;break;}
+                case "script:unsilence": {silence --;if(silence<0)silence=0;break;}
+                case "file": {
+                    // console.log(`start ${l}`);
+                    try {
+                        if (parts.length < 2) {
+                            console.log(color(RED, "missing file name"));
+                            break;
+                        }
+                        const p = parts[1] === "--abs" ? parts[2] : path.join(filesrelto[filesrelto.length-1], parts[1]);
+                        filesrelto.push(path.dirname(p));
+                        if(silence===0)console.log(color(CYA, `running command file '${p}'`));
+                        silencestack.push(silence);
+                        silence = 0;
+                        const lines = readFileSync(p, {"encoding":"ascii"}).split("\n").filter(v=>v.length>0&&!v.startsWith(";"));
+                        // writeSync(1, iface.getPrompt());
+                        const pp = color(BLU, "? ");
+                        // iface.prompt();
+                        const locals = {};
+                        const queueanswer = (a) => {promptqueue.push(a);};
+                        /**
+                         * @param {string} p
+                         * @returns {Promise<string>}
+                         */
+                        const prompt = (p) => {
+                            // iface.setPrompt(pp);
+                            // iface.prompt();
+                            // iface.setPrompt(op);
+                            if (promptqueue.length) return Promise.resolve(promptqueue.shift());
+                            return new Promise(r => iface.question(`${pp}${p}: `, r));
+                        };
+                        const executeline = async (line) => {
+                            // console.log(`Lstart ${line}`);
+                            if (silence === 0 && line !== "script:silence" && line !== "script:unsilence"){iface.prompt();console.log(line);}
+                            await linel(line);
+                            // console.log(`Ldone ${line}`);
+                        };
+                        for (const line of lines) {
+                            if (line.startsWith("%")) {
+                                await (eval(`async (g,l,prompt,executeline,queue) => {${line.slice(1,line.length-1)}}`)(globals,locals,prompt,(l)=>{iface.prompt();executeline(l);},queueanswer));
+                            } else {
+                                await executeline(line);
+                            }
+                        }
+                        filesrelto.pop();
+                    } catch (E) {
+                        console.log(E);
+                        filesrelto = [filesrelto[0]];
+                        promptqueue = [];
+                    } finally {
+                        silence = silencestack.pop();
+                    }
+                    // console.log(`end ${l}`);
+                    break;
+                }
                 case "step":
                 case "s": {
                     let n = 1;
                     if (parts.length > 1) {
-                        n = Number(parts[1]);
+                        if (parts[1] === "--exit") {
+                            n = null;
+                        } else {
+                            n = Number(parts[1]);
+                        }
                     }
-                    for (let i = 0; i < n; i ++) this.#execute();
+                    try {
+                        if (n !== null && n > 0) {
+                            for (let i = 0; i < n; i ++) this.#execute();
+                        } else {
+                            let c = 0;
+                            while (!this.#exited) {if(c>10000){throw new Error("BREAKPOINT [cycle limit reached]");};c++;this.#execute();}
+                        }
+                    } catch (E) {
+                        /**@type {Error} */
+                        let e = E;
+                        if (e.message.startsWith("BREAKPOINT")) {
+                            console.log(e.message);
+                        } else {
+                            throw E;
+                        }
+                    }
                     break;
                 }
                 case "brk":case "brkpoint":
@@ -1339,7 +1557,36 @@ export class TTVM {
                 }
                 case "exec":
                 case "e": {
-                    this.execute(parts[1]);
+                    if (parts.length > 2) {
+                        const rt = VMTYPE[parts[2].toUpperCase()];
+                        if (rt === undefined) {
+                            console.log(color(RED, `'${parts[2]}' is not a valid vm type`));
+                            break;
+                        }
+                        /**@type {Array<[any,VMTYPE]>} */
+                        const params = [];
+                        if (parts.length > 3) {
+                            let waserr = false;
+                            const praw = parts.slice(3);
+                            for (let i = 0; i < praw.length; i += 2) {
+                                const t = VMTYPE[praw[i].toUpperCase()];
+                                if (t === undefined) {
+                                    console.log(color(RED, `'${praw[i]}' is not a valid vm type`));
+                                    waserr = true;
+                                    break;
+                                }
+                                params.push([Number(praw[i+1]), t]);
+                            }
+                            if (waserr) break;
+                            if (params.some(v => isNaN(v[0]))) {
+                                console.log(color(RED, "debugger only accepts numeric parameters at this time"));
+                                break;
+                            }
+                        }
+                        this.execute(parts[1], params, rt);
+                    } else {
+                        this.execute(parts[1]);
+                    }
                     break;
                 }
                 case "dump":
@@ -1389,6 +1636,49 @@ export class TTVM {
                         break;
                     }
                     this.#writeReg(TTVM.#REGISTERS[k], v, t);
+                    break;
+                }
+                case "memwrite":
+                case "mw": {
+                    if (parts.length < 4) {
+                        console.log(`${RED}missing parameters, see 'h mw' for usage${DEF}`);
+                        break;
+                    }
+                    const k = Number(parts[1].trim().toUpperCase());
+                    if (isNaN(k)) {
+                        console.log(color(RED,`'${k}' is not a valid address`));
+                        break;
+                    }
+                    const t = VMTYPE[parts[2].trim().toUpperCase()];
+                    if (t === undefined) {
+                        console.log(color(RED,`'${parts[2].trim().toUpperCase()}' is not a VMTYPE`));
+                        break;
+                    }
+                    const v = Number(parts[3].trim());
+                    if (isNaN(v)) {
+                        console.log(color(RED,"value must not be NaN"));
+                        break;
+                    }
+                    this.#tryWrite(k, false, v, t);
+                    break;
+                }
+                case "memread":
+                case "mr": {
+                    if (parts.length < 3) {
+                        console.log(`${RED}missing parameters, see 'h mr' for usage${DEF}`);
+                        break;
+                    }
+                    const k = Number(parts[1].trim().toUpperCase());
+                    if (isNaN(k)) {
+                        console.log(color(RED,`'${k}' is not a valid address`));
+                        break;
+                    }
+                    const t = VMTYPE[parts[2].trim().toUpperCase()];
+                    if (t === undefined) {
+                        console.log(color(RED,`'${parts[2].trim().toUpperCase()}' is not a VMTYPE`));
+                        break;
+                    }
+                    console.log(this.#tryRead(k, false, t));
                     break;
                 }
                 case "flag":
@@ -1496,9 +1786,51 @@ export class TTVM {
                         console.log(e);
                     }
                 }
+                case "seg": {
+                    if (parts.length < 2) {
+                        console.log(color(RED, "missing subcommand"));
+                        break;
+                    }
+                    switch (parts[1]) {
+                        case "list": {
+                            const pnames = {};
+                            pnames[VMSEGPFLAGS.READ] = "r";
+                            pnames[VMSEGPFLAGS.WRITE] = "w";
+                            pnames[VMSEGPFLAGS.EXEC] = "e";
+                            const getperms = (f) => {return Object.keys(pnames).sort().filter(v => f&v).map(v => pnames[v]).join('');};
+                            const printdata = (name, seg, pad) => {
+                                console.log(`${color(PUR, name.padStart(pad+2,' '))}: ${getperms(seg.p).padEnd(3, ' ')} ${BLU}0x${seg.mem.length.toString(16)}${DEF}`);
+                            };
+                            const names = ["CODE", "INVAR", "DATA", "STACK"];
+                            for (let i = 0; i < names.length; i ++) {
+                                printdata(names[i], this.#memory_segments[i], 5);
+                            }
+                            break;
+                        }
+                        default: {
+                            console.log(color(YEL, "unknown subcommand"));
+                            break;
+                        }
+                    }
+                    break;
+                }
+                default: {
+                    let found = false;
+                    for (const k of using) {
+                        const p = path.join(process.cwd(), k, parts[0].trim().toLowerCase());
+                        if (existsSync(p)) {
+                            await linel(`file --abs ${p}`);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)console.log(color(YEL, "unknown command"));
+                    break;
+                }
             }
             iface.prompt();
-        });
+        };
+        iface.on("line", linel);
     }
 }
 
@@ -1690,7 +2022,10 @@ const _debugger = {
             "dump (d) - dump vm internal state",
             "dumpreg (dr) - dump the value of a single register",
             "setreg (sr) - sets the value of a register",
+            "memwrite (mw) - writes to memory",
+            "memread (mr) - reads from memory",
             "arbc (c,code) - execute javascript code",
+            "seg - manipulate memory segments",
             "#a:",
             "#i-",
         ],
@@ -1746,7 +2081,7 @@ const _debugger = {
             "USAGE:",
             "(s|step) {n?=1}",
             "#i+",
-            "Runs the VM for n execution cycles",
+            "Runs the VM for n execution cycles, if n is '--exit' runs until an exit syscall is executed",
             "#i-",
         ],
     "b,brk,brkpoint":
@@ -1827,6 +2162,26 @@ const _debugger = {
             "See 'h --vm types' for types",
             UND,
         ],
+    "mw,memwrite":
+        [
+            "USAGE:",
+            "(mw|memwrite) {addr} {type} {value}",
+            IND,
+            "Writes the specified value and type to memory address 'addr'",
+            "'type' must be a concrete type",
+            "See 'h --vm types' for types",
+            UND,
+        ],
+    "mr,memread":
+        [
+            "USAGE:",
+            "(mr|memread) {addr} {type}",
+            IND,
+            "Reads the value of 'type' at memory address 'addr'",
+            "'type' must be a concrete type",
+            "See 'h --vm types' for types",
+            UND,
+        ],
     "c,arbc,code":
         [
             "USAGE:",
@@ -1842,6 +2197,17 @@ const _debugger = {
             "that - the VM object",
             "#a:",
             "#i-",
+        ],
+    "seg":
+        [
+            "USAGE:",
+            "seg {subcommand} {...}",
+            "",
+            "Subcommands",
+            "seg list",
+            IND,
+            "lists segment names, permissions, and sizes",
+            UND,
         ],
 };
 const _vm = {

@@ -1,0 +1,11 @@
+this document specifies the in-memory reperesentation of ttvm types.
+
+Numeric Types:
+stored in big endian
+
+Sized Array:
+TYPE[]
+
+Unsized Array:
+0|zzzzzzz | TYPE[z]
+1|zzzzzzz | zzzzzzz | TYPE[z]

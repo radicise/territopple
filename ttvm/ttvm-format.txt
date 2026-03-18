@@ -139,8 +139,8 @@ INDEX_ENTRY:
 SSTR - symbol
 BYTE[4] - offset
 NOTE: the offset, if present, must be the offset of the first byte of the bytecode
-INTERPRET: offset==0, offset unspecified
-INTERPRET: offset>0, symbol resides at specified offset from the .text section
+INTERPRET: offset==ffffffff, offset unspecified
+INTERPRET: offset<ffffffff, symbol resides at specified offset from the .code section
 BYTE - parameter count
 SSTR[parameter count] - parameter names
 TYPE[parameter count] - parameter types
