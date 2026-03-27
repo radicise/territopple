@@ -192,7 +192,7 @@ compares the values of the first and third operands, if equal, stores the second
 JMP(r,f[r,i,a]):
 performs an absolute jump to the value specified in the register
 if 'r' is set, the jump is relative to the start of the next instruction
-if 'i' is set, the next two bytes are read as a two's compliment signed integer and used instead of the operand
+if 'i' is set, the next two bytes are read as a two's compliment signed (if 'r' is set) integer and used instead of the operand
 if the 'call' prefix is present, the start of the next instruction is pushed to the stack before the jump
 if the 'call' prefex is present and 'a' is set, the call is x86 style (jumping to an address rather than an index entry)
 if the 'call' prefix is present, the 'r' flag no longer indicates a relative jump
