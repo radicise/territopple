@@ -104,7 +104,7 @@ BYTECODE
 [BOT ONLY]
 NAMED
 SSTR '@think'
-automatically binds parameter 0 (state) as GameState*
+automatically binds parameter 0 (max_depth) as U32
 returns U32, the tile index to move at
 BYTECODE
 
@@ -139,7 +139,7 @@ INDEX_ENTRY:
 SSTR - symbol
 BYTE[4] - offset
 NOTE: the offset, if present, must be the offset of the first byte of the bytecode
-INTERPRET: offset==ffffffff, offset unspecified
+INTERPRET: offset==ffffffff, external function
 INTERPRET: offset<ffffffff, symbol resides at specified offset from the .code section
 BYTE - parameter count
 SSTR[parameter count] - parameter names
@@ -215,7 +215,8 @@ General Purpose
 0x0006 - exit, return value is in r1 as u32
 
 Bots:
-0x8000 - obtain root board reference
+0x8000 - go up the move stack
 0x8001 - get legal moves
 0x8002 - do move
 0x8003 - pick move
+0x8004 - get ownership stats
