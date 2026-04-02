@@ -199,6 +199,10 @@ parameters are passed through r1-r4, with additional parameters being pushed ont
 return values are passed through r0
 r0-r7 are allowed to be freely manipulated, all others must be saved and restored
 
+the TTVM shall initialize the stack with a value consisting of all ones and the same width as a pointer pushed to it.
+if at any point a 'ret' instruction would set the PC register to this value, the VM instead acts as though the
+exit syscall were invoked with the value of R0 in R1
+
 Syscalls:
 the syscall invoked by the SYSCALL opcode is specified using r0 as u32
 parameters and return values function in the same way as the Call ABI

@@ -42,6 +42,8 @@ BASE can be any register or the special values 'data', 'invar'
 .indx:
 the .indx section contains entries to all symbols available to outside code
 
+!extern - marks a function as external, this function must be bound to external code by the VM
+
 {symbol} - include 'symbol' in the index with default signature ('() void')
 {symbol} ({ptype} {pname},...) {rtype} - include 'symbol' in the index with the given signature
 
