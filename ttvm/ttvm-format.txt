@@ -1,6 +1,9 @@
 this document describes the format used to store programs to be executed on the TerriTopple Virtual Machine (".tttr", ".3tr", or ".ttvm").
 ttvm may also be known as version 1 of the topology rules format
 
+T*: pointer to T
+BYTE[4] - address
+
 SSTR:
 BYTE - length
 BYTE[length]
@@ -18,13 +21,17 @@ SECTION .conf
 BYTE[7] b'SECTION'
 BYTE[5] b'.conf'
 
+BYTE[4] - length of section
+
 BYTE - purpose
 INTERPRET: purpose==0 is topology rules
 INTERPRET: purpose==1 is general purpose code
+INTERPRET: purpose==2 is bot code
+INTERPRET: purpose==3 is scenario behavior code
 
 SSTR - name - may be length zero to indicate an unnamed/anonymous implementation
 
-BYTE - invar count
+BYTE - invar count, invariants are four bytes and are only writeable within @constructor and @init
 
 // render restrictions
 BYTE[2] - SOME, flags, LSB maps to "any"
@@ -35,11 +42,35 @@ SECTION .code
 BYTE[7] - b'SECTION'
 BYTE[5] - b'.code'
 
+BYTE[4] - length of section
+
+BYTECODE
+
+TYPE:
+1|s|f|zzzzz - numeric type, 'z' bytes, signed if 's' is 1, unsigned otherwise, int if 'f' is 0, float otherwise
+NOTE: floats must have size 4 or 8
+NOTE: numeric types must have sizes that are powers of two
+00000000 - void
+00000001 | TYPE - TYPE*
+00000010 - SSTR
+00000011 - LSTR
+01|zzzzzz | TYPE - TYPE[z]
+00000100 | TYPE - TYPE[]
+00000101 - OPAQUE STRUCT
+00000110 - TRANSPARENT STRUCT
+11111111 - INVALID
+
+NOTE: the '@init' function acts as an entry for vm code where '@constructor' is unsuitable for initialization, it is declared in the same manner as a generic function
+the '@init' function must not be present if the '@constructor' function is present
+the '@init' function must return void
+
+The following functions do not have typing included in the .code section, rather the types are still in the index entry, but those that are specified below must not be present in the index
+
 // constructor
 NAMED
-SSTR 'constructor'
+SSTR '@constructor'
 BYTE - parameter count
-SSTR[parameter count] - parameter names // binds the given names to parameters in the order of declaration
+SSTR[parameter count] - parameter names // binds the given names to parameters in the order of declaration as UINT32
 NOTE: in the case that the purpose of the program is topology rules, the VMTarget will have the specified parameter names used to set dimension properties
 returns void
 BYTECODE
@@ -47,40 +78,42 @@ BYTECODE
 // getPositionOf
 [TOPOLOGY ONLY]
 NAMED
-SSTR 'getpositionof'
-automatically binds parameter 0 (tindex) as number
+SSTR '@getpositionof'
+automatically binds parameter 0 (tindex) as UINT32
 automatically binds parameter 1 (mode) as 16bit flag set where LSB maps to "any"
-returns number[], ret[0] is the index into the tile position class list to use, ret[0]==0 indicates an error
+returns U16[], ret[0] is the index into the tile position class list to use, ret[0]==0 indicates an error
 BYTECODE
 
 // getNeighbors
 [TOPOLOGY ONLY]
 NAMED
-SSTR 'getneighbors'
-automatically binds parameter 0 (tindex) as number
-returns number[], an array of tile indicies that neighbor the given index
+SSTR '@getneighbors'
+automatically binds parameter 0 (tindex) as UINT32
+returns U32[], an array of tile indicies that neighbor the given index
 BYTECODE
 
 // getRequiredBits
 [TOPOLOGY ONLY]
 NAMED
-SSTR 'getrequiredbits'
-automatically binds parameter 0 (tindex) as number
-returns number, the number of bits required to store this tile's value
+SSTR '@getrequiredbits'
+automatically binds parameter 0 (tindex) as UINT32
+returns U8, the number of bits required to store this tile's value
 BYTECODE
 
 // think
 [BOT ONLY]
 NAMED
-SSTR 'think'
-automatically binds parameter 0 (state) as GameState
-returns number, the tile index to move at
+SSTR '@think'
+automatically binds parameter 0 (max_depth) as U32
+returns U32, the tile index to move at
 BYTECODE
 
 // constant data
 SECTION .data
 BYTE[7] - b'SECTION'
 BYTE[5] - b'.data'
+
+BYTE[4] - length of section
 
 LSTR - format string, any NUL byte shall be followed by the bound number of a constructor parameter, must not contain spaces, must not contain numeric characters
 -- becomes `${name} ${evalfmtstr}`
@@ -95,6 +128,8 @@ SECTION .indx
 BYTE[7] - b'SECTION'
 BYTE[5] - b'.indx'
 
+BYTE[4] - length of section
+
 BYTE[2] - entry count (IEC)
 INDEX_ENTRY[IEC] - entries
 NOTE: symbols are accessed from the table via their indicies
@@ -103,24 +138,35 @@ NOTE: symbols are accessed from the table via their indicies
 INDEX_ENTRY:
 SSTR - symbol
 BYTE[4] - offset
-INTERPRET: offset==0, offset unspecified
-INTERPRET: offset>0, symbol resides at specified offset from the .text section
+NOTE: the offset, if present, must be the offset of the first byte of the bytecode
+INTERPRET: offset==ffffffff, external function
+INTERPRET: offset<ffffffff, symbol resides at specified offset from the .code section
+BYTE - parameter count
+SSTR[parameter count] - parameter names
+TYPE[parameter count] - parameter types
+TYPE - return type
 
 DATAVAR:
-BYTE - type - 0, 1, 2
+BYTE - type - 0, 1, 2, 3
 SWITCH (type) {
     0 ->:
-        BYTE[4] - s64BE
+        BYTE[4] - s32BE
     1 ->:
         SSTR - string
     2 ->:
         BYTE[8] - f64BE
+    3 ->:
+        BYTE[2] - size
+        NOTE: size is used to allocate an uninitialized array of 'size' bytes
+        NOTE: implementations are STRONGLY ENCOURAGED to initialize these bytes to avoid leaking potentially sensitive data
 }
 
+TTVM Code with a purpose corresponding to topology rules MUST populate invariant 0 with the tile count and invariant 1 with the maximum number of neighbors that any tile has.
 
 BYTECODE:
 all code must end with a RET instruction
 the termination of bytecode is denoted with the HLT instruction
+all bytecode is prepended with BYTE[4] length
 
 RO indicates read only
 CW indicates constructor writeable
@@ -151,10 +197,14 @@ memory areas {
 Call ABI:
 parameters are passed through r1-r4, with additional parameters being pushed onto the stack in reverse order
 return values are passed through r0
-r0-r4 are allowed to be freely manipulated, all others must be saved and restored
+r0-r7 are allowed to be freely manipulated, all others must be saved and restored
+
+the TTVM shall initialize the stack with a value consisting of all ones and the same width as a pointer pushed to it.
+if at any point a 'ret' instruction would set the PC register to this value, the VM instead acts as though the
+exit syscall were invoked with the value of R0 in R1
 
 Syscalls:
-the syscall invoked by the SYSCALL opcode is specified using r0
+the syscall invoked by the SYSCALL opcode is specified using r0 as u32
 parameters and return values function in the same way as the Call ABI
 
 Available Syscalls:
@@ -166,9 +216,11 @@ General Purpose
 0x0003 - set timer
 0x0004 - set max pc steps
 0x0005 - set irupt handler
+0x0006 - exit, return value is in r1 as u32
 
 Bots:
-0x8000 - obtain root board reference
+0x8000 - go up the move stack
 0x8001 - get legal moves
 0x8002 - do move
 0x8003 - pick move
+0x8004 - get ownership stats

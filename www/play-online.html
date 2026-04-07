@@ -132,6 +132,11 @@
                             <option value="1">Public</option>
                             <option value="2">Private</option>
                             </select>
+                            <label for="room-create-S">As: </label>
+                            <select name="S" id="room-create-S">
+                                <option value="0">Player</option>
+                                <option value="1">Spectator</option>
+                            </select>
                         </div>
                         <div class="form-row">
                             <label for="room-create-topology">Topology: </label>
@@ -223,6 +228,17 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-column">
+                        <h2 class="action-title">Config</h2>
+                        <div class="form-row">
+                            <label for="room-config-pw">Password: </label>
+                            <input type="text" id="room-config-pw" pattern="[a-zA-Z0-9_=]{0,20}">
+                        </div>
+                        <div class="form-row">
+                            <label for="room-config-setid">Room ID: </label>
+                            <input type="text" name="sid" id="room-config-setid" disabled maxlength="5" pattern="([a-zA-Z0-9]{5})|.{0}">
+                        </div>
+                    </div>
                 </div>
                 <div class="form-row">
                     <input type="button" value="Create a New Room" onclick="preSubmit();">
@@ -241,7 +257,9 @@
                 <input type="hidden" name="res" value="0" id="private-join-res">
                 <div class="form-row">
                     <label for="private-join-g">Room ID:</label>
-                    <input name="g" id="private-join-g">
+                    <input name="g" id="private-join-g"><br>
+                    <label for="private-join-pw">Password:</label>
+                    <input type="text" id="private-join-pw">
                     <input type="submit" value="Join">
                     <script>
                         {
@@ -260,8 +278,12 @@
                                     if (v.ok) {
                                         v.text().then(j => {
                                             const res = document.getElementById("private-join-res");
+                                            const pw = document.getElementById("private-join-pw");
                                             if (j === "1") {
                                                 res.value = "1";
+                                            }
+                                            if (pw.value.length) {
+                                                sessionStorage.setItem("pw", pw.value);
                                             }
                                             allowsubmit = true;
                                             document.getElementById("join-form").submit();
@@ -294,12 +316,31 @@
             </table>
         </div>
         <script>
+            /**@type {HTMLInputElement} */
+            const roomsid = document.getElementById("room-config-setid");
+            fetch(`https://${document.location.hostname}/acc/pub/%40self/perms`, {method:"GET"}).then(res => {
+                if (res.ok) {
+                    res.json().then(v => {
+                        if (v.p&(1<<8)) {
+                            roomsid.disabled = false;
+                            roomsid.onchange = () => {
+                                // if (!roomsid.checkValidity()) {
+                                //     roomsid.setCustomValidity("Room ID must be exactly five alphanumeric characters.");
+                                // }
+                                roomsid.reportValidity();
+                            };
+                        }
+                    });
+                }
+            });
             /**@type {HTMLDivElement} */
             const dimscont = document.getElementById("dimensions-container");
             /**@type {HTMLInputElement} */
             const toptype = document.getElementById("room-create-topology");
             /**@type {HTMLInputElement} */
             const diminput = document.getElementById("room-create-dims");
+            /**@type {HTMLInputElement} */
+            const pwinput = document.getElementById("room-config-pw");
             toptype.onchange = () => {
                 document.querySelector(".dimensions.show").classList.remove("show");
                 dimscont.children[Number(toptype.getAttribute("data-fields"))].classList.add("show");
@@ -307,6 +348,19 @@
             /**@type {HTMLSelectElement} */
             const rules_scoring_sel = document.getElementById("room-rules-scoring");
             function preSubmit() {
+                let fail = false;
+                if (!roomsid.validity.valid) {
+                    roomsid.reportValidity();
+                    fail = true;
+                }
+                if (!pwinput.validity.valid) {
+                    pwinput.reportValidity();
+                    fail = true;
+                }
+                if (fail) return;
+                if (pwinput.value.length) {
+                    sessionStorage.setItem("pw", pwinput.value);
+                }
                 /**@type {HTMLFormElement} */
                 const form = document.getElementById("create-form");
                 const list = [toptype.value];

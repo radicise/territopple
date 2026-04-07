@@ -1,0 +1,7 @@
+e @constructor void u32 5 u32 5
+s --exit
+e @getpositionof void u32 3 u16 2
+f s NO_BRK
+s --exit
+f c NO_BRK
+lret uarr<u16>

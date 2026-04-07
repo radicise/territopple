@@ -7,6 +7,10 @@ const { settings, validateJSONScheme, JSONScheme, Game, emit, on, clear, NetData
 const { GlobalState, HandlerInvocationError } = require("../types.js");
 const { PerformanceError } = require("./errors.js");
 const crypto = require("crypto");
+const { Permissions, check_permission } = require("../accounts/perms.js");
+const { BotServer } = require("../interface/bots.js");
+const { AuthServer } = require("../interface/auth.js");
+const { DataServer } = require("../interface/data.js");
 
 const LOGF = `logs/worker/${process.pid}.txt`;
 const ERRLOG = `logs/worker/error.txt`;
@@ -70,17 +74,18 @@ on("main", "game:bot", (data) => {
     // }
     const key = crypto.randomBytes(64).toString("base64url");
     const n = games[data["#gameid"]].addBot(key, data.bot);
-    const u = `http://localhost:${settings.BOTPORT}/${data["#gameid"]}/${data.bot}?k=${key}${n}`;
-    // console.log(u);
-    // const req = http.request(u, {method:"GET",timeout:200})
-    const req = http.get(u);
-    req.once("response", (res) => {
-        res.on("error", () => {});
-        // console.log(res.statusCode);
-    });
-    req.on("error", (e) => {
-        // console.log(e);
-    });
+    BotServer.addBot(data["#gameid"], data.bot, key, n);
+    // const u = `http://localhost:${settings.BOTPORT}/${data["#gameid"]}/${data.bot}?k=${key}${n}`;
+    // // console.log(u);
+    // // const req = http.request(u, {method:"GET",timeout:200})
+    // const req = http.get(u);
+    // req.once("response", (res) => {
+    //     res.on("error", () => {});
+    //     // console.log(res.statusCode);
+    // });
+    // req.on("error", (e) => {
+    //     // console.log(e);
+    // });
 });
 on("main", "?phase", (data) => {
     updateDataServerStats(data["#gameid"]);
@@ -150,7 +155,8 @@ on("main", "game:add", (data) => {
     // games[data["id"]].sort_key = GAME_COUNTER;
     // GAME_COUNTER ++;
     COMPLEXITY += game.complexity;
-    http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating,res:game.res}));
+    // http.request(`http://localhost:${settings.INTERNALPORT}/room-created?id=${data['id']}`, {method:"POST"}, (res) => {}).end(JSON.stringify({worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating,res:game.res,has_pw:game.password!==null}));
+    DataServer.populateRoomEntry(data["id"], {worker:WORK_ID,public:game.state.public,capacity:game.stats.maxPlayers,dstr:game.state.topology.dimensionString,can_spectate:game.state.observable,playing:game.stats.playing,spectating:game.stats.spectating,res:game.res,has_pw:game.password!==null});
 });
 on("main", "?fatalerr", (data) => {
     const now = new Date();
@@ -170,7 +176,8 @@ function terminateGame(id) {
     games[id].sendAll(NetData.Game.Close());
     games[id].kill();
     COMPLEXITY -= games[id].complexity;
-    http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {method:"DELETE"}).end();
+    // http.request(`http://localhost:${settings.INTERNALPORT}/room?id=${id}`, {method:"DELETE"}).end();
+    DataServer.deleteRoom(id);
     delete games[id];
 }
 
@@ -182,6 +189,26 @@ const wss = new ws.Server({noServer: true});
 function hSwitch(rid) {
     games[rid].sendAll(NetData.CONN.HOLD());
     games[rid].players.forEach(p => p.conn.emit("HOLD"));
+}
+
+/**
+ * @param {string} cookie
+ * @returns {string|null}
+ */
+function extractSessionId(cookie) {
+    if (!cookie) return null;
+    let p = cookie.indexOf("; sessionId");
+    if (p === -1) {
+        if (cookie.startsWith("sessionId")) {
+            p = 0;
+        } else {
+            return null;
+        }
+    } else {
+        p += 2;
+    }
+    const e = cookie.indexOf(";", p+10);
+    return cookie.substring(p+10, e>0?e:undefined);
 }
 
 process.once("message", (id) => {
@@ -248,12 +275,14 @@ process.once("message", (id) => {
             let gameid;
             let acc;
             let state = {};
-            console.log(req.headers.cookie);
-            const p = req.headers.cookie?.indexOf("sessionId");
-            if (p !== undefined && p !== -1) {
-                const e = req.headers.cookie.indexOf(";", p+10);
-                const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
-                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${id}`, (res) => {
+            // console.log(req.headers.cookie);
+            const sessid = extractSessionId(req.headers.cookie);
+            let accpres;
+            const accPromise = new Promise(r => {accpres = r;});
+            if (sessid) {
+                // const e = req.headers.cookie.indexOf(";", p+10);
+                // const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
+                http.get(`http://localhost:${settings.AUTHINTERNALPORT}/resolve-session?id=${sessid}`, (res) => {
                     if (res.statusCode !== 200) {
                         return;
                     }
@@ -264,6 +293,8 @@ process.once("message", (id) => {
                         if (gameid) {
                             emit("main", "account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});
                         }
+                        accpres();
+                        accpres = false;
                     });
                 });
             }
@@ -281,34 +312,103 @@ process.once("message", (id) => {
                 CONNECTION_COUNT += capacity;
                 process.send({hid:req.hid, v:true});
                 // console.log("workerhandoff");
-                wss.handleUpgrade(req, socket, [], (sock) => {
+                wss.handleUpgrade(req, socket, [], async (sock) => {
                     startPings(sock);
-                    http.request(`http://localhost:${settings.INTERNALPORT}/room-id`, {method:"GET"}, (res) => {
-                        let data = "";
-                        res.on("data", (chunk) => {data += chunk;});
-                        res.on("end", () => {
-                            try {
-                                if (res.statusCode === 503) {
-                                    socks.handle("error", sock, {data:"Unable to generate room code",redirect:"/play-online",store:"Unable to generate room code"}, state);
-                                    return;
-                                }
-                                gameid = data;
-                                try {
-                                    // console.log("handling");
-                                    socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc}, state);
-                                } catch (E) {
-                                    if (E instanceof HandlerInvocationError) {
-                                        if (LOGGING) addLog(WCRASH, `${new Date()} - HIE: ${E.message}\n${E.stack}\n`);
-                                        socks.handle("error", sock, {data:E.message,redirect:"/play-online",store:E.message}, state);
-                                    } else {
-                                        throw E;
+                    const sid = url.searchParams.get("sid");
+                    // console.log(url.toString());
+                    // console.log(sid);
+                    // console.log(typeof sid);
+                    // if (typeof sid === "string")console.log((/^[a-zA-Z0-9]{5}$/.test(sid)));
+                    let sidprom;
+                    if (typeof sid === "string" && (/^[a-zA-Z0-9]{5}$/.test(sid))) {
+                        if (accpres) {
+                            await accPromise;
+                        }
+                        // console.log(acc);
+                        sidprom = new Promise(r => {
+                            AuthServer.Internal.getPerms(sessid).then(v => {
+                                if (v.okay) {
+                                    if (check_permission(v.value.readUInt32BE(1), Permissions.MANAGE_EVENTS)) {
+                                        r(true);
+                                        return;
                                     }
                                 }
-                            } catch (E) {
-                                if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
-                            }
+                                r(false);
+                            });
+                            // http.request(`http://localhost:${settings.AUTHINTERNALPORT}/perms?id=${sessid}`, {method:"GET"}, (res) => {
+                            //     let data = "";
+                            //     res.on("data", (chunk) => {data += chunk;});
+                            //     res.on("end", () => {
+                            //         if (res.statusCode !== 200) {
+                            //             // console.log(res.statusCode);
+                            //             // console.log(data);
+                            //             r(false);
+                            //             return;
+                            //         }
+                            //         const b = Buffer.from(data, "base64url");
+                            //         // console.log(b);
+                            //         if (check_permission(b.readUInt32BE(1), Permissions.MANAGE_EVENTS)) {
+                            //             r(true);
+                            //         } else {
+                            //             r(false);
+                            //         }
+                            //     });
+                            // })
+                            // // .once("error", (e) => {console.log(e);})
+                            // .end();
                         });
-                    }).end();
+                    } else {
+                        sidprom = Promise.resolve(false);
+                    }
+                    // console.log(await sidprom);
+                    DataServer.generateId((await sidprom)?sid:"@@@@@").then(v => {
+                        try {
+                            if (!v.okay) {
+                                socks.handle("error", sock, {data:"Unable to generate room code",redirect:"/play-online",store:"Unable to generate room code"}, state);
+                                return;
+                            }
+                            gameid = v.value;
+                            try {
+                                // console.log("handling");
+                                socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":v.value, "acc":acc, "asspec":url.searchParams.get("S")==="1", "pw":url.searchParams.get("pw")}, state);
+                            } catch (E) {
+                                if (E instanceof HandlerInvocationError) {
+                                    if (LOGGING) addLog(WCRASH, `${new Date()} - HIE: ${E.message}\n${E.stack}\n`);
+                                    socks.handle("error", sock, {data:E.message,redirect:"/play-online",store:E.message}, state);
+                                } else {
+                                    throw E;
+                                }
+                            }
+                        } catch (E) {
+                            if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
+                        }
+                    });
+                    // http.request(`http://localhost:${settings.INTERNALPORT}/room-id?sid=${(await sidprom)?sid:"@@@@@"}`, {method:"GET"}, (res) => {
+                    //     let data = "";
+                    //     res.on("data", (chunk) => {data += chunk;});
+                    //     res.on("end", () => {
+                    //         try {
+                    //             if (res.statusCode === 503) {
+                    //                 socks.handle("error", sock, {data:"Unable to generate room code",redirect:"/play-online",store:"Unable to generate room code"}, state);
+                    //                 return;
+                    //             }
+                    //             gameid = data;
+                    //             try {
+                    //                 // console.log("handling");
+                    //                 socks.handle(!(url.searchParams.get("res")==="1")?"create":"fromstate", sock, {"type":connType, "dims":url.searchParams.get("d"), "players":url.searchParams.get("p"), "spectators":(url.searchParams.get("s")??"1")==="1", "id":data, "acc":acc, "asspec":url.searchParams.get("S")==="1", "pw":url.searchParams.get("pw")}, state);
+                    //             } catch (E) {
+                    //                 if (E instanceof HandlerInvocationError) {
+                    //                     if (LOGGING) addLog(WCRASH, `${new Date()} - HIE: ${E.message}\n${E.stack}\n`);
+                    //                     socks.handle("error", sock, {data:E.message,redirect:"/play-online",store:E.message}, state);
+                    //                 } else {
+                    //                     throw E;
+                    //                 }
+                    //             }
+                    //         } catch (E) {
+                    //             if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
+                    //         }
+                    //     });
+                    // }).end();
                 });
             } else {
                 wss.handleUpgrade(req, socket, [], (sock) => {
@@ -338,7 +438,7 @@ process.once("message", (id) => {
                             socks.handle("resjoin", sock, {"id":gid, "acc":acc}, state);
                             return;
                         }
-                        socks.handle("join", sock, {"id":gid, "asSpectator":connType===4, "acc":acc}, state);
+                        socks.handle("pwgate", sock, {"to":"join", "id":gid, "asSpectator":connType===4, "acc":acc}, state);
                     } catch (E) {
                         if (LOGGING) addLog(WCRASH, `${new Date()} - CRASH:\n${E.stack}\n`);
                     }

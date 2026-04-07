@@ -1,0 +1,11 @@
+; get position of
+%l["ti"]=await prompt("tindex")%
+%l["mo"]=await prompt("mode")%
+%console.log(l["ti"])%
+%await executeline(`e @getpositionof void u32 ${l["ti"]} u16 ${l["mo"]}`)%
+script:silence
+f s NO_BRK
+s --exit
+f c NO_BRK
+script:unsilence
+lret uarr<u16>
