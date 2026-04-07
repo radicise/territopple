@@ -1,3 +1,12 @@
+# Apr 7, 2026 (Alpha 1.9.0)
+FEATURE: added password protected rooms
+FEATURE: allowed spectators to host rooms
+FEATURE: allowed event managers to set up rooms with custom room codes
+BUG: fixed a bug that caused room code ticker to loop every 32 days
+BUG: fixed a bug that caused '.stpl' files to be generated with missing data
+INFRA: created a Rust implementation of the TTVM (core task for custom bots)
+INFRA: began work on a Rust implementation of the bot server (core task for custom bots)
+
 # Apr 7, 2026 (DEV202637Y0)
 fixed a bug with room code generation
 fixed a bug with export file generation
