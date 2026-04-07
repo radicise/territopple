@@ -225,8 +225,8 @@ function onRecordMetadata(game) {
         }
         buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
     }
-    console.log(JSON.stringify(game.__extevds));
     if (Object.keys(game.__extevds).length) {
+        // console.log(JSON.stringify(game.__extevds));
         game.buffer[0][9] |= 2;
         buffer.push(Buffer.of(Object.keys(game.__extevds).length, ...Object.entries(game.__extevds).map(v => 
             [
@@ -252,27 +252,6 @@ function onRecordMetadata(game) {
     }
     game.buffer[game.buffer.indexOf("@META")] = Buffer.concat(buffer);
 }
-
-// /**
-//  * @summary records extended metadata
-//  * @param {import("./defs.js").Game} game
-//  * @description
-//  * records extended metadata to the replay buffer
-//  * may be called multiple times but only records data the first time it is called
-//  * MUST be called before attempting to save the replay
-//  */
-// function onRecordMetadata(game) {
-//     let buffer = [];
-//     if (game.__extflags.length || Object.keys(game.__extmeta).length || Object.keys(game.stdmeta).some(v=>game.stdmeta[v])) {
-//         game.buffer[0][9] |= 4;
-//         buffer.push(Buffer.of(game.__extflags.length, ...game.__extflags));
-//         if (game.stdmeta.colors) {
-//             game.__extmeta[1668246576] = Buffer.of(...game.stdmeta.colors.flatMap(v=>[v>>16,(v>>8)&0xff,v&0xff]));
-//         }
-//         buffer.push(Buffer.of(...nbytes(Object.keys(game.__extmeta).length, 2), ...Object.entries(game.__extmeta).map(v => [nbytes(v[1].length,2),nbytes(Number(v[0]),4),...v[1]]).flat(3)));
-//     }
-//     game.buffer[game.buffer.indexOf("@META")] = Buffer.concat(buffer);
-// }
 
 /**
  * @summary writes the replay file to disk
