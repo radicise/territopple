@@ -287,9 +287,9 @@ function generateRoomCode(sid) {
     let c = 0;
     const day = Math.floor(Date.now()/86400000)-20358;
     if (sid && sid !== "@@@@@") {
-        codeArr[settings.ROOM_CODE_LENGTH-1] = (day>>16)&0xff;
-        codeArr[settings.ROOM_CODE_LENGTH-2] = (day>>8)&0xff;
-        codeArr[settings.ROOM_CODE_LENGTH-3] = day&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-1] = (day/1024)%32;
+        codeArr[settings.ROOM_CODE_LENGTH-2] = (day/32)%32;
+        codeArr[settings.ROOM_CODE_LENGTH-3] = day%32;
         for (let i = 1; i < 4; i ++) {
             code += codeChars[codeArr[settings.ROOM_CODE_LENGTH - i] % codeChars.length];
         }
@@ -305,9 +305,9 @@ function generateRoomCode(sid) {
         }
         c ++;
         crypto.getRandomValues(codeArr);
-        codeArr[settings.ROOM_CODE_LENGTH-1] = (day>>16)&0xff;
-        codeArr[settings.ROOM_CODE_LENGTH-2] = (day>>8)&0xff;
-        codeArr[settings.ROOM_CODE_LENGTH-3] = day&0xff;
+        codeArr[settings.ROOM_CODE_LENGTH-1] = (day/1024)%32;
+        codeArr[settings.ROOM_CODE_LENGTH-2] = (day/32)%32;
+        codeArr[settings.ROOM_CODE_LENGTH-3] = day%32;
         for (let i = settings.ROOM_CODE_LENGTH; i; i --) {
             code += codeChars[codeArr[i - 1] % codeChars.length];
         }
