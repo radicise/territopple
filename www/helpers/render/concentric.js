@@ -172,6 +172,9 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         for (let i = 0; i < n; i ++) {
             const ii = i * inc;
             const s = size-ii*2;
+            if ((x < 2 && y === 0) || (x === 1 && y === 1)) {
+                console.log(`inc: ${inc}, ii: ${ii}, i: ${i}, size: ${size}, s: ${s}, f: ${v>=n-i}`);
+            }
             context.strokeRect(x*size+ii, y*size+ii, s, s);
             if (v >= n-i) {
                 context.fillRect(x*size+ii, y*size+ii, s, s);
