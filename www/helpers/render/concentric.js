@@ -134,6 +134,7 @@
 // })();
 /**@type {number[]} */
 let nb;
+let nudge = 1;
 const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates } = (() => {
     /**@type {HTMLCanvasElement} */
     let canvas;
@@ -186,6 +187,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         const color = teamcols[t];
         const inc = size/(maxn*2); // ring increment
         context.strokeStyle = "#000000";
+        context.lineWidth = 1+nudge;
         context.fillStyle = "#ffffff";
         context.fillRect(x*size, y*size, size, size); // clear any previous tile
         const colorint = Number.parseInt(color.slice(1), 16);
@@ -208,8 +210,9 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
                 }
                 context.fillRect(x*size+ii, y*size+ii, s, s);
             }
-            context.strokeRect(x*size+ii, y*size+ii, s, s);
+            context.strokeRect(x*size+ii-nudge, y*size+ii-nudge, s+nudge*2, s+nudge*2);
         }
+        context.lineWidth = 1;
     }
     function renderBoard() {
         context.clearRect(0, 0, width, height);
