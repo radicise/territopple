@@ -201,6 +201,9 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
                 const mulv = Math.min((v-n+i+1)*alphatweak,1);
                 const vals = [255*(1-mulv) + fullcolors[0]*mulv,255*(1-mulv) + fullcolors[1]*mulv,255*(1-mulv) + fullcolors[2]*mulv];
                 context.fillStyle = `#${vals.map(v=>v.toString(16).padStart(2,'0')).join('')}`;
+                if ((x < 2 && y === 0) || (x === 1 && y === 1)) {
+                    console.log(`mulv: ${mulv}, vals: ${vals}, fc: ${fullcolors}, mc: ${vals.map(v=>v.toString(16).padStart(2,'0')).join('')}`);
+                }
                 context.fillRect(x*size+ii, y*size+ii, s, s);
             }
         }
