@@ -63,7 +63,7 @@ let {updateTile, createBoard, setVolatile, flushUpdates, setColors} = (()=>{
     const f = (()=>{
         const dummyFunc = () => {};
         let renderchoice = 0;
-        const methods = [[original_updateTile, concentric_updateTile, d3_updateTile], [original_createBoard, concentric_createBoard, d3_createBoard], [original_setVolatile, concentric_setVolatile, d3_setVolatile], [original_cleanup, concentric_cleanup, d3_cleanup], [dummyFunc, dummyFunc, d3_flushUpdates], [original_updateColors, concentric_updateColors, d3_updateColors]];
+        const methods = [[original_updateTile, concentric_updateTile, d3_updateTile], [original_createBoard, concentric_createBoard, d3_createBoard], [original_setVolatile, concentric_setVolatile, d3_setVolatile], [original_cleanup, concentric_cleanup, d3_cleanup], [dummyFunc, concentric_flushUpdates, d3_flushUpdates], [original_updateColors, concentric_updateColors, d3_updateColors]];
         /**
          * updates a tile
          * @param {TilePosition} pos

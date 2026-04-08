@@ -49,6 +49,7 @@ class TTColorPicker extends HTMLElement {
         colorPicker.addEventListener("change", () => {
             container.style.setProperty(`--${v}`, colorPicker.value+ALPHA);
             localStorage.setItem(v, colorPicker.value);
+            container.dispatchEvent(new CustomEvent("ds-update", {"detail":{"target":v}}));
         });
     }
 }
@@ -74,6 +75,7 @@ class TTStyleToggle extends HTMLElement {
             } else {
                 container.classList.remove(v);
             }
+            container.dispatchEvent(new CustomEvent("ds-update", {"detail":{"target":v}}));
         });
         if (this.getAttribute("default") == false) {
             container.classList.remove(v);
