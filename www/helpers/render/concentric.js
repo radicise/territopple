@@ -302,7 +302,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         renderBoard();
     }
     function concentric_flushUpdates() {
-        // renderBoard();
+        renderBoard();
     }
     return { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates };
 })();
