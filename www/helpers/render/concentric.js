@@ -209,6 +209,8 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         maxn = topo.maxNeighbors;
         const gb = document.getElementById("gameboard");
         canvas = document.createElement("canvas");
+        canvas.width = 600;
+        canvas.height = 600;
         gb.replaceChildren(canvas);
         width = canvas.width;
         height = canvas.height;
