@@ -156,6 +156,22 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
     document.getElementById("gameboard").addEventListener("ds-update", (ev) => {
         console.log(ev.detail.target);
     });
+    window.addEventListener("message", (ev) => {
+        if (!canvas) return; // message not meant for us
+        if (ev.data.type === "3d-resolveclick") {
+            /**@type {number} */
+            const x = (ev.data.x-canvas.offsetLeft)/canvas.clientWidth * width;
+            /**@type {number} */
+            const y = (ev.data.y-canvas.offsetTop)/canvas.clientHeight * height;
+            const pdim = Math.min(width, height); // smallest dimension
+            const size = pdim/Math.max(rows, cols); // smallest tile size needed
+            const ti = Math.floor(y/size)*cols + Math.floor(x/size);
+            if (ti < 0 || ti >= bb.length) {
+                ti = -1;
+            }
+            window.postMessage({type:"3d-clickresolve",index:ti});
+        }
+    });
     /**
      * @param {number} x
      * @param {number} y
