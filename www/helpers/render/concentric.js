@@ -172,6 +172,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
             window.postMessage({type:"3d-clickresolve",index:ti});
         }
     });
+    const alphatweak = 3/5;
     /**
      * @param {number} x
      * @param {number} y
@@ -187,7 +188,8 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         context.strokeStyle = "#000000";
         context.fillStyle = "#ffffff";
         context.fillRect(x*size, y*size, size, size); // clear any previous tile
-        context.fillStyle = color;
+        const colorint = Number.parseInt(color.slice(1), 16);
+        const fullcolors = [colorint>>16,(colorint>>8)&0xff,colorint&0xff];
         for (let i = 0; i < n; i ++) {
             const ii = i * inc;
             const s = size-ii*2;
@@ -196,6 +198,9 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
             }
             context.strokeRect(x*size+ii, y*size+ii, s, s);
             if (v >= n-i) {
+                const mulv = Math.min((v-n+i+1)*alphatweak,1);
+                const vals = [255*(1-mulv) + fullcolors[0]*mulv,255*(1-mulv) + fullcolors[1]*mulv,255*(1-mulv) + fullcolors[2]*mulv];
+                context.fillStyle = `#${vals.map(v=>v.toString(16).padStart(2,'0')).join('')}`;
                 context.fillRect(x*size+ii, y*size+ii, s, s);
             }
         }
