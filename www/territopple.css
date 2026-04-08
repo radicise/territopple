@@ -64,7 +64,8 @@ th, tr, td {
     height: calc(var(--ssize) * 1px * var(--nrows));
     font-family: monospace, monospace;
     --tile-font-size: 32;
-    font-size: calc(var(--tile-font-size) * 1px);
+    --iv-tfs-1: round(down, calc(var(var(--tile-font-size) / 2)), 1);
+    font-size: calc(var(--iv-tfs-1) * 2px);
     user-select: none;
     --tile-hover: #0000001f;
     --tile-last-move: #aaaaaa1f;
