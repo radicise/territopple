@@ -59,8 +59,9 @@ th, tr, td {
     border: solid black 2px;
     grid-template-columns: repeat(var(--ncols), fit-content(100%));
     grid-template-rows: repeat(var(--nrows), fit-content(100%));
-    width: calc(var(--tile-font-size) * 1.5 * 1px * var(--ncols));
-    height: calc(var(--tile-font-size) * 1.5 * 1px * var(--nrows));
+    --ssize: round(down, calc(var(--tile-font-size) * 1.5), 1);
+    width: calc(var(--ssize) * 1px * var(--ncols));
+    height: calc(var(--ssize) * 1px * var(--nrows));
     font-family: monospace, monospace;
     --tile-font-size: 32;
     font-size: calc(var(--tile-font-size) * 1px);
