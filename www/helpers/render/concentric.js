@@ -132,6 +132,8 @@
 //     function concentric_flushUpdates() {}
 //     return { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates };
 // })();
+/**@type {number[]} */
+let nb;
 const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates } = (() => {
     /**@type {HTMLCanvasElement} */
     let canvas;
@@ -141,8 +143,6 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
     let bb;
     /**@type {number[]} */
     let tb;
-    /**@type {number[]} */
-    let nb;
     /**@type {number} */
     let rows;
     /**@type {number} */
