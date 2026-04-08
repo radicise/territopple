@@ -72,12 +72,14 @@ th, tr, td {
 .container > canvas {
     width: calc(var(--tile-font-size) * var(--ncols) * 1.5px);
     height: calc(var(--tile-font-size) * var(--nrows) * 1.5px);
-    
+
     &.pcanvas {
         z-index: 1;
     }
     &.hcanvas {
         z-index: 2;
+        position: absolute;
+        pointer-events: none;
     }
 }
 .container > svg {
