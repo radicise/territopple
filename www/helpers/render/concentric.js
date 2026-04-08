@@ -153,6 +153,9 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
     let height;
     /**@type {number} */
     let maxn;
+    document.getElementById("gameboard").addEventListener("ds-update", (ev) => {
+        console.log(ev["target-setting"]);
+    });
     /**
      * @param {number} x
      * @param {number} y
@@ -231,8 +234,10 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
     function concentric_updateTile(pos, team, val) {
         const row = pos.y;
         const col = pos.x;
-        bb[row*cols+col] = val;
-        tb[row*cols+col] = team;
+        const ct = row*cols+col;
+        bb[ct] = val;
+        tb[ct] = team;
+        drawTile(col, row, nb[ct], val, team);
         // const u = document.getElementById(`r${row}c${col}`);
         // u.color = teamcols[team];
         // u.value = val;
@@ -253,6 +258,8 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
     }
     function concentric_cleanup() {
         document.getElementById("gameboard").replaceChildren();
+        context = null;
+        canvas = null;
     }
     /**
      * @param {Topology} topo
@@ -263,7 +270,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         renderBoard();
     }
     function concentric_flushUpdates() {
-        renderBoard();
+        // renderBoard();
     }
     return { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates };
 })();
