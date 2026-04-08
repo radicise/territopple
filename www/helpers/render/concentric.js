@@ -164,7 +164,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         const pdim = Math.min(width, height); // smallest dimension
         const size = pdim/Math.max(rows, cols); // smallest tile size needed
         const color = teamcols[t];
-        const inc = size/maxn; // ring increment
+        const inc = size/(maxn*2); // ring increment
         context.strokeStyle = "#000000";
         context.fillStyle = "#ffffff";
         context.fillRect(x*size, y*size, size, size); // clear any previous tile
