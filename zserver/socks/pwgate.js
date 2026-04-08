@@ -15,7 +15,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     // console.log(args["id"]);
     // console.log(pw);
     if (typeof pw !== "string" || args["asSpectator"]) {
-        console.log("NO PASS");
+        // console.log("NO PASS");
         change(args["to"], args);
         return;
     }
