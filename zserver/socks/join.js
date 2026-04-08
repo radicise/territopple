@@ -12,7 +12,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     }
     /**@type {string} */
     const rgameId = args["id"];
-    // console.log(rgameId);
+    console.log(rgameId);
     if (!(rgameId in globals.state.games)) {
         change("error", {code:1,data:"game id does not exist",redirect:"/play-online",store:"game id does not exist"});
         return;
