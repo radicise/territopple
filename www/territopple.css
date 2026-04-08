@@ -69,6 +69,10 @@ th, tr, td {
     --tile-last-move: #aaaaaa1f;
     --tile-volatile: #dddddd1f;
 }
+.container > canvas {
+    width: calc(var(--tile-font-size) * var(--ncols) * 1.5px);
+    height: calc(var(--tile-font-size) * var(--nrows) * 1.5px);
+}
 .container > svg {
     width: calc(var(--tile-font-size) * var(--ncols) * 1.5px);
     height: calc(var(--tile-font-size) * var(--nrows) * 1.5px);
