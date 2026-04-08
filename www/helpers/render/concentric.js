@@ -197,7 +197,6 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
             if ((x < 2 && y === 0) || (x === 1 && y === 1)) {
                 console.log(`inc: ${inc}, ii: ${ii}, i: ${i}, size: ${size}, s: ${s}, f: ${v>=n-i}`);
             }
-            context.strokeRect(x*size+ii, y*size+ii, s, s);
             if (v >= n-i) {
                 // const mulv = Math.min((v-n+i+1)*alphatweak,1);
                 const mulv = (n-i===1)?1:alphatweak;
@@ -209,6 +208,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
                 }
                 context.fillRect(x*size+ii, y*size+ii, s, s);
             }
+            context.strokeRect(x*size+ii, y*size+ii, s, s);
         }
     }
     function renderBoard() {
