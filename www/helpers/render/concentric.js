@@ -200,7 +200,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
             context.strokeRect(x*size+ii, y*size+ii, s, s);
             if (v >= n-i) {
                 // const mulv = Math.min((v-n+i+1)*alphatweak,1);
-                const mulv = alphatweak;
+                const mulv = (n-i===1)?1:alphatweak;
                 const vals = fullcolors.map((v,i)=>Math.round(mixcolors[i]*(1-mulv)+v*mulv));
                 mixcolors = vals;
                 context.fillStyle = `#${vals.map(v=>v.toString(16).padStart(2,'0')).join('')}`;
