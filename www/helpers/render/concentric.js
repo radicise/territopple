@@ -265,7 +265,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         canvas.width = setsize;
         canvas.height = setsize;
         hovercanvas = document.createElement("canvas");
-        canvas.classList.add("hcanvas");
+        hovercanvas.classList.add("hcanvas");
         hovercanvas.width = setsize;
         hovercanvas.height = setsize;
         gb.replaceChildren(canvas, hovercanvas);
