@@ -224,6 +224,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         bb = [...board];
         tb = [...teamboard];
         nb = new Array(topo.tileCount).fill(0).map((_,i)=>topo.getNeighbors(i).length);
+        renderBoard();
     }
     /**
      * @param {TilePosition} pos
