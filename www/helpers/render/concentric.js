@@ -136,7 +136,7 @@
 let nb;
 let nudge = 1;
 let lw = 2;
-let setsize = 600;
+let setsize = 1200;
 const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates } = (() => {
     /**@type {HTMLCanvasElement} */
     let canvas;
