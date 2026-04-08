@@ -136,6 +136,7 @@
 let nb;
 let nudge = 1;
 let lw = 2;
+let setsize = 600;
 const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates } = (() => {
     /**@type {HTMLCanvasElement} */
     let canvas;
@@ -246,8 +247,8 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         maxn = topo.maxNeighbors;
         const gb = document.getElementById("gameboard");
         canvas = document.createElement("canvas");
-        canvas.width = 600;
-        canvas.height = 600;
+        canvas.width = setsize;
+        canvas.height = setsize;
         gb.replaceChildren(canvas);
         width = canvas.width;
         height = canvas.height;
