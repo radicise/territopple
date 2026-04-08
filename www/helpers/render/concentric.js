@@ -190,6 +190,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         context.fillRect(x*size, y*size, size, size); // clear any previous tile
         const colorint = Number.parseInt(color.slice(1), 16);
         const fullcolors = [colorint>>16,(colorint>>8)&0xff,colorint&0xff];
+        let mixcolors = [255,255,255];
         for (let i = 0; i < n; i ++) {
             const ii = i * inc;
             const s = size-ii*2;
@@ -199,7 +200,8 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
             context.strokeRect(x*size+ii, y*size+ii, s, s);
             if (v >= n-i) {
                 const mulv = Math.min((v-n+i+1)*alphatweak,1);
-                const vals = fullcolors.map(v=>Math.round(255*(1-mulv)+v*mulv));
+                const vals = fullcolors.map((v,i)=>Math.round(mixcolors[i]*(1-mulv)+v*mulv));
+                mixcolors = vals;
                 context.fillStyle = `#${vals.map(v=>v.toString(16).padStart(2,'0')).join('')}`;
                 if ((x < 2 && y === 0) || (x === 1 && y === 1)) {
                     console.log(`mulv: ${mulv}, vals: ${vals}, fc: ${fullcolors}, mc: ${vals.map(v=>v.toString(16).padStart(2,'0')).join('')}`);
