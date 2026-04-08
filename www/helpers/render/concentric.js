@@ -132,16 +132,15 @@
 //     function concentric_flushUpdates() {}
 //     return { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates };
 // })();
-/**@type {number[]} */
-let nb;
-let nudge = 1;
-let lw = 2;
-let setsize = 1200;
 const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, concentric_cleanup, concentric_updateColors, concentric_flushUpdates } = (() => {
     /**@type {HTMLCanvasElement} */
     let canvas;
     /**@type {CanvasRenderingContext2D} */
     let context;
+    /**@type {HTMLCanvasElement} */
+    let hovercanvas;
+    /**@type {CanvasRenderingContext2D} */
+    let hovercontext;
     /**@type {number[]} */
     let bb;
     /**@type {number[]} */
@@ -156,6 +155,21 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
     let height;
     /**@type {number} */
     let maxn;
+    /**@type {number[]} */
+    let nb;
+    let lw = 6;
+    let setsize = 1200;
+    const gb = document.getElementById("gameboard");
+    let hcolor = gb.style.getPropertyValue("--tile-hover");
+    function resolveClientPosition(x, y) {
+        /**@type {number} */
+        const xp = (x-canvas.offsetLeft)/canvas.clientWidth * width;
+        /**@type {number} */
+        const yp = (y-canvas.offsetTop)/canvas.clientHeight * height;
+        const pdim = Math.min(width, height); // smallest dimension
+        const size = pdim/Math.max(rows, cols); // smallest tile size needed
+        return [Math.floor(xp/size), Math.floor(yp/size)];
+    }
     document.getElementById("gameboard").addEventListener("ds-update", (ev) => {
         console.log(ev.detail.target);
     });
@@ -212,7 +226,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
                 }
                 context.fillRect(x*size+ii, y*size+ii, s, s);
             }
-            context.strokeRect(x*size+ii-nudge, y*size+ii-nudge, s+nudge*2, s+nudge*2);
+            context.strokeRect(x*size+ii, y*size+ii, s, s);
         }
         context.lineWidth = 1;
     }
@@ -249,13 +263,31 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         canvas = document.createElement("canvas");
         canvas.width = setsize;
         canvas.height = setsize;
-        gb.replaceChildren(canvas);
+        hovercanvas = document.createElement("canvas");
+        hovercanvas.width = setsize;
+        hovercanvas.height = setsize;
+        gb.replaceChildren(canvas, hovercanvas);
         width = canvas.width;
         height = canvas.height;
         context = canvas.getContext("2d",{alpha:false});
+        hovercontext = hovercanvas.getContext("2d",{alpha:true});
         bb = [...board];
         tb = [...teamboard];
         nb = new Array(topo.tileCount).fill(0).map((_,i)=>topo.getNeighbors(i).length);
+        canvas.addEventListener("mousemove", (ev) => {
+            let [x, y] = resolveClientPosition(ev.clientX, ev.clientY);
+            if (x < 0 || x >= cols || y < 0 || y >= cols) {
+                return;
+            }
+            const pdim = Math.min(width, height); // smallest dimension
+            const size = pdim/Math.max(rows, cols); // smallest tile size needed
+            hovercontext.clearRect(0, 0, width, height);
+            hovercontext.fillStyle = hcolor;
+            hovercontext.fillRect(x*size, y*size, size, size);
+        });
+        canvas.addEventListener("mouseleave", () => {
+            hovercontext.clearRect(0, 0, width, height);
+        });
         renderBoard();
     }
     /**
@@ -293,6 +325,8 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
         document.getElementById("gameboard").replaceChildren();
         context = null;
         canvas = null;
+        hovercanvas = null;
+        hovercontext = null;
     }
     /**
      * @param {Topology} topo
