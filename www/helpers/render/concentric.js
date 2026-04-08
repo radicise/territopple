@@ -154,7 +154,7 @@ const { concentric_updateTile, concentric_createBoard, concentric_setVolatile, c
     /**@type {number} */
     let maxn;
     document.getElementById("gameboard").addEventListener("ds-update", (ev) => {
-        console.log(ev["target-setting"]);
+        console.log(ev.detail.target);
     });
     /**
      * @param {number} x
