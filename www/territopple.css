@@ -279,6 +279,7 @@ x-concentric-tile div:not(:has(> *)) {
 
 #pan-zoom-slider, #pan-reset-button {
     writing-mode: vertical-lr;
+    transform: rotate(180deg);
 }
 #play-container {
     display: flex;

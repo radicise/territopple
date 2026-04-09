@@ -73,6 +73,7 @@
                 <div id="play-container">
                     <div id="pan-zoom-container">
                         <input type="range" id="pan-zoom-slider" value="0" min="0" max="100" step="1">
+                        <br>
                         <input type="button" id="pan-reset-button" value="reset">
                     </div>
                     <div id="clip-container">
@@ -167,7 +168,7 @@
                 let offsetPoint = [0,0];
                 // let lastPoint = [0,0];
                 let mdown = false;
-                c.addEventListener("click", (ev) => {
+                c.addEventListener("mouseup", (ev) => {
                     if (wasDragging) {
                         wasDragging = false;
                         ev.preventDefault();
