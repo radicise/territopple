@@ -202,7 +202,7 @@ class Game {
      * @param {number} team
      */
     async move(tile, team) {
-        if (!document.getElementById("animation-enabled-enabled")?.checked) {
+        if (!game_gb?.classList.contains("animation-enabled")) {
             return this._omove(tile, team);
         }
         let checks = [tile];
