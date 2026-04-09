@@ -280,3 +280,6 @@ x-concentric-tile div:not(:has(> *)) {
 #pan-zoom-slider {
     writing-mode: vertical-lr;
 }
+#play-container {
+    display: flex;
+}

@@ -70,10 +70,12 @@
                 </fieldset>
 		<div id="row-container">
             <div id="container-container">
-                <div id="pan-zoom-container">
-                    <input type="range" id="pan-zoom-slider" value="0" min="0" max="100" step="1">
+                <div id="play-container">
+                    <div id="pan-zoom-container">
+                        <input type="range" id="pan-zoom-slider" value="0" min="0" max="100" step="1">
+                    </div>
+                    <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--blink-dark:#ddd;--tile-font-size:32; --pan-zoom:1; --pan-x:0; --pan-y:0;"></div>
                 </div>
-                <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--blink-dark:#ddd;--tile-font-size:32; --pan-zoom:1; --pan-x:0; --pan-y:0;"></div>
                 <span id="underboard-container">
                     <span id="underboard-left">
                         <input type="button" id="pingbutton" value="ping">
