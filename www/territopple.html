@@ -159,6 +159,36 @@
                 s.oninput = () => {
                     c.style.setProperty("--pan-zoom", 1+s.valueAsNumber/100);
                 };
+                let dragging = false;
+                let downPoint = [0,0];
+                // let lastPoint = [0,0];
+                let mdown = false;
+                c.addEventListener("click", (ev) => {
+                    if (dragging) {
+                        ev.preventDefault();
+                        return false;
+                    }
+                });
+                c.addEventListener("mousedown", (ev) => {
+                    downPoint = [ev.clientX, ev.clientY];
+                    mdown = true;
+                });
+                document.addEventListener("mousemove", (ev) => {
+                    if (mdown) {
+                        if (dragging) {
+                            // lastPoint = [ev.clientX, ev.clientY];
+                            c.style.setProperty("--pan-x", ev.clientX-downPoint[0]);
+                            c.style.setProperty("--pan-y", ev.clientY-downPoint[1]);
+                        } else if (((downPoint[0]-ev.clientX)**2 + (downPoint[1]-ev.clientY)**2)) {
+                            dragging = true;
+                            // lastPoint = [ev.clientX, ev.clientY];
+                        }
+                    }
+                });
+                document.addEventListener("mouseup", (ev) => {
+                    mdown = false;
+                    dragging = false;
+                });
             }
         </script>
         <script type="importmap">
