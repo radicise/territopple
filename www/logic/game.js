@@ -203,6 +203,7 @@ class Game {
      */
     async move(tile, team) {
         if (!game_gb?.classList.contains("animation-enabled")) {
+            console.log("skipping animation");
             return this._omove(tile, team);
         }
         let checks = [tile];
@@ -246,6 +247,7 @@ class Game {
                     upd(tx, this.topology.getNeighbors(tx));
                 }
             }
+            console.log(`waiting freq: ${timectl?.value||1}`);
             if (timectl) await new Promise(r => setTimeout(r, 1000/(timectl?.value||1)));
         }
         game_gb?.style.setProperty("--disabled", odisable);
