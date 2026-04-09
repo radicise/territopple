@@ -163,6 +163,7 @@
                 s.oninput = () => {
                     c.style.setProperty("--pan-zoom", 1+s.valueAsNumber/100);
                 };
+                let touching = false;
                 let dragging = false;
                 let wasDragging = false;
                 let downPoint = [0,0];
@@ -182,8 +183,37 @@
                     wasDragging = false;
                     G_DRAG_LOCK = false;
                 });
+                cc.addEventListener("touchstart", (ev) => {
+                    if (ev.touches.length === 1) {
+                        touching = true;
+                        const t = ev.touches.item(0);
+                        downPoint = [t.clientX, t.clientY];
+                    }
+                });
+                document.addEventListener("touchmove", (ev) => {
+                    if (ev.touches.length > 1) return;
+                    const t = ev.touches.item(0);
+                    if (dragging) {
+                        const scaler = s.valueAsNumber/100 + 1;
+                        c.style.setProperty("--pan-x", offsetPoint[0]+(t.clientX-downPoint[0])/scaler);
+                        c.style.setProperty("--pan-y", offsetPoint[1]+(t.clientY-downPoint[1])/scaler);
+                    } else if (((downPoint[0]-t.clientX)**2 + (downPoint[1]-t.clientY)**2)) {
+                        dragging = true;
+                        wasDragging = true;
+                        offsetPoint = [Number(c.style.getPropertyValue("--pan-x")),Number(c.style.getPropertyValue("--pan-y"))];
+                        G_DRAG_LOCK = true;
+                    }
+                });
+                document.addEventListener("touchend", (ev) => {
+                    touching = false;
+                    G_DRAG_LOCK = false;
+                    dragging = false;
+                });
                 document.addEventListener("mousemove", (ev) => {
                     if (mdown) {
+                        if (touching) {
+                            return;
+                        }
                         if (dragging) {
                             // lastPoint = [ev.clientX, ev.clientY];
                             const scaler = s.valueAsNumber/100 + 1;
