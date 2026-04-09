@@ -283,3 +283,8 @@ x-concentric-tile div:not(:has(> *)) {
 #play-container {
     display: flex;
 }
+#clip-container {
+    width: fit-content;
+    height: fit-content;
+    overflow: hidden;
+}
