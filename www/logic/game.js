@@ -227,6 +227,7 @@ class Game {
         /**@type {TTNumberBox} */
         const timectl = document.getElementById("x-animation-speed-number");
         outer: while (checks.length) {
+            console.log("LHEAD");
             const t = checks.pop();
             const n = this.topology.getNeighbors(t);
             if (bb[t] > n.length) {
@@ -234,6 +235,7 @@ class Game {
                 // upd(t, n);
                 for (const tx of n) {
                     checks.push(tx);
+                    bb[tx] += 1;
                     if (tb[tx] !== team) {
                         if (tb[tx]>0) this.owned_pieces[tb[t]] -= bb[t];
                         this.owned_pieces[team] += bb[t];
@@ -242,10 +244,10 @@ class Game {
                         tb[tx] = team;
                         if (this.owned[team] === bb.length) {
                             // upd(tx, this.topology.getNeighbors(tx));
+                            this.updateBoard(boardold, teamboardold);
                             break outer;
                         }
                     }
-                    bb[tx] += 1;
                     // upd(tx, this.topology.getNeighbors(tx));
                 }
             }
