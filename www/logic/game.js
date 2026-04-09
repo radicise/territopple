@@ -207,6 +207,7 @@ class Game {
             return this._omove(tile, team);
         }
         let checks = [tile];
+        let next_checks = [];
         const tb = this.teamboard;
         const bb = this.board;
         this.owned_pieces[team] ++;
@@ -219,16 +220,18 @@ class Game {
             flushUpdates();
         };
         upd(tile, this.topology.getNeighbors(tile));
+        let boardold = Array.from(this.board);
+        let teamboardold = Array.from(this.teamboard);
         const odisable = game_gb?.style.getPropertyValue("--disabled");
         game_gb?.style.setProperty("--disabled", 1);
         /**@type {TTNumberBox} */
         const timectl = document.getElementById("x-animation-speed-number");
-        while (checks.length) {
+        outer: while (checks.length) {
             const t = checks.pop();
             const n = this.topology.getNeighbors(t);
             if (bb[t] > n.length) {
                 bb[t] = 1;
-                upd(t, n);
+                // upd(t, n);
                 for (const tx of n) {
                     checks.push(tx);
                     if (tb[tx] !== team) {
@@ -238,17 +241,23 @@ class Game {
                         this.owned[team] ++;
                         tb[tx] = team;
                         if (this.owned[team] === bb.length) {
-                            upd(tx, this.topology.getNeighbors(tx));
-                            checks = [];
-                            break;
+                            // upd(tx, this.topology.getNeighbors(tx));
+                            break outer;
                         }
                     }
                     bb[tx] += 1;
-                    upd(tx, this.topology.getNeighbors(tx));
+                    // upd(tx, this.topology.getNeighbors(tx));
                 }
             }
-            console.log(`waiting freq: ${timectl?.value||1}`);
-            if (timectl) await new Promise(r => setTimeout(r, 1000/(timectl?.value||1)));
+            if (checks.length === 0) {
+                checks = next_checks;
+                next_checks = [];
+                this.updateBoard(boardold, teamboardold);
+                boardold = Array.from(this.board);
+                teamboardold = Array.from(this.teamboard);
+                console.log(`waiting freq: ${timectl?.value||1}`);
+                if (timectl) await new Promise(r => setTimeout(r, 1000/(timectl?.value||1)));
+            }
         }
         game_gb?.style.setProperty("--disabled", odisable);
     }
