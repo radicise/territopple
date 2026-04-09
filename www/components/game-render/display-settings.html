@@ -1,7 +1,7 @@
 <fieldset id="display-settings">
     <legend>Display Settings</legend>
     <div style="margin-bottom:0.5em;">
-      <label for="board-zoom">Zoom</label>
+      <label for="board-zoom">Scale</label>
       <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize();window.dispatchEvent(new CustomEvent('gameboard-fresize'));">
       <label for="settings-expand" id="settings-expand-label">Expand +</label>
       <input type="checkbox" id="settings-expand" hidden></input>

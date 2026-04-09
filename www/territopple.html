@@ -32,7 +32,7 @@
                 <fieldset id="display-settings">
                   <legend>Display Settings</legend>
                   <div>
-                    <label for="board-zoom">Zoom</label>
+                    <label for="board-zoom">Scale</label>
                     <input type="range" id="board-zoom" min="10" max="100" step="1" value="32" oninput="setTileSize()"><input type="button" value="reset zoom" onclick="document.getElementById('board-zoom').value='32';setTileSize();window.dispatchEvent(new CustomEvent('gameboard-fresize'));">
                     <label for="settings-expand" id="settings-expand-label">Expand +</label>
                     <input type="checkbox" id="settings-expand" hidden></input>
@@ -70,7 +70,10 @@
                 </fieldset>
 		<div id="row-container">
             <div id="container-container">
-                <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--blink-dark:#ddd;--tile-font-size:32;"></div>
+                <div id="pan-zoom-container">
+                    <input type="range" id="pan-zoom-slider" value="0" min="0" max="100" step="1">
+                </div>
+                <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--blink-dark:#ddd;--tile-font-size:32; --pan-zoom:1; --pan-x:0; --pan-y:0;"></div>
                 <span id="underboard-container">
                     <span id="underboard-left">
                         <input type="button" id="pingbutton" value="ping">
@@ -145,6 +148,15 @@
 		<h2 id="status">Connecting to server . . .</h2>
 		<p id="info">Not yet connected to server</p>
         <a href="/play-online">Back To Server List</a>
+        <script>
+            {
+                const s = document.getElementById("pan-zoom-slider");
+                const c = document.getElementById("gameboard");
+                s.onchange = () => {
+                    c.style.setProperty("--pan-zoom", 1+s.valueAsNumber);
+                };
+            }
+        </script>
         <script type="importmap">
             {
                 "imports": {
