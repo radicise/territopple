@@ -156,8 +156,8 @@
             {
                 const s = document.getElementById("pan-zoom-slider");
                 const c = document.getElementById("gameboard");
-                s.onchange = () => {
-                    c.style.setProperty("--pan-zoom", 1+s.valueAsNumber);
+                s.oninput = () => {
+                    c.style.setProperty("--pan-zoom", 1+s.valueAsNumber/100);
                 };
             }
         </script>
