@@ -241,6 +241,9 @@ class Game {
         const timectl = document.getElementById("x-animation-speed-number");
         outer: while (estop && checks.length) {
             console.log("LHEAD");
+            if (this.owned[team] === bb.length) {
+                break;
+            }
             const t = checks.pop();
             const n = this.topology.getNeighbors(t);
             if (bb[t] > n.length) {
