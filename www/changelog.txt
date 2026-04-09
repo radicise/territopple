@@ -1,3 +1,6 @@
+# Apr 9, 2026 (DEV202638Y1)
+added zoom and pan controls
+
 # Apr 9, 2026 (DEV202638Y0)
 fixed a bug that caused display settings checkboxes to always be checked when created
 added toppling animations
