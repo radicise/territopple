@@ -190,6 +190,7 @@
                     } else {
                         s.value = Math.max(s.valueAsNumber-1,0);
                     }
+                    c.style.setProperty("--pan-zoom", 1+s.valueAsNumber/100);
                 }, {passive:false});
                 document.addEventListener("touchstart", (ev) => {
                     if (ev.touches.length === 1) {
