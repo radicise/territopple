@@ -66,7 +66,7 @@ class TTStyleToggle extends HTMLElement {
     connectedCallback() {
         let v = this.getAttribute("var") || "";
         this.shadowRoot.innerHTML = `
-	    <input type="checkbox" id="${v}-enabled"${(this.getAttribute('default') || true)?" checked":""}>
+	    <input type="checkbox" id="${v}-enabled"${((this.getAttribute('default')==="true") ?? true)?" checked":""}>
 	`;
         let checkbox = this.shadowRoot.getElementById(`${v}-enabled`);
         checkbox.addEventListener("change", () => {
