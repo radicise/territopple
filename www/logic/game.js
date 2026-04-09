@@ -9,7 +9,7 @@ const loadPromise = new Promise((res,) => {
 });
 const TEAM_COUNT = 7;
 const game_gb = document.getElementById("gameboard");
-let estop = true;
+let gtopple_estop = true;
 
 /**
  * @typedef Player
@@ -205,7 +205,7 @@ class Game {
      */
     async move(tile, team) {
         if (!game_gb?.classList.contains("animation-enabled")) {
-            console.log("skipping animation");
+            // console.log("skipping animation");
             return this._omove(tile, team);
         }
         let olck = this.anim_lock;
@@ -251,8 +251,8 @@ class Game {
         game_gb?.classList.add("no-input");
         /**@type {TTNumberBox} */
         const timectl = document.getElementById("x-animation-speed-number");
-        outer: while (estop && checks.length) {
-            console.log("LHEAD");
+        outer: while (gtopple_estop && checks.length) {
+            // console.log("LHEAD");
             if (this.owned[team] === bb.length) {
                 break;
             }
@@ -285,7 +285,7 @@ class Game {
                 this.updateBoard(boardold, teamboardold);
                 boardold = Array.from(this.board);
                 teamboardold = Array.from(this.teamboard);
-                console.log(`waiting freq: ${timectl?.value||1}`);
+                // console.log(`waiting freq: ${timectl?.value||1}`);
                 if (timectl) await new Promise(r => setTimeout(r, 1000/(timectl?.value||1)));
             }
         }
@@ -308,7 +308,7 @@ class Game {
         const boardold = Array.from(this.board);
         const teamboardold = Array.from(this.teamboard);
         this.owned_pieces[team] ++;
-        while (adds.length) {
+        while (gtopple_estop && adds.length) {
             const t = adds.pop();
             if (tb[t] !== team) {
                 if (tb[t]>0) this.owned_pieces[tb[t]] -= bb[t];
