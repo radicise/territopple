@@ -8,6 +8,7 @@ const loadPromise = new Promise((res,) => {
     import("topology/topology.js").then(r => {topology.m = r;res(r);},r => {throw new Error("could not load topology module");});
 });
 const TEAM_COUNT = 7;
+const game_gb = document.getElementById("gameboard");
 
 /**
  * @typedef Player
@@ -196,10 +197,64 @@ class Game {
         }
     }
     /**
+     * moves, maybe with an animation
      * @param {number} tile
      * @param {number} team
      */
-    move(tile, team) {
+    async move(tile, team) {
+        if (!document.getElementById("animation-enabled-enabled")?.checked) {
+            return this._omove(tile, team);
+        }
+        let checks = [tile];
+        const tb = this.teamboard;
+        const bb = this.board;
+        this.owned_pieces[team] ++;
+        tb[tile] = team;
+        bb[tile] ++;
+        const upd = (tile, n) => {
+            const p = this.topology.getPositionOf(tile, "2d-grid");
+            updateTile(p, team, Math.min(bb[tile], this.topology.maxNeighbors));
+            setVolatile(p, bb[tile] === n.length);
+            flushUpdates();
+        };
+        upd(tile, this.topology.getNeighbors(tile));
+        const odisable = game_gb?.style.getPropertyValue("--disabled");
+        game_gb?.style.setProperty("--disabled", 1);
+        /**@type {TTNumberBox} */
+        const timectl = document.getElementById("x-animation-speed-number");
+        while (checks.length) {
+            const t = checks.pop();
+            const n = this.topology.getNeighbors(t);
+            if (bb[t] > n.length) {
+                bb[t] = 1;
+                upd(t, n);
+                for (const tx of n) {
+                    checks.push(tx);
+                    if (tb[tx] !== team) {
+                        if (tb[tx]>0) this.owned_pieces[tb[t]] -= bb[t];
+                        this.owned_pieces[team] += bb[t];
+                        this.owned[tb[tx]] --;
+                        this.owned[team] ++;
+                        tb[tx] = team;
+                        if (this.owned[team] === bb.length) {
+                            upd(tx, this.topology.getNeighbors(tx));
+                            checks = [];
+                            break;
+                        }
+                    }
+                    bb[tx] += 1;
+                    upd(tx, this.topology.getNeighbors(tx));
+                }
+            }
+            if (timectl) await new Promise(r => setTimeout(r, 1000/(timectl?.value||1)));
+        }
+        game_gb?.style.setProperty("--disabled", odisable);
+    }
+    /**
+     * @param {number} tile
+     * @param {number} team
+     */
+    _omove(tile, team) {
         const adds = [tile];
         const tb = this.teamboard;
         const bb = this.board;
