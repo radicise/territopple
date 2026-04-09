@@ -59,14 +59,14 @@ th, tr, td {
     border: solid black 2px;
     grid-template-columns: repeat(var(--ncols), fit-content(100%));
     grid-template-rows: repeat(var(--nrows), fit-content(100%));
-    --ssize: round(down, calc(var(--tile-font-size) * 1.5), 1);
-    /* --ssize: calc(var(--tile-font-size) * 1.5); */
+    /* --ssize: round(down, calc(var(--tile-font-size) * 1.5), 1); */
+    --ssize: calc(var(--tile-font-size) * 1.5);
     width: calc(var(--ssize) * 1px * var(--ncols));
     height: calc(var(--ssize) * 1px * var(--nrows));
     font-family: monospace, monospace;
     --tile-font-size: 32;
-    --iv-tfs-1: round(down, calc(var(--tile-font-size) * 1.5), 1);
-    font-size: calc(var(--iv-tfs-1) * 1px);
+    /* --iv-tfs-1: round(down, calc(var(--tile-font-size) * 1.5), 1); */
+    font-size: calc(var(--tile-font-size) * 1px);
     user-select: none;
     --tile-hover: #0000001f;
     --tile-last-move: #aaaaaa1f;
