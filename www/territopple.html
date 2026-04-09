@@ -161,6 +161,7 @@
                 };
                 let dragging = false;
                 let downPoint = [0,0];
+                let offsetPoint = [0,0];
                 // let lastPoint = [0,0];
                 let mdown = false;
                 c.addEventListener("click", (ev) => {
@@ -177,10 +178,11 @@
                     if (mdown) {
                         if (dragging) {
                             // lastPoint = [ev.clientX, ev.clientY];
-                            c.style.setProperty("--pan-x", ev.clientX-downPoint[0]);
-                            c.style.setProperty("--pan-y", ev.clientY-downPoint[1]);
+                            c.style.setProperty("--pan-x", offsetPoint[0]+ev.clientX-downPoint[0]);
+                            c.style.setProperty("--pan-y", offsetPoint[1]+ev.clientY-downPoint[1]);
                         } else if (((downPoint[0]-ev.clientX)**2 + (downPoint[1]-ev.clientY)**2)) {
                             dragging = true;
+                            offsetPoint = [Number(c.style.getPropertyValue("--pan-x")),Number(c.style.getPropertyValue("--pan-y"))];
                             // lastPoint = [ev.clientX, ev.clientY];
                         }
                     }
