@@ -192,6 +192,7 @@
                 });
                 document.addEventListener("touchmove", (ev) => {
                     if (ev.touches.length > 1) return;
+                    ev.preventDefault();
                     const t = ev.touches.item(0);
                     if (dragging) {
                         const scaler = s.valueAsNumber/100 + 1;
@@ -203,7 +204,7 @@
                         offsetPoint = [Number(c.style.getPropertyValue("--pan-x")),Number(c.style.getPropertyValue("--pan-y"))];
                         G_DRAG_LOCK = true;
                     }
-                });
+                }, true);
                 document.addEventListener("touchend", (ev) => {
                     touching = false;
                     G_DRAG_LOCK = false;
