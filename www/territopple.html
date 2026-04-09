@@ -212,7 +212,7 @@
                         G_DRAG_LOCK = true;
                     }
                     return false;
-                }, {capture:true});
+                }, {passive:false});
                 document.addEventListener("touchend", (ev) => {
                     touching = false;
                     G_DRAG_LOCK = false;
