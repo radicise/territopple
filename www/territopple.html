@@ -155,6 +155,7 @@
 		<p id="info">Not yet connected to server</p>
         <a href="/play-online">Back To Server List</a>
         <script>
+            let G_DRAG_LOCK = false;
             {
                 const s = document.getElementById("pan-zoom-slider");
                 const c = document.getElementById("gameboard");
@@ -179,6 +180,7 @@
                     downPoint = [ev.clientX, ev.clientY];
                     mdown = true;
                     wasDragging = false;
+                    G_DRAG_LOCK = false;
                 });
                 document.addEventListener("mousemove", (ev) => {
                     if (mdown) {
@@ -190,6 +192,7 @@
                             dragging = true;
                             wasDragging = true;
                             offsetPoint = [Number(c.style.getPropertyValue("--pan-x")),Number(c.style.getPropertyValue("--pan-y"))];
+                            G_DRAG_LOCK = true;
                             // lastPoint = [ev.clientX, ev.clientY];
                         }
                     }

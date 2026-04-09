@@ -915,6 +915,7 @@ conn.addEventListener("open", async function(event) {
          */
 	});
 	document.getElementById("gameboard").addEventListener("mouseup", function(event) {
+        if (G_DRAG_LOCK) return;
         if (event.button !== 0) return;
         if (document.getElementById("gameboard").style.getPropertyValue("--disabled") === "1") {
             return;
