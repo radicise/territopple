@@ -47,6 +47,7 @@ class Game {
         this.timerid = null;
         this.timertarget = null;
         this.rules_loaded = false;
+        this.anim_lock = null;
     }
     handlePause() {
         if (this.timerid) {
@@ -207,6 +208,12 @@ class Game {
             console.log("skipping animation");
             return this._omove(tile, team);
         }
+        let olck = this.anim_lock;
+        let res;
+        this.anim_lock = new Promise(r => {res = r;});
+        if (olck) {
+            await olck;
+        }
         let checks = [tile];
         let next_checks = [];
         const tb = this.teamboard;
@@ -263,6 +270,7 @@ class Game {
             }
         }
         game_gb?.style.setProperty("--disabled", odisable);
+        res();
     }
     /**
      * @param {number} tile
