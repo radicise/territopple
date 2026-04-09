@@ -198,6 +198,7 @@
                 });
                 document.addEventListener("touchmove", (ev) => {
                     if (ev.touches.length > 1) return;
+                    if (!touching) return;
                     ev.preventDefault();
                     const t = ev.touches.item(0);
                     if (dragging) {
