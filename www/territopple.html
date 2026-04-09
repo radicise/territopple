@@ -183,10 +183,16 @@
                     wasDragging = false;
                     G_DRAG_LOCK = false;
                 });
-                cc.addEventListener("touchstart", (ev) => {
+                document.addEventListener("touchstart", (ev) => {
                     if (ev.touches.length === 1) {
-                        touching = true;
                         const t = ev.touches.item(0);
+                        if (
+                            cc.clientLeft > t.clientX || cc.clientLeft+cc.clientWidth < t.clientX
+                            || cc.clientTop > t.clientY || cc.clientTop+cc.clientHeight < t.clientY
+                        ) {
+                            return;
+                        }
+                        touching = true;
                         downPoint = [t.clientX, t.clientY];
                     }
                 });
