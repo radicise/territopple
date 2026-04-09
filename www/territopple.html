@@ -185,11 +185,12 @@
                 });
                 cc.addEventListener("wheel", (ev) => {
                     ev.preventDefault();
-                    if (ev.deltaY < 0) {
-                        s.value = Math.min(s.valueAsNumber+1,100);
-                    } else {
-                        s.value = Math.max(s.valueAsNumber-1,0);
-                    }
+                    // if (ev.deltaY < 0) {
+                    //     s.value = Math.min(s.valueAsNumber+1,100);
+                    // } else {
+                    //     s.value = Math.max(s.valueAsNumber-1,0);
+                    // }
+                    s.value = Math.min(100,Math.max(0,s.valueAsNumber-ev.deltaY));
                     c.style.setProperty("--pan-zoom", 1+s.valueAsNumber/100);
                 }, {passive:false});
                 document.addEventListener("touchstart", (ev) => {
