@@ -248,6 +248,7 @@ class Game {
         let teamboardold = Array.from(this.teamboard);
         const odisable = game_gb?.style.getPropertyValue("--disabled");
         game_gb?.style.setProperty("--disabled", 1);
+        game_gb?.classList.add("no-input");
         /**@type {TTNumberBox} */
         const timectl = document.getElementById("x-animation-speed-number");
         outer: while (estop && checks.length) {
@@ -287,6 +288,9 @@ class Game {
                 console.log(`waiting freq: ${timectl?.value||1}`);
                 if (timectl) await new Promise(r => setTimeout(r, 1000/(timectl?.value||1)));
             }
+        }
+        if (odisable !== "1") {
+            game_gb?.classList.remove("no-input");
         }
         game_gb?.style.setProperty("--disabled", odisable);
         res();
