@@ -74,6 +74,7 @@ th, tr, td {
     &.no-input {
         pointer-events: none;
         cursor: pointer;
+        background-color: #0000001f !important;
     }
 }
 .container > canvas {
