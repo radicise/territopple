@@ -222,14 +222,14 @@
                             const scaler = s.valueAsNumber/100 + 1;
                             c.style.setProperty("--pan-x", offsetPoint[0]+(t.clientX-downPoint[0])/scaler);
                             c.style.setProperty("--pan-y", offsetPoint[1]+(t.clientY-downPoint[1])/scaler);
-                        } else if (zooming) {
-                            const rd = primaryRadius ? xrd : yrd;
-                            s.value = Math.min(100,Math.max(0,zoomstart + rd));
-                            c.style.setProperty("--pan-zoom", 1+s.valueAsNumber/100);
-                        } else if (Math.max(Math.abs(xrd),Math.abs(yrd)) >= 1) {
-                            primaryRadius = Math.abs(xrd) > Math.abs(yrd);
-                            zooming = true;
-                            zoomstart = s.valueAsNumber;
+                        // } else if (zooming) {
+                        //     const rd = primaryRadius ? xrd : yrd;
+                        //     s.value = Math.min(100,Math.max(0,zoomstart + rd));
+                        //     c.style.setProperty("--pan-zoom", 1+s.valueAsNumber/100);
+                        // } else if (Math.max(Math.abs(xrd),Math.abs(yrd)) > 0) {
+                        //     primaryRadius = Math.abs(xrd) > Math.abs(yrd);
+                        //     zooming = true;
+                        //     zoomstart = s.valueAsNumber;
                         } else if (((downPoint[0]-t.clientX)**2 + (downPoint[1]-t.clientY)**2) >= 5) {
                             dragging = true;
                             wasDragging = true;
