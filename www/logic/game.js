@@ -210,7 +210,14 @@ class Game {
         }
         let olck = this.anim_lock;
         let res;
-        this.anim_lock = new Promise(r => {res = r;});
+        const mylock = new Promise(r => {res = r;});
+        const that = this;
+        mylock.then(() => {
+            if (that.anim_lock === mylock) {
+                that.anim_lock = null;
+            }
+        });
+        this.anim_lock = mylock;
         if (olck) {
             await olck;
             if (this.owned[team] === this.board.length) {
