@@ -213,6 +213,7 @@ class Game {
         this.anim_lock = new Promise(r => {res = r;});
         if (olck) {
             await olck;
+            await new Promise(r => setTimeout(r, 1000));
         }
         let checks = [tile];
         let next_checks = [];
