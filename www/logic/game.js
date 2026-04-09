@@ -243,7 +243,7 @@ class Game {
                 bb[t] = 1;
                 // upd(t, n);
                 for (const tx of n) {
-                    checks.push(tx);
+                    next_checks.push(tx);
                     bb[tx] += 1;
                     if (tb[tx] !== team) {
                         if (tb[tx]>0) this.owned_pieces[tb[t]] -= bb[t];
