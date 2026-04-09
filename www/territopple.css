@@ -290,6 +290,9 @@ x-concentric-tile div:not(:has(> *)) {
     overflow: hidden;
 }
 
+#pan-zoom-container {
+    margin-right: 0.025in;
+}
 @media (any-pointer: coarse) {
     #pan-zoom-container {
         margin-right: 0.125in;
