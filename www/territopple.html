@@ -183,6 +183,14 @@
                     wasDragging = false;
                     G_DRAG_LOCK = false;
                 });
+                cc.addEventListener("wheel", (ev) => {
+                    ev.preventDefault();
+                    if (ev.deltaY < 0) {
+                        s.value = Math.min(s.valueAsNumber+1,100);
+                    } else {
+                        s.value = Math.max(s.valueAsNumber-1,0);
+                    }
+                }, {passive:false});
                 document.addEventListener("touchstart", (ev) => {
                     if (ev.touches.length === 1) {
                         const t = ev.touches.item(0);
