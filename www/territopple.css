@@ -277,7 +277,7 @@ x-concentric-tile div:not(:has(> *)) {
     background: rgb(from var(--color) r g b / var(--l-alpha-tweak));
 }
 
-#pan-zoom-slider {
+#pan-zoom-slider, #pan-reset-button {
     writing-mode: vertical-lr;
 }
 #play-container {

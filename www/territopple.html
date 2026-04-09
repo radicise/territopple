@@ -73,6 +73,7 @@
                 <div id="play-container">
                     <div id="pan-zoom-container">
                         <input type="range" id="pan-zoom-slider" value="0" min="0" max="100" step="1">
+                        <input type="button" id="pan-reset-button" value="reset">
                     </div>
                     <div id="clip-container">
                         <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--blink-dark:#ddd;--tile-font-size:32; --pan-zoom:1; --pan-x:0; --pan-y:0;"></div>
@@ -191,6 +192,12 @@
                     mdown = false;
                     dragging = false;
                 });
+                document.getElementById("pan-reset-button").onclick = () => {
+                    c.style.setProperty("--pan-zoom", 1);
+                    c.style.setProperty("--pan-x", 0);
+                    c.style.setProperty("--pan-y", 0);
+                    s.value = 0;
+                };
             }
         </script>
         <script type="importmap">
