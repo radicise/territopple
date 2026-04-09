@@ -186,9 +186,10 @@
                 document.addEventListener("touchstart", (ev) => {
                     if (ev.touches.length === 1) {
                         const t = ev.touches.item(0);
+                        const br = cc.getBoundingClientRect();
                         if (
-                            cc.clientLeft > t.clientX || cc.clientLeft+cc.clientWidth < t.clientX
-                            || cc.clientTop > t.clientY || cc.clientTop+cc.clientHeight < t.clientY
+                            br.left > t.clientX || br.right < t.clientX
+                            || br.top > t.clientY || br.bottom < t.clientY
                         ) {
                             return;
                         }
@@ -197,8 +198,8 @@
                     }
                 });
                 document.addEventListener("touchmove", (ev) => {
-                    if (ev.touches.length > 1) return;
-                    if (!touching) return;
+                    if (ev.touches.length > 1) return true;
+                    if (!touching) return true;
                     ev.preventDefault();
                     const t = ev.touches.item(0);
                     if (dragging) {
