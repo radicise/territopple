@@ -8,6 +8,8 @@ const loadPromise = new Promise((res,) => {
     import("topology/topology.js").then(r => {topology.m = r;res(r);},r => {throw new Error("could not load topology module");});
 });
 const TEAM_COUNT = 7;
+const game_gb = document.getElementById("gameboard");
+let gtopple_estop = true;
 
 /**
  * @typedef Player
@@ -45,6 +47,7 @@ class Game {
         this.timerid = null;
         this.timertarget = null;
         this.rules_loaded = false;
+        this.anim_lock = null;
     }
     handlePause() {
         if (this.timerid) {
@@ -196,10 +199,107 @@ class Game {
         }
     }
     /**
+     * moves, maybe with an animation
      * @param {number} tile
      * @param {number} team
      */
-    move(tile, team) {
+    async move(tile, team) {
+        if (!game_gb?.classList.contains("animation-enabled")) {
+            // console.log("skipping animation");
+            return this._omove(tile, team);
+        }
+        let olck = this.anim_lock;
+        let res;
+        const mylock = new Promise(r => {res = r;});
+        const that = this;
+        mylock.then(() => {
+            if (that.anim_lock === mylock) {
+                that.anim_lock = null;
+            }
+        });
+        this.anim_lock = mylock;
+        if (olck) {
+            await olck;
+            if (this.owned[team] === this.board.length) {
+                res();
+                return;
+            }
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        let checks = [tile];
+        let next_checks = [];
+        const tb = this.teamboard;
+        const bb = this.board;
+        this.owned_pieces[team] ++;
+        if (tb[tile] !== team) {
+            this.owned[tb[tile]] --;
+            this.owned[team] ++;
+        }
+        tb[tile] = team;
+        bb[tile] ++;
+        const upd = (tile, n) => {
+            const p = this.topology.getPositionOf(tile, "2d-grid");
+            updateTile(p, team, Math.min(bb[tile], this.topology.maxNeighbors));
+            setVolatile(p, bb[tile] === n.length);
+            flushUpdates();
+        };
+        upd(tile, this.topology.getNeighbors(tile));
+        let boardold = Array.from(this.board);
+        let teamboardold = Array.from(this.teamboard);
+        const odisable = game_gb?.style.getPropertyValue("--disabled");
+        game_gb?.style.setProperty("--disabled", 1);
+        game_gb?.classList.add("no-input");
+        /**@type {TTNumberBox} */
+        const timectl = document.getElementById("x-animation-speed-number");
+        outer: while (gtopple_estop && checks.length) {
+            // console.log("LHEAD");
+            if (this.owned[team] === bb.length) {
+                break;
+            }
+            const t = checks.pop();
+            const n = this.topology.getNeighbors(t);
+            if (bb[t] > n.length) {
+                bb[t] = 1;
+                // upd(t, n);
+                for (const tx of n) {
+                    next_checks.push(tx);
+                    bb[tx] += 1;
+                    if (tb[tx] !== team) {
+                        if (tb[tx]>0) this.owned_pieces[tb[t]] -= bb[t];
+                        this.owned_pieces[team] += bb[t];
+                        this.owned[tb[tx]] --;
+                        this.owned[team] ++;
+                        tb[tx] = team;
+                        if (this.owned[team] === bb.length) {
+                            // upd(tx, this.topology.getNeighbors(tx));
+                            this.updateBoard(boardold, teamboardold);
+                            break outer;
+                        }
+                    }
+                    // upd(tx, this.topology.getNeighbors(tx));
+                }
+            }
+            if (checks.length === 0) {
+                checks = next_checks;
+                next_checks = [];
+                this.updateBoard(boardold, teamboardold);
+                boardold = Array.from(this.board);
+                teamboardold = Array.from(this.teamboard);
+                // console.log(`waiting freq: ${timectl?.value||1}`);
+                if (timectl) await new Promise(r => setTimeout(r, 1000/(timectl?.value||1)));
+            }
+        }
+        if (odisable !== "1") {
+            game_gb?.classList.remove("no-input");
+        }
+        game_gb?.style.setProperty("--disabled", odisable);
+        res();
+    }
+    /**
+     * @param {number} tile
+     * @param {number} team
+     */
+    _omove(tile, team) {
         const adds = [tile];
         const tb = this.teamboard;
         const bb = this.board;
@@ -208,7 +308,7 @@ class Game {
         const boardold = Array.from(this.board);
         const teamboardold = Array.from(this.teamboard);
         this.owned_pieces[team] ++;
-        while (adds.length) {
+        while (gtopple_estop && adds.length) {
             const t = adds.pop();
             if (tb[t] !== team) {
                 if (tb[t]>0) this.owned_pieces[tb[t]] -= bb[t];

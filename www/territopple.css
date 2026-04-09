@@ -71,6 +71,12 @@ th, tr, td {
     --tile-hover: #0000001f;
     --tile-last-move: #aaaaaa1f;
     --tile-volatile: #dddddd1f;
+    transform: scale(var(--pan-zoom), var(--pan-zoom)) translate(calc(var(--pan-x) * 1px), calc(var(--pan-y) * 1px));
+    &.no-input {
+        pointer-events: none;
+        cursor: pointer;
+        background-color: #0000001f !important;
+    }
 }
 .container > canvas {
     width: calc(var(--tile-font-size) * var(--ncols) * 1.5px);
@@ -269,4 +275,26 @@ x-concentric-tile div:not(:has(> *)) {
     /* background: var(--color) !important; */
     /* background: var(--color); */
     background: rgb(from var(--color) r g b / var(--l-alpha-tweak));
+}
+
+#pan-zoom-slider, #pan-reset-button {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+}
+#play-container {
+    display: flex;
+}
+#clip-container {
+    width: fit-content;
+    height: fit-content;
+    overflow: hidden;
+}
+
+#pan-zoom-container {
+    margin-right: 0.025in;
+}
+@media (any-pointer: coarse) {
+    #pan-zoom-container {
+        margin-right: 0.125in;
+    }
 }

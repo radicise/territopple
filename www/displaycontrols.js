@@ -66,7 +66,7 @@ class TTStyleToggle extends HTMLElement {
     connectedCallback() {
         let v = this.getAttribute("var") || "";
         this.shadowRoot.innerHTML = `
-	    <input type="checkbox" id="${v}-enabled" checked="${this.getAttribute('default') || true}">
+	    <input type="checkbox" id="${v}-enabled"${((this.getAttribute('default')==="true") ?? true)?" checked":""}>
 	`;
         let checkbox = this.shadowRoot.getElementById(`${v}-enabled`);
         checkbox.addEventListener("change", () => {
@@ -83,3 +83,38 @@ class TTStyleToggle extends HTMLElement {
     }
 }
 customElements.define("x-style-toggle", TTStyleToggle);
+
+class TTNumberBox extends HTMLElement {
+    static observedAttributes = ["min", "max", "default", "var", "desc"];
+    /**@type {HTMLInputElement} */
+    #input;
+
+    constructor() {
+        super();
+        this.attachShadow({ mode: "open" });
+    }
+
+    connectedCallback() {
+        let v = this.getAttribute("var") || "";
+        let min = this.getAttribute("min");
+        min = min?` min="${min}"`:"";
+        let max = this.getAttribute("max");
+        max = max?` max="${max}"`:"";
+        let val = localStorage.getItem(v)??this.getAttribute("default");
+        val = val?` value="${val}"`:" value=\"0\"";
+        this.shadowRoot.innerHTML = `
+        <label for="${v}-number">${this.getAttribute("desc")}</label>
+        <input type="number" id="${v}-number"${min}${max}${val}>
+        `;
+        this.#input = this.shadowRoot.children[1];
+        this.id = `x-${v}-number`;
+    }
+
+    get value() {
+        return this.#input.valueAsNumber;
+    }
+    set value(v) {
+        this.#input.value = v;
+    }
+}
+customElements.define("x-number-box", TTNumberBox);

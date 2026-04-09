@@ -820,7 +820,7 @@ conn.addEventListener("open", async function(event) {
                 const row = (n-col)/cols;
                 // console.log(rows, cols, n, data);
                 const tmu = data.payload["t"];
-                game.move(n, tmu);
+                await game.move(n, tmu);
                 // updateboard(row, col, tmu);
                 lastMoveId = `r${row}c${col}`;
                 if (displaySettings.highlightLastMove) {
@@ -915,6 +915,7 @@ conn.addEventListener("open", async function(event) {
          */
 	});
 	document.getElementById("gameboard").addEventListener("mouseup", function(event) {
+        if (G_DRAG_LOCK) return;
         if (event.button !== 0) return;
         if (document.getElementById("gameboard").style.getPropertyValue("--disabled") === "1") {
             return;
