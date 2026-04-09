@@ -211,7 +211,8 @@
                         offsetPoint = [Number(c.style.getPropertyValue("--pan-x")),Number(c.style.getPropertyValue("--pan-y"))];
                         G_DRAG_LOCK = true;
                     }
-                }, true);
+                    return false;
+                }, {capture:true});
                 document.addEventListener("touchend", (ev) => {
                     touching = false;
                     G_DRAG_LOCK = false;
