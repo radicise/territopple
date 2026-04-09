@@ -224,6 +224,10 @@ class Game {
         const tb = this.teamboard;
         const bb = this.board;
         this.owned_pieces[team] ++;
+        if (tb[tile] !== team) {
+            this.owned[tb[tile]] --;
+            this.owned[team] ++;
+        }
         tb[tile] = team;
         bb[tile] ++;
         const upd = (tile, n) => {
