@@ -9,6 +9,7 @@ const loadPromise = new Promise((res,) => {
 });
 const TEAM_COUNT = 7;
 const game_gb = document.getElementById("gameboard");
+let estop = true;
 
 /**
  * @typedef Player
@@ -226,7 +227,7 @@ class Game {
         game_gb?.style.setProperty("--disabled", 1);
         /**@type {TTNumberBox} */
         const timectl = document.getElementById("x-animation-speed-number");
-        outer: while (checks.length) {
+        outer: while (estop && checks.length) {
             console.log("LHEAD");
             const t = checks.pop();
             const n = this.topology.getNeighbors(t);
