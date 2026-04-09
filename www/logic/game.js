@@ -213,6 +213,10 @@ class Game {
         this.anim_lock = new Promise(r => {res = r;});
         if (olck) {
             await olck;
+            if (this.owned[team] === this.board.length) {
+                res();
+                return;
+            }
             await new Promise(r => setTimeout(r, 1000));
         }
         let checks = [tile];
