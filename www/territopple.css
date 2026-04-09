@@ -233,8 +233,8 @@ x-concentric-tile {
     --l-alpha-tweak: calc(3 / 5);
     --bw: 1px;
     border: solid var(--bw) black;
-    width: calc(1em - var(--bw) * 2);
-    height: calc(1em - var(--bw) * 2);
+    width: calc(1.5em - var(--bw) * 2);
+    height: calc(1.5em - var(--bw) * 2);
 }
 x-concentric-tile div {
     --size: 73.91%;
