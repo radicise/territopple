@@ -248,7 +248,7 @@ conn.addEventListener("open", async function(event) {
                 view.set(new Uint8Array(await fi.files[0].arrayBuffer()), 2);
                 conn.send(view);
             };
-        } else {
+        } else if (t !== 3) {
             const selmodal = document.getElementById("resjsel-modal");
             selmodal.hidden = false;
         }
