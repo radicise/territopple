@@ -13,7 +13,7 @@
     --bord: light-dark(var(--bord-light), var(--bord-dark));
 }
 
-* {
+*:not(a,input) {
     border-color: var(--bord);
     background-color: var(--bg);
     color: var(--txt);
