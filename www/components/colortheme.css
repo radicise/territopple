@@ -1,5 +1,5 @@
 html {
-    color-scheme: var(--theme, light dark);
+    color-scheme: var(--theme, light dark) !important;
 }
 :root {
     color-scheme: inherit;
