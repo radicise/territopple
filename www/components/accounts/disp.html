@@ -8,6 +8,16 @@
     }
 </style>
 <div id="account-name">
-    <span>Loading </span><span>(<a href="/account/login" target="_self"></a>)</span>
+    <span>
+        <label for="theme-select">Theme: </label>
+        <select id="theme-select">
+            <option value="light dark" selected>Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+        </select>
+    </span>
+    <span>
+        <span>Loading </span><span>(<a href="/account/login" target="_self"></a>)</span>
+    </span>
 </div>
 <meta data-scripts="/components/accounts/disp.js" />

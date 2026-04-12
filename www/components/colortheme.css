@@ -1,5 +1,8 @@
+html {
+    color-scheme: var(--theme, light dark);
+}
 :root {
-    color-scheme: light dark;
+    color-scheme: inherit;
     --bg-light: #fff;
     --bg-dark: #111;
     --txt-light: #000;
