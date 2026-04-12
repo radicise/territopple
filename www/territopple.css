@@ -1,6 +1,10 @@
 /* @import url("./render-css/con.css"); */
+:root {
+    color-scheme: light dark;
+}
 body {
-    background-color: #ffffff;
+    background-color: light-dark(#fff, #111);
+    /* background-color: #ffffff; */
     --blink-light: #fff;
 }
 #title-text {
