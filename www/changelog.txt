@@ -1,3 +1,11 @@
+# Apr 12, 2026 (Alpha 1.9.4)
+FEATURE: added dark mode
+FEATURE: added ability to disable pings
+BUG: fixed an issue that caused the "select a team to join" popup to appear on page reload in resumed games
+
+# Apr 12, 2026 (DEV20263bY3)
+added color theme select
+
 # Apr 12, 2026 (DEV20263bY2)
 added dark mode support
 allowed some color preferences to show real time updates
