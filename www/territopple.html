@@ -13,6 +13,7 @@
         <link rel="manifest" href="/favicon/site.webmanifest" /> -->
         <!-- <meta id="feature-3d" /> -->
         <script src="/_icons.js"></script>
+        <link rel="stylesheet" type="text/css" href="/components/colortheme.css" />
         <link rel="stylesheet" type="text/css" href="/territopple.css" />
 		<style>
 		</style>
@@ -40,7 +41,7 @@
                   <div id="extra-display-settings" style="display: none">                    
                     <!-- hover enabled/color -->
                     <x-style-toggle var="tile-hover" default="true"></x-style-toggle>
-                    <x-color-picker var="tile-hover" desc="Hover" default="#000000"></x-color-picker>
+                    <x-color-picker var="tile-hover" desc="Hover" default="#000000" alpha="3f"></x-color-picker>
                     <br>
                     <!-- last move enabled/color -->
                     <x-style-toggle var="last-move-enabled" default="true"></x-style-toggle>
@@ -50,9 +51,18 @@
                     <x-style-toggle var="volatiles" default="true"></x-style-toggle>
                     <x-color-picker var="tile-volatile" desc="Volatiles" default="#dddddd"></x-color-picker>
                     <br>
+                    <!-- tile border color -->
+                    <x-style-toggle var="tile-cborder" default="false"></x-style-toggle>
+                    <x-color-picker var="tile-bord" desc="Tile border color" default="#000000" rtu></x-color-picker>
+                    <br>
                     <!-- animation enabled/speed -->
                     <x-style-toggle var="animation-enabled" default="false"></x-style-toggle>
                     <x-number-box var="animation-speed" desc="Animation speed" default="3" min="0" max="20"></x-number-box>
+                    <br>
+                    <!-- pings enabled/rate limit -->
+                    <label for="pings-enabled">Allow Pings:</label>
+                    <input type="checkbox" id="pings-enabled" checked>
+                    <br>
                     <!-- board rendering option -->
                     <label for="board-rendering-option">Board Rendering:</label>
                     <select id="board-rendering-option">
@@ -66,6 +76,9 @@
                         <label for="spherical-enable-bloom">Bloom Enabled</label>
                         <input type="checkbox" id="spherical-enable-bloom" checked>
                     </div>
+                    <!-- <div id="concentric-tile-border" hidden>
+                        <x-color-picker var="tile-bord" desc="Tile border color"></x-color-picker>
+                    </div> -->
                   </div>
                 </fieldset>
 		<div id="row-container">
@@ -77,7 +90,7 @@
                         <input type="button" id="pan-reset-button" value="reset">
                     </div>
                     <div id="clip-container">
-                        <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--blink-dark:#ddd;--tile-font-size:32; --pan-zoom:1; --pan-x:0; --pan-y:0;"></div>
+                        <div id="gameboard" class="container tile-hover volatiles last-move-enabled" style="--tile-font-size:32; --pan-zoom:1; --pan-x:0; --pan-y:0;"></div>
                     </div>
                 </div>
                 <span id="underboard-container">

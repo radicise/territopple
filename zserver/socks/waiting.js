@@ -25,6 +25,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 sock.send(NetData.Sync(g, "score"));
             }
         });
+        if (g.res) {
+            sock.send(NetData.Bin.Board(g));
+        }
         // sock.send(Buffer.of(10,10), {"binary":true});
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {

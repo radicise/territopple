@@ -1,0 +1,24 @@
+html {
+    color-scheme: var(--theme, light dark) !important;
+}
+:root {
+    color-scheme: inherit;
+    --bg-light: #fff;
+    --bg-dark: #111;
+    --txt-light: #000;
+    --txt-dark: #ddd;
+    --bord-light: #000;
+    --bord-dark: #ddd;
+}
+:root {
+    --bg: light-dark(var(--bg-light), var(--bg-dark));
+    --txt: light-dark(var(--txt-light), var(--txt-dark));
+    --bord: light-dark(var(--bord-light), var(--bord-dark));
+}
+
+*:not(a,input,select,option) {
+    border-color: var(--bord);
+    background-color: var(--bg);
+    color: var(--txt);
+}
+

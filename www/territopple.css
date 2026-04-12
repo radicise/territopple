@@ -1,7 +1,9 @@
 /* @import url("./render-css/con.css"); */
 body {
-    background-color: #ffffff;
-    --blink-light: #fff;
+    /* background-color: #ffffff; */
+    /*--blink-light: #fff;*/
+    --blink-light: var(--bg);
+    --blink-dark: light-dark(#ddd, #555);
 }
 #title-text {
     max-width: 80vw;
@@ -54,9 +56,14 @@ th, tr, td {
     border: 1px solid #888888;
     padding: 5px;
 }
+.container.tile-cborder {
+    border-color: var(--tile-bord, var(--bord));
+}
 .container {
     display: grid;
-    border: solid black 2px;
+    /* border: solid black 2px; */
+    border-style: solid;
+    border-width: 2px;
     grid-template-columns: repeat(var(--ncols), fit-content(100%));
     grid-template-rows: repeat(var(--nrows), fit-content(100%));
     /* --ssize: round(down, calc(var(--tile-font-size) * 1.5), 1); */
@@ -129,6 +136,7 @@ th, tr, td {
 .container > div {
     width: 1.5em;
     height: 1.5em;
+    background-color: transparent;
 }
 .container > div > div {
     pointer-events: none;
@@ -238,9 +246,13 @@ svg#render {
 x-concentric-tile {
     --l-alpha-tweak: calc(3 / 5);
     --bw: 1px;
-    border: solid var(--bw) black;
+    /* border: solid var(--bw) black; */
+    border-color: inherit;
+    border-style: solid;
+    border-width: var(--bw);
     width: calc(1.5em - var(--bw) * 2);
     height: calc(1.5em - var(--bw) * 2);
+    background-color: transparent;
 }
 x-concentric-tile div {
     --size: 73.91%;
@@ -248,11 +260,15 @@ x-concentric-tile div {
     height: var(--size);
     /* width: min(90%, calc(100% - 12px));
     height: min(90%, calc(100% - 12px)); */
-    border: solid 1px black;
+    /* border: solid 1px black; */
+    border-style: solid;
+    border-width: 1px;
+    border-color: inherit;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
+    background-color: transparent;
 }
 x-concentric-tile > div > div {
     --size: 64.71%;
