@@ -7,7 +7,7 @@ const extraSettings = document.getElementById("extra-display-settings");
 /**@type {HTMLInputElement} */
 const settingsCheckbox = document.getElementById("settings-expand");
 
-const ALPHA = "3f";
+//const ALPHA = "3f";
 
 function setTileSize() {
     container.style.setProperty("--tile-font-size", slider.value);
@@ -26,7 +26,7 @@ settingsCheckbox.addEventListener("change", () => {
 });
 
 class TTColorPicker extends HTMLElement {
-    static observedAttributes = ["var", "desc", "default"];
+    static observedAttributes = ["var", "desc", "default", "alpha"];
     
     constructor() {
         super();
@@ -35,6 +35,7 @@ class TTColorPicker extends HTMLElement {
 
     connectedCallback() {
         let v = this.getAttribute("var") || "";
+        const ALPHA = this.getAttribute("alpha") || "ff";
         this.shadowRoot.innerHTML = `
 	    <label for="${v}-color">${this.getAttribute("desc")}</label>
 	    <input type="color" id="${v}-color" value="${localStorage.getItem(v) || this.getAttribute('default') || '#000000'}">

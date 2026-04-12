@@ -54,9 +54,14 @@ th, tr, td {
     border: 1px solid #888888;
     padding: 5px;
 }
+.container.tile-cborder {
+    border-color: var(--tile-bord, var(--bord));
+}
 .container {
     display: grid;
-    border: solid black 2px;
+    /* border: solid black 2px; */
+    border-style: solid;
+    border-width: 2px;
     grid-template-columns: repeat(var(--ncols), fit-content(100%));
     grid-template-rows: repeat(var(--nrows), fit-content(100%));
     /* --ssize: round(down, calc(var(--tile-font-size) * 1.5), 1); */
@@ -239,6 +244,7 @@ x-concentric-tile {
     --l-alpha-tweak: calc(3 / 5);
     --bw: 1px;
     /* border: solid var(--bw) black; */
+    border-color: inherit;
     border-style: solid;
     border-width: var(--bw);
     width: calc(1.5em - var(--bw) * 2);

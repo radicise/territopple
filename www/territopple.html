@@ -51,6 +51,10 @@
                     <x-style-toggle var="volatiles" default="true"></x-style-toggle>
                     <x-color-picker var="tile-volatile" desc="Volatiles" default="#dddddd"></x-color-picker>
                     <br>
+                    <!-- tile border color -->
+                    <x-style-toggle var="tile-cborder" default="false"></x-style-toggle>
+                    <x-color-picker var="tile-bord" desc="Tile border color"></x-color-picker>
+                    <br>
                     <!-- animation enabled/speed -->
                     <x-style-toggle var="animation-enabled" default="false"></x-style-toggle>
                     <x-number-box var="animation-speed" desc="Animation speed" default="3" min="0" max="20"></x-number-box>
@@ -72,6 +76,9 @@
                         <label for="spherical-enable-bloom">Bloom Enabled</label>
                         <input type="checkbox" id="spherical-enable-bloom" checked>
                     </div>
+                    <!-- <div id="concentric-tile-border" hidden>
+                        <x-color-picker var="tile-bord" desc="Tile border color"></x-color-picker>
+                    </div> -->
                   </div>
                 </fieldset>
 		<div id="row-container">
