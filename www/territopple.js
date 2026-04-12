@@ -119,6 +119,7 @@ if (players < 2 || players > 10) {
 let serv = null;
 let gameid = "--------";
 if (sessionStorage.getItem("rejoin_key") !== null) {
+    t = 3;
     gameid = sessionStorage.getItem("rejoin_g");
     let pn = sessionStorage.getItem("rejoin_p");
     let rkey = sessionStorage.getItem("rejoin_key");
