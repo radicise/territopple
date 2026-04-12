@@ -897,7 +897,8 @@ conn.addEventListener("open", async function(event) {
                     case "flash":
                         if (!pingenable_button.checked) break;
                         if (ifmt.turn) {
-                            queueAnimation(container, "blink", {"--blink-dark":"#ddd","--blink-dur":"0.25s"}, ["--blink-dur"]);
+                            // queueAnimation(container, "blink", {"--blink-dark":"#ddd","--blink-dur":"0.25s"}, ["--blink-dur"]);
+                            queueAnimation(container, "blink", {"--blink-dur":"0.25s"}, ["--blink-dur"]);
                         }
                         break;
                 }

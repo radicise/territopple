@@ -1,7 +1,9 @@
 /* @import url("./render-css/con.css"); */
 body {
     /* background-color: #ffffff; */
-    --blink-light: #fff;
+    /*--blink-light: #fff;*/
+    --blink-light: var(--bg);
+    --blink-dark: light-dark(#ddd, #555);
 }
 #title-text {
     max-width: 80vw;
@@ -134,6 +136,7 @@ th, tr, td {
 .container > div {
     width: 1.5em;
     height: 1.5em;
+    background-color: transparent;
 }
 .container > div > div {
     pointer-events: none;
@@ -249,6 +252,7 @@ x-concentric-tile {
     border-width: var(--bw);
     width: calc(1.5em - var(--bw) * 2);
     height: calc(1.5em - var(--bw) * 2);
+    background-color: transparent;
 }
 x-concentric-tile div {
     --size: 73.91%;
@@ -264,6 +268,7 @@ x-concentric-tile div {
     align-items: center;
     justify-content: center;
     pointer-events: none;
+    background-color: transparent;
 }
 x-concentric-tile > div > div {
     --size: 64.71%;
