@@ -54,9 +54,6 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                     enotstpl();
                     return;
                 }
-                if (colors.length) {
-                    game.stdmeta.colors = new Array(colors.length/3).fill(0).map((_, i) => fromBytes(colors.subarray(i*3,i*3+3)));
-                }
                 const stplmeta = new parser.STPLParser(p);
                 try {
                     const dims = topology.m.formatDimensions([head.topology_id, ...head.topology_data.params]);
@@ -75,6 +72,9 @@ const handler = (sock, globals, {change, emit, onall, on, activateplug, invokepl
                 // console.log(stplmeta);
                 const game = state.game;
                 game.res = true;
+                if (colors.length) {
+                    game.stdmeta.colors = new Array(colors.length/3).fill(0).map((_, i) => fromBytes(colors.subarray(i*3,i*3+3)));
+                }
                 emit("game:add", {id:args["id"],game:state.game});
                 onGameCreated(game, true, 1);
                 game.addRules(stplmeta.rules);
