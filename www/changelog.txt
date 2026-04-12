@@ -1,3 +1,6 @@
+# Apr 12, 2026 (DEV20263bY1)
+add option to disable pings
+
 # Apr 12, 2026 (DEV20263bY0)
 fixed an issue that caused the "select a team to join" popup to show on page reload in resumed games
 

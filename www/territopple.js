@@ -8,6 +8,9 @@
 //     });
 // }
 
+/**@type {HTMLInputElement} */
+const pingenable_button = document.getElementById("pings-enabled");
+
 var dbg = 1;
 // let symbs = ["!", "-", "+", "W", "&block;"];
 // let teamcols = ["#000000", "#ff0000", "#0000ff", "#bf00bf", "#00bfbf", "#bfbf00"];
@@ -892,6 +895,7 @@ conn.addEventListener("open", async function(event) {
                 switch (kind) {
                     default:
                     case "flash":
+                        if (!pingenable_button.checked) break;
                         if (ifmt.turn) {
                             queueAnimation(container, "blink", {"--blink-dark":"#ddd","--blink-dur":"0.25s"}, ["--blink-dur"]);
                         }
