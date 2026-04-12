@@ -1,3 +1,7 @@
+# Apr 12, 2026 (DEV20263bY2)
+added dark mode support
+allowed some color preferences to show real time updates
+
 # Apr 12, 2026 (DEV20263bY1)
 add option to disable pings
 
