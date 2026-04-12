@@ -1,0 +1,21 @@
+:root {
+    color-scheme: light dark;
+    --bg-light: #fff;
+    --bg-dark: #111;
+    --txt-light: #000;
+    --txt-dark: #ddd;
+    --bord-light: #000;
+    --bord-dark: #ddd;
+}
+:root {
+    --bg: light-dark(var(--bg-light), var(--bg-dark));
+    --txt: light-dark(var(--txt-light), var(--txt-dark));
+    --bord: light-dark(var(--bord-light), var(--bord-dark));
+}
+
+* {
+    border-color: var(--bord);
+    background-color: var(--bg);
+    color: var(--txt);
+}
+
