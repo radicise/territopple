@@ -360,7 +360,7 @@ IF (NOT CFLAG):
     BIT[7] - field size
 ELSE:
     BIT - stdcond flag (SCFLAG)
-    IF (SCFLAG):
+    IF (!SCFLAG):
         BIT[6] - flag byte
         BIT[3] - flag bit
         BIT[5] - field size
