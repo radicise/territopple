@@ -26,7 +26,7 @@ settingsCheckbox.addEventListener("change", () => {
 });
 
 class TTColorPicker extends HTMLElement {
-    static observedAttributes = ["var", "desc", "default", "alpha"];
+    static observedAttributes = ["var", "desc", "default", "alpha", "rtu"];
     
     constructor() {
         super();
@@ -47,7 +47,7 @@ class TTColorPicker extends HTMLElement {
             container.style.setProperty(`--${v}`, this.getAttribute("default")+ALPHA);
         }
         let colorPicker = this.shadowRoot.getElementById(`${v}-color`);
-        colorPicker.addEventListener("change", () => {
+        colorPicker.addEventListener(this.hasAttribute("rtu")?"input":"change", () => {
             container.style.setProperty(`--${v}`, colorPicker.value+ALPHA);
             localStorage.setItem(v, colorPicker.value);
             container.dispatchEvent(new CustomEvent("ds-update", {"detail":{"target":v}}));
