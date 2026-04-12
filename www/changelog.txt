@@ -1,3 +1,6 @@
+# Apr 10, 2026 [hotifx] (Alpha 1.9.3)
+fixed a crash when attempting to resume a game with custom colors
+
 # Apr 9, 2026 (Alpha 1.9.2)
 FEATURE: added option for animated toppling
 FEATURE: added zoom and pan controls
