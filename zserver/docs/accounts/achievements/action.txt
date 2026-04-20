@@ -1,0 +1,56 @@
+this file documents actions
+
+actions are stored in a global table, they are immutable and always referenced by their id
+action groups are also always stored in a global table and referenced by id
+
+the id of an ActionGroup must be negative, and the id of an Action must be positive
+these ids may be used in place of one another, with the sign indicating the type of id
+collectively these are referred to as the ActionId type
+
+when an ActionGroup triggers, it notifies all downstream subscribers with the following data:
+(ActionId: original trigger, Int32: discriminator)
+the discriminator may contain arbitrary values
+the original trigger is the id of the action that was initially triggered
+
+ActionGroup:
+{
+    id<Int32>: id of this action group
+    acts<Int32[]>: ids of the actions within this group, may include other action groups
+}
+
+Action:
+{
+    id<Int32>: id of this action
+    data<BinaryPack(ActionType,ActionData)>: trigger condition
+}
+
+ActionType(UInt16):
+0 : manual
+1 : meets
+2 : field
+3 : esoteric
+4 : server manual
+
+ActionData(manual|server manual):
+Byte[0] - manual triggers have zero-sized trigger data
+manual triggers are provided the discriminator to use when triggered
+
+ActionData(meets):
+Byte<a-h> {
+    Bit<a> (ranked) - whether this trigger requires the meet to occur in a ranked match
+    Bit<b> (player) - whether this trigger requires that the user be a player rather than a spectator
+    Bit<c> (victor) - whether this trigger requires that the user wins the match
+    Bit<d> (specific) - whether this trigger targets the meeting of a specific entity or a grouping
+    Bit<e-f> (groups) - what type of group this trigger looks at
+}
+IF (specific) {
+    Byte (L) - string length
+    Byte[L] - account id
+} ELSE IF (groups==0 (user groups)) {
+    TODO
+} ELSE IF (groups==1 (permissions groups)) {
+    Int32 - group id
+} ELSE IF (groups==2 (condition groups)) {
+    TODO
+}
+

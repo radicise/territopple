@@ -1,0 +1,76 @@
+this file documents account achievements / badges
+
+Achievement:
+this data is stored within an account
+{
+    id<Int32>: id of this achievement,
+    data<UInt64>: extra achievement data
+}
+
+
+Achievement Information:
+this data is stored in a seperate location and describes an achievement
+{
+    id<Int32>: achievement id,
+    granting<{
+        prereqs<Prerequisites>: prerequisite achievements,
+        acts<ActionId>: id of actions to complete to be awarded this achievement see "./action.txt",
+    }>: information on what is required to achieve this achievement,
+    data<{
+        bits<UInt64>: mask of relevant bits, values obtained via this mask must then be shifted such that the
+                      least significant '1' bit of the mask would be in the 1s position,
+        type<Type>: data type,
+        name<String>: name of this data field, must be unique,
+        evo<Mutator[]>: how to mutate this data,
+    }[]>: how to interpret the data field,
+    display<Display>: how to display the achievement
+}
+Type(Int32):
+0 - flagset
+1 - uint
+2 - sint
+FormatString(String):
+[ static | dynamic ] +
+where [ static ] is
+[ [^%] | %% ] - '%%' is a interpreted as a literal '%'
+where [ dynamic ] is
+[ '%' expression '%' ]
+where [ expression ] is
+[ identifier [ operator [ literal | identifer ] ] * ]
+where [ identifier ] is
+one of the data fields or
+one of the following special values:
+- %DATE% - the current date
+- %ACCID% - the user's account id
+
+Display {
+    comb<Combinator>: how to combine the formats,
+    fmts<{
+        cond<Condition>: condition to use this display format,
+        fmt<FormatString>: format string,
+    }[]>: display formats,
+}
+Combinator(Int32):
+0 - join with spaces
+1 - first match
+
+Prerequisite {
+    id<Int32>: prerequisite achievement id,
+    name<String>: data field name,
+    value<UInt64>: value to be interpreted according to the data field type,
+    cmp<Int32>: 0:==,1:>,2:<,3:>=,4:<=
+}
+Prerequisites {
+    comb<Int32>: 0:all,1:any,
+    sub<Prerequisite[]>,
+}
+
+Mutator {
+    act<Int32>: id of Actions to trigger this mutator,
+    dis<Int32>: discriminator,
+    mut<{
+        name<String>: field name,
+        op<Int32>: 0:set,1:+,2:-,3:*,4:/,
+        val<UInt64>: rhs of op, interpreted according to the data field type,
+    }[]>: how to mutate,
+}
