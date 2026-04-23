@@ -21,44 +21,18 @@ this data is stored in a seperate location and describes an achievement
                       least significant '1' bit of the mask would be in the 1s position,
         type<Type>: data type,
         name<String>: name of this data field, must be unique,
-        evo<Mutator[]>: how to mutate this data,
     }[]>: how to interpret the data field,
-    display<Display>: how to display the achievement
+    evo<Mutator[]>: how to mutate this data,
+    display<Display>: how to display the achievement see "./display.txt"
 }
 Type(Int32):
 0 - flagset
 1 - uint
 2 - sint
-FormatString(String):
-[ static | dynamic ] +
-where [ static ] is
-[ [^%] | %% ] - '%%' is a interpreted as a literal '%'
-where [ dynamic ] is
-[ '%' expression '%' ]
-where [ expression ] is
-[ identifier [ operator [ literal | identifer ] ] * ]
-where [ identifier ] is
-one of the data fields or
-one of the following special values:
-- %DATE% - the current date
-- %ACCID% - the user's account id
-
-Display {
-    comb<Combinator>: how to combine the formats,
-    fmts<{
-        cond<Condition>: condition to use this display format,
-        fmt<FormatString>: format string,
-    }[]>: display formats,
-}
-Combinator(Int32):
-0 - join with spaces
-1 - first match
 
 Prerequisite {
     id<Int32>: prerequisite achievement id,
-    name<String>: data field name,
-    value<UInt64>: value to be interpreted according to the data field type,
-    cmp<Int32>: 0:==,1:>,2:<,3:>=,4:<=
+    cond<Condition>: see "./condition.txt"
 }
 Prerequisites {
     comb<Int32>: 0:all,1:any,

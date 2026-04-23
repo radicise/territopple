@@ -1,0 +1,30 @@
+this file documents the specifications for the display of achievement data
+
+FormatString(String):
+[ static | dynamic ] +
+where [ static ] is
+[ [^%] | %% ] - '%%' is a interpreted as a literal '%'
+where [ dynamic ] is
+[ '%' expression '%' ]
+where [ expression ] is
+[ identifier [ operator [ literal | identifer ] ] * ]
+where [ identifier ] is
+one of the data fields or
+one of the following special values:
+- %DATE% - the current date
+- %ACCID% - the user's account id
+
+Display {
+    comb<Combinator>: how to combine the formats,
+    fmts<{
+        cond<Condition>: condition to use this display format see "./condition.txt",
+        fmt<FormatString>: format string, zero-sized for badge only,
+        icon<FormatString>: icon to use, zero-sized for no icon,
+        badge<FormatString>: badge to display, zero-sized if no badge,
+    }[]>: display formats,
+}
+Combinator(Int32):
+0 - join with spaces
+1 - first match
+2 - distinct (allows a single achievement data object to store multiple distinct achievements)
+

@@ -298,6 +298,16 @@ async function processPubFetch(req, res, url, log) {
             }
             return;
         }
+        case "/achieve":{
+            try {
+                const v = (await collection.findOne({id:target})).achieve??[];
+                res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({achieve:v}));
+            } catch (E) {
+                console.log(E);
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/solved":{
             try {
                 const v = (await collection.findOne({id:target})).solved;

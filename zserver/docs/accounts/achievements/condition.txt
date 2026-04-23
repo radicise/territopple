@@ -1,0 +1,8 @@
+this file documents the Condtion type
+
+Condition:
+{
+    name<String>: data field name,
+    value<UInt64>: value to be interpreted according to the data field type,
+    cmp<Int32>: 0:==,1:>,2:<,3:>=,4:<=
+}
