@@ -24,7 +24,7 @@ function original_createBoard(topo, board, teamboard) {
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
             const ct = i * cols + j;
-            baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + `" style="color:${teamcols[teamboard[ct]]} !important;"><div>${symbs[board[ct]]}</div></div>`);
+            baroa = baroa.concat("<div id=\"r" + i.toString() + "c" + j.toString() + `" style="color:${teamcols[teamboard[ct]]}"><div>${symbs[board[ct]]}</div></div>`);
         }
     }
     document.getElementById("gameboard").innerHTML = baroa;
@@ -61,5 +61,5 @@ function original_cleanup() {
 function original_updateColors(topo, teamboard) {
     document.getElementById("gameboard").childNodes.forEach(
         /**@param {HTMLElement} v */
-        v => {const p = v.id.split("c");const tile = Number(p[0].substring(1))*topo.width+Number(p[1]);v.style.setProperty("color", teamcols[teamboard[tile]], "important");});
+        v => {const p = v.id.split("c");const tile = Number(p[0].substring(1))*topo.width+Number(p[1]);v.style.setProperty("color", teamcols[teamboard[tile]]);});
 }
