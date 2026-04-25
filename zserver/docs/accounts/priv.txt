@@ -19,6 +19,7 @@ privileges visibilities:
 6  - review puzzle submissions
 7  - manage puzzles
 8  - manage events
+9  - trusted
 .. - reserved
 -- domain boundary --
 28 - read privilege flags
@@ -54,6 +55,9 @@ manage puzzles, including modification and deletion
 
 manage events (G[Event Manager]):
 see "./events.txt"
+
+trusted (N):
+trusted accounts, used to allow access to beta/restricted features
 
 apply and review group 4 sanctions (N):
 see "./sanctions.txt"

@@ -49,5 +49,13 @@
         "HOST": null,
         "BOT_USER": null,
         "BOT_PASS": null
+    },
+    "PFPS": {
+        "ENABLED": false,
+        "RESTRICT": {
+            "TRUSTED": true,
+            "AGE": [0,"d"]
+        },
+        "MAX_SIZE": [1,"M"]
     }
 }

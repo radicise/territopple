@@ -52,7 +52,8 @@ const mdb = require("mongodb");
  * incoming_friends:string[]?,
  * outgoing_friends:string[]?,
  * devtst:boolean?,
- * next_refid:number
+ * next_refid:number,
+ * pfp:string?
  * }}
  */
 

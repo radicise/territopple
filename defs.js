@@ -816,6 +816,11 @@ exports.setMetatableEntry = setMetatableEntry;
 exports.getMetatableEntry = getMetatableEntry;
 
 /**
+ * @typedef {"B"|"K"|"M"} SIZE_UNIT
+ * @typedef {[number,SIZE_UNIT]} SIZE_CONSTRAINT
+ * @typedef {"s"|"m"|"h"|"d"|"w"|"M"|"y"} DUR_CONSTRAINT
+ */
+/**
  * @typedef HostingSettings
  * @type {{
  * DEBUG?:{TRACE_WS?:boolean}
@@ -844,7 +849,8 @@ exports.getMetatableEntry = getMetatableEntry;
  * MAX_TEAMS:number,
  * DB_CONFIG:{URI:string},
  * MAIL_CONFIG:{HOST:string,BOT_USER:string,BOT_PASS:string},
- * ACC:{CREATE_TO:number,SESSION_TO:number,PWRST_TO:number,NAME_MAX:number}
+ * ACC:{CREATE_TO:number,SESSION_TO:number,PWRST_TO:number,NAME_MAX:number,PFPUP_TO:number,DEFAULT_PFP?:string},
+ * PFPS:{ENABLED:boolean,MAX_SIZE:SIZE_CONSTRAINT,RESTRICT:{TRUSTED:boolean,AGE:DUR_CONSTRAINT}}
  * }}
  */
 
