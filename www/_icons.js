@@ -24,5 +24,5 @@
 }
 {
     const saved_theme = localStorage.getItem("usrdisp-ldtheme") || "light dark";
-    document.body.parentElement.style.setProperty("--theme", saved_theme);
+    document.querySelector("html").style.setProperty("--theme", saved_theme);
 }
