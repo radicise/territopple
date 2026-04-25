@@ -22,3 +22,7 @@
         mkLink("manifest","/favicon/site.webmanifest")
     );
 }
+{
+    const saved_theme = localStorage.getItem("usrdisp-ldtheme") || "light dark";
+    document.body.parentElement.style.setProperty("--theme", saved_theme);
+}
