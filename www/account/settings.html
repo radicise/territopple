@@ -9,12 +9,30 @@
                 height: calc(var(--h) * 1px);
                 vertical-align: middle;
             }
+            div.modal {
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                width: 100vw;
+                height: 100vh;
+                background-color: #33333388;
+            }
+            div.modal > div {
+                position: absolute;
+                left: 50vw;
+                top: 50vh;
+                transform: translate(-50%, -50%);
+                border: inset gray 2px;
+                padding: 5px;
+            }
         </style>
     </head>
     <body>
         <a href="/" target="_self">home</a>
         <a href="/account/info" target="_self">back</a>
         <br>
+        <img src="/acc/pfp/get?tar=%40self" hidden>
+        <input type="button" value="Upload PFP" onclick="document.getElementById('pfp-upload').hidden=false">
         <input type="button" value="Apply Changes" id="apply-settings-btn"><span id="apply-status"></span>
         <div id="basic-info-cont">
             ID: <span id="acc-id">...</span> (cannot be changed)<br>
@@ -28,7 +46,42 @@
             People in the same room: <input type="checkbox" id="op-frs-same-room" checked><br>
             Friends of friends: <input type="checkbox" id="op-frs-fof" checked>
         </div>
+        <div id="pfp-upload" class="modal" hidden>
+            <div>
+                <input type="file" id="pfp-file" accept="jpeg,jpg,svg,webp">
+                <input type="button" value="upload" id="pfp-button">
+            </div>
+        </div>
+        <div id="pfp-result" class="modal" hidden>
+            <div>
+                <span id="pfp-res-msg"></span>
+                <br>
+                <input type="button" value="okay" onclick="document.getElementById('pfp-result').hidden = true">
+            </div>
+        </div>
         <script>
+            document.getElementById("pfp-button").onclick = () => {
+                document.getElementById("pfp-upload").hidden = true;
+                /**@type {HTMLInputElement} */
+                const file = document.getElementById("pfp-file");
+                if (file.files.length === 0) {
+                    return;
+                }
+                document.getElementById("pfp-result").hidden = false;
+                fetch(`https://${document.location.hostname}/acc/pfp/upload`, {method:"POST",headers:[["content-type",file.files[0].type],["content-length",file.files[0].size]],body:file.files[0]}).then(v => {
+                    v.text().then(t => {
+                        if (v.status === 200) {
+                            fetch(`https://${document.location.hostname}/acc/pfp/change`, {method:"PATCH",body:JSON.stringify({pfp:t})}).then(v2 => {
+                                v2.text(t2 => {
+                                    document.getElementById("pfp-res-msg").textContent = t2;
+                                });
+                            });
+                        } else {
+                            document.getElementById("pfp-res-msg").textContent = t;
+                        }
+                    });
+                });
+            };
             const oprops = {};
             const props = {};
             /**
