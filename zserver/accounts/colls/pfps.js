@@ -100,7 +100,7 @@ async function PFPUploadAllowed(acr, req) {
 async function handlePFPUploadRequest(req, res) {
     try {
         const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
-        const acr = getAccountRecord(accid);
+        const acr = await getAccountRecord(accid);
         if (acr === null) {
             res.writeHead(404).end("account not found");
             return;
