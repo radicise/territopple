@@ -307,7 +307,7 @@ async function handlePFPChangeRequest(accid, pfpid, res) {
  */
 async function handlePFPRequest(req, res, url, log) {
     // console.log(url);
-    switch (url.pathname) {
+    switch (url.pathname.split("/",4).join("/")) {
         case "/acc/pfp/upload": {
             if (req.method !== "POST") {
                 res.writeHead(405).end("uploading profile images requires use of the POST method");
@@ -355,12 +355,12 @@ async function handlePFPRequest(req, res, url, log) {
                 res.writeHead(405).end("getting profile images requires use of the GET method");
                 return;
             }
-            let target = url.searchParams.get("tar");
+            let target = url.pathname.slice("/acc/pfp/get/".length);
             if (target === null) {
                 res.writeHead(400).end("must supply a target account");
                 return;
             }
-            if (target === "@self") {
+            if (target === "%40self") {
                 const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
                 if (accid === null) {
                     if (settings.PFPS?.DEFAULT_PFP) {

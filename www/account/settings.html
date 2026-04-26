@@ -25,13 +25,18 @@
                 border: inset gray 2px;
                 padding: 5px;
             }
+            #pfp-preview {
+                height: 5em;
+                aspect-ratio: 1/1;
+                clip-path: circle(50%);
+            }
         </style>
     </head>
     <body>
         <a href="/" target="_self">home</a>
         <a href="/account/info" target="_self">back</a>
         <br>
-        <img src="/acc/pfp/get?tar=%40self" hidden>
+        <img src="/acc/pfp/get/%40self" hidden>
         <input type="button" value="Upload PFP" onclick="document.getElementById('pfp-upload').hidden=false">
         <input type="button" value="Apply Changes" id="apply-settings-btn"><span id="apply-status"></span>
         <div id="basic-info-cont">
@@ -48,6 +53,7 @@
         </div>
         <div id="pfp-upload" class="modal" hidden>
             <div>
+                <img id="pfp-preview" hidden>
                 <input type="file" id="pfp-file" accept="jpeg,jpg,svg,webp">
                 <input type="button" value="upload" id="pfp-button">
             </div>
@@ -60,6 +66,20 @@
             </div>
         </div>
         <script>
+            document.getElementById("pfp-file").addEventListener("change", function () {
+                /**@type {HTMLImageElement} */
+                const preview = document.getElementById("pfp-preview");
+                preview.hidden = true;
+                if (this.files.length === 0) {
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    preview.hidden = false;
+                    preview.src = ev.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            });
             document.getElementById("pfp-button").onclick = () => {
                 document.getElementById("pfp-upload").hidden = true;
                 /**@type {HTMLInputElement} */
