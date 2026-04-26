@@ -3,6 +3,11 @@ const path = require("path");
 const { randomBytes } = require("crypto");
 const { SESS_TIMEOUT } = require("./constants.js");
 
+/**@type {Record<string, object>} */
+let account_creation_info = {};
+/**@type {Record<string, {id:string,timeoutid:string}>} */
+let info_update_info = {};
+
 /**
  * @param {string} id
  * @returns {string}
@@ -228,6 +233,9 @@ class ASessionManager {
         delete this.#sessions[id];
     }
 }
+
+exports.account_creation_info = account_creation_info;
+exports.info_update_info = info_update_info;
 
 exports.makeSessionCookie = makeSessionCookie;
 exports.makeASessionCookie = makeASessionCookie;

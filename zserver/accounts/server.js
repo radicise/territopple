@@ -15,7 +15,7 @@ const fs = require("fs");
 const path = require("path");
 const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1, PrivGroupRecord } = require("./types.js");
 const { check_permission, Permissions, check_can_moderate, check_sanction_allowed } = require("./perms.js");
-const { SessionManager, ASessionManager, makeSessionCookie, makeASessionCookie, extractSessionId, extractASessionId } = require("./sessions.js");
+const { SessionManager, makeSessionCookie, extractSessionId, account_creation_info, info_update_info } = require("./sessions.js");
 const schemes = require("./schemes.js");
 const { ACC_CREAT_TIMEOUT, ACC_PWRST_TIMEOUT, ACC_MAX_NAME_LEN, EACCESS, EREJECT, ESENSITIVE, EERROR, IACCESS, EBADMOD, ACC_PUB_PREFIX, ACC_ADMIN_PREFIX, ACC_PFP_PREFIX } = require("./constants.js");
 
@@ -85,11 +85,6 @@ class SanitizedError extends Error {
  * @\typedef AccountRecord
  * @\type {{_id:mdb.ObjectId,id:string,name:string,email:string,pwdata:mdb.Binary}}
  */
-
-/**@type {Record<string, object>} */
-let account_creation_info = {};
-/**@type {Record<string, {id:string,timeoutid:string}>} */
-let info_update_info = {};
 
 /**
  * @returns {string}
