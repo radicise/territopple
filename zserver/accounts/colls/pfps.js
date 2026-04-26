@@ -370,7 +370,8 @@ async function handlePFPRequest(req, res, url, log) {
                     target = accid;
                 }
             }
-            await fetchPFP((await getAccountRecord(target)).pfp ?? "&&guest", res);
+            console.log(target);
+            await fetchPFP((await getAccountRecord(target))?.pfp ?? "&&guest", res);
             return;
         }
         default: {
