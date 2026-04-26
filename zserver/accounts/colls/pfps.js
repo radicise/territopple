@@ -87,7 +87,7 @@ async function PFPUploadAllowed(acr, req) {
             }
         }
     }
-    if (req.headers["content-length"] > MAX_SIZE) {
+    if (Number(req.headers["content-length"]) > MAX_SIZE) {
         return "TOOBIG";
     }
     return "OKAY";
@@ -147,8 +147,8 @@ async function handlePFPUploadRequest(req, res) {
                 totallen += chunk.length;
             });
             req.once("end", () => {
-                if (totallen !== req.headers["content-length"]) {
-                    console.log(`${totallen} != ${req.headers["content-length"]}`);
+                if (totallen !== Number(req.headers["content-length"])) {
+                    // console.log(`${totallen} != ${req.headers["content-length"]}`);
                     r("LENGTHMISMATCH");
                     return;
                 }
