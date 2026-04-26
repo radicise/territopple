@@ -25,7 +25,7 @@
                 border: inset gray 2px;
                 padding: 5px;
             }
-            #pfp-preview {
+            #pfp-preview, #curr-pfp {
                 height: 5em;
                 aspect-ratio: 1/1;
                 clip-path: circle(50%);
@@ -36,8 +36,9 @@
         <a href="/" target="_self">home</a>
         <a href="/account/info" target="_self">back</a>
         <br>
-        <img src="/acc/pfp/get/%40self" hidden>
+        <img src="/acc/pfp/get/%40self" decoding="async" id="curr-pfp" hidden><br>
         <input type="button" value="Upload PFP" onclick="document.getElementById('pfp-upload').hidden=false">
+        <br>
         <input type="button" value="Apply Changes" id="apply-settings-btn"><span id="apply-status"></span>
         <div id="basic-info-cont">
             ID: <span id="acc-id">...</span> (cannot be changed)<br>
@@ -53,9 +54,10 @@
         </div>
         <div id="pfp-upload" class="modal" hidden>
             <div>
-                <img id="pfp-preview" hidden>
+                <img id="pfp-preview" decoding="async" hidden>
                 <input type="file" id="pfp-file" accept="jpeg,jpg,svg,webp">
                 <input type="button" value="upload" id="pfp-button">
+                <input type="button" value="cancel" onclick="document.getElementById('pfp-upload').hidden=true">
             </div>
         </div>
         <div id="pfp-result" class="modal" hidden>
@@ -66,6 +68,11 @@
             </div>
         </div>
         <script>
+            /**@type {HTMLImageElement} */
+            const currpfp = document.getElementById("curr-pfp");
+            currpfp.decode().then(() => {
+                currpfp.hidden = false;
+            });
             document.getElementById("pfp-file").addEventListener("change", function () {
                 /**@type {HTMLImageElement} */
                 const preview = document.getElementById("pfp-preview");
