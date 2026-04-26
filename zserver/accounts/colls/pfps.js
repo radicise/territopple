@@ -320,7 +320,7 @@ async function handlePFPRequest(req, res, url, log) {
             return;
         }
         case "/acc/pfp/change": {
-            if (req.methdo !== "PATCH") {
+            if (req.method !== "PATCH") {
                 res.writeHead(405).end("changing profile images requires use of the PATCH method");
                 return;
             }
