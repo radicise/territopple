@@ -21,7 +21,7 @@ const { ACC_CREAT_TIMEOUT, ACC_PWRST_TIMEOUT, ACC_MAX_NAME_LEN, EACCESS, EREJECT
 
 const { processPubFetch } = require("./handlers/pub_fetch.js");
 const { processAdminFetch } = require("./handlers/admin_fetch.js");
-const { handlePFPChangeRequest, handlePFPUploadRequest } = require("./colls/pfps.js");
+const { handlePFPRequest } = require("./colls/pfps.js");
 
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid");
@@ -165,6 +165,7 @@ const public_server = http.createServer(async (req, res) => {
         return;
     }
     if (url.pathname.startsWith(ACC_PFP_PREFIX)) {
+        await handlePFPRequest(req, res, url, log);
         return;
     }
     // console.log(req.headers["content-type"]);
