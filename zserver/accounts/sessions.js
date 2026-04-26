@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { randomBytes } = require("crypto");
 const { SESS_TIMEOUT } = require("./constants.js");
 
 /**
