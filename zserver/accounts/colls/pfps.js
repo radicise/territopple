@@ -4,7 +4,7 @@
  */
 
 
-const { settings } = require("../../../defs.js");
+const { settings, validateJSONScheme } = require("../../../defs.js");
 const { AccountRecord, PFPRecord } = require("../types.js");
 const { check_permission, Permissions } = require("../perms.js");
 const http = require("http");

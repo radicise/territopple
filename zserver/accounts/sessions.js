@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { randomBytes } = require("crypto");
-const { SESS_TIMEOUT } = require("./constants.js");
+const { SESS_TIMEOUT, ACC_CREAT_TIMEOUT } = require("./constants.js");
 
 /**@type {Record<string, object>} */
 let account_creation_info = {};
