@@ -315,6 +315,7 @@ async function handlePFPRequest(req, res, url, log) {
             try {
                 await handlePFPUploadRequest(req, res);
             } catch (E) {
+                console.log(E);
                 res.writeHead(500).end();
             }
             return;
@@ -343,6 +344,7 @@ async function handlePFPRequest(req, res, url, log) {
                 }
                 await handlePFPChangeRequest(accid, data.pfp, res);
             } catch (E) {
+                console.log(E);
                 res.writeHead(500).end();
             }
             return;
