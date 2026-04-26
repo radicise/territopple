@@ -4,9 +4,9 @@
     "express": "4.21.2",
     "express-ws": "5.0.2",
     "mongodb": "6.18",
-    "nodemailer": "7.0.6",
-    "three": "0.173.0",
-    "ws": "8.18.0"
+    "nodemailer": "^7.0.6",
+    "three": "^0.173.0",
+    "ws": "^8.18.0"
   },
   "scripts": {
     "start": "node proc_wrap.js zserver/userver.js",
