@@ -1,3 +1,13 @@
+const http = require("http");
+const { ACC_ADMIN_PREFIX } = require("../constants.js");
+const { ASessionManager, extractASessionId } = require("../sessions.js");
+const { AccountRecord } = require("../types.js");
+const { collection } = require("../db.js");
+const { check_permission, check_can_moderate, check_sanction_allowed, Permissions } = require("../perms.js");
+const { validateJSONScheme } = require("../../../defs.js");
+const schemes = require("../schemes.js");
+const auth = require("../auth.js");
+
 /**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
 
 /**
@@ -35,7 +45,7 @@ async function processAdminFetch(req, res, url, log) {
     });
     if (stripped === "/login") {
         const data = JSON.parse(body);
-        if (!validateJSONScheme(data, accLoginScheme)) {
+        if (!validateJSONScheme(data, schemes.accLoginScheme)) {
             res.writeHead(422).end();
             return;
         }
@@ -124,7 +134,7 @@ async function processAdminFetch(req, res, url, log) {
                 // normal sanction
                 case "/Nsanction": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, sanctionScheme)) {
+                    if (!validateJSONScheme(data, schemes.sanctionScheme)) {
                         res.writeHead(400).end("misformed");
                         return;
                     }
@@ -184,11 +194,11 @@ async function processAdminFetch(req, res, url, log) {
                 case "/Msanction": {
                     /**@type {AdminSancManData} */
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, adminSancManScheme)) {
+                    if (!validateJSONScheme(data, schemes.adminSancManScheme)) {
                         res.writeHead(400).end("misformed man data");
                         return;
                     }
-                    if ("appeal" in data && !validateJSONScheme(data.appeal, adminSancManAppealScheme)) {
+                    if ("appeal" in data && !validateJSONScheme(data.appeal, schemes.adminSancManAppealScheme)) {
                         res.writeHead(400).end("misformed appeal man");
                         return;
                     }
