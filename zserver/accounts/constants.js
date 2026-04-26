@@ -15,6 +15,7 @@ const EBADMOD = "logs/accounts/ebadmod.txt";
 
 const ACC_PUB_PREFIX = "/acc/pub";
 const ACC_ADMIN_PREFIX = "/acc/admin";
+const ACC_PFP_PREFIX = "/acc/pfp";
 
 exports.ACC_CREAT_TIMEOUT = ACC_CREAT_TIMEOUT;
 exports.SESS_TIMEOUT = SESS_TIMEOUT;
@@ -29,3 +30,4 @@ exports.IACCESS = IACCESS;
 exports.EBADMOD = EBADMOD;
 exports.ACC_PUB_PREFIX = ACC_PUB_PREFIX;
 exports.ACC_ADMIN_PREFIX = ACC_ADMIN_PREFIX;
+exports.ACC_PFP_PREFIX = ACC_PFP_PREFIX;

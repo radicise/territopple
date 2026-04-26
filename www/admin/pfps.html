@@ -6,10 +6,7 @@
         <title>Territopple - Admin Login</title>
     </head>
     <body>
-        <script>
-            fetch(`https://${document.location.hostname}/acc/admin/logout`, {method:"GET"}).then(res => {
-                location.href = "/admin/login";
-            });
-        </script>
+        <meta data-import="/components/admin/disp.html" />
+        <a href="/admin">admin home</a><br>
     </body>
 </html>

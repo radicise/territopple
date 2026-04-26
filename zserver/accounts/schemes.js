@@ -62,6 +62,10 @@ const appealScheme = {
     "refid": "number",
     "message": "string"
 };
+/**@type {JSONScheme} */
+const updatePFPScheme = {
+    "pfp": "string"
+};
 
 /**@type {JSONScheme} */
 const adminSancManScheme = {
@@ -91,6 +95,7 @@ exports.accPWResetScheme = accPWResetScheme;
 exports.friendReqScheme = friendReqScheme;
 exports.sanctionScheme = sanctionScheme;
 exports.appealScheme = appealScheme;
+exports.updatePFPScheme = updatePFPScheme;
 
 exports.adminSancManScheme = adminSancManScheme;
 exports.adminSancManAppealScheme = adminSancManAppealScheme;

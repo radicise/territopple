@@ -5,6 +5,11 @@
         top: 0px;
         margin-right: 5px;
         margin-top: 5px;
+        span > img {
+            height: 1em;
+            alignment-baseline: middle;
+            display: inline;
+        }
     }
 </style>
 <div id="account-name">
@@ -17,6 +22,7 @@
         </select>
     </span>
     <span>
+        <img src="/acc/pfp/get?tar=%40self" hidden>
         <span>Loading </span><span>(<a href="/account/login" target="_self"></a>)</span>
     </span>
 </div>

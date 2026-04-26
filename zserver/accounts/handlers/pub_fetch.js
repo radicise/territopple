@@ -1,7 +1,7 @@
 const http = require("http");
 const { SessionManager, extractSessionId } = require("../sessions.js");
 const { collection, getEffectivePrivs } = require("../db.js");
-const { EREJECT, EERROR, ACC_PUB_PREFIX } = require("../constants.js");
+const { EREJECT, ACC_PUB_PREFIX } = require("../constants.js");
 
 /**
  * processes the unsecured public data fetch operations
@@ -173,13 +173,8 @@ async function processPubFetch(req, res, url, log) {
             }
             return;
         }
-        case "/profile-image":{
-            notimpl("profile images");
-            res.writeHead(501).end();
-            return;
-        }
         default:{
-            log(EERROR, "bad path");
+            // log(EERROR, "bad path");
             res.writeHead(404).end();
             return;
         }

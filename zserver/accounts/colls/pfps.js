@@ -5,14 +5,14 @@
 
 
 const { settings } = require("../../../defs.js");
-const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1, PrivGroupRecord } = require("../types.js");
-const { check_permission, Permissions, check_can_moderate, check_sanction_allowed } = require("../perms.js");
+const { AccountRecord, PFPRecord } = require("../types.js");
+const { check_permission, Permissions } = require("../perms.js");
 const http = require("http");
-const { mdb, pfp_data, getEffectivePrivs, getAccountRecord } = require("../db.js");
+const { mdb, pfp_data, getEffectivePrivs, getAccountRecord, client, collection } = require("../db.js");
 const { SessionManager, extractSessionId } = require("../sessions.js");
 const { ACC_PFP_UPLOAD_TIMEOUT } = require("../constants.js");
+const schemes = require("../schemes.js");
 
-const allowedTypes = ["image/jpeg","image/png","image/svg+xml"];
 const extensionMap = {
     "image/jpeg": "jpeg",
     "image/png": "png",
@@ -34,6 +34,29 @@ if (MAX_SIZE > 15000000) {
 
 /**
  * @param {AccountRecord} acr
+ * @returns {Promise<"OKAY"|"PFPDISABLE"|"NOTRUST"|"TOOYOUNG">}
+ */
+async function PFPUpdateAllowed(acr) {
+    if (!settings.PFPS?.ENABLED) {
+        return "PFPDISABLE";
+    }
+    if (settings.PFPS?.RESTRICT) {
+        if (settings.PFPS.RESTRICT.TRUSTED) {
+            if (!check_permission(await getEffectivePrivs(acr), Permissions.TRUSTED)) {
+                return "NOTRUST";
+            }
+        }
+        if (settings.PFPS.RESTRICT.AGE) {
+            if ((Date.now()-acr.cdate)/1000 < MIN_AGE) {
+                return "TOOYOUNG";
+            }
+        }
+    }
+    return "OKAY";
+}
+
+/**
+ * @param {AccountRecord} acr
  * @param {http.IncomingMessage} req
  * @returns {Promise<"OKAY"|"PFPDISABLE"|"NOTRUST"|"TOOYOUNG"|"TOOBIG"|"NOLENGTH"|"NOTYPE"|"BADTYPE">}
  */
@@ -47,7 +70,7 @@ async function PFPUploadAllowed(acr, req) {
     if (!req.headers["content-length"]) {
         return "NOLENGTH";
     }
-    if (!allowedTypes.includes(req.headers["content-type"])) {
+    if (!(req.headers["content-type"] in extensionMap)) {
         return "BADTYPE";
     }
     if (settings.PFPS?.RESTRICT) {
@@ -149,7 +172,7 @@ async function handlePFPUploadRequest(req, res) {
         }
         const id = new mdb.ObjectId(mdb.ObjectId.generate());
         const pfpid = `${id.toHexString()}.${extensionMap[req.headers["content-type"]]}`;
-        await pfp_data.insertOne({_id:id,data:Buffer.concat(imgdata),type:req.headers["content-type"],refcount:0});
+        await pfp_data.insertOne({_id:id,data:Buffer.concat(imgdata),type:req.headers["content-type"],refcount:0,src:accid});
         setTimeout(()=>{
             pfp_data.deleteOne({_id:id,refcount:0});
         },ACC_PFP_UPLOAD_TIMEOUT);
@@ -163,31 +186,25 @@ async function handlePFPUploadRequest(req, res) {
 }
 
 /**
- * @typedef PFPRecord
- * @type {{_id:mdb.ObjectId,data:Buffer,type:string,refcount:number}}
- */
-
-/**
- * @param {string} accid
+ * @param {string} pfpid
  * @param {http.ServerResponse} res
  */
-async function handlePFPGetRequest(accid, res) {
+async function fetchPFP(pfpid, res) {
     try {
-        /**@type {AccountRecord} */
-        const acr = await getAccountRecord(accid);
-        if (acr === null) {
-            res.writeHead(404).end("account not found");
-            return;
+        let filter;
+        if (pfpid[0] === "&") {
+            filter = {src:pfpid.slice(1)};
+        } else {
+            const nsid = pfpid.slice(0,pfpid.indexOf("."));
+            if (!mdb.ObjectId.isValid(nsid)) {
+                res.writeHead(400).end("bad image id");
+                return;
+            }
+            const id = mdb.ObjectId.createFromHexString(nsid);
+            filter = {_id:id};
         }
-        const pfpid = acr.pfp ? acr.pfp : (settings.ACC?.DEFAULT_PFP ?? ".");
-        const nsid = pfpid.slice(0,pfpid.indexOf("."));
-        if (!mdb.ObjectId.isValid(nsid)) {
-            res.writeHead(400).end("bad image id");
-            return;
-        }
-        const id = mdb.ObjectId.createFromHexString(nsid);
         /**@type {PFPRecord} */
-        const document = await pfp_data.findOne({_id:id});
+        const document = await pfp_data.findOne(filter);
         if (document === null) {
             res.writeHead(404).end("pfp not found");
             return;
@@ -209,5 +226,155 @@ async function handlePFPGetRequest(accid, res) {
     }
 }
 
-exports.handlePFPUploadRequest = handlePFPUploadRequest;
-exports.handlePFPGetRequest = handlePFPGetRequest;
+/**
+ * @param {string} accid
+ * @param {string} pfpid
+ * @param {http.ServerResponse} res
+ */
+async function handlePFPChangeRequest(accid, pfpid, res) {
+    try {
+        const acr = await getAccountRecord(accid);
+        if (acr === null) {
+            res.writeHead(404).end("account id not found");
+            return;
+        }
+        switch (await PFPUpdateAllowed(acr)) {
+            case "NOTRUST": {
+                res.writeHead(403).end("this is a trusted feature");
+                return;
+            }
+            case "TOOYOUNG": {
+                res.writeHead(403).end(`this feature has a minimum age requirement of ${min_age_string}`);
+                return;
+            }
+            case "PFPDISABLE": {
+                res.writeHead(403).end("pfps are not enabled");
+                return;
+            }
+            case "OKAY": {
+                break;
+            }
+        }
+        const nsnid = pfpid.slice(0,pfpid.indexOf("."));
+        const nsoid = acr.pfp ? acr.pfp.slice(0,acr.pfp.indexOf(".")) : null;
+        if (!mdb.ObjectId.isValid(nsnid)) {
+            res.writeHead(400).end("invalid pfp");
+            return;
+        }
+        const rnpfpid = mdb.ObjectId.createFromHexString(nsnid);
+        if (pfp_data.countDocuments({_id:rnpfpid}) === 0) {
+            res.writeHead(404).end("pfp not found");
+            return;
+        }
+        let success = true;
+        await client.withSession(async (session) => {
+            try {
+                await session.withTransaction(async () => {
+                    if (mdb.ObjectId.isValid(nsoid)) {
+                        await pfp_data.updateOne({_id:mdb.ObjectId.createFromHexString(nsoid)},{"$inc":{refconut:-1}});
+                    }
+                    await pfp_data.updateOne({_id:rnpfpid},{"$inc":{refcount:1}});
+                    await collection.updateOne({id:accid},{"$set":{pfp:pfpid}});
+                });
+            } catch (E) {
+                console.log(E);
+                success = false;
+            }
+        });
+        if (!success) {
+            res.writeHead(500).end("unable to update pfp");
+            return;
+        }
+        res.writeHead(200).end("pfp updated successfully");
+        return;
+    } catch (E) {
+        console.log(E);
+        res.writeHead(500).end("internal server error");
+        return;
+    }
+}
+
+/**
+ * processes profile picture operations
+ * @param {http.IncomingMessage} req
+ * @param {http.ServerResponse} res
+ * @param {URL} url
+ * @param {(p:string,d:string)=>void} log
+ */
+async function handlePFPRequest(req, res, url, log) {
+    switch (url.pathname) {
+        case "/acc/pfp/upload": {
+            if (req.method !== "POST") {
+                res.writeHead(405).end("uploading profile images requires use of the POST method");
+                return;
+            }
+            try {
+                await handlePFPUploadRequest(req, res);
+            } catch (E) {
+                res.writeHead(500).end();
+            }
+            return;
+        }
+        case "/acc/pfp/change": {
+            if (req.methdo !== "PATCH") {
+                res.writeHead(405).end("changing profile images requires use of the PATCH method");
+                return;
+            }
+            try {
+                const body = await new Promise((r, s) => {
+                    let d = "";
+                    req.on("data", (data) => {d += data});
+                    req.on("end", ()=>r(d));
+                    req.on("error", s);
+                });
+                const data = JSON.parse(body);
+                if (!validateJSONScheme(data, schemes.updatePFPScheme)) {
+                    res.writeHead(400).end();
+                    return;
+                }
+                const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
+                if (!accid) {
+                    res.writeHead(403).end("must be logged in");
+                    return;
+                }
+                await handlePFPChangeRequest(accid, data.pfp, res);
+            } catch (E) {
+                res.writeHead(500).end();
+            }
+            return;
+        }
+        case "/acc/pfp/get": {
+            if (req.method !== "GET") {
+                res.writeHead(405).end("getting profile images requires use of the GET method");
+                return;
+            }
+            let target = url.searchParams.get("tar");
+            if (target === null) {
+                res.writeHead(400).end("must supply a target account");
+                return;
+            }
+            if (target === "%40self") {
+                const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
+                if (accid === null) {
+                    if (settings.PFPS?.DEFAULT_PFP) {
+                        await fetchPFP("&&guest", res);
+                        return;
+                    }
+                } else {
+                    target = accid;
+                }
+            }
+            await fetchPFP(target, res);
+            return;
+        }
+        default: {
+            res.writeHead(404).end("endpoint not found");
+            return;
+        }
+    }
+}
+
+exports.handlePFPRequest = handlePFPRequest;
+// exports.handlePFPUploadRequest = handlePFPUploadRequest;
+// exports.handlePFPGetRequest = handlePFPGetRequest;
+// exports.handlePFPChangeRequest = handlePFPChangeRequest;

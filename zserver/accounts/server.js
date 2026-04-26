@@ -16,11 +16,12 @@ const path = require("path");
 const { AppealRejectionRecord, SanctionRecord, AccountRecord, checkFlag, FlagF1, PrivGroupRecord } = require("./types.js");
 const { check_permission, Permissions, check_can_moderate, check_sanction_allowed } = require("./perms.js");
 const { SessionManager, ASessionManager, makeSessionCookie, makeASessionCookie, extractSessionId, extractASessionId } = require("./sessions.js");
-const { accCreationScheme, accLoginScheme, accPWResetScheme, accPWResetCodeScheme, friendReqScheme, appealScheme, accPWChangeScheme, accFlagsChangeScheme, accNameChangeScheme, sanctionScheme, adminSancManScheme, adminSancManAppealScheme } = require("./schemes.js");
-const { ACC_CREAT_TIMEOUT, ACC_PWRST_TIMEOUT, ACC_MAX_NAME_LEN, EACCESS, EREJECT, ESENSITIVE, EERROR, IACCESS, EBADMOD, ACC_PUB_PREFIX, ACC_ADMIN_PREFIX } = require("./constants.js");
+const schemes = require("./schemes.js");
+const { ACC_CREAT_TIMEOUT, ACC_PWRST_TIMEOUT, ACC_MAX_NAME_LEN, EACCESS, EREJECT, ESENSITIVE, EERROR, IACCESS, EBADMOD, ACC_PUB_PREFIX, ACC_ADMIN_PREFIX, ACC_PFP_PREFIX } = require("./constants.js");
 
 const { processPubFetch } = require("./handlers/pub_fetch.js");
 const { processAdminFetch } = require("./handlers/admin_fetch.js");
+const { handlePFPChangeRequest, handlePFPUploadRequest } = require("./colls/pfps.js");
 
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid");
@@ -163,6 +164,9 @@ const public_server = http.createServer(async (req, res) => {
         await processAdminFetch(req, res, url, log);
         return;
     }
+    if (url.pathname.startsWith(ACC_PFP_PREFIX)) {
+        return;
+    }
     // console.log(req.headers["content-type"]);
     // console.log(req.headers["sec-fetch-site"]);
     if (req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") {
@@ -190,7 +194,7 @@ const public_server = http.createServer(async (req, res) => {
             switch (url.pathname) {
                 case "/acc/login": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, accLoginScheme)) {
+                    if (!validateJSONScheme(data, schemes.accLoginScheme)) {
                         res.writeHead(422).end();
                         return;
                     }
@@ -222,7 +226,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
                 case "/acc/reset-password": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, accPWResetScheme)) {
+                    if (!validateJSONScheme(data, schemes.accPWResetScheme)) {
                         res.writeHead(400).end();
                         return;
                     }
@@ -255,7 +259,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
                 case "/acc/reset-password-wcode": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, accPWResetCodeScheme)) {
+                    if (!validateJSONScheme(data, schemes.accPWResetCodeScheme)) {
                         res.writeHead(400).end();
                         return;
                     }
@@ -277,7 +281,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
                 case "/acc/unfriend": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, friendReqScheme)) {
+                    if (!validateJSONScheme(data, schemes.friendReqScheme)) {
                         res.writeHead(400).end("misformatted request");
                         return;
                     }
@@ -329,7 +333,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
                 case "/acc/send-friend-request": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, friendReqScheme)) {
+                    if (!validateJSONScheme(data, schemes.friendReqScheme)) {
                         res.writeHead(400).end("misformatted request");
                         return;
                     }
@@ -393,7 +397,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
                 case "/acc/make-appeal": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, appealScheme)) {
+                    if (!validateJSONScheme(data, schemes.appealScheme)) {
                         res.writeHead(400).end("misformatted request");
                         return;
                     }
@@ -472,7 +476,7 @@ const public_server = http.createServer(async (req, res) => {
                     console.log(body);
                     /**@type {{email:string}} */
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, accCreationScheme)) {
+                    if (!validateJSONScheme(data, schemes.accCreationScheme)) {
                         res.writeHead(422).end();
                         return;
                     }
@@ -522,7 +526,7 @@ const public_server = http.createServer(async (req, res) => {
             switch (url.pathname) {
                 case "/acc/password": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, accPWChangeScheme)) {
+                    if (!validateJSONScheme(data, schemes.accPWChangeScheme)) {
                         res.writeHead(400).end();
                         return;
                     }
@@ -549,7 +553,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
                 case "/acc/flagf1": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, accFlagsChangeScheme)) {
+                    if (!validateJSONScheme(data, schemes.accFlagsChangeScheme)) {
                         res.writeHead(400).end("misformatted request");
                         return;
                     }
@@ -573,7 +577,7 @@ const public_server = http.createServer(async (req, res) => {
                 }
                 case "/acc/name": {
                     const data = JSON.parse(body);
-                    if (!validateJSONScheme(data, accNameChangeScheme)) {
+                    if (!validateJSONScheme(data, schemes.accNameChangeScheme)) {
                         res.writeHead(400).end();
                         return;
                     }

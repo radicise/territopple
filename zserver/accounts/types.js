@@ -62,6 +62,11 @@ const mdb = require("mongodb");
  */
 
 /**
+ * @typedef PFPRecord
+ * @type {{_id:mdb.ObjectId,data:Buffer,type:string,refcount:number,src:string}}
+ */
+
+/**
  * @constant
  * @readonly
  * @see [flags.txt](../docs/accounts/flags.txt)
@@ -91,5 +96,6 @@ exports.AppealRejectionRecord = this.AppealRejectionRecord;
 exports.SanctionRecord = this.SanctionRecord;
 exports.AccountRecord = this.AccountRecord;
 exports.PrivGroupRecord = this.PrivGroupRecord;
+exports.PFPRecord = this.PFPRecord;
 exports.FlagF1 = FlagF1;
 exports.checkFlag = checkFlag;
