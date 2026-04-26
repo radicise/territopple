@@ -61,7 +61,7 @@ async function PFPUpdateAllowed(acr) {
  * @returns {Promise<"OKAY"|"PFPDISABLE"|"NOTRUST"|"TOOYOUNG"|"TOOBIG"|"NOLENGTH"|"NOTYPE"|"BADTYPE">}
  */
 async function PFPUploadAllowed(acr, req) {
-    console.log(acr);
+    // console.log(acr);
     if (!settings.PFPS?.ENABLED) {
         return "PFPDISABLE";
     }
@@ -148,6 +148,7 @@ async function handlePFPUploadRequest(req, res) {
             });
             req.once("end", () => {
                 if (totallen !== req.headers["content-length"]) {
+                    console.log(`${totallen} != ${req.headers["content-length"]}`);
                     r("LENGTHMISMATCH");
                     return;
                 }
