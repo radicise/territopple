@@ -102,36 +102,36 @@ async function handlePFPUploadRequest(req, res) {
         const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
         const acr = await getAccountRecord(accid);
         if (acr === null) {
-            res.writeHead(404).end("account not found");
+            res.writeHead(404,{"content-type":"text/plain"}).end("account not found");
             return;
         }
         switch (await PFPUploadAllowed(acr, req)) {
             case "PFPDISABLE": {
-                res.writeHead(403).end("pfps are not enabled");
+                res.writeHead(403,{"content-type":"text/plain"}).end("pfps are not enabled");
                 return;
             }
             case "NOTRUST": {
-                res.writeHead(403).end("this feature requires trusted access");
+                res.writeHead(403,{"content-type":"text/plain"}).end("this feature requires trusted access");
                 return;
             }
             case "TOOYOUNG": {
-                res.writeHead(403).end(`this feature has a minimum account age of ${min_age_string}`);
+                res.writeHead(403,{"content-type":"text/plain"}).end(`this feature has a minimum account age of ${min_age_string}`);
                 return;
             }
             case "TOOBIG": {
-                res.writeHead(413).end("image data too large");
+                res.writeHead(413,{"content-type":"text/plain"}).end("image data too large");
                 return;
             }
             case "NOLENGTH": {
-                res.writeHead(411).end("length required");
+                res.writeHead(411,{"content-type":"text/plain"}).end("length required");
                 return;
             }
             case "NOTYPE": {
-                res.writeHead(415).end("mime type required");
+                res.writeHead(415,{"content-type":"text/plain"}).end("mime type required");
                 return;
             }
             case "BADTYPE": {
-                res.writeHead(415).end("unsupported image type");
+                res.writeHead(415,{"content-type":"text/plain"}).end("unsupported image type");
                 return;
             }
             case "OKAY": {
@@ -179,11 +179,11 @@ async function handlePFPUploadRequest(req, res) {
         setTimeout(()=>{
             pfp_data.deleteOne({_id:id,refcount:0});
         },ACC_PFP_UPLOAD_TIMEOUT);
-        res.writeHead(200).end(pfpid);
+        res.writeHead(200,{"content-type":"text/plain"}).end(pfpid);
         return pfpid;
     } catch (E) {
         console.log(E);
-        res.writeHead(500).end("internal server error");
+        res.writeHead(500,{"content-type":"text/plain"}).end("internal server error");
         return;
     }
 }
@@ -200,7 +200,7 @@ async function fetchPFP(pfpid, res) {
         } else {
             const nsid = pfpid.slice(0,pfpid.indexOf("."));
             if (!mdb.ObjectId.isValid(nsid)) {
-                res.writeHead(400).end("bad image id");
+                res.writeHead(400,{"content-type":"text/plain"}).end("bad image id");
                 return;
             }
             const id = mdb.ObjectId.createFromHexString(nsid);
@@ -209,7 +209,7 @@ async function fetchPFP(pfpid, res) {
         /**@type {PFPRecord} */
         const document = await pfp_data.findOne(filter);
         if (document === null) {
-            res.writeHead(404).end("pfp not found");
+            res.writeHead(404,{"content-type":"text/plain"}).end("pfp not found");
             return;
         }
         const data = document.data.buffer;
@@ -225,7 +225,44 @@ async function fetchPFP(pfpid, res) {
         return;
     } catch (E) {
         console.log(E);
-        res.writeHead(500).end("internal server error");
+        res.writeHead(500,{"content-type":"text/plain"}).end("internal server error");
+        return;
+    }
+}
+
+/**
+ * @param {string} pfpid
+ * @param {http.ServerResponse} res
+ */
+async function fetchPFPMeta(pfpid, res) {
+    try {
+        let filter;
+        if (pfpid[0] === "&") {
+            filter = {src:pfpid.slice(1)};
+        } else {
+            const nsid = pfpid.slice(0,pfpid.indexOf("."));
+            if (!mdb.ObjectId.isValid(nsid)) {
+                res.writeHead(400,{"content-type":"text/plain"}).end("bad image id");
+                return;
+            }
+            const id = mdb.ObjectId.createFromHexString(nsid);
+            filter = {_id:id};
+        }
+        /**@type {PFPRecord} */
+        const document = await pfp_data.findOne(filter, {"projection":{data:0,src:0}});
+        if (document === null) {
+            res.writeHead(404,{"content-type":"text/plain"}).end("pfp not found");
+            return;
+        }
+        if (document.data || document.src) {
+            res.writeHead(500,{"content-type":"text/plain"}).end("projection failure");
+            return;
+        }
+        res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(document));
+        return;
+    } catch (E) {
+        console.log(E);
+        res.writeHead(500,{"content-type":"text/plain"}).end("internal server error");
         return;
     }
 }
@@ -239,20 +276,20 @@ async function handlePFPChangeRequest(accid, pfpid, res) {
     try {
         const acr = await getAccountRecord(accid);
         if (acr === null) {
-            res.writeHead(404).end("account id not found");
+            res.writeHead(404,{"content-type":"text/plain"}).end("account id not found");
             return;
         }
         switch (await PFPUpdateAllowed(acr)) {
             case "NOTRUST": {
-                res.writeHead(403).end("this is a trusted feature");
+                res.writeHead(403,{"content-type":"text/plain"}).end("this is a trusted feature");
                 return;
             }
             case "TOOYOUNG": {
-                res.writeHead(403).end(`this feature has a minimum age requirement of ${min_age_string}`);
+                res.writeHead(403,{"content-type":"text/plain"}).end(`this feature has a minimum age requirement of ${min_age_string}`);
                 return;
             }
             case "PFPDISABLE": {
-                res.writeHead(403).end("pfps are not enabled");
+                res.writeHead(403,{"content-type":"text/plain"}).end("pfps are not enabled");
                 return;
             }
             case "OKAY": {
@@ -262,12 +299,12 @@ async function handlePFPChangeRequest(accid, pfpid, res) {
         const nsnid = pfpid.slice(0,pfpid.indexOf("."));
         const nsoid = acr.pfp ? acr.pfp.slice(0,acr.pfp.indexOf(".")) : null;
         if (!mdb.ObjectId.isValid(nsnid)) {
-            res.writeHead(400).end("invalid pfp");
+            res.writeHead(400,{"content-type":"text/plain"}).end("invalid pfp");
             return;
         }
         const rnpfpid = mdb.ObjectId.createFromHexString(nsnid);
         if (pfp_data.countDocuments({_id:rnpfpid}) === 0) {
-            res.writeHead(404).end("pfp not found");
+            res.writeHead(404,{"content-type":"text/plain"}).end("pfp not found");
             return;
         }
         let success = true;
@@ -275,7 +312,7 @@ async function handlePFPChangeRequest(accid, pfpid, res) {
             try {
                 await session.withTransaction(async () => {
                     if (mdb.ObjectId.isValid(nsoid)) {
-                        await pfp_data.updateOne({_id:mdb.ObjectId.createFromHexString(nsoid)},{"$inc":{refconut:-1}});
+                        await pfp_data.updateOne({_id:mdb.ObjectId.createFromHexString(nsoid)},{"$inc":{refcount:-1}});
                     }
                     await pfp_data.updateOne({_id:rnpfpid},{"$inc":{refcount:1}});
                     await collection.updateOne({id:accid},{"$set":{pfp:pfpid}});
@@ -286,14 +323,14 @@ async function handlePFPChangeRequest(accid, pfpid, res) {
             }
         });
         if (!success) {
-            res.writeHead(500).end("unable to update pfp");
+            res.writeHead(500,{"content-type":"text/plain"}).end("unable to update pfp");
             return;
         }
-        res.writeHead(200).end("pfp updated successfully");
+        res.writeHead(200,{"content-type":"text/plain"}).end("pfp updated successfully");
         return;
     } catch (E) {
         console.log(E);
-        res.writeHead(500).end("internal server error");
+        res.writeHead(500,{"content-type":"text/plain"}).end("internal server error");
         return;
     }
 }
@@ -310,7 +347,7 @@ async function handlePFPRequest(req, res, url, log) {
     switch (url.pathname.split("/",4).join("/")) {
         case "/acc/pfp/upload": {
             if (req.method !== "POST") {
-                res.writeHead(405).end("uploading profile images requires use of the POST method");
+                res.writeHead(405,{"content-type":"text/plain"}).end("uploading profile images requires use of the POST method");
                 return;
             }
             try {
@@ -323,7 +360,7 @@ async function handlePFPRequest(req, res, url, log) {
         }
         case "/acc/pfp/change": {
             if (req.method !== "PATCH") {
-                res.writeHead(405).end("changing profile images requires use of the PATCH method");
+                res.writeHead(405,{"content-type":"text/plain"}).end("changing profile images requires use of the PATCH method");
                 return;
             }
             try {
@@ -335,12 +372,12 @@ async function handlePFPRequest(req, res, url, log) {
                 });
                 const data = JSON.parse(body);
                 if (!validateJSONScheme(data, schemes.updatePFPScheme)) {
-                    res.writeHead(400).end();
+                    res.writeHead(400,{"content-type":"text/plain"}).end("invalid data");
                     return;
                 }
                 const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
                 if (!accid) {
-                    res.writeHead(403).end("must be logged in");
+                    res.writeHead(403,{"content-type":"text/plain"}).end("must be logged in");
                     return;
                 }
                 await handlePFPChangeRequest(accid, data.pfp, res);
@@ -352,12 +389,12 @@ async function handlePFPRequest(req, res, url, log) {
         }
         case "/acc/pfp/get": {
             if (req.method !== "GET") {
-                res.writeHead(405).end("getting profile images requires use of the GET method");
+                res.writeHead(405,{"content-type":"text/plain"}).end("getting profile images requires use of the GET method");
                 return;
             }
             let target = url.pathname.slice("/acc/pfp/get/".length);
-            if (target === null) {
-                res.writeHead(400).end("must supply a target account");
+            if (!target) {
+                res.writeHead(400,{"content-type":"text/plain"}).end("must supply a target account");
                 return;
             }
             if (target === "%40self") {
@@ -375,8 +412,33 @@ async function handlePFPRequest(req, res, url, log) {
             await fetchPFP((await getAccountRecord(target))?.pfp ?? "&&guest", res);
             return;
         }
+        case "/acc/pfp/info": {
+            if (req.method !== "GET") {
+                res.writeHead(405,{"content-type":"text/plain"}).end("getting profile images requires use of the GET method");
+                return;
+            }
+            let target = url.pathname.slice("/acc/pfp/get/".length);
+            if (!target) {
+                res.writeHead(400,{"content-type":"text/plain"}).end("must supply a target account");
+                return;
+            }
+            if (target === "%40self") {
+                const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
+                if (accid === null) {
+                    if (settings.PFPS?.DEFAULT_PFP) {
+                        await fetchPFP("&&guest", res);
+                        return;
+                    }
+                } else {
+                    target = accid;
+                }
+            }
+            // console.log(target);
+            await fetchPFPMeta((await getAccountRecord(target))?.pfp ?? "&&guest", res);
+            return;
+        }
         default: {
-            res.writeHead(404).end("endpoint not found");
+            res.writeHead(404,{"content-type":"text/plain"}).end("endpoint not found");
             return;
         }
     }

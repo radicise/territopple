@@ -11,7 +11,7 @@ fetch(`https://${document.location.hostname}/acc/pub/%40self/info`).then(v => {
         tar.children[2].children[0].textContent = "login";
     }
 });
-fetch(`https://${document.location.hostname}/acc/pfp/get/%40self`).then(v => {
+fetch(`https://${document.location.hostname}/acc/pfp/info/%40self`).then(v => {
     /**@type {HTMLImageElement} */
     const tar = document.getElementById("account-name").children[1].children[0];
     if (v.status === 200) {
