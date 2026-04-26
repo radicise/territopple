@@ -302,6 +302,7 @@ async function handlePFPChangeRequest(accid, pfpid, res) {
  * @param {(p:string,d:string)=>void} log
  */
 async function handlePFPRequest(req, res, url, log) {
+    console.log(url);
     switch (url.pathname) {
         case "/acc/pfp/upload": {
             if (req.method !== "POST") {
