@@ -359,7 +359,7 @@ async function handlePFPRequest(req, res, url, log) {
                 res.writeHead(400).end("must supply a target account");
                 return;
             }
-            if (target === "%40self") {
+            if (target === "@self") {
                 const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
                 if (accid === null) {
                     if (settings.PFPS?.DEFAULT_PFP) {
@@ -370,7 +370,7 @@ async function handlePFPRequest(req, res, url, log) {
                     target = accid;
                 }
             }
-            console.log(target);
+            // console.log(target);
             await fetchPFP((await getAccountRecord(target))?.pfp ?? "&&guest", res);
             return;
         }
