@@ -766,3 +766,26 @@ internal_server.on("error", async (err) => {
         console.log(err);
     }
 });
+
+if (!process.argv.includes("--no-in"))
+process.stdin.on("data", (d) => {
+    const l = d.toString("utf-8");
+    const parts = l.split(/:|;/).map(v => v.trim());
+    const uparts = parts.map(v => v.toUpperCase());
+    // console.log(parts);
+    // console.log(uparts);
+    const p1 = uparts[0];
+    switch (p1) {
+        default:
+            if (process.argv.includes("--eval-stdin")) {
+                try {
+                    console.log(eval(l));
+                } catch (E) {
+                    console.error(E.stack);
+                }
+            } else {
+                console.error("UNRECOGNIZED COMMAND");
+            }
+            break;
+    }
+});
