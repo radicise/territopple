@@ -63,7 +63,7 @@ const mdb = require("mongodb");
 
 /**
  * @typedef PFPRecord
- * @type {{_id:mdb.ObjectId,data:Buffer,type:string,refcount:number,src:string}}
+ * @type {{_id:mdb.ObjectId,data:mdb.Binary,type:string,refcount:number,src:string}}
  */
 
 /**

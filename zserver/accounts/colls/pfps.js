@@ -212,11 +212,12 @@ async function fetchPFP(pfpid, res) {
             res.writeHead(404).end("pfp not found");
             return;
         }
-        res.writeHead(200,{"content-length":document.data.length,"content-type":document.type});
+        const data = document.data.buffer;
+        res.writeHead(200,{"content-length":data.length,"content-type":document.type});
         const hwm = res.writableHighWaterMark;
         let cur = 0;
-        while (cur < document.data.length) {
-            res.write(document.data.subarray(cur, cur+hwm));
+        while (cur < data.length) {
+            res.write(data.subarray(cur, cur+hwm));
             cur += hwm;
             await new Promise(r => res.once("drain",r));
         }
