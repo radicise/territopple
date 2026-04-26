@@ -92,7 +92,7 @@
                     v.text().then(t => {
                         if (v.ok) {
                             fetch(`https://${document.location.hostname}/acc/pfp/change`, {method:"PATCH",body:JSON.stringify({pfp:t})}).then(v2 => {
-                                v2.text(t2 => {
+                                v2.text().then(t2 => {
                                     document.getElementById("pfp-res-msg").textContent = t2;
                                 });
                             });
