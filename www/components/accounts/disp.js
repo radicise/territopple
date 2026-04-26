@@ -11,12 +11,13 @@ fetch(`https://${document.location.hostname}/acc/pub/%40self/info`).then(v => {
         tar.children[2].children[0].textContent = "login";
     }
 });
-// fetch(`https://${document.location.hostname}/acc/pfp?tar=%40self`).then(v => {
-//     /**@type {HTMLImageElement} */
-//     const tar = document.getElementById("account-name").children[1].children[0];
-//     if (v.status === 200) {
-//     }
-// });
+fetch(`https://${document.location.hostname}/acc/pfp?tar=%40self`).then(v => {
+    /**@type {HTMLImageElement} */
+    const tar = document.getElementById("account-name").children[1].children[0];
+    if (v.status === 200) {
+        tar.hidden = false;
+    }
+});
 document.getElementById("account-name").children[0].children[1].addEventListener("change", function () {
     document.body.parentElement.style.setProperty("--theme", this.value);
 });
