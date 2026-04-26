@@ -61,6 +61,7 @@ async function PFPUpdateAllowed(acr) {
  * @returns {Promise<"OKAY"|"PFPDISABLE"|"NOTRUST"|"TOOYOUNG"|"TOOBIG"|"NOLENGTH"|"NOTYPE"|"BADTYPE">}
  */
 async function PFPUploadAllowed(acr, req) {
+    console.log(acr);
     if (!settings.PFPS?.ENABLED) {
         return "PFPDISABLE";
     }
@@ -76,6 +77,7 @@ async function PFPUploadAllowed(acr, req) {
     if (settings.PFPS?.RESTRICT) {
         if (settings.PFPS.RESTRICT.TRUSTED) {
             if (!check_permission(await getEffectivePrivs(acr), Permissions.TRUSTED)) {
+                console.log(await getEffectivePrivs(acr));
                 return "NOTRUST";
             }
         }
