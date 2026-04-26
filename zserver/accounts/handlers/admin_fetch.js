@@ -1,6 +1,6 @@
 const http = require("http");
 const { ACC_ADMIN_PREFIX, EERROR, EBADMOD } = require("../constants.js");
-const { ASessionManager, extractASessionId } = require("../sessions.js");
+const { ASessionManager, extractASessionId, makeASessionCookie } = require("../sessions.js");
 const { AccountRecord } = require("../types.js");
 const { collection, getEffectivePrivs } = require("../db.js");
 const { check_permission, check_can_moderate, check_sanction_allowed, Permissions } = require("../perms.js");
