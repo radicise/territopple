@@ -8,6 +8,7 @@ const { settings, validateJSONScheme } = require("../../../defs.js");
 const { AccountRecord, PFPRecord } = require("../types.js");
 const { check_permission, Permissions } = require("../perms.js");
 const http = require("http");
+const { createHash } = require("crypto");
 const { mdb, pfp_data, getEffectivePrivs, getAccountRecord, client, collection } = require("../db.js");
 const { SessionManager, extractSessionId } = require("../sessions.js");
 const { ACC_PFP_UPLOAD_TIMEOUT } = require("../constants.js");
@@ -140,9 +141,17 @@ async function handlePFPUploadRequest(req, res) {
         }
         const imgdata = [];
         let totallen = 0;
+        const halflen = Number(req.headers["content-length"]) / 2;
+        const hashLeft = createHash("sha512");
+        const hashRight = createHash("sha512");
         /**@type {Promise<"OKAY"|"LENGTHMISMATCH"|"ABORT">} */
         const gate1 = new Promise(r => {
             req.on("data", (chunk) => {
+                if (totallen < halflen) {
+                    hashLeft.update(chunk);
+                } else {
+                    hashRight.update(chunk);
+                }
                 imgdata.push(chunk);
                 totallen += chunk.length;
             });
@@ -173,13 +182,20 @@ async function handlePFPUploadRequest(req, res) {
                 break;
             }
         }
+        const cmpHash = Buffer.concat([hashLeft.digest(),hashRight.digest()]);
+        const maybeAlready = await pfp_data.findOne({hash:cmpHash},{"projection":{_id:1,type:1,length:{"$binarySize":"$data"}}});
+        if (maybeAlready && maybeAlready.type === req.headers["content-type"] && totallen === maybeAlready.length) {
+            const pfpid = `${maybeAlready._id.toHexString()}.${extensionMap[req.headers["content-type"]]}`;
+            res.writeHead(200,{"content-type":"text/plain"}).end(pfpid);
+            return pfpid;
+        }
         const id = new mdb.ObjectId(mdb.ObjectId.generate());
         const pfpid = `${id.toHexString()}.${extensionMap[req.headers["content-type"]]}`;
-        await pfp_data.insertOne({_id:id,data:Buffer.concat(imgdata),type:req.headers["content-type"],refcount:0,src:accid});
+        await pfp_data.insertOne({_id:id,data:Buffer.concat(imgdata),type:req.headers["content-type"],hash:cmpHash,refcount:0,src:accid});
         setTimeout(()=>{
             pfp_data.deleteOne({_id:id,refcount:0});
         },ACC_PFP_UPLOAD_TIMEOUT);
-        res.writeHead(200,{"content-type":"text/plain"}).end(pfpid);
+        res.writeHead(201,{"content-type":"text/plain"}).end(pfpid);
         return pfpid;
     } catch (E) {
         console.log(E);
