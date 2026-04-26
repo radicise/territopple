@@ -42,7 +42,7 @@ class AccountNotFoundError extends Error {
  */
 async function getAccountRecord(accid, dothrow) {
     /**@type {AccountRecord} */
-    const rec = accid ? await collection.findOne({id:target}) : null;
+    const rec = accid ? await collection.findOne({id:accid}) : null;
     if (rec === null) {
         if (dothrow) {
             throw new AccountNotFoundError(`ACCOUNT '${accid}' NOT FOUND`);
