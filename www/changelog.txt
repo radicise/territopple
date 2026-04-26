@@ -1,3 +1,7 @@
+# Apr 26, 2026 (DEV20263pY0)
+added theme selection to all account pages
+added profile images (restricted to trusted users)
+
 # Apr 12, 2026 (Alpha 1.9.4)
 FEATURE: added dark mode
 FEATURE: added ability to disable pings
