@@ -33,6 +33,7 @@
         </style>
     </head>
     <body>
+        <meta data-import="/components/accounts/disp.html" />
         <a href="/" target="_self">home</a>
         <a href="/account/info" target="_self">back</a>
         <br>
@@ -224,7 +225,7 @@
                 Promise.allSettled(proms).then(v => {apply_status.textContent=okay?" applied":" failed";});
             };
         </script>
-        <!-- <script src="/components/include.js"></script> -->
+        <script src="/components/include.js"></script>
         <!-- <script src="/account/settings.js"></script> -->
     </body>
 </html>
