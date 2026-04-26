@@ -417,7 +417,7 @@ async function handlePFPRequest(req, res, url, log) {
                 res.writeHead(405,{"content-type":"text/plain"}).end("getting profile images requires use of the GET method");
                 return;
             }
-            let target = url.pathname.slice("/acc/pfp/get/".length);
+            let target = url.pathname.slice("/acc/pfp/info/".length);
             if (!target) {
                 res.writeHead(400,{"content-type":"text/plain"}).end("must supply a target account");
                 return;
