@@ -80,7 +80,7 @@ async function makeCreateForm(perms) {
                 r1.text().then(t1 => {
                     clearForm();
                     modal.hidden = true;
-                    result_message.textContent = t1;
+                    result_message.textContent = `Group '${name}' created successfully, group id ${t1}`;
                     result_modal.hidden = false;
                 });
             } else {

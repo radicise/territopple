@@ -31,9 +31,9 @@ async function handlePGroupList(url, res, acr, req_privs) {
     }
     let cursor;
     if (url.searchParams.has("name")) {
-        cursor = priv_groups.find({$text:{$search:url.searchParams.get("name")}},{score:{$meta:"textScore"}}).sort({score:{$meta:"textScore"}});
+        cursor = priv_groups.find({"_special":null,$text:{$search:url.searchParams.get("name")}},{score:{$meta:"textScore"}}).sort({score:{$meta:"textScore"}});
     } else {
-        cursor = priv_groups.find({}).sort({_id:1});
+        cursor = priv_groups.find({"_special":null}).sort({_id:1});
     }
     cursor.skip(pagesize*page);
     cursor.limit(pagesize);
