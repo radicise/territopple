@@ -328,10 +328,10 @@ async function handlePFPChangeRequest(accid, pfpid, res) {
             try {
                 await session.withTransaction(async () => {
                     if (mdb.ObjectId.isValid(nsoid)) {
-                        await pfp_data.updateOne({_id:mdb.ObjectId.createFromHexString(nsoid)},{"$inc":{refcount:-1}});
+                        await pfp_data.updateOne({_id:mdb.ObjectId.createFromHexString(nsoid)},{"$inc":{refcount:-1}},{session});
                     }
-                    await pfp_data.updateOne({_id:rnpfpid},{"$inc":{refcount:1}});
-                    await collection.updateOne({id:accid},{"$set":{pfp:pfpid}});
+                    await pfp_data.updateOne({_id:rnpfpid},{"$inc":{refcount:1}},{session});
+                    await collection.updateOne({id:accid},{"$set":{pfp:pfpid}},{session});
                 });
             } catch (E) {
                 console.log(E);

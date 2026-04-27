@@ -3,6 +3,23 @@
  * types, objects, and functions required for interoperability between parts of the account system
  */
 
+const http = require("http");
+
+/**
+ * @param {http.IncomingMessage} req
+ * @returns {Promise<string>}
+ */
+async function getBody(req) {
+    let body = "";
+    await new Promise((r, s) => {
+        req.on("data", (chunk) => body += chunk);
+        req.once("error", (e) => {req.removeAllListeners();s(e);});
+        req.once("end", () => {req.removeAllListeners();r();});
+    });
+    return body;
+}
+exports.getBody = getBody;
+
 const { nbytes, SecurityError } = require("../../defs.js");
 const { randomBytes, privateEncrypt, KeyObject, createCipheriv, createDecipheriv, privateDecrypt } = require("crypto");
 

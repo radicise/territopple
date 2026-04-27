@@ -1,12 +1,12 @@
 (async () => {
     await INCLUDE_FINISHED;
-    /**@typedef {import("../../zserver/accounts/types.js").AccountRecord} AccountRecord */
-    /**@typedef {import("../../zserver/accounts/types.js").SanctionRecord} SanctionRecord */
-    /**@typedef {import("../../zserver/accounts/types.js").PrivGroupRecord} PrivGroupRecord */
-    /**@typedef {import("../../zserver/accounts/types.js").AppealRejectionRecord} AppealRejectionRecord */
-    /**@type {typeof import("../../commonjs/sanctions.mjs")} */
+    /**@typedef {import("../../../zserver/accounts/types.js").AccountRecord} AccountRecord */
+    /**@typedef {import("../../../zserver/accounts/types.js").SanctionRecord} SanctionRecord */
+    /**@typedef {import("../../../zserver/accounts/types.js").PrivGroupRecord} PrivGroupRecord */
+    /**@typedef {import("../../../zserver/accounts/types.js").AppealRejectionRecord} AppealRejectionRecord */
+    /**@type {typeof import("../../../commonjs/sanctions.mjs")} */
     const sanctions = await import("/commonjs/sanctions.mjs");
-    /**@type {typeof import("../../commonjs/perms.mjs")} */
+    /**@type {typeof import("../../../commonjs/perms.mjs")} */
     const perms = await import("/commonjs/perms.mjs");
     const adminid = (await (await fetch(`https://${document.location.hostname}/acc/admin/check`, {method:"GET"})).json()).name;
     {

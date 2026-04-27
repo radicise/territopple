@@ -1,0 +1,21 @@
+div.modal {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: #33333388;
+}
+div.modal > div {
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    border: inset gray 2px;
+    padding: 5px;
+}
+
+#pg-cf-panes {
+    display: flex;
+    flex-direction: row;
+}

@@ -13,6 +13,22 @@
             <input type="text" id="pgs-entry">
             <input type="button" value="Search" id="pgs-button">
         </div>
+        <div id="pg-quick-controls">
+            <input type="button" value="Create" id="pgqc-create" onclick="document.getElementById('create-form').hidden=false">
+        </div>
+        <div id="create-form" class="modal" hidden>
+            <div>
+                <div id="pg-cf-panes">
+                    <div>
+                        <label for="pg-cf-name">Group Name: </label>
+                        <input type="text" id="pg-cf-name">
+                    </div>
+                    <div id="pg-cf-privs"></div>
+                </div>
+                <input type="button" value="Create Group" id="pg-cf-confirm">
+                <input type="button" value="Cancel" id="pg-cf-cancel">
+            </div>
+        </div>
         <script src="/components/utils/make.js"></script>
         <script src="/components/include.js"></script>
         <script src="/admin/js/priv-groups.js"></script>
