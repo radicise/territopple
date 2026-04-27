@@ -1,12 +1,13 @@
 const http = require("http");
-const { ACC_ADMIN_PREFIX, EERROR, EBADMOD } = require("../constants.js");
+const { ACC_ADMIN_PREFIX, EERROR, EBADMOD, ACC_ADMIN_PGRP_PREFIX } = require("../constants.js");
 const { ASessionManager, extractASessionId, makeASessionCookie } = require("../sessions.js");
-const { AccountRecord } = require("../types.js");
+const { AccountRecord, PrivGroupRecord } = require("../types.js");
 const { collection, getEffectivePrivs } = require("../db.js");
 const { check_permission, check_can_moderate, check_sanction_allowed, Permissions } = require("../perms.js");
 const { validateJSONScheme } = require("../../../defs.js");
 const schemes = require("../schemes.js");
 const auth = require("../auth.js");
+const { handlePGroupRequest } = require("../colls/privgroups.js");
 
 /**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
 
@@ -31,6 +32,16 @@ async function processAdminFetch(req, res, url, log) {
         } else {
             res.writeHead(400).end();
         }
+        return;
+    }
+    if (url.pathname.startsWith(ACC_ADMIN_PGRP_PREFIX)) {
+        const sessid = extractASessionId(req.headers.cookie);
+        const accid = ASessionManager.getAccountId(sessid);
+        if (!sessid || !accid) {
+            res.writeHead(403).end("not logged in");
+            return;
+        }
+        handlePGroupRequest(req, res, url, log);
         return;
     }
     if ((req.headers["content-type"] !== "application/json" || req.headers["sec-fetch-site"] !== "same-origin") && req.method !== "GET") {
