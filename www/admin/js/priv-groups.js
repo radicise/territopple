@@ -60,7 +60,7 @@ async function makeCreateForm(perms) {
         let privs = 0;
         for (let i = 0, l = privSelectCont.children.length; i < l; i ++) {
             /**@type {HTMLInputElement} */
-            const sel = privSelectCont.children[i];
+            const sel = privSelectCont.children[i].children[0];
             if (sel.checked) {
                 privs |= (1<<(sel._priv));
             }
