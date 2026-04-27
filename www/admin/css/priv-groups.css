@@ -11,8 +11,10 @@ div.modal > div {
     left: 50vw;
     top: 50vh;
     transform: translate(-50%, -50%);
+    background-color: white;
     border: inset gray 2px;
     padding: 5px;
+    width: max-content;
 }
 
 #pg-cf-panes {

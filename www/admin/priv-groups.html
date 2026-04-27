@@ -21,12 +21,22 @@
                 <div id="pg-cf-panes">
                     <div>
                         <label for="pg-cf-name">Group Name: </label>
-                        <input type="text" id="pg-cf-name">
+                        <input type="text" id="pg-cf-name"><br>
+                        <p id="pg-cf-error" hidden>
+                            <span style="color: darkred;">Error: </span>
+                            <span></span>
+                        </p>
                     </div>
                     <div id="pg-cf-privs"></div>
                 </div>
                 <input type="button" value="Create Group" id="pg-cf-confirm">
                 <input type="button" value="Cancel" id="pg-cf-cancel">
+            </div>
+        </div>
+        <div id="create-result" class="modal" hidden>
+            <div>
+                <p id="pg-cr-msg"></p>
+                <input type="button" value="Okay" onclick="document.getElementById('create-result').hidden=true">
             </div>
         </div>
         <script src="/components/utils/make.js"></script>

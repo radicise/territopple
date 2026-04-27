@@ -58,6 +58,18 @@ async function handlePGroupCreate(body, res, url, acr, req_privs) {
         res.writeHead(422,{"content-type":"text/plain"}).end("invalid request data");
         return;
     }
+    if (data.name.length === 0) {
+        res.writeHead(400,{"content-type":"text/plain"}).end("must provide valid name");
+        return;
+    }
+    if (data.flags === 0) {
+        res.writeHead(400,{"content-type":"text/plain"}).end("must include at least one privilege");
+        return;
+    }
+    if ((await priv_groups.findOne({"name":data.name})) !== null) {
+        res.writeHead(422,{"content-type":"text/plain"}).end("a group with that name already exists");
+        return;
+    }
     const result = await priv_groups.findOneAndUpdate({"_special":"masterid"},{"$inc":{"counter":1}});
     if (result === null) {
         res.writeHead(500).end("master ID tracker gone, contact server operator");
