@@ -85,8 +85,14 @@ const adminSancManAppealScheme = {
 };
 /** @type {JSONScheme} */
 const adminPGrpCreate = {
-   "name": "string",
-   "flags": "number"
+    "name": "string",
+    "flags": "number"
+};
+/** @type {JSONScheme} */
+const adminPGrpUpdate = {
+    "gid": "number",
+    "name": "string",
+    "flags": "number"
 };
 
 exports.accCreationScheme = accCreationScheme;
@@ -105,3 +111,4 @@ exports.updatePFPScheme = updatePFPScheme;
 exports.adminSancManScheme = adminSancManScheme;
 exports.adminSancManAppealScheme = adminSancManAppealScheme;
 exports.adminPGrpCreate = adminPGrpCreate;
+exports.adminPGrpUpdate = adminPGrpUpdate;

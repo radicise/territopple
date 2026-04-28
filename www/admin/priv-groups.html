@@ -16,6 +16,29 @@
         <div id="pg-quick-controls">
             <input type="button" value="Create" id="pgqc-create" onclick="document.getElementById('create-form').hidden=false">
         </div>
+        <div id="pg-list-cont">
+            <table id="pg-list">
+                <thead>
+                    <tr>
+                        <th>Group ID</th>
+                        <th>Group Name</th>
+                        <th>Highest Privilege</th>
+                        <th>Members</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div id="pg-list-controls">
+                <input type="button" value="First" id="pg-lc-first">
+                <input type="button" value="Prev" id="pg-lc-prev">
+                <span>
+                    page <input type="number" min="1" value="0" id="pg-lc-cpage"> of <span id="pg-lc-pagecount">0</span>
+                </span>
+                <input type="button" value="Next" id="pg-lc-next">
+                <input type="button" value="Last" id="pg-lc-last">
+            </div>
+        </div>
         <div id="create-form" class="modal" hidden>
             <div>
                 <div id="pg-cf-panes">

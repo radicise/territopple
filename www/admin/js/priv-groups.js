@@ -1,10 +1,74 @@
+/**@typedef {typeof import("../../../commonjs/perms.mjs")} PERMS */
+
 (async () => {
     await INCLUDE_FINISHED;
     /**@type {typeof import("../../../commonjs/perms.mjs")} */
     const perms = await import("/commonjs/perms.mjs");
 
     await makeCreateForm(perms);
+    refreshPGList(perms,1);
 })();
+
+/**
+ * @param {number} gid group id
+ * @param {string} name group name
+ * @param {string} dpriv displayed privilege
+ * @param {number} mem_count member count
+ * @returns {HTMLElement}
+ */
+function makePGListEntry(gid, name, dpriv, mem_count) {
+    const row = document.createElement("tr");
+    row.replaceChildren(...make([
+        ["td",{textContent:`${gid}`}],
+        ["td",{textContent:name}],
+        ["td",{textContent:dpriv}],
+        ["td",{textContent:`${mem_count}`}],
+        ["td",{textContent:"placeholder"}]
+    ]));
+    return row;
+}
+
+/**
+ * @param {PERMS} perms
+ * @param {number} privs
+ * @returns {string}
+ */
+function getHighestPriv(perms, privs) {
+    let highest = "NONE";
+    for (let i = 31; i >= 0; i --) {
+        if (privs & (1<<i)) {
+            highest = perms.PRIVILEGES[i];
+            break;
+        }
+    }
+    return highest;
+}
+
+/**
+ * @param {PERMS} perms
+ * @param {number} page
+ * @param {{pagesize?:number,namefilter?:string}?} options
+ */
+async function refreshPGList(perms, page, options) {
+    let params = `page=${page}`;
+    if (options?.pagesize) {
+        params += `&count=${options.pagesize}`;
+    }
+    if (options?.namefilter) {
+        params += `&name=${options.namefilter}`;
+    }
+    const res = await fetch(`https://${document.location.hostname}/acc/admin/pgrp/list?${params}`, {method:"GET"});
+    if (!res.ok) {
+        alert(`${res.status}: ${await res.text()}`);
+        return;
+    }
+    /**@type {{total:number,groups:{gid:number,name:string,privs:number,members:number}[]}} */
+    const data = await res.json();
+    const rows = data.groups.map(v => makePGListEntry(v.gid, v.name, getHighestPriv(perms, v.privs), v.members));
+    /**@type {HTMLTableSectionElement} */
+    const list = document.getElementById("pg-list").children[1];
+    list.replaceChildren(rows);
+}
 
 /**
  * @param {typeof import("../../../commonjs/perms.mjs")} perms
@@ -107,11 +171,11 @@ async function makeCreateForm(perms) {
     };
 }
 
-fetch(`https://${document.location.hostname}/acc/admin/pgrp/list?page=1`, {method:"GET"}).then(res => {
-    if (res.ok) {
-        res.json().then(data => console.log(data));
-    } else {
-        res.text().then(data => console.log(data));
-    }
-});
+// fetch(`https://${document.location.hostname}/acc/admin/pgrp/list?page=1`, {method:"GET"}).then(res => {
+//     if (res.ok) {
+//         res.json().then(data => console.log(data));
+//     } else {
+//         res.text().then(data => console.log(data));
+//     }
+// });
 

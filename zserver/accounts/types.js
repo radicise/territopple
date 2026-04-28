@@ -58,7 +58,7 @@ const mdb = require("mongodb");
  */
 
 /**
- * @typedef {{gid:number,name:string,privs:number}} PrivGroupRecord
+ * @typedef {{gid:number,name:string,privs:number,members:number}} PrivGroupRecord
  */
 
 /**

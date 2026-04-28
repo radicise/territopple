@@ -76,5 +76,6 @@ Priv Groups:
 {
     gid<Int32>: group id,
     privs<Int32>: privilege flags,
-    name<String>: group name
+    name<String>: group name,
+    members<Int32>: member count,
 }
