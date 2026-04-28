@@ -67,7 +67,7 @@ async function refreshPGList(perms, page, options) {
     const rows = data.groups.map(v => makePGListEntry(v.gid, v.name, getHighestPriv(perms, v.privs), v.members));
     /**@type {HTMLTableSectionElement} */
     const list = document.getElementById("pg-list").children[1];
-    list.replaceChildren(rows);
+    list.replaceChildren(...rows);
 }
 
 /**
