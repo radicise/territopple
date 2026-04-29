@@ -192,7 +192,7 @@ function check_can_moderate(source, target) {
     // priv admins have full trust, DB admin must strip this privilege before sanctioning
     if (check_permission(target, Permissions.PRIV_ADMIN)) return false;
     // moderation actions cannot be applied to those of higher moderation level
-    if (get_sanction_perms(target).lastIndexOf(true) >= get_sanction_perms(source).lastIndexOf(true)) return false;
+    if (get_sanction_perms(target).lastIndexOf(true) > get_sanction_perms(source).lastIndexOf(true)) return false;
     return true;
 }
 
