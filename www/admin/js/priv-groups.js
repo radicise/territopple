@@ -1,12 +1,21 @@
 /**@typedef {typeof import("../../../commonjs/perms.mjs")} PERMS */
 
+/**@typedef {{gid:number,name:string,privs:number,members:number}} PGData */
+
+const defaultEditFunc = async () => {};
+let afterEditFunc = defaultEditFunc;
+/**@type {PGData} */
+let currEditData = null;
+
 (async () => {
     await INCLUDE_FINISHED;
+    await LOGIN_CHECKED;
     /**@type {typeof import("../../../commonjs/perms.mjs")} */
     const perms = await import("/commonjs/perms.mjs");
 
     await makeCreateForm(perms);
-    refreshPGList(perms,1);
+    const { refreshPGList } = makeEditForm(perms);
+    refreshPGList(1);
 })();
 
 /**
@@ -14,16 +23,17 @@
  * @param {string} name group name
  * @param {string} dpriv displayed privilege
  * @param {number} mem_count member count
+ * @param {VoidFunction} onclick
  * @returns {HTMLElement}
  */
-function makePGListEntry(gid, name, dpriv, mem_count) {
+function makePGListEntry(gid, name, dpriv, mem_count, onclick) {
     const row = document.createElement("tr");
     row.replaceChildren(...make([
         ["td",{textContent:`${gid}`}],
         ["td",{textContent:name}],
         ["td",{textContent:dpriv}],
         ["td",{textContent:`${mem_count}`}],
-        ["td",{textContent:"placeholder"}]
+        ["td",{children:[make("input",{"type":"button","value":"edit","onclick":onclick})]}]
     ]));
     return row;
 }
@@ -46,32 +56,6 @@ function getHighestPriv(perms, privs) {
 
 /**
  * @param {PERMS} perms
- * @param {number} page
- * @param {{pagesize?:number,namefilter?:string}?} options
- */
-async function refreshPGList(perms, page, options) {
-    let params = `page=${page}`;
-    if (options?.pagesize) {
-        params += `&count=${options.pagesize}`;
-    }
-    if (options?.namefilter) {
-        params += `&name=${options.namefilter}`;
-    }
-    const res = await fetch(`https://${document.location.hostname}/acc/admin/pgrp/list?${params}`, {method:"GET"});
-    if (!res.ok) {
-        alert(`${res.status}: ${await res.text()}`);
-        return;
-    }
-    /**@type {{total:number,groups:{gid:number,name:string,privs:number,members:number}[]}} */
-    const data = await res.json();
-    const rows = data.groups.map(v => makePGListEntry(v.gid, v.name, getHighestPriv(perms, v.privs), v.members));
-    /**@type {HTMLTableSectionElement} */
-    const list = document.getElementById("pg-list").children[1];
-    list.replaceChildren(...rows);
-}
-
-/**
- * @param {typeof import("../../../commonjs/perms.mjs")} perms
  */
 async function makeCreateForm(perms) {
     /**@type {HTMLDivElement} */
@@ -169,6 +153,165 @@ async function makeCreateForm(perms) {
             }
         });
     };
+}
+
+/**
+ * @param {PERMS} perms
+ */
+function makeEditForm(perms) {
+    /**@type {HTMLDivElement} */
+    const modal = document.getElementById("edit-form");
+    /**@type {HTMLDivElement} */
+    const name_area = document.getElementById("pg-ef-name-update");
+    /**@type {HTMLInputElement} */
+    const name_input = document.getElementById("pg-ef-name");
+    /**@type {HTMLParagraphElement} */
+    const error_area = document.getElementById("pg-ef-error");
+    /**@type {HTMLSpanElement} */
+    const error_text = error_area.children[1];
+    /**@type {HTMLDivElement} */
+    const result_modal = document.getElementById("create-result");
+    /**@type {HTMLParagraphElement} */
+    const result_message = document.getElementById("pg-cr-msg");
+    /**@type {HTMLInputElement} */
+    const yupdate_radio = document.getElementById("pg-ef-yupdate");
+    /**@type {HTMLInputElement} */
+    const nupdate_radio = document.getElementById("pg-ef-nupdate");
+    /**
+     * @param {number} priv
+     * @returns {HTMLDivElement}
+     */
+    function makePrivSelect(priv) {
+        const privname = perms.PRIVILEGES[priv];
+        const lab = document.createElement("label");
+        const inp = document.createElement("input");
+        inp.id = `pg-ef-priv-${priv}`;
+        lab.htmlFor = inp.id;
+        inp.type = "checkbox";
+        lab.textContent = `${privname}`;
+        inp._priv = priv;
+        const cont = document.createElement("div");
+        cont.replaceChildren(inp, lab);
+        return cont;
+    }
+    function clearForm() {
+        for (let i = 0, l = privSelectCont.children.length; i < l; i ++) {
+            privSelectCont.children[i].children[0].checked = false;
+        }
+        name_input.value = "";
+        error_area.hidden = true;
+        name_area.hidden = true;
+        yupdate_radio.checked = false;
+        nupdate_radio.checked = true;
+    }
+    /**@type {HTMLDivElement} */
+    const privSelectCont = document.getElementById("pg-ef-privs");
+    for (const priv in perms.PRIVILEGES) {
+        privSelectCont.appendChild(makePrivSelect(Number(priv)));
+    }
+    document.getElementById("pg-ef-cancel").onclick = () => {
+        modal.hidden = true;
+        clearForm();
+    };
+    document.getElementById("pg-ef-confirm").onclick = () => {
+        const name = yupdate_radio.checked ? name_input.value : currEditData.name;
+        let privs = 0;
+        for (let i = 0, l = privSelectCont.children.length; i < l; i ++) {
+            /**@type {HTMLInputElement} */
+            const sel = privSelectCont.children[i].children[0];
+            if (sel.checked) {
+                privs |= (1<<(sel._priv));
+            }
+        }
+        if (privs === 0) {
+            error_text.textContent = "Must select at least one privilege";
+            error_area.hidden = false;
+            return;
+        }
+        if (name.length === 0) {
+            error_text.textContent = "Must enter a valid name";
+            error_area.hidden = false;
+            return;
+        }
+        fetch(`https://${document.location.hostname}/acc/admin/pgrp/update`, {method:"POST",body:JSON.stringify({name,flags:privs})}).then(r1 => {
+            if (r1.ok) {
+                r1.text().then(t1 => {
+                    clearForm();
+                    modal.hidden = true;
+                    result_message.textContent = `Group '${name}' updated successfully (id ${t1})`;
+                    result_modal.hidden = false;
+                    afterEditFunc();
+                });
+            } else {
+                switch (r1.status) {
+                    case 403:case 500: {
+                        r1.text().then(t1 => {
+                            clearForm();
+                            modal.hidden = true;
+                            result_message.textContent = `Error: ${t1}`;
+                            result_modal.hidden = false;
+                        });
+                        return;
+                    }
+                    default: {
+                        r1.text().then(t1 => {
+                            error_text.textContent = t1;
+                            error_area.hidden = false;
+                        });
+                        return;
+                    }
+                }
+            }
+        });
+    };
+    /**
+     * @param {PGData} data
+     * @param {{page:number,count?:number,filter?:string}} pageinfo
+     */
+    function showEditModal(data, pageinfo) {
+        currEditData = data;
+        for (const priv in perms.PRIVILEGES) {
+            const shift = Number(priv);
+            /**@type {HTMLInputElement} */
+            const box = document.getElementById(`pg-ef-priv-${priv}`);
+            if (data.privs & (1<<shift)) {
+                box.checked = true;
+            } else {
+                box.checked = false;
+            }
+        }
+        afterEditFunc = () => {
+            refreshPGList(pageinfo.page,{pagesize:pageinfo.count,namefilter:pageinfo.filter});
+            afterEditFunc = defaultEditFunc;
+        };
+        modal.hidden = false;
+    }
+    /**
+     * @param {number} page
+     * @param {{pagesize?:number,namefilter?:string}?} options
+     */
+    async function refreshPGList(page, options) {
+        let params = `page=${page}`;
+        if (options?.pagesize) {
+            params += `&count=${options.pagesize}`;
+        }
+        if (options?.namefilter) {
+            params += `&name=${options.namefilter}`;
+        }
+        const res = await fetch(`https://${document.location.hostname}/acc/admin/pgrp/list?${params}`, {method:"GET"});
+        if (!res.ok) {
+            alert(`${res.status}: ${await res.text()}`);
+            return;
+        }
+        /**@type {{total:number,pagesize:number,groups:PGData[]}} */
+        const data = await res.json();
+        document.getElementById("pg-lc-pagecount").textContent = `${Math.ceil(data.total/data.pagesize)}`;
+        const rows = data.groups.map(v => makePGListEntry(v.gid, v.name, getHighestPriv(perms, v.privs), v.members, ()=>{showEditModal(v,{page,count:options?.pagesize,filter:options?.namefilter})}));
+        /**@type {HTMLTableSectionElement} */
+        const list = document.getElementById("pg-list").children[1];
+        list.replaceChildren(...rows);
+    }
+    return { refreshPGList };
 }
 
 // fetch(`https://${document.location.hostname}/acc/admin/pgrp/list?page=1`, {method:"GET"}).then(res => {

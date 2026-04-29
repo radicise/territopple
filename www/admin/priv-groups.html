@@ -56,6 +56,30 @@
                 <input type="button" value="Cancel" id="pg-cf-cancel">
             </div>
         </div>
+        <div id="edit-form" class="modal" hidden>
+            <div>
+                <div id="pg-ef-panes">
+                    <div>
+                        Update Name?<br>
+                        <input type="radio" name="pg-ef-update" id="pg-ef-yupdate">
+                        <label for="pg-ef-yupdate">Update</label><br>
+                        <input type="radio" name="pg-ef-update" id="pg-ef-nupdate" checked>
+                        <label for="pg-ef-nupdate">No Update</label>
+                        <div id="pg-ef-name-update" hidden>
+                            <label for="pg-ef-name">Group Name: </label>
+                            <input type="text" id="pg-ef-name">
+                        </div>
+                        <p id="pg-ef-error" hidden>
+                            <span style="color: darkred;">Error: </span>
+                            <span></span>
+                        </p>
+                    </div>
+                    <div id="pg-ef-privs"></div>
+                </div>
+                <input type="button" value="Edit Group" id="pg-ef-confirm">
+                <input type="button" value="Canel" id="pg-ef-cancel">
+            </div>
+        </div>
         <div id="create-result" class="modal" hidden>
             <div>
                 <p id="pg-cr-msg"></p>

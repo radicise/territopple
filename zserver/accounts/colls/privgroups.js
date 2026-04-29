@@ -34,7 +34,7 @@ async function handlePGroupList(url, res, acr, req_privs) {
         res.writeHead(400,{"content-type":"text/plain"}).end("malformed request (bad page)");
         return;
     }
-    const pagesize = url.searchParams.has("count")?Number(url.searchParams.get("count")):20;
+    const pagesize = Math.max(10,Math.min(url.searchParams.has("count")?Number(url.searchParams.get("count")):20,30));
     if (isNaN(pagesize)) {
         res.writeHead(400,{"content-type":"text/plain"}).end("malformed request (bad pagesize)");
         return;
@@ -51,7 +51,7 @@ async function handlePGroupList(url, res, acr, req_privs) {
     cursor.skip(pagesize*page);
     cursor.limit(pagesize);
     const data = await cursor.toArray();
-    res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({total,groups:data}));
+    res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({total,pagesize,groups:data}));
 }
 
 /**
