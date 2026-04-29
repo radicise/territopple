@@ -1,3 +1,7 @@
+# Apr 28, 2026 (DEV2026erY1)
+fixed some bugs with permissions checks
+add profile pictures to community page
+
 # Apr 28, 2026 (DEV20263rY0)
 added admin priv group editing
 
