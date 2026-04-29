@@ -225,7 +225,7 @@ async function processAdminFetch(req, res, url, log) {
                             return;
                         }
                         if (!(check_sanction_allowed(mod_p,rec.sanction_id)&&check_can_moderate(mod_p, tar_p))) {
-                            console.log(`MODP: ${mod_p}\nSID: ${rec.sanction_id}\nTARP: ${tar_p}`);
+                            console.log(`MODP: ${mod_p}\nSID: ${rec.sanction_id}\nREC: ${rec}\nTARP: ${tar_p}`);
                             res.writeHead(403,{"content-type":"text/plain"}).end("you do not have permission to modify this sanction");
                             return;
                         }
