@@ -212,6 +212,7 @@ function get_sanction_perms(source) {
 function check_sanction_allowed(source, sid) {
     // bypass flag requires priv admin or apply priv groups
     if (sid&0x80000000) {return check_permission(source, Permissions.PRIV_ADMIN,Permissions.APPLY_PRIV_GROUPS);}
+    sid = sid & 0x0fffffff;
     // exceptions
     if (check_permission(source, Permissions.MODERATE)) {
         switch (sid) {
