@@ -126,7 +126,15 @@
             priv_list.replaceChildren();
             if (info.priv_level || info.priv_groups) {
                 addPrivs({privs:info.priv_level,name:"Inherent",gid:-1});
-                info.priv_groups?.forEach(addPrivs);
+                info.priv_groups?.forEach(gid=>fetch(`https://${document.location.hostname}/acc/admin/priv-group-info?id=${gid}`).then(r1=>{
+                    if (r1.ok) {
+                        r1.json().then(j1 => {
+                            addPrivs(j1);
+                        });
+                    } else {
+                        addPrivs({privs:0,name:"Failed to Fetch Data",gid});
+                    }
+                }));
             } else {
                 priv_list.textContent = "None";
             }
