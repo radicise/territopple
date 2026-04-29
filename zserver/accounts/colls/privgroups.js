@@ -106,7 +106,7 @@ async function handlePGroupUpdate(body, res, url, acr, req_privs) {
         return;
     }
     const data = JSON.parse(body);
-    if (!validateJSONScheme(data, schemes.adminPGrpCreate)) {
+    if (!validateJSONScheme(data, schemes.adminPGrpUpdate)) {
         res.writeHead(422,{"content-type":"text/plain"}).end("invalid request data");
         return;
     }
