@@ -6,6 +6,10 @@ const defaultEditFunc = async () => {};
 let afterEditFunc = defaultEditFunc;
 /**@type {PGData} */
 let currEditData = null;
+/**@type {(data:{page:number,count?:number,filter?:string})=>void} */
+let g_refreshPGList;
+/**@type {{page:number,count?:number,filter?:string}} */
+let currPageData = null;
 
 (async () => {
     await INCLUDE_FINISHED;
@@ -17,6 +21,7 @@ let currEditData = null;
 
     await makeCreateForm(perms);
     const { refreshPGList } = makeEditForm(perms);
+    g_refreshPGList = (data) => {refreshPGList(data.page,{pagesize:data.count,namefilter:data.filter});};
     refreshPGList(1);
 })();
 
@@ -132,6 +137,7 @@ async function makeCreateForm(perms) {
                     modal.hidden = true;
                     result_message.textContent = `Group '${name}' created successfully, group id ${t1}`;
                     result_modal.hidden = false;
+                    g_refreshPGList(currPageData);
                 });
             } else {
                 switch (r1.status) {
@@ -183,7 +189,6 @@ function makeEditForm(perms) {
     const member_status = document.getElementById("pg-ef-memstatus");
     /**@type {HTMLInputElement} */
     const member_accid = document.getElementById("pg-ef-member");
-    let currPageData = null;
     /**
      * @param {number} priv
      * @returns {HTMLDivElement}
