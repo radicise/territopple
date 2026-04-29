@@ -217,13 +217,15 @@ async function processAdminFetch(req, res, url, log) {
                         const acr = await getAccountRecord(accid);
                         const mod_p = await getEffectivePrivs(acr);
                         const tacr = await getAccountRecord(data.acc);
+                        const tar_p = await getEffectivePrivs(tacr);
                         /**@type {SanctionRecord} */
                         const rec = await collection.find({id:data.acc}).project({sanction:{$elemMatch:{refid:data.refid}}}).tryNext();
                         if (rec === null) {
                             res.writeHead(404).end("sanction not found");
                             return;
                         }
-                        if (!(check_sanction_allowed(mod_p,rec.sanction_id)&&check_can_moderate(mod_p, await getEffectivePrivs(tacr)))) {
+                        if (!(check_sanction_allowed(mod_p,rec.sanction_id)&&check_can_moderate(mod_p, tar_p))) {
+                            console.log(`MODP: ${mod_p}\nSID: ${rec.sanction_id}\nTARP: ${tar_p}`);
                             res.writeHead(403,{"content-type":"text/plain"}).end("you do not have permission to modify this sanction");
                             return;
                         }
