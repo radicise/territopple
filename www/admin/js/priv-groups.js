@@ -315,6 +315,7 @@ function makeEditForm(perms) {
         /**@type {{total:number,pagesize:number,groups:PGData[]}} */
         const data = await res.json();
         document.getElementById("pg-lc-pagecount").textContent = `${Math.ceil(data.total/data.pagesize)}`;
+        document.getElementById("pg-lc-cpage").value = page;
         const rows = data.groups.map(v => makePGListEntry(v.gid, v.name, getHighestPriv(perms, v.privs), v.members, ()=>{showEditModal(v,{page,count:options?.pagesize,filter:options?.namefilter})}));
         /**@type {HTMLTableSectionElement} */
         const list = document.getElementById("pg-list").children[1];
