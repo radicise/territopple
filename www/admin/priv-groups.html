@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/_icons.js"></script>
+        <title>Territopple - Admin Priv Group Management</title>
+        <link rel="stylesheet" type="text/css" href="/admin/css/priv-groups.css" />
+    </head>
+    <body>
+        <meta data-import="/components/admin/disp.html" />
+        <a href="/admin">admin home</a><br>
+        <div id="pg-search-cont">
+            <label for="pgs-entry">Priv Group Name: </label>
+            <input type="text" id="pgs-entry">
+            <input type="button" value="Search" id="pgs-button">
+        </div>
+        <div id="pg-quick-controls">
+            <input type="button" value="Create" id="pgqc-create" onclick="document.getElementById('create-form').hidden=false">
+        </div>
+        <div id="pg-list-cont">
+            <table id="pg-list">
+                <thead>
+                    <tr>
+                        <th>Group ID</th>
+                        <th>Group Name</th>
+                        <th>Highest Privilege</th>
+                        <th>Members</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div id="pg-list-controls">
+                <input type="button" value="First" id="pg-lc-first">
+                <input type="button" value="Prev" id="pg-lc-prev">
+                <span>
+                    page <input type="number" min="1" value="0" id="pg-lc-cpage"> of <span id="pg-lc-pagecount">0</span>
+                </span>
+                <input type="button" value="Next" id="pg-lc-next">
+                <input type="button" value="Last" id="pg-lc-last">
+            </div>
+        </div>
+        <div id="create-form" class="modal" hidden>
+            <div>
+                <div id="pg-cf-panes">
+                    <div>
+                        <label for="pg-cf-name">Group Name: </label>
+                        <input type="text" id="pg-cf-name"><br>
+                        <p id="pg-cf-error" hidden>
+                            <span style="color: darkred;">Error: </span>
+                            <span></span>
+                        </p>
+                    </div>
+                    <div id="pg-cf-privs"></div>
+                </div>
+                <input type="button" value="Create Group" id="pg-cf-confirm">
+                <input type="button" value="Cancel" id="pg-cf-cancel">
+            </div>
+        </div>
+        <div id="edit-form" class="modal" hidden>
+            <div>
+                <div id="pg-ef-panes">
+                    <div style="width:40vw;">
+                        Update Name?<br>
+                        <input type="radio" name="pg-ef-update" id="pg-ef-yupdate">
+                        <label for="pg-ef-yupdate">Update</label><br>
+                        <input type="radio" name="pg-ef-update" id="pg-ef-nupdate" checked>
+                        <label for="pg-ef-nupdate">No Update</label>
+                        <div id="pg-ef-name-update" hidden>
+                            <label for="pg-ef-name">Group Name: </label>
+                            <input type="text" id="pg-ef-name">
+                        </div>
+                        <p id="pg-ef-error" hidden>
+                            <span style="color: darkred;">Error: </span>
+                            <span></span>
+                        </p>
+                        <div>
+                            Edit Membership:<br>
+                            <label for="pg-ef-member">Account ID: </label>
+                            <input type="text" id="pg-ef-member"><br>
+                            <input type="button" value="Add" id="pg-ef-addm">
+                            <input type="button" value="Remove" id="pg-ef-remm"><br>
+                            <span id="pg-ef-memstatus"></span>
+                        </div>
+                    </div>
+                    <div id="pg-ef-privs"></div>
+                </div>
+                <input type="button" value="Edit Group" id="pg-ef-confirm">
+                <input type="button" value="Cancel" id="pg-ef-cancel">
+            </div>
+        </div>
+        <div id="create-result" class="modal" hidden>
+            <div>
+                <p id="pg-cr-msg"></p>
+                <input type="button" value="Okay" onclick="document.getElementById('create-result').hidden=true">
+            </div>
+        </div>
+        <script src="/components/utils/make.js"></script>
+        <script src="/components/include.js"></script>
+        <script src="/admin/js/priv-groups.js"></script>
+    </body>
+</html>

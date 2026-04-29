@@ -52,12 +52,18 @@ const mdb = require("mongodb");
  * incoming_friends:string[]?,
  * outgoing_friends:string[]?,
  * devtst:boolean?,
- * next_refid:number
+ * next_refid:number,
+ * pfp:string?
  * }}
  */
 
 /**
- * @typedef {{gid:number,name:string,privs:number}} PrivGroupRecord
+ * @typedef {{gid:number,name:string,privs:number,members:number}} PrivGroupRecord
+ */
+
+/**
+ * @typedef PFPRecord
+ * @type {{_id:mdb.ObjectId,data:mdb.Binary,type:string,refcount:number,src:string,hash:mdb.Binary}}
  */
 
 /**
@@ -90,5 +96,6 @@ exports.AppealRejectionRecord = this.AppealRejectionRecord;
 exports.SanctionRecord = this.SanctionRecord;
 exports.AccountRecord = this.AccountRecord;
 exports.PrivGroupRecord = this.PrivGroupRecord;
+exports.PFPRecord = this.PFPRecord;
 exports.FlagF1 = FlagF1;
 exports.checkFlag = checkFlag;

@@ -6,6 +6,7 @@
         <title>Territopple - Email Verified</title>
     </head>
     <body>
+        <meta data-import="/components/accounts/disp.html" />
         <p>creating account, please wait</p>
         <script>
             fetch(`https://${document.location.hostname}/acc/with-code`, {method:"PUT",headers:[["Content-Type","application/json"]],body:(new URL(location.href)).searchParams.get("code")}).then((v) => {
@@ -17,5 +18,6 @@
                 }
             })
         </script>
+        <script src="/components/include.js"></script>
     </body>
 </html>

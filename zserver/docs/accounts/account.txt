@@ -19,5 +19,6 @@ all fields marked with "pub" are publicly accessible
     incoming_friends<string[]>: list of account ids that have sent a friend request to this account,
     outgoing_friends<string[]>: list of account ids that this accound has sent a friend request to,
     pub flagf1<int32>: see "./flags.txt",
-    next_refid<int32>: next sanction refid
+    next_refid<int32>: next sanction refid,
+    pub pfp<string>: profile picture id,
 }

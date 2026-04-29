@@ -21,3 +21,5 @@
 /www/commonjs
 /nginx.conf
 /logs
+/root
+/pids

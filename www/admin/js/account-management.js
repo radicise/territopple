@@ -1,12 +1,12 @@
 (async () => {
     await INCLUDE_FINISHED;
-    /**@typedef {import("../../zserver/accounts/types.js").AccountRecord} AccountRecord */
-    /**@typedef {import("../../zserver/accounts/types.js").SanctionRecord} SanctionRecord */
-    /**@typedef {import("../../zserver/accounts/types.js").PrivGroupRecord} PrivGroupRecord */
-    /**@typedef {import("../../zserver/accounts/types.js").AppealRejectionRecord} AppealRejectionRecord */
-    /**@type {typeof import("../../commonjs/sanctions.mjs")} */
+    /**@typedef {import("../../../zserver/accounts/types.js").AccountRecord} AccountRecord */
+    /**@typedef {import("../../../zserver/accounts/types.js").SanctionRecord} SanctionRecord */
+    /**@typedef {import("../../../zserver/accounts/types.js").PrivGroupRecord} PrivGroupRecord */
+    /**@typedef {import("../../../zserver/accounts/types.js").AppealRejectionRecord} AppealRejectionRecord */
+    /**@type {typeof import("../../../commonjs/sanctions.mjs")} */
     const sanctions = await import("/commonjs/sanctions.mjs");
-    /**@type {typeof import("../../commonjs/perms.mjs")} */
+    /**@type {typeof import("../../../commonjs/perms.mjs")} */
     const perms = await import("/commonjs/perms.mjs");
     const adminid = (await (await fetch(`https://${document.location.hostname}/acc/admin/check`, {method:"GET"})).json()).name;
     {
@@ -126,7 +126,15 @@
             priv_list.replaceChildren();
             if (info.priv_level || info.priv_groups) {
                 addPrivs({privs:info.priv_level,name:"Inherent",gid:-1});
-                info.priv_groups?.forEach(addPrivs);
+                info.priv_groups?.forEach(gid=>fetch(`https://${document.location.hostname}/acc/admin/priv-group-info?id=${gid}`).then(r1=>{
+                    if (r1.ok) {
+                        r1.json().then(j1 => {
+                            addPrivs(j1);
+                        });
+                    } else {
+                        addPrivs({privs:0,name:"Failed to Fetch Data",gid});
+                    }
+                }));
             } else {
                 priv_list.textContent = "None";
             }
