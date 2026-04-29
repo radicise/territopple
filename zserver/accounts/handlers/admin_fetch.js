@@ -96,8 +96,8 @@ async function processAdminFetch(req, res, url, log) {
         case "GET":{
             switch (stripped) {
                 case "/priv-group-info": {
-                    const target = url.searchParams.get("id");
-                    if (!target) {
+                    const target = Number(url.searchParams.get("id"));
+                    if (isNaN(target)) {
                         res.writeHead(400).end("no target");
                         return;
                     }
