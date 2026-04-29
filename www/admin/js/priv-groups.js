@@ -331,7 +331,7 @@ function makeEditForm(perms) {
     }
     const assignGroup = (add) => {
         fetch(`https://${document.location.hostname}/acc/admin/pgrp/assign`, {method:"POST",body:JSON.stringify({gid:currEditData.gid,accid:member_accid.value,add})}).then(r1 => {
-            r1.text(t1 => {
+            r1.text.then(t1 => {
                 member_status.textContent = t1;
                 refreshPGList(currPageData.page,{pagesize:currPageData.count,namefilter:currPageData.filter});
             });
