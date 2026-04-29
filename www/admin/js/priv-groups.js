@@ -246,7 +246,7 @@ function makeEditForm(perms) {
                 r1.text().then(t1 => {
                     clearForm();
                     modal.hidden = true;
-                    result_message.textContent = `Group '${name}' updated successfully (id ${t1})`;
+                    result_message.textContent = `Group '${name}' updated successfully (id ${currEditData.gid})`;
                     result_modal.hidden = false;
                     afterEditFunc();
                 });
