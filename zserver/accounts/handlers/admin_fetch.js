@@ -219,8 +219,8 @@ async function processAdminFetch(req, res, url, log) {
                         const tacr = await getAccountRecord(data.acc);
                         const tar_p = await getEffectivePrivs(tacr);
                         /**@type {SanctionRecord} */
-                        const rec = await collection.find({id:data.acc}).project({sanction:{$elemMatch:{refid:data.refid}}}).tryNext();
-                        if (rec === null) {
+                        const rec = ((await collection.find({id:data.acc}).project({sanction:{$elemMatch:{refid:data.refid}}}).tryNext())?.sanction??[])[0];
+                        if (!rec) {
                             res.writeHead(404).end("sanction not found");
                             return;
                         }
