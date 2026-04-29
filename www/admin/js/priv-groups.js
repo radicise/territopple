@@ -241,7 +241,7 @@ function makeEditForm(perms) {
             error_area.hidden = false;
             return;
         }
-        fetch(`https://${document.location.hostname}/acc/admin/pgrp/update`, {method:"POST",body:JSON.stringify({name,flags:privs})}).then(r1 => {
+        fetch(`https://${document.location.hostname}/acc/admin/pgrp/update`, {method:"POST",body:JSON.stringify({name,flags:privs,gid:currEditData.gid})}).then(r1 => {
             if (r1.ok) {
                 r1.text().then(t1 => {
                     clearForm();
@@ -278,6 +278,7 @@ function makeEditForm(perms) {
      */
     function showEditModal(data, pageinfo) {
         currEditData = data;
+        name_input.value = data.name;
         for (const priv in perms.PRIVILEGES) {
             const shift = Number(priv);
             /**@type {HTMLInputElement} */
