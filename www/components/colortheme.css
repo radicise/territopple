@@ -22,3 +22,10 @@ html {
     color: var(--txt);
 }
 
+img.pfp-img {
+    height: 1.5em;
+    aspect-ratio: 1/1;
+    vertical-align: middle;
+    clip-path: circle(50%);
+}
+

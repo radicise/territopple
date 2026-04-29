@@ -101,7 +101,13 @@ async function loadPage(search, page) {
     const rows = [];
     for (const entry of data) {
         const row = document.createElement("tr");
-        row.replaceChildren(...make([["td",{textContent:entry.id}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:[make("span", {children:makeFriendActions(entry.id, entry.friend),classList:["flex-center"]})]}]]));
+        const pfp = document.createElement("td");
+        pfp.classList.add("no-b-right");
+        const pfp_img = document.createElement("img");
+        pfp_img.classList.add("pfp-img");
+        pfp_img.src = `/acc/pfp/get/${entry.id}`;
+        pfp.appendChild(pfp_img);
+        row.replaceChildren(pfp,...make([["td",{textContent:entry.id,"classList":["no-b-left"]}],["td",{textContent:entry.name}],["td",{textContent:entry.level.toString()}],["td",{textContent:(new Date(entry.odate)).toLocaleDateString()}],["td",{textContent:(new Date(entry.cdate)).toLocaleDateString()}],["td",{children:[make("span", {children:makeFriendActions(entry.id, entry.friend),classList:["flex-center"]})]}]]));
         rows.push(row);
     }
     listTable.replaceChildren(...rows);

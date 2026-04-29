@@ -1,3 +1,14 @@
+# Apr 28, 2026 (DEV2026erY1)
+fixed some bugs with permissions checks
+add profile pictures to community page
+
+# Apr 28, 2026 (DEV20263rY0)
+added admin priv group editing
+
+# Apr 26, 2026 (DEV20263pY0)
+added theme selection to all account pages
+added profile images (restricted to trusted users)
+
 # Apr 25, 2026 [hotfix] (Alpha 1.9.5)
 BUG: fixed a bug that caused original rendering mode to not show any colors other than black
 BUG: fixed a bug that caused the light-dark theme preference to not be remembered
