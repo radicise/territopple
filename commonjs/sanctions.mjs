@@ -12,5 +12,6 @@ export const SANCTION_INFO = [
     {name:"Simul Room Limit",value:"Max Simul Rooms",g:0,dur:[null,null,null,null,9]},
     {name:"Board Size Limit",value:"Max Board Size",g:0,dur:[null,null,null,null,9]},
     {name:"UGC Watch",value:null,g:1,p:[64|128],dur:[6,7,8,9]},
-    {name:"UGC Ban",value:null,g:2,p:[64|128,1],dur:[null,5,7,9]}
+    {name:"UGC Ban",value:null,g:2,p:[64|128,1],dur:[null,5,7,9]},
+    {name:"PFP Ban",value:null,g:1,p:[1],dur:[2,4,7,9]}
 ];
