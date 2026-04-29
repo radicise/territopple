@@ -24,4 +24,12 @@ if (document.location.pathname.startsWith("/account")) {
 }
 document.getElementById("account-name").children[0].children[1].addEventListener("change", function () {
     document.body.parentElement.style.setProperty("--theme", this.value);
+    localStorage.setItem("usrdisp-ldtheme", this.value);
 });
+{
+    const saved_theme = localStorage.getItem("usrdisp-ldtheme") || "light dark";
+    /**@type {HTMLSelectElement} */
+    const s = document.getElementById("account-name").children[0].children[1];
+    s.value = saved_theme;
+    document.body.parentElement.style.setProperty("--theme", saved_theme);
+}

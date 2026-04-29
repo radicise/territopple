@@ -140,6 +140,8 @@ th, tr, td {
 }
 .container > div > div {
     pointer-events: none;
+    color: inherit;
+    background-color: transparent;
 }
 .container:hover {
     cursor: pointer;
