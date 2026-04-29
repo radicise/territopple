@@ -173,6 +173,73 @@ async function handlePGroupDelete(res, url, acr, req_privs) {
 }
 
 /**
+ * @param {string} body
+ * @param {http.ServerResponse} res
+ * @param {URL} url
+ * @param {AccountRecord} acr
+ * @param {number} req_privs
+ */
+async function handlePGroupAssign(body, res, url, acr, req_privs) {
+    if (!check_permission(req_privs, Permissions.PRIV_ADMIN, Permissions.APPLY_PRIV_GROUPS)) {
+        res.writeHead(403,{"content-type":"text/plain"}).end("insufficient permissions");
+        return;
+    }
+    const data = JSON.parse(body);
+    if (!validateJSONScheme(data, schemes.adminPGrpAssign)) {
+        res.writeHead(422,{"content-type":"text/plain"}).end("invalid request data");
+        return;
+    }
+    /**@type {AccountRecord} */
+    const target = await collection.findOne({id:data.accid});
+    if (target === null) {
+        res.writeHead(404,{"content-type":"text/plain"}).end("account not found");
+        return;
+    }
+    const agroups = target.priv_groups??[];
+    const buf = Buffer.alloc(4);
+    buf.writeInt32BE(data.gid);
+    buf[0] = buf[0] | 0x80;
+    const negid = buf.readInt32BE();
+    if (agroups.includes(data.gid) || agroups.includes(negid)) {
+        if (data.add) {
+            res.writeHead(200,{"content-type":"text/plain"}).end("user is already a member of specified group");
+            return;
+        }
+    } else {
+        if (!data.add) {
+            res.writeHead(200,{"content-type":"text/plain"}).end("user is already not a member of specified group");
+            return;
+        }
+    }
+    const group = await priv_groups.findOne({gid:data.gid});
+    if (group === null) {
+        res.writeHead(404,{"content-type":"text/plain"}).end("group not found");
+        return;
+    }
+    let failed = false;
+    await client.withSession(async (session) => {
+        try {
+            await session.withTransaction(async () => {
+                await priv_groups.updateOne({gid:data.gid},{$inc:{members:(data.add?1:-1)}}, {session});
+                if (data.add) {
+                    await collection.updateOne({id:data.accid},{$push:{priv_groups:data.gid}},{session});
+                } else {
+                    await collection.updateOne({id:data.accid},{$pull:{priv_groups:data.gid}},{session});
+                }
+            });
+        } catch (E) {
+            console.log(E);
+            failed = true;
+        }
+    });
+    if (failed) {
+        res.writeHead(500,{"content-type":"text/plain"}).end("unable to assign group");
+        return;
+    }
+    res.writeHead(200,{"content-type":"text/plain"}).end("user updated successfully");
+}
+
+/**
  * processes privelege group operations
  * @param {http.IncomingMessage} req
  * @param {http.ServerResponse} res
@@ -215,6 +282,13 @@ async function handlePGroupRequest(req, res, url, log) {
                     return;
                 }
                 await handlePGroupDelete(res, url, acr, req_privs);
+                return;
+            }
+            case "/assign": { // /acc/admin/pgrp/assign
+                if (req.method !== "POST") {
+                    res.writeHead(405,{"content-type":"text/plain"}).end("POST usage required");
+                }
+                await handlePGroupAssign(await getBody(req), res, url, acr, req_privs);
                 return;
             }
             default: {

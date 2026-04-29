@@ -179,6 +179,11 @@ function makeEditForm(perms) {
     const yupdate_radio = document.getElementById("pg-ef-yupdate");
     /**@type {HTMLInputElement} */
     const nupdate_radio = document.getElementById("pg-ef-nupdate");
+    /**@type {HTMLSpanElement} */
+    const member_status = document.getElementById("pg-ef-memstatus");
+    /**@type {HTMLInputElement} */
+    const member_accid = document.getElementById("pg-ef-member");
+    let currPageData = null;
     /**
      * @param {number} priv
      * @returns {HTMLDivElement}
@@ -205,6 +210,8 @@ function makeEditForm(perms) {
         name_area.hidden = true;
         yupdate_radio.checked = false;
         nupdate_radio.checked = true;
+        member_status.textContent = "";
+        member_accid.value = "";
     }
     /**@type {HTMLDivElement} */
     const privSelectCont = document.getElementById("pg-ef-privs");
@@ -300,6 +307,7 @@ function makeEditForm(perms) {
      * @param {{pagesize?:number,namefilter?:string}?} options
      */
     async function refreshPGList(page, options) {
+        currPageData = {page,count:options?.pagesize,filter:options?.namefilter};
         let params = `page=${page}`;
         if (options?.pagesize) {
             params += `&count=${options.pagesize}`;
@@ -316,11 +324,25 @@ function makeEditForm(perms) {
         const data = await res.json();
         document.getElementById("pg-lc-pagecount").textContent = `${Math.ceil(data.total/data.pagesize)}`;
         document.getElementById("pg-lc-cpage").value = page;
-        const rows = data.groups.map(v => makePGListEntry(v.gid, v.name, getHighestPriv(perms, v.privs), v.members, ()=>{showEditModal(v,{page,count:options?.pagesize,filter:options?.namefilter})}));
+        const rows = data.groups.map(v => makePGListEntry(v.gid, v.name, getHighestPriv(perms, v.privs), v.members, ()=>{showEditModal(v,currPageData)}));
         /**@type {HTMLTableSectionElement} */
         const list = document.getElementById("pg-list").children[1];
         list.replaceChildren(...rows);
     }
+    const assignGroup = (add) => {
+        fetch(`https://${document.location.hostname}/acc/admin/pgrp/assign`, {method:"POST",body:JSON.stringify({gid:currEditData.gid,accid:member_accid.value,add})}).then(r1 => {
+            r1.text(t1 => {
+                member_status.textContent = t1;
+                refreshPGList(currPageData.page,{pagesize:currPageData.count,namefilter:currPageData.filter});
+            });
+        });
+    };
+    document.getElementById("pg-ef-addm").onclick = () => {
+        assignGroup(true);
+    };
+    document.getElementById("pg-ef-remm").onclick = () => {
+        assignGroup(false);
+    };
     return { refreshPGList };
 }
 

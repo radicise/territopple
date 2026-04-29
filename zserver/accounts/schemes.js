@@ -94,6 +94,12 @@ const adminPGrpUpdate = {
     "name": "string",
     "flags": "number"
 };
+/** @type {JSONScheme} */
+const adminPGrpAssign = {
+    "accid": "string",
+    "gid": "number",
+    "add": "boolean"
+};
 
 exports.accCreationScheme = accCreationScheme;
 exports.accLoginScheme = accLoginScheme;
@@ -112,3 +118,4 @@ exports.adminSancManScheme = adminSancManScheme;
 exports.adminSancManAppealScheme = adminSancManAppealScheme;
 exports.adminPGrpCreate = adminPGrpCreate;
 exports.adminPGrpUpdate = adminPGrpUpdate;
+exports.adminPGrpAssign = adminPGrpAssign;
