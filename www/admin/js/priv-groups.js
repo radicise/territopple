@@ -9,7 +9,9 @@ let currEditData = null;
 
 (async () => {
     await INCLUDE_FINISHED;
-    await LOGIN_CHECKED;
+    await new Promise(r => {
+        document.getElementById("ADMIN-CHECK-FLAG").addEventListener("click", r, {once:true});
+    });
     /**@type {typeof import("../../../commonjs/perms.mjs")} */
     const perms = await import("/commonjs/perms.mjs");
 

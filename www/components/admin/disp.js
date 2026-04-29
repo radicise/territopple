@@ -1,4 +1,4 @@
-const LOGIN_CHECKED = new Promise(r => fetch(`https://${document.location.hostname}/acc/admin/check`, {method:"GET"}).then(v => {
+fetch(`https://${document.location.hostname}/acc/admin/check`, {method:"GET"}).then(v => {
     if (v.status !== 200) {
         location.href = "/admin/login.html";
     } else {
@@ -7,6 +7,6 @@ const LOGIN_CHECKED = new Promise(r => fetch(`https://${document.location.hostna
             document.getElementById("admin-name").children[1].children[0].textContent = "logout";
             document.getElementById("admin-name").children[1].children[0].href = "/admin/logout";
         });
-        r();
+        document.getElementById("ADMIN-CHECK-FLAG").dispatchEvent(new MouseEvent("click"));
     }
-}));
+});
