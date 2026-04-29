@@ -1,3 +1,7 @@
+# Apr 28, 2026 (Alpha 1.10.0)
+FEATURE: profile pictures (currently available to most accounts)
+ADMIN: added more admin features
+
 # Apr 28, 2026 (DEV2026erY1)
 fixed some bugs with permissions checks
 add profile pictures to community page
