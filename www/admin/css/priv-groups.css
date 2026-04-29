@@ -17,7 +17,7 @@ div.modal > div {
     width: max-content;
 }
 
-#pg-cf-panes {
+#pg-cf-panes, #pg-ef-panes {
     display: flex;
     flex-direction: row;
 }

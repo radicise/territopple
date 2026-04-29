@@ -211,6 +211,9 @@ function makeEditForm(perms) {
     for (const priv in perms.PRIVILEGES) {
         privSelectCont.appendChild(makePrivSelect(Number(priv)));
     }
+    nupdate_radio.onchange = function () {
+        name_area.hidden = this.checked;
+    };
     document.getElementById("pg-ef-cancel").onclick = () => {
         modal.hidden = true;
         clearForm();
