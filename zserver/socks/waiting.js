@@ -9,6 +9,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     state.isHost = args.isHost ?? false;
+    if (state.accPromise) {
+        state.accPromise.then(() => {emit("account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});});
+    }
     // if (state.isHost) {
     //     sock.send(NetData.Waiting.Promote(state.playerNum));
     // }
