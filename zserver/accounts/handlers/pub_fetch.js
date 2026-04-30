@@ -116,7 +116,11 @@ async function processPubFetch(req, res, url, log) {
             try {
                 /**@type {AccountRecord} */
                 const v = await collection.findOne({id:target});
-                v._id;
+                if (v === null) {
+                    res.writeHead(404,{"content-type":"text/plain"}).end("account not found");
+                    return;
+                }
+                // v._id;
                 const t = Date.now();
                 res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify(v.sanction.filter(v=>!((v.expires<=t&&v.expires!==0)||v.sanction_id&0x20000000)).map(v=>{delete v["notes"];return v;})));
             } catch (E) {
@@ -145,7 +149,11 @@ async function processPubFetch(req, res, url, log) {
         case "/info": {
             try {
                 const v = await collection.findOne({id:target});
-                v._id;
+                if (v === null) {
+                    res.writeHead(404,{"content-type":"text/plain"}).end("account not found");
+                    return;
+                }
+                // v._id;
                 res.writeHead(200,{"content-type":"application/json"}).end(JSON.stringify({id:target,name:v.name,email:self?v.email:undefined,cdate:v.cdate,last_online:v.last_online,level:v.level,sanction:null,rid,flagf1:v.flagf1??0}));
             } catch (E) {
                 console.log(E);
