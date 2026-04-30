@@ -10,7 +10,7 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     if (args["acc"]) {
         state.accId = args["acc"];
     }
-    state.accPromise.then(() => {emit("account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});});
+    state.accPromise.then(() => {emit("account:found", {"n":state.playerNum?state.playerNum:state.spectatorId, "a":state.accId});});
     state.accPromise = null;
     /**@type {string} */
     const rgameId = args["id"];
