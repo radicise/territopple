@@ -316,3 +316,16 @@ x-concentric-tile div:not(:has(> *)) {
         margin-right: 0.125in;
     }
 }
+
+.JLIST-avatar {
+    border-right: none !important;
+    > span {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        font-size: 1.2em;
+    }
+}
+.JLIST-id {
+    border-left: none !important;
+}

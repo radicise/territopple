@@ -278,7 +278,10 @@ process.once("message", (id) => {
             // console.log(req.headers.cookie);
             const sessid = extractSessionId(req.headers.cookie);
             let accpres;
+            let gidpres;
             const accPromise = new Promise(r => {accpres = r;});
+            const gidPromise = new Promise(r => {gidpres = r;});
+            state.accPromise = accPromise;
             if (sessid) {
                 // const e = req.headers.cookie.indexOf(";", p+10);
                 // const id = req.headers.cookie.substring(p+10, e>0?e:undefined);
@@ -290,9 +293,14 @@ process.once("message", (id) => {
                     res.on("data", (chunk) => {data += chunk;});
                     res.on("end", () => {
                         acc = data;
-                        if (gameid) {
-                            emit("main", "account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});
-                        }
+                        // if (gameid) {
+                        //     emit("main", "account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});
+                        // } else {
+                        //     gidPromise.then(() => {
+                        //         emit("main", "account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});
+                        //     });
+                        // }
+                        state.accId = data;
                         accpres();
                         accpres = false;
                     });
