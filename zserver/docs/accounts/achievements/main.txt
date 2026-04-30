@@ -1,0 +1,50 @@
+this file documents account achievements / badges
+
+Achievement:
+this data is stored within an account
+{
+    id<Int32>: id of this achievement,
+    data<UInt64>: extra achievement data
+}
+
+
+Achievement Information:
+this data is stored in a seperate location and describes an achievement
+{
+    id<Int32>: achievement id,
+    granting<{
+        prereqs<Prerequisites>: prerequisite achievements,
+        acts<ActionId>: id of actions to complete to be awarded this achievement see "./action.txt",
+    }>: information on what is required to achieve this achievement,
+    data<{
+        bits<UInt64>: mask of relevant bits, values obtained via this mask must then be shifted such that the
+                      least significant '1' bit of the mask would be in the 1s position,
+        type<Type>: data type,
+        name<String>: name of this data field, must be unique,
+    }[]>: how to interpret the data field,
+    evo<Mutator[]>: how to mutate this data,
+    display<Display>: how to display the achievement see "./display.txt"
+}
+Type(Int32):
+0 - flagset
+1 - uint
+2 - sint
+
+Prerequisite {
+    id<Int32>: prerequisite achievement id,
+    cond<Condition>: see "./condition.txt"
+}
+Prerequisites {
+    comb<Int32>: 0:all,1:any,
+    sub<Prerequisite[]>,
+}
+
+Mutator {
+    act<Int32>: id of Actions to trigger this mutator,
+    dis<Int32>: discriminator,
+    mut<{
+        name<String>: field name,
+        op<Int32>: 0:set,1:+,2:-,3:*,4:/,
+        val<UInt64>: rhs of op, interpreted according to the data field type,
+    }[]>: how to mutate,
+}
