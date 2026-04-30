@@ -317,9 +317,13 @@ x-concentric-tile div:not(:has(> *)) {
     }
 }
 
-#jt-avatar {
+.JLIST-avatar {
     border-right: none !important;
+    > span {
+        display: flex;
+        align-items: end;
+    }
 }
-#jt-locid {
+.JLIST-id {
     border-left: none !important;
 }

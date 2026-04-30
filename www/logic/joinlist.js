@@ -87,7 +87,9 @@ function makeJListActions(type, arg) {
 }
 
 function makeJListAvatar(n) {
+    const cont = document.createElement("span");
     const img = document.createElement("img");
+    cont.appendChild(img);
     img.classList.add("pfp-img");
     if (typeof n === "object") {
         if (n.length === 3) {
@@ -103,7 +105,15 @@ function makeJListAvatar(n) {
     if (!img.src) {
         img.src = "/acc/pfp/get/%40guest";
     }
-    return makeTD(img);
+    return makeTD(cont,["JLIST-avatar"]);
+}
+
+/**
+ * @param {HTMLTableRowElement} c
+ * @param {string} a
+ */
+function setJListAvatar(c, a) {
+    c.children[0].children[0].children[0].src = `/acc/pfp/get/${a}`;
 }
 
 /**
@@ -123,7 +133,7 @@ function setJListPlayerAccount(n, a) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
     c.children[1].textContent = `Player ${n} (${a}) - ${game.playerList[n].team}`;
-    c.children[0].children[0].src = `/acc/pfp/get/${a}`;
+    setJListAvatar(c, a);
 }
 /**
  * @param {string} n
@@ -133,7 +143,7 @@ function setJListSpectatorAccount(n, a) {
     const c = document.getElementById(`JLIST-spectator-${n}`);
     if (!c) return;
     c.children[1].textContent = `${n.slice(0,3)} (${a})`;
-    c.children[0].children[0].src = `/acc/pfp/get/${a}`;
+    setJListAvatar(c, a);
 }
 /**
  * @param {number|string} n
@@ -143,7 +153,7 @@ function setJListSelfAccount(n, a) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
     c.children[1].textContent = `Player ${n} (${a}) [self]`;
-    c.children[0].children[0].src = `/acc/pfp/get/${a}`;
+    setJListAvatar(c, a);
 }
 
 /**
