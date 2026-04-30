@@ -438,13 +438,15 @@ async function handlePFPRequest(req, res, url, log) {
                 res.writeHead(400,{"content-type":"text/plain"}).end("must supply a target account");
                 return;
             }
+            if (target === "%40guest") {
+                await fetchPFP("&&guest", res);
+                return;
+            }
             if (target === "%40self") {
                 const accid = SessionManager.getAccountId(extractSessionId(req.headers.cookie));
                 if (accid === null) {
-                    if (settings.PFPS?.DEFAULT_PFP) {
-                        await fetchPFP("&&guest", res);
-                        return;
-                    }
+                    await fetchPFP("&&guest", res);
+                    return;
                 } else {
                     target = accid;
                 }

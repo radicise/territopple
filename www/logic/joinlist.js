@@ -86,6 +86,26 @@ function makeJListActions(type, arg) {
     return td;
 }
 
+function makeJListAvatar(n) {
+    const img = document.createElement("img");
+    img.classList.add("pfp-img");
+    if (typeof n === "object") {
+        if (n.length === 3) {
+            if (n[2]) {
+                img.src = `/acc/pfp/get/${n[2]}`;
+            }
+        } else {
+            if (n[1]) {
+                img.src = `/acc/pfp/get/${n[1]}`;
+            }
+        }
+    }
+    if (!img.src) {
+        img.src = "/acc/pfp/get/%40guest";
+    }
+    return makeTD(img);
+}
+
 /**
  * @param {number} n
  * @param {string} a
@@ -93,7 +113,7 @@ function makeJListActions(type, arg) {
 function setJListPlayerBot(n, a) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
-    c.children[0].textContent = `${n} (bot ${a}) - ${game.playerList[n].team}`;
+    c.children[1].textContent = `${n} (bot ${a}) - ${game.playerList[n].team}`;
 }
 /**
  * @param {number} n
@@ -102,7 +122,8 @@ function setJListPlayerBot(n, a) {
 function setJListPlayerAccount(n, a) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
-    c.children[0].textContent = `${n} (${a}) - ${game.playerList[n].team}`;
+    c.children[1].textContent = `Player ${n} (${a}) - ${game.playerList[n].team}`;
+    c.children[0].children[0].src = `/acc/pfp/get/${a}`;
 }
 /**
  * @param {string} n
@@ -111,7 +132,8 @@ function setJListPlayerAccount(n, a) {
 function setJListSpectatorAccount(n, a) {
     const c = document.getElementById(`JLIST-spectator-${n}`);
     if (!c) return;
-    c.children[0].textContent = `${n} (${a})`;
+    c.children[1].textContent = `${n.slice(0,3)} (${a})`;
+    c.children[0].children[0].src = `/acc/pfp/get/${a}`;
 }
 /**
  * @param {number|string} n
@@ -120,7 +142,8 @@ function setJListSpectatorAccount(n, a) {
 function setJListSelfAccount(n, a) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
-    c.children[0].textContent = `${n} (${a}) [self]`
+    c.children[1].textContent = `Player ${n} (${a}) [self]`;
+    c.children[0].children[0].src = `/acc/pfp/get/${a}`;
 }
 
 /**
@@ -130,6 +153,7 @@ function addJListSelf(n) {
     const row = document.createElement("tr");
     row.scope = "row";
     row.id = `JLIST-player-${n}`;
+    row.append(makeJListAvatar(n));
     row.append(makeTD(`${n} (Guest) [self]`, ["JLIST-id"]));
     row.append(makeTD(typeof n === "number" ? (n === game.hostNum ? "Host" : "Player") : "Spectator"));
     // row.append(...makeJListActions("self"));
@@ -145,6 +169,7 @@ function addJListPlayer(n) {
     const row = document.createElement("tr");
     row.scope = "row";
     row.id = `JLIST-player-${n[0]}`;
+    row.append(makeJListAvatar(n));
     row.append(makeTD(`${n[0]} (${n[2]??"Guest"}) - ${n[1]}`, ["JLIST-id"]));
     row.append(makeTD(n === game.hostNum ? "Host" : "Player"));
     row.append(makeTD("--:--"));
@@ -169,6 +194,7 @@ function addJListSpectator(n) {
     const row = document.createElement("tr");
     row.id = `JLIST-spectator-${n[0]}`;
     row.scope = "row";
+    row.append(makeJListAvatar(n));
     row.append(makeTD(`${n[0]} (${n[1]??"Guest"})`, ["JLIST-id"]));
     row.append(makeTD("Spectator"));
     row.append(makeTD(""));
@@ -195,7 +221,7 @@ function removeJListSpectator(n) {
 function setJListTime(n, v) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
-    c.children[2].textContent = formatTimer(v);
+    c.children[3].textContent = formatTimer(v);
 }
 /**
  * @param {number} n
@@ -204,7 +230,7 @@ function setJListTime(n, v) {
 function setJListScore(n, v) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
-    c.children[3].textContent = v??"-";
+    c.children[4].textContent = v??"-";
 }
 
 function formatTimer(v) {

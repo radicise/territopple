@@ -316,3 +316,10 @@ x-concentric-tile div:not(:has(> *)) {
         margin-right: 0.125in;
     }
 }
+
+#jt-avatar {
+    border-right: none !important;
+}
+#jt-locid {
+    border-left: none !important;
+}
