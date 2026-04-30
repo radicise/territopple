@@ -9,6 +9,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
     let errorL;
     (() => {
     state.isHost = args.isHost ?? false;
+    if (state.accPromise) {
+        state.accPromise.then(() => {emit("account:found", {"#gameid":gameid, "n":state.playerNum?state.playerNum:state.spectatorId, "a":acc});});
+    }
     // if (state.isHost) {
     //     sock.send(NetData.Waiting.Promote(state.playerNum));
     // }
@@ -25,6 +28,9 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
                 sock.send(NetData.Sync(g, "score"));
             }
         });
+        if (g.res) {
+            sock.send(NetData.Bin.Board(g));
+        }
         // sock.send(Buffer.of(10,10), {"binary":true});
         // for (let i = 0; i < g.players.length; i ++) {
         //     if (g.players[i]) {

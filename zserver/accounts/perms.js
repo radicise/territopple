@@ -109,6 +109,15 @@ const Permissions = Object.seal({
      */
     MANAGE_EVENTS:8,
     /**
+     * (N)
+     * 
+     * access trusted features
+     * @readonly
+     * @type {9}
+     * @constant
+     */
+    TRUSTED:9,
+    /**
      * the domain boundary indicates permissions that require the account email domain to match server configuration or a special exemption in server configuration
      * @readonly
      * @type {28}
@@ -183,7 +192,7 @@ function check_can_moderate(source, target) {
     // priv admins have full trust, DB admin must strip this privilege before sanctioning
     if (check_permission(target, Permissions.PRIV_ADMIN)) return false;
     // moderation actions cannot be applied to those of higher moderation level
-    if (get_sanction_perms(target).lastIndexOf(true) >= get_sanction_perms(source).lastIndexOf(true)) return false;
+    if (get_sanction_perms(target).lastIndexOf(true) > get_sanction_perms(source).lastIndexOf(true)) return false;
     return true;
 }
 
@@ -203,8 +212,23 @@ function get_sanction_perms(source) {
 function check_sanction_allowed(source, sid) {
     // bypass flag requires priv admin or apply priv groups
     if (sid&0x80000000) {return check_permission(source, Permissions.PRIV_ADMIN,Permissions.APPLY_PRIV_GROUPS);}
+    sid = sid & 0x0fffffff;
+    // exceptions
+    if (check_permission(source, Permissions.MODERATE)) {
+        switch (sid) {
+            case 11:case 12:
+                return true;
+        }
+    }
+    if (check_permission(source, Permissions.MANAGE_PUZZLES,Permissions.REVIEW_PUZZLES)) {
+        switch (sid) {
+            case 10:case 11:
+                return true;
+        }
+    }
+    // standard perms
     switch (sid) {
-        case 0:case 1:case 2:case 10:
+        case 0:case 1:case 2:case 10:case 12:
             return check_permission(source, Permissions.APPLY_G1_SANCTION);
         case 3:case 11:
             return check_permission(source, Permissions.APPLY_G2_SANCTION);

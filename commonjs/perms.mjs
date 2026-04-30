@@ -8,6 +8,7 @@ export const PRIVILEGES = {
     6:"Review Puzzles",
     7:"Manage Puzzles",
     8:"Manage Events",
+    9:"Trusted",
     28:"Read Priv Flags",
     29:"Apply Priv Groups",
     30:"Apply G4 Sanction, Review G4 Sanction",

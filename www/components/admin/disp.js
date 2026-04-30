@@ -7,5 +7,6 @@ fetch(`https://${document.location.hostname}/acc/admin/check`, {method:"GET"}).t
             document.getElementById("admin-name").children[1].children[0].textContent = "logout";
             document.getElementById("admin-name").children[1].children[0].href = "/admin/logout";
         });
+        document.getElementById("ADMIN-CHECK-FLAG").dispatchEvent(new MouseEvent("click"));
     }
 });

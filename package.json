@@ -4,9 +4,9 @@
     "express": "4.21.2",
     "express-ws": "5.0.2",
     "mongodb": "6.18",
-    "nodemailer": "7.0.6",
-    "three": "0.173.0",
-    "ws": "8.18.0"
+    "nodemailer": "^7.0.6",
+    "three": "^0.173.0",
+    "ws": "^8.18.0"
   },
   "scripts": {
     "start": "node proc_wrap.js zserver/userver.js",
@@ -19,7 +19,8 @@
     "be-bots": "node zserver/bots/bot_server.js --no-in --auto-restart",
     "be-bots-dev": "node proc_wrap.js zserver/bots/bot_server.js --eval-stdin",
     "be-puzs": "node proc_wrap.js zserver/backend/puzzle_server.js --no-in --auto-restart",
-    "ac-serv": "node proc_wrap.js zserver/accounts/server.js --no-in --auto-restart"
+    "ac-serv": "node proc_wrap.js zserver/accounts/server.js --no-in --auto-restart",
+    "ac-serv-dev": "node proc_wrap.js zserver/accounts/server.js --eval-stdin"
   },
   "name": "territopple",
   "main": "main.js",

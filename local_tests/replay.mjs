@@ -4,8 +4,10 @@ import * as fs from "fs";
 const replay = new ReplayParser(fs.readFileSync(process.argv[2]));
 
 console.log(JSON.stringify(replay.header));
-while (true) {
-    const ev = replay.nextEvent();
-    if (ev === null) break;
-    console.log(JSON.stringify(ev));
+if (!process.argv.includes("--no-body")) {
+    while (true) {
+        const ev = replay.nextEvent();
+        if (ev === null) break;
+        console.log(JSON.stringify(ev));
+    }
 }
