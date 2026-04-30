@@ -534,13 +534,13 @@ conn.addEventListener("open", async function(event) {
                 if (game.hostNum) {
                     const c = document.getElementById(`JLIST-player-${game.hostNum}`);
                     if (c) {
-                        c.children[1].textContent = "Player";
+                        c.children[2].textContent = "Player";
                     }
                 }
                 game.hostNum = data.payload["n"];
                 const c = document.getElementById(`JLIST-player-${game.hostNum}`);
                 if (c) {
-                    c.children[1].textContent = "Host";
+                    c.children[2].textContent = "Host";
                 }
                 // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
                 createBanner({type:"info",content:`Player ${game.hostNum} was promoted to host`});
