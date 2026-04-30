@@ -152,7 +152,13 @@ function setJListSpectatorAccount(n, a) {
 function setJListSelfAccount(n, a) {
     const c = document.getElementById(`JLIST-player-${n}`);
     if (!c) return;
-    c.children[1].textContent = `Player ${n} (${a}) [self]`;
+    let id;
+    if (typeof n === "number") {
+        id = `Player ${n}`;
+    } else {
+        id = `${n.slice(0,3)}`;
+    }
+    c.children[1].textContent = `${id} (${a}) [self]`;
     setJListAvatar(c, a);
 }
 
@@ -205,7 +211,7 @@ function addJListSpectator(n) {
     row.id = `JLIST-spectator-${n[0]}`;
     row.scope = "row";
     row.append(makeJListAvatar(n));
-    row.append(makeTD(`${n[0]} (${n[1]??"Guest"})`, ["JLIST-id"]));
+    row.append(makeTD(`${n[0].slice(0,3)} (${n[1]??"Guest"})`, ["JLIST-id"]));
     row.append(makeTD("Spectator"));
     row.append(makeTD(""));
     row.append(makeTD(""));
