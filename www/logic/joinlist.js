@@ -170,7 +170,7 @@ function addJListSelf(n) {
     row.scope = "row";
     row.id = `JLIST-player-${n}`;
     row.append(makeJListAvatar(n));
-    row.append(makeTD(`${n} (Guest) [self]`, ["JLIST-id"]));
+    row.append(makeTD(`${typeof n === "number" ? n : n.slice(0,3)} (Guest) [self]`, ["JLIST-id"]));
     row.append(makeTD(typeof n === "number" ? (n === game.hostNum ? "Host" : "Player") : "Spectator"));
     // row.append(...makeJListActions("self"));
     row.append(makeTD("--:--"));
