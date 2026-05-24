@@ -194,6 +194,9 @@ function addJListPlayer(n) {
     row.append(makeJListActions("player", n[0]));
     joinedList.append(row);
     rescanHostOnly();
+    if (n[2]) {
+        setJListPlayerAccount(n[0], n[2]);
+    }
 }
 /**
  * @param {number} n
@@ -220,6 +223,9 @@ function addJListSpectator(n) {
     // const lspecs = joinedList.querySelectorAll(".spectator");
     joinedList.append(row);
     rescanHostOnly();
+    if (n[1]) {
+        setJListSpectatorAccount(n[0], n[1]);
+    }
 }
 /**
  * @param {string} n
