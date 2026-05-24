@@ -1,0 +1,155 @@
+this file defines the format for achievement code, used to define conditions and update rules
+
+
+achievement code is composed of one or more statements or special expressions.
+
+special expressions are used to dictate control flow and other miscellaneous tasks, there exists no
+syntax common to all special expressions
+
+Statements:
+    all statements begin with a byte of value 0
+
+    a statement is composed of three or four parts:
+    DESTINATION | OPERAND 1 | OPERATION | OPERAND 2
+    if the operation is unary, the second operand is dropped
+    the result of the operation is stored in the destination
+
+    a destination is a location, an operand is a location or immediate value
+
+    any code that modifies a temporary may be evaluated lazily
+
+    if the high bit of the first byte of an operand is set, it is an immediate, and interpreted as though it were cleared
+
+    Location:
+        N | DOMAIN | [ .KEY ]*N
+
+        N is a byte
+
+        a domain is represented as a byte, keys are strings or numbers
+
+        Domains:
+        0 - temporary, only allows numeric keys
+        1 - bound account, read only
+        2 - bound achievement data
+        64:80 - multipurpose (invalid unless specified)
+
+        in the case that a domain allows only numeric keys, keys in that domain shall omit the length byte
+
+        Keys:
+        BYTE - length/type
+
+        IF (length == 0) {
+            the key is numeric, the next byte is a u8 value
+        } ELSE {
+            the key is a string, the next 'length' bytes are a utf8 string
+        }
+        in the event that an array type is accessed through a non-numeric key
+        it will be as though the array were mapped with Array.map((v) => v.KEY)
+    Immediate:
+        BYTE - type
+
+        Types      |     Size
+        0  - null        0
+        1  - u8          1
+        2  - u16         2
+        3  - u32         4
+        4  - u64         8
+        5  - s8          1
+        6  - s16         2
+        7  - s32         4
+        8  - s64         8
+        9  - f64         8
+        10 - str         x
+
+        The next 'size' bytes are the value in big endian
+        in the case of strings, the next byte is the size, and the next size bytes are a utf8 string
+        NOTE: strings are accepted as on operand only in the cases of assignment and equality
+    
+    Operation:
+        BYTE - operation
+
+        0   - assignment (unary)
+        1   - addition
+        2   - subtraction
+        3   - multiplication
+        4   - division
+        5   - floordiv
+        6   - modulo
+        7   - logical not (unary)
+        8   - logical and
+        9   - logical or
+        10  - bitwise not (unary)
+        11  - bitwise and
+        12  - bitwise or
+        13  - bitwise xor
+        14  - shift left
+        15  - shift right
+        16  - equality
+        17  - greater
+        18  - less
+        19  - greater or equal
+        20  - less or equal
+    Note: the result of any comparison operation will be a u8 value of 1 if true and 0 if false
+
+Special Expressions:
+    all special expressions begin with a byte of value 1
+
+    BYTE - expr
+
+    0 (YIELD):
+        YIELD | OPERAND
+        control flow expression, yields a value and ends execution
+    1 (IF):
+        IF | OPERAND | IMMEDIATE
+        if the operand is logically false, then skip the next immediate bytes
+        IMMEDIATE must be a non-negative integer type
+    3 (INVOKE):
+        INVOKE | KEY | TARGET | [ OPERAND ]*
+        invokes the target with the given operands, and assigns the result to TMP.KEY
+        KEY is one byte interpreted as a u8, TARGET is interpreted as a string (see invocation targets)
+
+Invocation Targets:
+    this is the list of targets that may be invoked, and their signatures
+
+    u8 "contains" ((Array) Operand a, (Any) Operand b):
+        returns true if 'b' is an element of 'a'
+    Array<UserGroup> "getusergroups" ((Account) Operand a):
+        returns an array of user group objects that 'a' is a member of
+    Array<s32> "getusergroupids" ((Account) Operand a):
+        returns an array of the ids of the groups that 'a' is a member of
+    u64 "time" ():
+        returns the current time in milliseconds
+    u32 "year" ((u64) Operand a):
+        returns the year that corresponds to the given timestamp in the UTC+0 timezone
+
+
+
+Examples:
+    Anniversary Mutator:
+        Pseudocode:
+            age = (time().year - account.cdate.year)
+            return age
+        Bytecode:
+            01 03 00 04 74 69 6d 65 ; tmp.0 = time()
+            01 03 00 04 79 65 61 72 01 00 00 ; tmp.0 = year(tmp.0)
+            01 03 01 04 79 65 61 72 01 01 05 63 64 61 74 65 ; tmp.1 = year(account.cdate)
+            00 01 00 00 01 00 00 02 01 00 01 ; tmp.0 = tmp.0 - tmp.1
+            00 00 02 01 00 00 00 ; achievement.data = tmp.0
+            01 00 80 00 ; return null
+    Anniversary Display Selector:
+        Pseudocode:
+            if (achievement.data > 0) {
+                return 1
+            } else {
+                return 0
+            }
+        Bytecode (unoptimized):
+            00 01 00 00 00 02 11 80 01 00 ; tmp.0 = achievement.data > 0
+            01 01 01 00 00 01 05 ; if not tmp.0, jmp +5
+            01 00 80 01 01 ; return 1
+            01 00 80 01 00 ; return 0
+        Bytecode (optimized):
+            00 01 00 00 00 02 11 80 01 00 ; tmp.0 = achievement.data > 0
+            01 00 01 00 00 ; return tmp.0
+
+

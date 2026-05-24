@@ -1669,6 +1669,22 @@ function fromBytes(b, _) {
     return Number(acc);
 }
 
+/**
+ * @template T
+ * @param {T} obj
+ * @returns {T}
+ */
+function clone(obj) {
+    if (typeof obj === "object") {
+        const nobj = {};
+        for (const k in obj) {
+            nobj[k] = clone(obj[k]);
+        }
+        return nobj;
+    }
+    return obj;
+}
+
 exports.__dname = __dname;
 exports.extend = extend;
 exports.assembleByte = assembleByte;
@@ -1683,6 +1699,7 @@ exports.profile_events = profile_events;
 exports.nbytes = nbytes;
 exports.fromBytes = fromBytes;
 exports.validateJSONScheme = validateJSONScheme;
+exports.clone = clone;
 this.JSONScheme = undefined;
 exports.JSONScheme = this.JSONScheme;
 // exports.JSONSchemeType = this.JSONSchemeType;

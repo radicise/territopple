@@ -7,7 +7,7 @@ const nodemailer = require("nodemailer");
 const { SecretData, SensitiveData, AccountId, AuthToken, RotatingCryptoData } = require("./common.js");
 const { randomBytes, randomInt, sign, generateKeyPair } = require("crypto");
 const auth = require("./auth.js");
-const { mdb, client, getEffectivePrivs, collection, priv_groups } = require("./db.js");
+const { mdb, client, getEffectivePrivs, collection, priv_groups, getAccountRecord } = require("./db.js");
 const http = require("http");
 const { ensureFile, addLog, logStamp, settings, validateJSONScheme, assembleByte } = require("../../defs.js");
 // const mdb = require("mongodb");
@@ -22,6 +22,7 @@ const { ACC_CREAT_TIMEOUT, ACC_PWRST_TIMEOUT, ACC_MAX_NAME_LEN, EACCESS, EREJECT
 const { processPubFetch } = require("./handlers/pub_fetch.js");
 const { processAdminFetch } = require("./handlers/admin_fetch.js");
 const { handlePFPRequest } = require("./colls/pfps.js");
+const { triggerManual } = require("./achi/primary.js");
 
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid");
@@ -614,8 +615,45 @@ const internal_server = http.createServer(async (req, res) => {
     const log = (p, d) => {addLog(p, `${TIME} - ${REQNUM} - ${d}\n`)};
     // /**@type {(op:string)=>void} */
     // const notimpl = (op)=>{log(IREJECT, `${op} not implemented`);};
-    log(IACCESS, `${req.method} - ${url}`);
+    // log(IACCESS, `${req.method} - ${url}`);
     switch (url.pathname) {
+        case "/achievement": {
+            if (req.method !== "POST") {
+                res.writeHead(405).end();
+                return;
+            }
+            const accid = url.searchParams.get("id");
+            const actid = url.searchParams.get("act");
+            const discm = url.searchParams.get("dis");
+            if (!(accid && actid && discm) || isNaN(discm)) {
+                res.writeHead(400).end();
+                return;
+            }
+            try {
+                const acr = await getAccountRecord(accid);
+                if (!acr) {
+                    res.writeHead(404).end();
+                    return;
+                }
+                const result = await triggerManual(acr, actid, Number(discm));
+                const sets = {};
+                for (const achi of result.granted) {
+                    sets[achi.id] = achi.data;
+                }
+                for (const achi of result.mutated) {
+                    sets[achi.id] = achi.data;
+                }
+                if ((await collection.updateOne({id:accid},{$set:sets})).modifiedCount !== 1) {
+                    res.writeHead(500).end();
+                    return;
+                }
+                res.writeHead(200).end();
+            } catch (E) {
+                console.log(E);
+                res.writeHead(500).end();
+            }
+            return;
+        }
         case "/session-keepalive":{
             if (req.method !== "GET") {
                 res.writeHead(405).end();

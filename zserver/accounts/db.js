@@ -2,6 +2,7 @@ const mdb = require("mongodb");
 
 const { settings } = require("../../defs.js");
 const { AccountRecord } = require("./types.js");
+const { DBAchiDef } = require("./achi/types.js");
 
 if (!settings.DB_CONFIG?.URI) {
     throw new Error("no database uri");
@@ -15,6 +16,11 @@ const db = client.db("accounts");
 const collection = db.collection("basic-info");
 const priv_groups = db.collection("priv-groups");
 const pfp_data = db.collection("pfps");
+/**@type {mdb.Collection<DBAchiDef>} */
+const achi_data = db.collection("achi");
+/**@ type {mdb.Collection<import("./achi/types.js").DBAction} */
+/**@type {mdb.Collection<import("./achi/types.js").DBAction|import("./achi/types.js").DBActionGroup>} */
+const acts_data = db.collection("acts");
 
 /**
  * @param {AccountRecord} rec
@@ -58,6 +64,8 @@ exports.db = db;
 exports.collection = collection;
 exports.priv_groups = priv_groups;
 exports.pfp_data = pfp_data;
+exports.achi_data = achi_data;
+exports.acts_data = acts_data;
 exports.getEffectivePrivs = getEffectivePrivs;
 
 exports.AccountNotFoundError = AccountNotFoundError;

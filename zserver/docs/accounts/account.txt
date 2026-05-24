@@ -21,5 +21,5 @@ all fields marked with "pub" are publicly accessible
     pub flagf1<int32>: see "./flags.txt",
     next_refid<int32>: next sanction refid,
     pub pfp<string>: profile picture id,
-    pub achieve<Null|Achievement[]>: account achievements see "./achievements/main.txt"
+    pub achieve<Record<string,Achievement>>: account achievements see "./achievements/main.txt"
 }

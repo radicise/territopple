@@ -1,0 +1,18 @@
+This file details the time-based achievements.
+
+
+Anniversary:
+    this is an evolving achievement that is awarded after an account has reached an age of one year.
+    Evolution:
+    - after every subsequent year, the achievement changes to reflect the additional age
+
+Cumulative Playtime:
+    this is an evolving achievement that is awarded after an account has reached a certain cumulative playtime.
+    Evolution:
+    - at defined cumulative playtimes, the achievement updates to reflect it
+
+Single Playtime:
+    this is an evolving achievement that is awarded for spending a certain amount of time playing a single game.
+    Evolution:
+    - when a higher length of time is reached, the achievement updates to reflect it
+

@@ -8,6 +8,7 @@ const { validateJSONScheme } = require("../../../defs.js");
 const schemes = require("../schemes.js");
 const auth = require("../auth.js");
 const { handlePGroupRequest } = require("../colls/privgroups.js");
+const { triggerManual, getRequiredPermissions } = require("../achi/primary.js");
 
 /**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
 
@@ -142,6 +143,42 @@ async function processAdminFetch(req, res, url, log) {
         }
         case "POST":{
             switch (stripped) {
+                case "/achievement": {
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, schemes.adminAchieve)) {
+                        res.writeHead(400,{"content-type":"text/plain"}).end("misformed");
+                        return;
+                    }
+                    try {
+                        const mod_a = await getAccountRecord(accid);
+                        if (!mod_a) {
+                            res.writeHead(404,{"content-type":"text/plain"}).end("admin account not found");
+                            return;
+                        }
+                        if (!check_permission(await getEffectivePrivs(mod_a), ...(await getRequiredPermissions(data.action)))) {
+                            res.writeHead(403,{"content-type":"text/plain"}).end("insufficient permissions");
+                            return;
+                        }
+                        const acr = await getAccountRecord(data.accid);
+                        const result = await triggerManual(acr, data.action, data.discrim);
+                        const sets = {};
+                        for (const achi of result.granted) {
+                            sets[achi.id] = achi.data;
+                        }
+                        for (const achi of result.mutated) {
+                            sets[achi.id] = achi.data;
+                        }
+                        if ((await collection.updateOne({id:data.accid},{$set:sets})).modifiedCount !== 1) {
+                            res.writeHead(500).end();
+                            return;
+                        }
+                        res.writeHead(200).end();
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500,{"content-type":"text/plain"}).end("internal error");
+                    }
+                    return;
+                }
                 // normal sanction
                 case "/Nsanction": {
                     const data = JSON.parse(body);

@@ -1,0 +1,23 @@
+this file details achievements granted for actions taken in game
+
+
+Seahonse:
+    this is a static achievement awarded by winning the game after making your only legal move.
+
+Winner:
+    this is a static achievement for winning at least one game.
+
+Loser:
+    this is a static achievement for losing at least one game.
+
+Games Played:
+    this is an evolving achievement awarded based on the number of games played.
+    Evolution:
+    - when the next milestone of total games played is reached, this achievement updates to reflect it.
+
+Big Board:
+    this is a static achievement awarded for playing on a 36x36 board.
+
+Funky Topology:
+    this is a static achievement awarded for playing on any non Grid2D topology.
+

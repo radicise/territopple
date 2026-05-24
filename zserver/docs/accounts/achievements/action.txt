@@ -3,7 +3,7 @@ this file documents actions
 actions are stored in a global table, they are immutable and always referenced by their id
 action groups are also always stored in a global table and referenced by id
 
-the id of an ActionGroup must be negative, and the id of an Action must be positive
+the id of an ActionGroup must begin with a '-', and the id of an Action must begin with a '+'
 these ids may be used in place of one another, with the sign indicating the type of id
 collectively these are referred to as the ActionId type
 
@@ -14,14 +14,15 @@ the original trigger is the id of the action that was initially triggered
 
 ActionGroup:
 {
-    id<Int32>: id of this action group
-    acts<Int32[]>: ids of the actions within this group, may include other action groups
+    id<string>: id of this action group
+    acts<string[]>: ids of the actions within this group, may include other action groups
 }
 
 Action:
 {
-    id<Int32>: id of this action
+    id<string>: id of this action
     data<BinaryPack(ActionType,ActionData)>: trigger condition
+    perm<number[]>: permissions that allow this action to be triggered
 }
 
 ActionType(UInt16):
@@ -53,4 +54,16 @@ IF (specific) {
 } ELSE IF (groups==2 (condition groups)) {
     TODO
 }
+
+ActionData(field):
+BYTE - LEN
+BYTE[LEN] - field name
+BYTE - aspect
+SWITCH (aspect) {
+    CASE 0: notified on any modifications
+    CASE 1: notified when element added to array
+    CASE 2: notified when element removed from array
+    CASE 3: notified when element modified in array
+}
+NOTE: for cases 1-3 the added/removed/modified element is bound to domain 64
 

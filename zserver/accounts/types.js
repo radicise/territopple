@@ -1,4 +1,5 @@
 const mdb = require("mongodb");
+const { Achievement } = require("./achi/types");
 
 /**
  * @typedef AppealRejectionRecord
@@ -53,7 +54,8 @@ const mdb = require("mongodb");
  * outgoing_friends:string[]?,
  * devtst:boolean?,
  * next_refid:number,
- * pfp:string?
+ * pfp:string?,
+ * achieve:Record<string,Achievement>
  * }}
  */
 

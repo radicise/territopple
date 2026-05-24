@@ -100,6 +100,12 @@ const adminPGrpAssign = {
     "gid": "number",
     "add": "boolean"
 };
+/** @type {JSONScheme} */
+const adminAchieve = {
+    "accid": "string",
+    "action": "string",
+    "discrim": "number"
+};
 
 exports.accCreationScheme = accCreationScheme;
 exports.accLoginScheme = accLoginScheme;
@@ -119,3 +125,4 @@ exports.adminSancManAppealScheme = adminSancManAppealScheme;
 exports.adminPGrpCreate = adminPGrpCreate;
 exports.adminPGrpUpdate = adminPGrpUpdate;
 exports.adminPGrpAssign = adminPGrpAssign;
+exports.adminAchieve = adminAchieve;
