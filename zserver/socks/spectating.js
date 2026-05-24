@@ -15,6 +15,20 @@ const handler = (sock, globals, {change, emit, onall, on}, args, state) => {
             });
         });
     }
+    onall("account:found", (data) => {
+        // console.log(data["n"]);
+        // console.log(state.game?.ident);
+        let d = true;
+        if (typeof state.playerNum === "number" && data["n"] === state.playerNum) {
+            state.game.players[state.playerNum].accId = data["a"];
+        } else if (typeof state.spectatorId === "string" && data["n"] === state.spectatorId) {
+            state.game.spectators[state.spectatorId].accId = data["a"];
+        } else {
+            d = false;
+        }
+        if (d) state.accId = data["a"];
+        sock.send(NetData.Account.Found(data["n"], data["a"]));
+    });
     on("?borked", () => {change("error", {data:"borked",redirect:"/play-online",store:"Error, please email the server operator, make sure to include what you were doing before the error occurred."});});
     on("game:out:move", (data) => {
         sock.send(NetData.Game.Move(data["n"], data["t"]));
