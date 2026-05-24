@@ -1,3 +1,7 @@
+# May 24, 2026 (DEV20264nY1)
+fixed a bug that caused the host to always be displayed without an account name to other players
+fixed a bug that caused spectators to not truncated their own ids in the joined list
+
 # May 24, 2026 (DEV20264nY0)
 fixed the bug that caused volatile highlight to render incorrectly on concentric mode
 
