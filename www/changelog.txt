@@ -1,3 +1,6 @@
+# May 24, 2026 (DEV20264nY0)
+fixed the bug that caused volatile highlight to render incorrectly on concentric mode
+
 # Apr 30, 2026 [hotifx] (Alpha 1.10.2)
 BUG: fixed a bug that caused rooms to fail to be created under certain conditions
 
@@ -9,7 +12,7 @@ BUG: the bug where accounts aren't shown in the joined list should be fixed now,
 FEATURE: profile pictures (currently available to most accounts)
 ADMIN: added more admin features
 
-# Apr 28, 2026 (DEV2026erY1)
+# Apr 28, 2026 (DEV20263rY1)
 fixed some bugs with permissions checks
 add profile pictures to community page
 
