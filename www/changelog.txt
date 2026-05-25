@@ -1,3 +1,20 @@
+# May 24, 2026 (Alpha 1.10.3)
+BUG: fixed various bugs that caused account details to not show or to show incorrectly in the joined list
+BUG: fixed a bug that caused concentric mode rendering to apply volatile highlight to all rings
+
+# May 24, 2026 (DEV20264nY2)
+fixed a bug that caused spectators entering a game that is in progress or finished to not display any account details
+
+# May 24, 2026 (DEV20264nY1)
+fixed a bug that caused the host to always be displayed without an account name to other players
+fixed a bug that caused spectators to not truncated their own ids in the joined list
+
+# May 24, 2026 (DEV20264nY0)
+fixed the bug that caused volatile highlight to render incorrectly on concentric mode
+
+# Apr 30, 2026 [hotifx] (Alpha 1.10.2)
+BUG: fixed a bug that caused rooms to fail to be created under certain conditions
+
 # Apr 29, 2026 (Alpha 1.10.1)
 FEATURE: added profile pictures to the joined list
 BUG: the bug where accounts aren't shown in the joined list should be fixed now, please make a report if it isn't
@@ -6,7 +23,7 @@ BUG: the bug where accounts aren't shown in the joined list should be fixed now,
 FEATURE: profile pictures (currently available to most accounts)
 ADMIN: added more admin features
 
-# Apr 28, 2026 (DEV2026erY1)
+# Apr 28, 2026 (DEV20263rY1)
 fixed some bugs with permissions checks
 add profile pictures to community page
 

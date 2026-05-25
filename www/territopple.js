@@ -758,7 +758,7 @@ conn.addEventListener("open", async function(event) {
                 game.hostNum = data.payload["l"];
                 const c = document.getElementById(`JLIST-player-${game.hostNum}`);
                 if (c) {
-                    c.children[1].textContent = "Host";
+                    c.children[2].textContent = "Host";
                 }
                 // document.getElementById("startbutton").disabled = !(game.hostNum === ifmt.pln);
                 rescanHostOnly();

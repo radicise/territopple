@@ -170,7 +170,7 @@ function addJListSelf(n) {
     row.scope = "row";
     row.id = `JLIST-player-${n}`;
     row.append(makeJListAvatar(n));
-    row.append(makeTD(`${n} (Guest) [self]`, ["JLIST-id"]));
+    row.append(makeTD(`${typeof n === "number" ? n : n.slice(0,3)} (Guest) [self]`, ["JLIST-id"]));
     row.append(makeTD(typeof n === "number" ? (n === game.hostNum ? "Host" : "Player") : "Spectator"));
     // row.append(...makeJListActions("self"));
     row.append(makeTD("--:--"));
@@ -194,6 +194,9 @@ function addJListPlayer(n) {
     row.append(makeJListActions("player", n[0]));
     joinedList.append(row);
     rescanHostOnly();
+    if (n[2]) {
+        setJListPlayerAccount(n[0], n[2]);
+    }
 }
 /**
  * @param {number} n
@@ -220,6 +223,9 @@ function addJListSpectator(n) {
     // const lspecs = joinedList.querySelectorAll(".spectator");
     joinedList.append(row);
     rescanHostOnly();
+    if (n[1]) {
+        setJListSpectatorAccount(n[0], n[1]);
+    }
 }
 /**
  * @param {string} n
