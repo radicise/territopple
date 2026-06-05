@@ -161,7 +161,7 @@ process.on("SIGINT", ()=>{SessionManager.save();});
  * like standard SessionManager, but without sessions being preserved across restarts
  */
 class ASessionManager {
-    /**@type {Record<string,[string,number]>} */
+    /**@type {Record<string,[string,number,number]>} */
     static #sessions = {};
     /**@type {Record<string, string>} */
     static #inverse_map = {};
@@ -186,7 +186,7 @@ class ASessionManager {
             return this.#sessions[id][0];
         }
         const token = this.#generateToken();
-        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT)];
+        this.#sessions[id] = [token,setTimeout(()=>{this.#expireToken(id);}, SESS_TIMEOUT),0];
         this.#inverse_map[token] = id;
         return token;
     }
@@ -206,6 +206,22 @@ class ASessionManager {
     static verifySession(token, id) {
         if (!(id in this.#sessions)) return;
         return this.#sessions[id][0] === token;
+    }
+    /**
+     * @param {string} accid
+     * @param {number} perms
+     */
+    static setCachedPerms(accid, perms) {
+        if (!(accid in this.#sessions)) return;
+        this.#sessions[accid][2] = perms;
+    }
+    /**
+     * @param {string} accid
+     * @returns {number}
+     */
+    static getCachedPerms(accid) {
+        if (!(accid in this.#sessions)) return 0;
+        return this.#sessions[accid][2] ?? 0;
     }
     /**
      * @param {string} id

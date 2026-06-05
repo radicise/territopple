@@ -57,5 +57,8 @@
             "AGE": [0,"d"]
         },
         "MAX_SIZE": [1,"M"]
+    },
+    "ADMIN": {
+        "DEFAULT_BATCH_SIZE": 10
     }
 }

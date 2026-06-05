@@ -244,8 +244,15 @@ async function triggerManual(account, actionid, discriminator) {
     return {granted,mutated};
 }
 
-
+function getAchievements() {
+    return ACHIEVEMENTS;
+}
+function getActions() {
+    return ACTIONS;
+}
 
 exports.fetchAchievements = fetchAchievements;
 exports.triggerManual = triggerManual;
 exports.getRequiredPermissions = getRequiredPermissions;
+exports.getAchievements = getAchievements;
+exports.getActions = getActions;

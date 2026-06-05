@@ -4,11 +4,11 @@ const { ASessionManager, extractASessionId, makeASessionCookie } = require("../s
 const { AccountRecord, PrivGroupRecord, SanctionRecord } = require("../types.js");
 const { collection, priv_groups, getEffectivePrivs, getAccountRecord } = require("../db.js");
 const { check_permission, check_can_moderate, check_sanction_allowed, Permissions } = require("../perms.js");
-const { validateJSONScheme } = require("../../../defs.js");
+const { validateJSONScheme, settings } = require("../../../defs.js");
 const schemes = require("../schemes.js");
 const auth = require("../auth.js");
 const { handlePGroupRequest } = require("../colls/privgroups.js");
-const { triggerManual, getRequiredPermissions } = require("../achi/primary.js");
+const { triggerManual, getRequiredPermissions, getAchievements, getActions } = require("../achi/primary.js");
 
 /**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
 
@@ -27,7 +27,7 @@ async function processAdminFetch(req, res, url, log) {
         return;
     }
     if (stripped === "/check") {
-        const id = ASessionManager.getAccountId(extractASessionId(req.headers.cookie))
+        const id = ASessionManager.getAccountId(extractASessionId(req.headers.cookie));
         if (id) {
             res.writeHead(200).end(JSON.stringify({name:id}));
         } else {
@@ -69,13 +69,14 @@ async function processAdminFetch(req, res, url, log) {
                 return;
             }
             const privs = await getEffectivePrivs(doc);
-            if (!check_permission(privs, Permissions.MODERATE)) {
+            if (!check_permission(privs, Permissions.MODERATE, Permissions.TRUSTED)) {
                 res.writeHead(403).end("account is not an admin");
                 return;
             }
             if (auth.verifyRecordPassword(doc.pwdata.buffer, data.pw)) {
                 // res.writeHead(200, {"Set-Cookie":`sessionId=${SessionManager.createSession(data.id)}; Same-Site=Lax; Secure; HttpOnly; Path=/`}).end();
                 res.writeHead(200, {"Set-Cookie":makeASessionCookie(ASessionManager.createSession(data.id))}).end();
+                ASessionManager.setCachedPerms(data.id, privs);
                 return;
             } else {
                 res.writeHead(403).end();
@@ -93,10 +94,15 @@ async function processAdminFetch(req, res, url, log) {
         res.writeHead(403).end("not logged in");
         return;
     }
+    const adminperms = ASessionManager.getCachedPerms(accid);
     switch (req.method) {
         case "GET":{
             switch (stripped) {
                 case "/priv-group-info": {
+                    if (!check_permission(adminperms, Permissions.READ_PRIV_FLAGS)) {
+                        res.writeHead(403,{"content-type":"text/plain"}).end("insufficient permissions");
+                        return;
+                    }
                     const target = Number(url.searchParams.get("id"));
                     if (isNaN(target)) {
                         res.writeHead(400).end("no target");
@@ -130,11 +136,42 @@ async function processAdminFetch(req, res, url, log) {
                             return;
                         }
                         delete rec["pwdata"];
+                        delete rec["next_refid"];
+                        if (!check_permission(adminperms, Permissions.READ_PRIV_FLAGS, Permissions.MODERATE)) {
+                            delete rec["priv_groups"];
+                            delete rec["priv_level"];
+                        }
+                        if (!check_permission(adminperms, Permissions.MODERATE)) {
+                            delete rec["sanction"];
+                        }
                         res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(rec));
                     } catch (E) {
                         console.log(E);
                         res.writeHead(500).end(E.sanitized??"internal error");
                     }
+                    return;
+                }
+                case "/privs": {
+                    // const id = ASessionManager.getAccountId(extractASessionId(req.headers.cookie));
+                    try {
+                        // const rec = await getAccountRecord(id);
+                        // const privs = await getEffectivePrivs(rec);
+                        // res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify({privs}));
+                        res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify({privs:adminperms}));
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
+                case "/achievements": {
+                    if (!check_permission(adminperms, Permissions.TRUSTED, Permissions.MANAGE_ACHIEVEMENTS)) {
+                        res.writeHead(403, {"content-type":"text/plain"}).end("insufficient permissions");
+                        return;
+                    }
+                    // const batch_size = Number(url.searchParams.get("count")) || settings.ADMIN.DEFAULT_BATCH_SIZE;
+                    // let i = 0;
+                    res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify({achis:Object.values(getAchievements()),acts:getActions()}));
                     return;
                 }
             }
@@ -143,7 +180,7 @@ async function processAdminFetch(req, res, url, log) {
         }
         case "POST":{
             switch (stripped) {
-                case "/achievement": {
+                case "/achi-trigger": {
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, schemes.adminAchieve)) {
                         res.writeHead(400,{"content-type":"text/plain"}).end("misformed");
@@ -155,7 +192,7 @@ async function processAdminFetch(req, res, url, log) {
                             res.writeHead(404,{"content-type":"text/plain"}).end("admin account not found");
                             return;
                         }
-                        if (!check_permission(await getEffectivePrivs(mod_a), ...(await getRequiredPermissions(data.action)))) {
+                        if (!check_permission(adminperms, ...(await getRequiredPermissions(data.action)))) {
                             res.writeHead(403,{"content-type":"text/plain"}).end("insufficient permissions");
                             return;
                         }
@@ -181,6 +218,10 @@ async function processAdminFetch(req, res, url, log) {
                 }
                 // normal sanction
                 case "/Nsanction": {
+                    if (!check_permission(adminperms, Permissions.MODERATE)) {
+                        res.writeHead(403,{"content-type":"text/plain"}).end("insufficient permissions");
+                        return;
+                    }
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, schemes.sanctionScheme)) {
                         res.writeHead(400).end("misformed");
@@ -240,6 +281,10 @@ async function processAdminFetch(req, res, url, log) {
             switch (stripped) {
                 // manage sanction
                 case "/Msanction": {
+                    if (!check_permission(adminperms, Permissions.MODERATE)) {
+                        res.writeHead(403,{"content-type":"text/plain"}).end("insufficient permissions");
+                        return;
+                    }
                     /**@type {AdminSancManData} */
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, schemes.adminSancManScheme)) {

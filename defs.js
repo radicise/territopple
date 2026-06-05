@@ -850,7 +850,8 @@ exports.getMetatableEntry = getMetatableEntry;
  * DB_CONFIG:{URI:string},
  * MAIL_CONFIG:{HOST:string,BOT_USER:string,BOT_PASS:string},
  * ACC:{CREATE_TO:number,SESSION_TO:number,PWRST_TO:number,NAME_MAX:number,PFPUP_TO:number},
- * PFPS:{ENABLED:boolean,MAX_SIZE:SIZE_CONSTRAINT,RESTRICT:{TRUSTED:boolean,AGE:DUR_CONSTRAINT},DEFAULT_PFP?:string}
+ * PFPS:{ENABLED:boolean,MAX_SIZE:SIZE_CONSTRAINT,RESTRICT:{TRUSTED:boolean,AGE:DUR_CONSTRAINT},DEFAULT_PFP?:string},
+ * ADMIN:{DEFAULT_BATCH_SIZE:number}
  * }}
  */
 

@@ -59,6 +59,9 @@ see "./events.txt"
 trusted (N):
 trusted accounts, used to allow access to beta/restricted features
 
+manage achievements (N):
+achievement managers, allows for creating and modifying achievements
+
 apply and review group 4 sanctions (N):
 see "./sanctions.txt"
 

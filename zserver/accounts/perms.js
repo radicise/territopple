@@ -118,6 +118,15 @@ const Permissions = Object.seal({
      */
     TRUSTED:9,
     /**
+     * (N)
+     * 
+     * create and modify achievements
+     * @readonly
+     * @type {10}
+     * @constant
+     */
+    MANAGE_ACHIEVEMENTS:10,
+    /**
      * the domain boundary indicates permissions that require the account email domain to match server configuration or a special exemption in server configuration
      * @readonly
      * @type {28}
