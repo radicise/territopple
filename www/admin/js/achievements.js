@@ -23,7 +23,7 @@ const SEARCH_RESULTS = document.getElementById("search-results");
  * @type {HTMLInputElement}
  */
 const PAGE_INPUT = document.getElementById("search-page-in");
-document.addEventListener("DOMContentLoaded", () => {PAGE_INPUT.value = 1;});
+document.addEventListener("load", () => {PAGE_INPUT.value = 1;});
 /**
  * number of pages text
  * @type {HTMLSpanElement}
