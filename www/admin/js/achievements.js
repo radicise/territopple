@@ -75,6 +75,16 @@ const query_data = {
     page: 1,
     search: ""
 };
+/**
+ * @template T
+ * @template U
+ * @typedef {import("../../../zserver/accounts/achi/primary.js").BulkChange<T,U>} BulkChange */
+/**@typedef {import("../../../zserver/accounts/achi/types.js").ActionLike} ActionLike */
+/**@typedef {import("../../../zserver/accounts/achi/types.js").AchiDef} AchiDef */
+/**@type {{acts:BulkChange<ActionLike,string>,achi:BulkChange<AchiDef,number>}} */
+const writeData = {acts:{create:{},update:{},delete:{}},achi:{create:{},update:{},delete:{}}};
+/**@type {{acts:Record<string,ActionLike>,achi:Record<number,AchiDef>}} */
+const origData = {acts:{},achi:{}};
 
 
 
@@ -141,36 +151,22 @@ const query_data = {
             case "achi": {
                 for (let i = 0, l = query_data.resp.list.length; i < l; i ++) {
                     const res = query_data.resp.list[i];
-                    const c = document.createElement("div");
-                    c.onclick = () => {renderDetails(i);};
-                    c.classList.add("sr-item");
-                    const type = document.createElement("span");
-                    type.classList.add("sr-type");
-                    type.textContent = "Achievement";
-                    c.appendChild(type);
-                    c.append(" ");
-                    const name = document.createElement("span");
-                    name.textContent = res.name;
-                    c.appendChild(name);
-                    children.push(c);
+                    children.push(make("div", {"classList":["sr-item"],"onclick":()=>{renderDetails(i);},"children":[
+                        make("span", {"classList":["sr-type"],"textContent":"Achievement"}),
+                        " ",
+                        make("span", {"textContent":res.name})
+                    ]}));
                 }
                 break;
             }
             case "acts": {
                 for (let i = 0, l = query_data.resp.list.length; i < l; i ++) {
                     const res = query_data.resp.list[i];
-                    const c = document.createElement("div");
-                    c.onclick = () => {renderDetails(i);};
-                    c.classList.add("sr-item");
-                    const type = document.createElement("span");
-                    type.classList.add("sr-type");
-                    type.textContent = res.id[0] === "+" ? "Action" : "Action Group";
-                    c.appendChild(type);
-                    c.append(" ");
-                    const name = document.createElement("span");
-                    name.textContent = res.id.slice(1);
-                    c.appendChild(name);
-                    children.push(c);
+                    children.push(make("div", {"classList":["sr-item"],"onclick":()=>{renderDetails(i);},"children":[
+                        make("span", {"classList":["sr-type"],"textContent":res.id[0]==="+"?"Action":"Action Group"}),
+                        " ",
+                        make("span", {"textContent":res.id.slice(1)})
+                    ]}));
                 }
                 break;
             }
