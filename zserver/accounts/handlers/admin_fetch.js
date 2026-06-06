@@ -192,6 +192,7 @@ async function processAdminFetch(req, res, url, log) {
                                 return;
                             }
                         }
+                        console.log(`k: ${kind}\ns: ${search}\np: ${page}`);
                         let pipeline = coll.find().limit(batch_size);
                         let filter = {};
                         if (search !== ".*") {
