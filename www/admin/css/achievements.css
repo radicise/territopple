@@ -1,9 +1,9 @@
 div#main-layout {
     display: grid;
-    width: 90vw;
+    width: 100%;
     height: 80vh;
-    grid-template-columns: 20vw 50vw 20vw;
-    margin-left: 5vw;
+    grid-template-columns: 1fr 50vw 1fr;
+    margin-top: 10px;
 }
 
 div#left-pane {
@@ -37,6 +37,7 @@ div#right-pane {
     flex-direction: column;
     > h3 {
         margin-bottom: 5px;
+        margin-top: 0px;
         padding-bottom: 2px;
         border-bottom: solid 1px gray;
     }
