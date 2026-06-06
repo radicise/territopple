@@ -11,6 +11,15 @@ div#left-pane {
     grid-template-rows: 15vh 50vh 15vh;
 }
 
+span#search-holder {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+}
+
+#search-name {
+    width: 100%;
+}
+
 div#search-results {
     overflow-y: scroll;
     overflow-wrap: anywhere;
