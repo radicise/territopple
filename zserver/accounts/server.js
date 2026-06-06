@@ -20,9 +20,9 @@ const schemes = require("./schemes.js");
 const { ACC_CREAT_TIMEOUT, ACC_PWRST_TIMEOUT, ACC_MAX_NAME_LEN, EACCESS, EREJECT, ESENSITIVE, EERROR, IACCESS, EBADMOD, ACC_PUB_PREFIX, ACC_ADMIN_PREFIX, ACC_PFP_PREFIX } = require("./constants.js");
 
 const { processPubFetch } = require("./handlers/pub_fetch.js");
-const { processAdminFetch } = require("./handlers/admin_fetch.js");
+const { processAdminFetch, adminDebugCommand } = require("./handlers/admin_fetch.js");
 const { handlePFPRequest } = require("./colls/pfps.js");
-const { triggerManual } = require("./achi/primary.js");
+const { triggerManual, achiDebugCommand } = require("./achi/primary.js");
 
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid");
@@ -800,25 +800,48 @@ internal_server.on("error", async (err) => {
     }
 });
 
-if (!process.argv.includes("--no-in"))
-process.stdin.on("data", (d) => {
-    const l = d.toString("utf-8");
-    const parts = l.split(/:|;/).map(v => v.trim());
-    const uparts = parts.map(v => v.toUpperCase());
-    // console.log(parts);
-    // console.log(uparts);
-    const p1 = uparts[0];
-    switch (p1) {
-        default:
-            if (process.argv.includes("--eval-stdin")) {
-                try {
-                    console.log(eval(l));
-                } catch (E) {
-                    console.error(E.stack);
+if (!process.argv.includes("--no-in")) {
+    let cmod = "/";
+    const mods = ["/","/ADMIN","/ACHI"];
+    process.stdin.on("data", (d) => {
+        const l = d.toString("utf-8");
+        const parts = l.split(/:|;/).map(v => v.trim());
+        const uparts = parts.map(v => v.toUpperCase());
+        // console.log(parts);
+        // console.log(uparts);
+        const p1 = uparts[0];
+        switch (p1) {
+            case "MOD": {
+                const p2 = uparts[1];
+                if (mods.includes(p2)) {
+                    cmod = p2;
                 }
-            } else {
-                console.error("UNRECOGNIZED COMMAND");
+                break;
             }
-            break;
-    }
-});
+            default:
+                if (process.argv.includes("--eval-stdin")) {
+                    try {
+                        switch (cmod) {
+                            case "/": {
+                                console.log(eval(l));
+                                break;
+                            }
+                            case "/ADMIN": {
+                                adminDebugCommand(l);
+                                break;
+                            }
+                            case "/ACHI": {
+                                achiDebugCommand(l);
+                                break;
+                            }
+                        }
+                    } catch (E) {
+                        console.error(E.stack);
+                    }
+                } else {
+                    console.error("UNRECOGNIZED COMMAND");
+                }
+                break;
+        }
+    });
+}

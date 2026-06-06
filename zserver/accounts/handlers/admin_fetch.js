@@ -417,3 +417,13 @@ async function processAdminFetch(req, res, url, log) {
 }
 
 exports.processAdminFetch = processAdminFetch;
+
+let adminDebugCommand = async function(l) {
+    console.log(await Promise.resolve(eval(l)));
+};
+
+if (process.argv.includes("--no-in")) {
+    adminDebugCommand = async () => {};
+}
+
+exports.adminDebugCommand = adminDebugCommand;

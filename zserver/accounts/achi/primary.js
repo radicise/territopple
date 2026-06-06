@@ -685,3 +685,14 @@ exports.createAchievement = createAchievement;
 exports.updateAchievement = updateAchievement;
 exports.deleteAchievement = deleteAchievement;
 exports.bulkAchiWrite = bulkAchiWrite;
+
+
+let achiDebugCommand = async function(l) {
+    console.log(await Promise.resolve(eval(l)));
+};
+
+if (process.argv.includes("--no-in")) {
+    achiDebugCommand = async () => {};
+}
+
+exports.achiDebugCommand = achiDebugCommand;
