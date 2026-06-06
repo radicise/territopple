@@ -148,6 +148,7 @@ const query_data = {
                     type.classList.add("sr-type");
                     type.textContent = "Achievement";
                     c.appendChild(type);
+                    c.append(" ");
                     const name = document.createElement("span");
                     name.textContent = res.name;
                     c.appendChild(name);
@@ -165,6 +166,7 @@ const query_data = {
                     type.classList.add("sr-type");
                     type.textContent = res.id[0] === "+" ? "Action" : "Action Group";
                     c.appendChild(type);
+                    c.append(" ");
                     const name = document.createElement("span");
                     name.textContent = res.id.slice(1);
                     c.appendChild(name);

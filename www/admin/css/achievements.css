@@ -32,3 +32,11 @@ div#staged-list {
     overflow-y: scroll;
     overflow-wrap: anywhere;
 }
+
+
+div.sr-item {
+    border-top: solid 1px gray;
+}
+span.sr-type {
+    font-weight: bold;
+}
