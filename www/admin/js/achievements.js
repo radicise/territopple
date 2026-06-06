@@ -17,7 +17,7 @@ const SEARCH_GO = document.getElementById("search-go");
  * container for search results
  * @type {HTMLDivElement}
  */
-const SEARCH_RESULTS = document.getElementById("search-result");
+const SEARCH_RESULTS = document.getElementById("search-results");
 /**
  * input for which page to go to [type="number"]
  * @type {HTMLInputElement}
