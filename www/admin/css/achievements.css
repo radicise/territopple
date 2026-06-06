@@ -1,0 +1,34 @@
+div#main-layout {
+    display: grid;
+    width: 90vw;
+    height: 80vh;
+    grid-template-columns: 20vw 50vw 20vw;
+    margin-left: 5vw;
+}
+
+div#left-pane {
+    display: grid;
+    grid-template-rows: 15vh 50vh 15vh;
+}
+
+div#search-results {
+    overflow-y: scroll;
+    overflow-wrap: anywhere;
+}
+
+div#search-pages {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+}
+
+div#right-pane {
+    display: flex;
+    flex-direction: column;
+}
+
+div#staged-list {
+    overflow-y: scroll;
+    overflow-wrap: anywhere;
+}

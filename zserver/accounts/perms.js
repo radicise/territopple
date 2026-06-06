@@ -190,6 +190,14 @@ const Permissions = Object.seal({
 function check_permission(flags, ...perms) {
     return perms.some(perm=>(flags & (1<<perm)) !== 0);
 }
+/**
+ * @param {number} flags
+ * @param  {...number} perms
+ * @returns {boolean}
+ */
+function check_raw_permissions(flags, ...perms) {
+    return perms.some(perm=>perm&&((flags & perm)===perm));
+}
 
 /**
  * checks that the source is allowed to moderate the target based on privileges
@@ -253,5 +261,6 @@ function check_sanction_allowed(source, sid) {
 
 exports.Permissions = Permissions;
 exports.check_permission = check_permission;
+exports.check_raw_permissions = check_raw_permissions;
 exports.check_can_moderate = check_can_moderate;
 exports.check_sanction_allowed = check_sanction_allowed;

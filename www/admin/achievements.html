@@ -3,11 +3,43 @@
     <head>
         <script src="/_icons.js"></script>
         <title>Territopple - Admin Achievements</title>
+        <link rel="stylesheet" type="text/css" href="/admin/css/achievements.css" />
     </head>
     <body>
         <meta data-import="/components/admin/disp.html" />
         <a href="/admin">admin home</a><br>
-        <div></div>
+        <div id="main-layout">
+            <div id="left-pane">
+                <div id="search-cont">
+                    <label for="search-kind">Kind: </label>
+                    <select id="search-kind">
+                        <option value="acts">Actions</option>
+                        <option value="achi" selected>Achievements</option>
+                    </select><br>
+                    <input type="text" id="search-name" placeholder=".*">
+                    <input type="button" value="Search" id="search-go">
+                </div>
+                <div id="search-results"></div>
+                <div id="search-pages">
+                    <span>
+                        Page <input type="number" value="1" min="1" id="search-page-in"> of <span id="search-page-count">?</span> <input type="button" value="Go" id="search-page-go">
+                    </span>
+                </div>
+            </div>
+            <div id="center-pane">
+                <div id="action-details" hidden></div>
+                <div id="agroup-details" hidden></div>
+                <div id="achieve-details" hidden></div>
+            </div>
+            <div id="right-pane">
+                <h3>Staged Changes</h3>
+                <span>
+                    <input type="button" value="Commit" id="staged-commit">
+                    <input type="button" value="Discard" id="staged-discard">
+                </span>
+                <div id="staged-list"></div>
+            </div>
+        </div>
         <script src="/components/include.js"></script>
         <script src="/admin/js/achievements.js"></script>
     </body>

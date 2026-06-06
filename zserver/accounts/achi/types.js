@@ -49,7 +49,7 @@ const mdb = require("mongodb");
  * @type {object}
  * @prop {mdb.Int32} id
  * @prop {string} name
- * @prop {{prereqs:DBPrereqs,acts:string[],init:any}} granting
+ * @prop {{prereqs:DBPrereqs,acts:string,init:any}} granting
  * @prop {DBMutator[]} evo
  * @prop {DBDisplay} display
  * @prop {mdb.Long} population
@@ -62,7 +62,7 @@ const mdb = require("mongodb");
  * @typedef {{id:string,acts:string[]}} ActionGroup
  */
 /**
- * @typedef {{id:string,data:Buffer}} Action
+ * @typedef {{id:string,data:Buffer,perm:number[]}} Action
  */
 /**
  * @typedef {{name:string,value:bigint,cmp:ConditionCmp}} Condition
@@ -133,7 +133,7 @@ const AchiDataType = {
     SINT: 2,
 };
 /**
- * @typedef {{prereqs:Prereqs,acts:number,init:any}} Granting
+ * @typedef {{prereqs:Prereqs,acts:string,init:any}} Granting
  */
 /**
  * @typedef {{bits:bigint,type:AchiDataType,name:string}} DataSpec
@@ -169,6 +169,10 @@ const ActKind = {
     SERVER_MANUAL: 4,
 };
 
+/**
+ * @typedef {Action|ActionGroup} ActionLike
+ */
+
 exports.ActKind = ActKind;
 exports.ConditionCmp = ConditionCmp;
 exports.AchiDataType = AchiDataType;
@@ -193,3 +197,262 @@ exports.DBAchiDef = this.DBAchiDef;
 exports.DBDisplay = this.DBDisplay;
 exports.DBMutator = this.DBMutator;
 exports.DBPrereqs = this.DBPrereqs;
+exports.ActionLike = this.ActionLike;
+
+/**
+ * @param {Buffer|Uint8Array|Array<number>} buf
+ * @returns {boolean}
+ */
+function isBufferLike(buf) {
+    if (Buffer.isBuffer(buf)) return true;
+    if (buf instanceof Uint8Array) return true;
+    return Array.isArray(buf) && buf.every(v => typeof v === "number" && v >= 0 && v < 256);
+}
+
+/**
+ * @param {Action|ActionGroup} act
+ * @returns {boolean}
+ */
+function validateActionlike(act) {
+    if (typeof act.id !== "string") return false;
+    if (act.id[0] === "-") return validateActionGroup(act);
+    if (act.id[0] === "+") return validateAction(act);
+    return false;
+}
+/**
+ * @param {ActionGroup} grp
+ * @returns {boolean}
+ */
+function validateActionGroup(grp) {
+    if (typeof grp.id !== "string" || grp.id[0] !== "-") return false;
+    return Array.isArray(grp.acts) && grp.acts.every(v => typeof v === "string");
+}
+/**
+ * @param {Action} act
+ * @returns {boolean}
+ */
+function validateAction(act) {
+    if (typeof act.id !== "string" || act.id[0] !== "+") return false;
+    if (act.perm && (!Array.isArray(act.perm) || act.perm.some(v => typeof v !== "number"))) return false;
+    return validateActionData(act.data);
+}
+/**
+ * @param {Buffer} data
+ * @returns {boolean}
+ */
+function validateActionData(data) {
+    if (!isBufferLike(data)) return false;
+    const type = (data[0]<<8) | data[1];
+    switch (type) {
+        case ActKind.MANUAL:case ActKind.SERVER_MANUAL: {
+            if (data.length !== 2) return false;
+            return true;
+        }
+        case ActKind.ESOTERIC: {
+            return false;
+        }
+        case ActKind.MEETS: {
+            const flags = data[2];
+            if (flags & 0x10) {
+                const l = data[3];
+                return data.length === l + 4;
+            }
+            const grps = (flags & 0x0c) >> 2;
+            switch (grps) {
+                case 0: {
+                    return false;
+                }
+                case 1: {
+                    return data.length === 7;
+                }
+                case 2: {
+                    return false;
+                }
+                case 3: {
+                    return false;
+                }
+            }
+        }
+        case ActKind.FIELD: {
+            const l = data[2];
+            return data.length === l + 4;
+        }
+        default: {
+            return false;
+        }
+    }
+}
+
+/**
+ * @param {AchiDef} achi
+ * @returns {boolean}
+ */
+function validateAchievement(achi) {
+    if (typeof achi.id !== "number" || typeof achi.name !== "string" || typeof achi.population !== "bigint") return false;
+    if (!validateGranting(achi.granting)) return false;
+    if (!achi.evo.every(v => validateMutator(v))) return false;
+    return validateDisplay(achi.display);
+}
+/**
+ * @param {Granting} grant
+ * @returns {boolean}
+ */
+function validateGranting(grant) {
+    if (typeof grant.acts !== "string") return false;
+    return validatePrereqs(grant.prereqs);
+}
+/**
+ * @param {Prereqs} pres
+ * @returns {boolean}
+ */
+function validatePrereqs(pres) {
+    if (!(pres.comb === 0 || pres.comb === 1)) return false;
+    return pres.sub.every(v => validatePrerequisite(v));
+}
+/**
+ * @param {Prerequisite} pre
+ * @returns {boolean}
+ */
+function validatePrerequisite(pre) {
+    return typeof pre.id === "number" && isBufferLike(pre.cond);
+}
+/**
+ * @param {Mutator} mut
+ * @returns {boolean}
+ */
+function validateMutator(mut) {
+    return typeof mut.act === "string" && typeof mut.dis === "number" && isBufferLike(mut.mut);
+}
+/**
+ * @param {Display} disp
+ * @returns {boolean}
+ */
+function validateDisplay(disp) {
+    if (typeof disp.comb !== "number" || disp.comb < 0 || disp.comb > 2) return false;
+    if (!Object.values(disp.values).every(v => isBufferLike(v))) return false;
+    return disp.fmts.every(v => 
+        typeof v.badge === "string"
+        && typeof v.icon === "string"
+        && typeof v.fmt === "string"
+        && isBufferLike(v.cond)
+    );
+}
+
+/**
+ * ensures that the given action-like data is in the canonical form
+ * the data must be structured correctly, but may have arrays in place of buffers
+ * and optional properties omitted
+ * the provided object is modified in-place
+ * @param {ActionLike} act
+ * @returns {ActionLike}
+ */
+function normalizeActionLike(act) {
+    if (act.id[0] === "+") {
+        if (!Buffer.isBuffer(act.data)) {
+            act.data = Buffer.from(act.data);
+        }
+        if (!act.perm) {
+            act.perm = [];
+        }
+    }
+    return act;
+}
+/**
+ * ensures that the given achievement data is in the canonical form
+ * the data must be structured correctly, but may have arrays in place of buffers
+ * and optional properties omitted
+ * the provided object is modified in-place
+ * @param {AchiDef} achi
+ * @returns {AchiDef}
+ */
+function normalizeAchievement(achi) {
+    normalizeGranting(achi.granting);
+    achi.evo.forEach(v => normalizeMutator(v));
+    normalizeDisplay(achi.display);
+}
+/**
+ * ensures that the given granting data is in the canonical form
+ * the data must be structured correctly, but may have arrays in place of buffers
+ * and optional properties omitted
+ * the provided object is modified in-place
+ * @param {Granting} grant
+ * @returns {Granting}
+ */
+function normalizeGranting(grant) {
+    if ((grant.init ?? null) === null) {
+        grant.init = null;
+    }
+    normalizePrereqs(grant.prereqs);
+    return grant;
+}
+/**
+ * ensures that the given prereqs data is in the canonical form
+ * the data must be structured correctly, but may have arrays in place of buffers
+ * and optional properties omitted
+ * the provided object is modified in-place
+ * @param {Prereqs} pres
+ * @returns {Prereqs}
+ */
+function normalizePrereqs(pres) {
+    pres.sub.forEach(v => normalizePrerequisite(v));
+    return pres;
+}
+/**
+ * ensures that the given prerequisite data is in the canonical form
+ * the data must be structured correctly, but may have arrays in place of buffers
+ * and optional properties omitted
+ * the provided object is modified in-place
+ * @param {Prerequisite} pre
+ * @returns {Prerequisite}
+ */
+function normalizePrerequisite(pre) {
+    if (!Buffer.isBuffer(pre.cond)) pre.cond = Buffer.from(pre.cond);
+    return pre;
+}
+/**
+ * ensures that the given mutator data is in the canonical form
+ * the data must be structured correctly, but may have arrays in place of buffers
+ * and optional properties omitted
+ * the provided object is modified in-place
+ * @param {Mutator} mut
+ * @returns {Mutator}
+ */
+function normalizeMutator(mut) {
+    if (!Buffer.isBuffer(mut.mut)) mut.mut = Buffer.from(mut.mut);
+    return mut;
+}
+/**
+ * ensures that the given display data is in the canonical form
+ * the data must be structured correctly, but may have arrays in place of buffers
+ * and optional properties omitted
+ * the provided object is modified in-place
+ * @param {Display} disp
+ * @returns {Display}
+ */
+function normalizeDisplay(disp) {
+    disp.fmts.forEach(v => {
+        if (!Buffer.isBuffer(v.cond)) v.cond = Buffer.from(v.cond);
+    });
+    for (const k in disp.values) {
+        if (!Buffer.isBuffer(disp.values[k])) disp.values[k] = Buffer.from(disp.values[k]);
+    }
+    return disp;
+}
+
+exports.validateActionlike = validateActionlike;
+exports.validateAction = validateAction;
+exports.validateActionData = validateActionData;
+exports.validateActionGroup = validateActionGroup;
+exports.validateAchievement = validateAchievement;
+exports.validateDisplay = validateDisplay;
+exports.validateGranting = validateGranting;
+exports.validateMutator = validateMutator;
+exports.validatePrereqs = validatePrereqs;
+exports.validatePrerequisite = validatePrerequisite;
+exports.normalizeActionLike = normalizeActionLike;
+exports.normalizeAchievement = normalizeAchievement;
+exports.normalizeGranting = normalizeGranting;
+exports.normalizePrereqs = normalizePrereqs;
+exports.normalizePrerequisite = normalizePrerequisite;
+exports.normalizeMutator = normalizeMutator;
+exports.normalizeDisplay = normalizeDisplay;

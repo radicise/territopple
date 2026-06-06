@@ -302,4 +302,14 @@ async function executeAchiCode(code, account, achidata) {
     return {value:null,err:null};
 }
 
+/**
+ * @todo implement
+ * @param {Buffer} code
+ * @returns {boolean}
+ */
+function validateAchiCode(code) {
+    return true;
+}
+
 exports.executeAchiCode = executeAchiCode;
+exports.validateAchiCode = validateAchiCode;

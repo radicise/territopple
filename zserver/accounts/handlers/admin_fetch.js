@@ -2,13 +2,13 @@ const http = require("http");
 const { ACC_ADMIN_PREFIX, EERROR, EBADMOD, ACC_ADMIN_PGRP_PREFIX } = require("../constants.js");
 const { ASessionManager, extractASessionId, makeASessionCookie } = require("../sessions.js");
 const { AccountRecord, PrivGroupRecord, SanctionRecord } = require("../types.js");
-const { collection, priv_groups, getEffectivePrivs, getAccountRecord } = require("../db.js");
-const { check_permission, check_can_moderate, check_sanction_allowed, Permissions } = require("../perms.js");
+const { collection, priv_groups, getEffectivePrivs, getAccountRecord, achi_data, acts_data } = require("../db.js");
+const { check_permission, check_can_moderate, check_sanction_allowed, Permissions, check_raw_permissions } = require("../perms.js");
 const { validateJSONScheme, settings } = require("../../../defs.js");
 const schemes = require("../schemes.js");
 const auth = require("../auth.js");
 const { handlePGroupRequest } = require("../colls/privgroups.js");
-const { triggerManual, getRequiredPermissions, getAchievements, getActions } = require("../achi/primary.js");
+const { triggerManual, getRequiredPermissions, getAchievements, getActions, bulkAchiWrite } = require("../achi/primary.js");
 
 /**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
 
@@ -169,9 +169,43 @@ async function processAdminFetch(req, res, url, log) {
                         res.writeHead(403, {"content-type":"text/plain"}).end("insufficient permissions");
                         return;
                     }
-                    // const batch_size = Number(url.searchParams.get("count")) || settings.ADMIN.DEFAULT_BATCH_SIZE;
-                    // let i = 0;
-                    res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify({achis:Object.values(getAchievements()),acts:getActions()}));
+                    const batch_size = Number(url.searchParams.get("count")) || settings.ADMIN.DEFAULT_BATCH_SIZE;
+                    try {
+                        const kind = url.searchParams.get("kind") ?? "achi";
+                        const search = url.searchParams.get("search") || ".*";
+                        const page = Number(url.searchParams.get("page")) || 1;
+                        let coll;
+                        let ff;
+                        switch (kind) {
+                            case "achi": {
+                                coll = achi_data;
+                                ff = "name";
+                                break;
+                            }
+                            case "acts": {
+                                coll = acts_data;
+                                ff = "id";
+                                break;
+                            }
+                            default: {
+                                res.writeHead(400,{"content-type":"text/plain"}).end("bad kind");
+                                return;
+                            }
+                        }
+                        let pipeline = coll.find().limit(batch_size);
+                        let filter = {};
+                        if (search !== ".*") {
+                            filter[ff] = {$regex:search};
+                            pipeline = pipeline.filter(filter);
+                        }
+                        pipeline = pipeline.sort({_id:1});
+                        const [count, list] = await Promise.all([coll.countDocuments(filter),pipeline.skip(batch_size*(page-1)).project({_id:0}).toArray()]);
+                        // const list = await (pipeline.skip(batch_size*(page-1)).project({_id:0})).toArray();
+                        res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify({count:Math.ceil(count/batch_size),list}));
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500,{"content-type":"text/plain"}).end(E.sanitized??"internal error");
+                    }
                     return;
                 }
             }
@@ -180,7 +214,34 @@ async function processAdminFetch(req, res, url, log) {
         }
         case "POST":{
             switch (stripped) {
+                case "/achi-source": {
+                    if (!check_permission(adminperms, Permissions.MANAGE_ACHIEVEMENTS)) {
+                        res.writeHead(403, {"content-type":"text/plain"}).end("insufficient permissions");
+                        return;
+                    }
+                    const data = JSON.parse(body);
+                    for (const k of ["acts","achi"]) {
+                        for (const sk of ["create","update","delete"]) {
+                            if (!data[k] || !Array.isArray(data[k][sk])) {
+                                res.writeHead(400, {"content-type":"text/plain"}).end("invalid update to achi source");
+                                return;
+                            }
+                        }
+                    }
+                    try {
+                        const result = await bulkAchiWrite(data);
+                        res.writeHead(200, {"content-type":"application/json"}).end(JSON.stringify(result));
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500, {"content-type":"text/plain"}).end(E.sanitized??"internal error");
+                    }
+                    return;
+                }
                 case "/achi-trigger": {
+                    if (!(
+                        check_permission(adminperms, Permissions.MANAGE_ACHIEVEMENTS)
+                        && check_permission(adminperms, Permissions.MODERATE)
+                    )) {}
                     const data = JSON.parse(body);
                     if (!validateJSONScheme(data, schemes.adminAchieve)) {
                         res.writeHead(400,{"content-type":"text/plain"}).end("misformed");
@@ -192,7 +253,7 @@ async function processAdminFetch(req, res, url, log) {
                             res.writeHead(404,{"content-type":"text/plain"}).end("admin account not found");
                             return;
                         }
-                        if (!check_permission(adminperms, ...(await getRequiredPermissions(data.action)))) {
+                        if (!check_raw_permissions(adminperms, ...(await getRequiredPermissions(data.action)))) {
                             res.writeHead(403,{"content-type":"text/plain"}).end("insufficient permissions");
                             return;
                         }
