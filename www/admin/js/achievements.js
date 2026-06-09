@@ -362,7 +362,7 @@ function fieldToNumber(f) {
         /**@type {HTMLTableSectionElement} */
         const head = document.getElementById("det-act-tperms-outer").children[0];
         for (let i = 0; i < 32; i ++) {
-            head.appendChild(make("th",{"textContent":(i in perms.PRIVILEGES)?perms.PRIVILEGES[key]:`Bit ${i+1}`}));
+            head.appendChild(make("th",{"textContent":(i in perms.PRIVILEGES)?perms.PRIVILEGES[i]:`Bit ${i+1}`}));
         }
         head.appendChild(make("th",{"children":[make("input",{"type":"button","value":"New"})],"id":"det-act-tperms-lcol"}));
     }
