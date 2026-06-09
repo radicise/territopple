@@ -15,3 +15,20 @@ export const PRIVILEGES = {
     30:"Apply G4 Sanction, Review G4 Sanction",
     31:"Priv Admin"
 };
+export const SHORT_PRIVS = {
+    0:"Mod",
+    1:"AG1",
+    2:"AG2",
+    3:"RG1,2",
+    4:"AG3",
+    5:"RG3",
+    6:"RPuz",
+    7:"MPuz",
+    8:"MEve",
+    9:"Trust",
+    10:"MAchi",
+    28:"RPF",
+    29:"APG",
+    30:"ARG4",
+    31:"PrivAd"
+};

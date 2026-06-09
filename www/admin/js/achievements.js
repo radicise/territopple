@@ -74,6 +74,9 @@ const ERROR_DETAILS = document.getElementById("error-details");
  */
 const BLANK_DETAILS = document.getElementById("blank-details");
 
+/**@type {TTVariablePanelGroup} */
+const DETAILS_PANE = document.getElementById("item-details");
+
 
 /**@type {{resp:{count:number,list:object[]},kind:"acts"|"achi",page:number,search:string}} */
 const query_data = {
@@ -99,7 +102,7 @@ const writeData = {acts:{create:{},update:{},delete:[]},achi:{create:{},update:{
 /**@type {{acts:Record<string,ActionLike>,achi:Record<number,AchiDef>}} */
 const origData = {acts:{},achi:{}};
 
-let activePanel = BLANK_DETAILS;
+// let activePanel = BLANK_DETAILS;
 
 /**
  * executes the provided string in the internal context and returns the result
@@ -201,9 +204,10 @@ function fieldToNumber(f) {
         })();
         if (!data) {
             // the specified item does not exist
-            activePanel.hidden = true;
-            activePanel = ERROR_DETAILS;
-            ERROR_DETAILS.hidden = false;
+            DETAILS_PANE.switchPanel("error");
+            // activePanel.hidden = true;
+            // activePanel = ERROR_DETAILS;
+            // ERROR_DETAILS.hidden = false;
             document.getElementById("det-err-type").textContent = "Invalid Details Target";
             document.getElementById("det-err-info").replaceChildren(`The requested detail's identifier (${item}) did not resolve to an acceptable object.`,make("br"),(()=>{
                 if (typeof item==="number")return `Search results length is ${query_data.resp.list.length}.`;
@@ -218,14 +222,15 @@ function fieldToNumber(f) {
             })());
             return;
         }
-        activePanel.hidden = true;
+        // activePanel.hidden = true;
         if (typeof data.id === "string") {
             if (data.id[0] === "+") {
                 /**@type {Action} */
                 const info = data;
-                activePanel = ACTION_DETAILS;
-                ACTION_DETAILS.hidden = false;
-                const $ = ACTION_DETAILS.querySelector.bind(ACTION_DETAILS);
+                // activePanel = ACTION_DETAILS;
+                // ACTION_DETAILS.hidden = false;
+                DETAILS_PANE.switchPanel("action");
+                const $ = DETAILS_PANE.querySelector;
                 $("#det-act-id").value = info.id.slice(1);
                 /**@type {HTMLTableSectionElement} */
                 const permslist = $("#det-act-tperms");
@@ -236,17 +241,19 @@ function fieldToNumber(f) {
             } else {
                 /**@type {ActionGroup} */
                 const info = data;
-                activePanel = AGROUP_DETAILS;
-                AGROUP_DETAILS.hidden = false;
-                const $ = AGROUP_DETAILS.querySelector.bind(AGROUP_DETAILS);
+                // activePanel = AGROUP_DETAILS;
+                // AGROUP_DETAILS.hidden = false;
+                DETAILS_PANE.switchPanel("agroup")
+                const $ = DETAILS_PANE.querySelector;
                 $("#det-grp-id").value = info.id.slice(1);
             }
         } else {
             /**@type {AchiDef} */
             const info = data;
-            activePanel = ACHIEVE_DETAILS;
-            ACHIEVE_DETAILS.hidden = false;
-            const $ = ACHIEVE_DETAILS.querySelector.bind(ACHIEVE_DETAILS);
+            // activePanel = ACHIEVE_DETAILS;
+            // ACHIEVE_DETAILS.hidden = false;
+            DETAILS_PANE.switchPanel("achieve");
+            const $ = DETAILS_PANE.querySelector;
         }
     }
     /**
@@ -362,7 +369,7 @@ function fieldToNumber(f) {
         /**@type {HTMLTableSectionElement} */
         const head = document.getElementById("det-act-tperms-outer").children[0];
         for (let i = 0; i < 32; i ++) {
-            head.appendChild(make("th",{"textContent":(i in perms.PRIVILEGES)?perms.PRIVILEGES[i]:`Bit ${i+1}`}));
+            head.appendChild(make("th",{"textContent":(i in perms.SHORT_PRIVS)?perms.SHORT_PRIVS[i]:`Bit ${i+1}`}));
         }
         head.appendChild(make("th",{"children":[make("input",{"type":"button","value":"New"})],"id":"det-act-tperms-lcol"}));
     }

@@ -80,3 +80,7 @@ div#action-details > fieldset {
 #det-act-tperms {
     overflow-y: scroll;
 }
+
+x-polypanel {
+    display: block;
+}
