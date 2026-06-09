@@ -108,6 +108,29 @@ let activePanel = BLANK_DETAILS;
  */
 let _ACHIEVEMENTS_DEBUG_DO = (thing) => {};
 
+/**
+ * @param {number} n
+ * @returns {boolean[]}
+ */
+function numberToField(n) {
+    const f = new Array(32).fill(false);
+    for (let i = 0; i < 32; i ++) {
+        f[i] = Boolean(n&(1<<i));
+    }
+    return f;
+}
+/**
+ * @param {boolean[]} f
+ * @returns {number}
+ */
+function fieldToNumber(f) {
+    let n = 0;
+    for (let i = 0; i < 32; i ++) {
+        if (f[i]) n |= (1<<i);
+    }
+    return n;
+}
+
 (async () => {
     await INCLUDE_FINISHED;
     await new Promise(r => {
@@ -116,6 +139,7 @@ let _ACHIEVEMENTS_DEBUG_DO = (thing) => {};
     /**@typedef {import("../../../zserver/accounts/types.js").AccountRecord} AccountRecord */
     /**@type {typeof import("../../../commonjs/perms.mjs")} */
     const perms = await import("/commonjs/perms.mjs");
+    populateTPerms();
     /**@type {string} */
     const ownid = (await (await fetch(`https://${document.location.hostname}/acc/admin/check`, {method:"GET"})).json()).name;
     /**@type {AccountRecord} */
@@ -201,9 +225,43 @@ let _ACHIEVEMENTS_DEBUG_DO = (thing) => {};
                 const info = data;
                 activePanel = ACTION_DETAILS;
                 ACTION_DETAILS.hidden = false;
-                ACTION_DETAILS.querySelector("#det-act-id").value = info.id;
+                const $ = ACTION_DETAILS.querySelector;
+                $("#det-act-id").value = info.id.slice(1);
+                /**@type {HTMLTableSectionElement} */
+                const permslist = $("#det-act-tperms");
+                for (const pset of info.perm) {
+                    permslist.appendChild(createTriggerPerms(pset));
+                }
+                $("#det-act-tperms-lcol").children[0].onclick = () => {console.log("click");};
+            } else {
+                /**@type {ActionGroup} */
+                const info = data;
+                activePanel = AGROUP_DETAILS;
+                AGROUP_DETAILS.hidden = false;
+                const $ = AGROUP_DETAILS.querySelector;
+                $("#det-grp-id").value = info.id.slice(1);
             }
+        } else {
+            /**@type {AchiDef} */
+            const info = data;
+            activePanel = ACHIEVE_DETAILS;
+            ACHIEVE_DETAILS.hidden = false;
+            const $ = ACHIEVE_DETAILS.querySelector;
         }
+    }
+    /**
+     * @param {number?} p
+     * @returns {HTMLTableRowElement}
+     */
+    function createTriggerPerms(p) {
+        const f = numberToField(p||0);
+        const r = document.createElement("tr");
+        for (let i = 0; i < 32; i ++) {
+            const c = make("input",{"type":"check"});
+            c.checked = f[i];
+            r.appendChild(make("td",{"children":[c]}));
+        }
+        return r;
     }
     function renderSearchResults() {
         const children = [];
@@ -298,6 +356,15 @@ let _ACHIEVEMENTS_DEBUG_DO = (thing) => {};
             }
         }
         STAGED_LIST.replaceChildren(...cards);
+    }
+
+    function populateTPerms() {
+        /**@type {HTMLTableSectionElement} */
+        const head = document.getElementById("det-act-tperms-outer").children[0];
+        for (let i = 0; i < 32; i ++) {
+            head.appendChild(make("th",{"textContent":(i in perms.PRIVILEGES)?perms.PRIVILEGES[key]:`Bit ${i+1}`}));
+        }
+        head.appendChild(make("th",{"children":[make("input",{"type":"button","value":"New"})],"id":"det-act-tperms-lcol"}));
     }
     _ACHIEVEMENTS_DEBUG_DO = (thing) => {
         return eval(thing);

@@ -4,11 +4,14 @@ div#main-layout {
     height: 80vh;
     grid-template-columns: 1fr 50vw 1fr;
     margin-top: 10px;
+    border: solid 1px black;
 }
 
 div#left-pane {
     display: grid;
-    grid-template-rows: 15vh 50vh 15vh;
+    grid-template-rows: 2fr 60vh 1fr;
+    padding-block: 4px;
+    margin-left: 4px;
 }
 
 span#search-holder {
@@ -30,11 +33,20 @@ div#search-pages {
     flex-direction: row;
     justify-content: center;
     align-content: center;
+    flex-wrap: nowrap;
+}
+
+div#center-pane {
+    margin-inline: 8px;
+    padding-inline: 8px;
+    border-inline: solid 1px black;
 }
 
 div#right-pane {
     display: flex;
     flex-direction: column;
+    padding-block: 4px;
+    margin-right: 4px;
     > h3 {
         margin-bottom: 5px;
         margin-top: 0px;

@@ -31,10 +31,37 @@
             <div id="center-pane">
                 <div id="action-details" hidden>
                     <h2>Action</h2>
-                    <label for="det-act-id">Action ID: </label>
+                    <label for="det-act-id">Action ID: +</label>
                     <input type="text" id="det-act-id" disabled>
+                    <br>
+                    <fieldset>
+                        <legend>Trigger Permissions</legend>
+                        <table id="det-act-tperms-outer">
+                            <thead>
+                            </thead>
+                            <tbody id="det-act-tperms"></tbody>
+                        </table>
+                        <select id="pp-test-select">
+                            <option value="blank">blank</option>
+                            <option value="test1">test1</option>
+                            <option value="test2">test2</option>
+                        </select>
+                        <x-polypanel id="pp-test-panel">
+                            <x-pp-panel pid="blank" default></x-pp-panel>
+                            <x-pp-panel pid="test1">
+                                Test1
+                            </x-pp-panel>
+                            <x-pp-panel pid="test2">
+                                Test2 <input type="button" value="goto t1" onclick="document.getElementById('pp-test-panel').switchPanel('test1');">
+                            </x-pp-panel>
+                        </x-polypanel>
+                    </fieldset>
                 </div>
-                <div id="agroup-details" hidden></div>
+                <div id="agroup-details" hidden>
+                    <h2>Action Group</h2>
+                    <label for="det-act-id">Group ID: -</label>
+                    <input type="text" id="det-grp-id" disabled>
+                </div>
                 <div id="achieve-details" hidden></div>
                 <div id="error-details" hidden>
                     <h2>Error: <span id="det-err-type">type unset</span></h2>
@@ -52,6 +79,7 @@
             </div>
         </div>
         <script src="/components/utils/make.js"></script>
+        <script src="/components/utils/variable_display.js"></script>
         <script src="/components/include.js"></script>
         <script src="/admin/js/achievements.js"></script>
     </body>
