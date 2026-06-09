@@ -67,3 +67,12 @@ div.sr-item {
 span.sr-type {
     font-weight: bold;
 }
+
+
+#det-act-tperms-outer {
+    overflow-x: scroll;
+}
+
+#det-act-tperms {
+    overflow-y: scroll;
+}

@@ -65,7 +65,7 @@ class TTVariablePanelGroup extends HTMLElement {
         this.#bound_select.value = pid;
     }
     get querySelector() {
-        return this.#active_panel.querySelector;
+        return this.#active_panel.querySelector.bind(this.#active_panel);
     }
     /**
      * the active panel's panel id

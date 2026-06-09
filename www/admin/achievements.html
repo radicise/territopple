@@ -41,21 +41,21 @@
                             </thead>
                             <tbody id="det-act-tperms"></tbody>
                         </table>
-                        <select id="pp-test-select">
-                            <option value="blank">blank</option>
-                            <option value="test1">test1</option>
-                            <option value="test2">test2</option>
-                        </select>
-                        <x-polypanel id="pp-test-panel">
-                            <x-pp-panel pid="blank" default></x-pp-panel>
-                            <x-pp-panel pid="test1">
-                                Test1
-                            </x-pp-panel>
-                            <x-pp-panel pid="test2">
-                                Test2 <input type="button" value="goto t1" onclick="document.getElementById('pp-test-panel').switchPanel('test1');">
-                            </x-pp-panel>
-                        </x-polypanel>
                     </fieldset>
+                    <select id="pp-test-select">
+                        <option value="blank">blank</option>
+                        <option value="test1">test1</option>
+                        <option value="test2">test2</option>
+                    </select>
+                    <x-polypanel id="pp-test-panel">
+                        <x-pp-panel pid="blank" default></x-pp-panel>
+                        <x-pp-panel pid="test1">
+                            Test1
+                        </x-pp-panel>
+                        <x-pp-panel pid="test2">
+                            Test2 <input type="button" value="goto t1" onclick="document.getElementById('pp-test-panel').switchPanel('test1');">
+                        </x-pp-panel>
+                    </x-polypanel>
                 </div>
                 <div id="agroup-details" hidden>
                     <h2>Action Group</h2>

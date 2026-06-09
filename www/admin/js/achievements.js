@@ -225,7 +225,7 @@ function fieldToNumber(f) {
                 const info = data;
                 activePanel = ACTION_DETAILS;
                 ACTION_DETAILS.hidden = false;
-                const $ = ACTION_DETAILS.querySelector;
+                const $ = ACTION_DETAILS.querySelector.bind(ACTION_DETAILS);
                 $("#det-act-id").value = info.id.slice(1);
                 /**@type {HTMLTableSectionElement} */
                 const permslist = $("#det-act-tperms");
@@ -238,7 +238,7 @@ function fieldToNumber(f) {
                 const info = data;
                 activePanel = AGROUP_DETAILS;
                 AGROUP_DETAILS.hidden = false;
-                const $ = AGROUP_DETAILS.querySelector;
+                const $ = AGROUP_DETAILS.querySelector.bind(AGROUP_DETAILS);
                 $("#det-grp-id").value = info.id.slice(1);
             }
         } else {
@@ -246,7 +246,7 @@ function fieldToNumber(f) {
             const info = data;
             activePanel = ACHIEVE_DETAILS;
             ACHIEVE_DETAILS.hidden = false;
-            const $ = ACHIEVE_DETAILS.querySelector;
+            const $ = ACHIEVE_DETAILS.querySelector.bind(ACHIEVE_DETAILS);
         }
     }
     /**
