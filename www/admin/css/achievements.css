@@ -84,6 +84,7 @@ x-pp-panel#action-pp-panel > fieldset {
         > span {
             display: flex;
             flex-direction: row;
+            justify-content: center;
         }
     }
 }

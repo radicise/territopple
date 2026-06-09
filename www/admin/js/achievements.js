@@ -268,6 +268,7 @@ function fieldToNumber(f) {
             c.checked = f[i];
             r.appendChild(make("td",{"children":[make("span",{"children":[c]})]}));
         }
+        r.appendChild(make("td",{"children":[make("input",{"type":"button","value":"-","onclick":()=>{console.log("click");}})]}));
         return r;
     }
     function renderSearchResults() {
