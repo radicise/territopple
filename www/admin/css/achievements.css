@@ -68,7 +68,7 @@ span.sr-type {
     font-weight: bold;
 }
 
-div#action-details > fieldset {
+x-pp-panel#action > fieldset {
     min-inline-size: unset;
 }
 
