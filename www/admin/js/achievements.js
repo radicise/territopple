@@ -63,6 +63,16 @@ const AGROUP_DETAILS = document.getElementById("agroup-details");
  * @type {HTMLDivElement}
  */
 const ACHIEVE_DETAILS = document.getElementById("achieve-details");
+/**
+ * details pane for errors
+ * @type {HTMLDivElement}
+ */
+const ERROR_DETAILS = document.getElementById("error-details");
+/**
+ * empty panel, shown when no other panels are active
+ * @type {HTMLDivElement}
+ */
+const BLANK_DETAILS = document.getElementById("blank-details");
 
 
 /**@type {{resp:{count:number,list:object[]},kind:"acts"|"achi",page:number,search:string}} */
@@ -78,15 +88,25 @@ const query_data = {
 /**
  * @template T
  * @template U
- * @typedef {import("../../../zserver/accounts/achi/primary.js").BulkChange<T,U>} BulkChange */
+ * @typedef {import("../../../zserver/accounts/achi/primary.js").BulkChange<T,U>} BulkChange
+ * @typedef {import("../../../zserver/accounts/achi/primary.js").BulkChangeR<T,U>} BulkChangeR */
+/**@typedef {import("../../../zserver/accounts/achi/types.js").Action} Action */
+/**@typedef {import("../../../zserver/accounts/achi/types.js").ActionGroup} ActionGroup */
 /**@typedef {import("../../../zserver/accounts/achi/types.js").ActionLike} ActionLike */
 /**@typedef {import("../../../zserver/accounts/achi/types.js").AchiDef} AchiDef */
-/**@type {{acts:BulkChange<ActionLike,string>,achi:BulkChange<AchiDef,number>}} */
-const writeData = {acts:{create:{},update:{},delete:{}},achi:{create:{},update:{},delete:{}}};
+/**@type {{acts:BulkChangeR<ActionLike,string>,achi:BulkChangeR<AchiDef,number>}} */
+const writeData = {acts:{create:{},update:{},delete:[]},achi:{create:{},update:{},delete:[]}};
 /**@type {{acts:Record<string,ActionLike>,achi:Record<number,AchiDef>}} */
 const origData = {acts:{},achi:{}};
 
+let activePanel = BLANK_DETAILS;
 
+/**
+ * executes the provided string in the internal context and returns the result
+ * @param {string} thing
+ * @returns {any}
+ */
+let _ACHIEVEMENTS_DEBUG_DO = (thing) => {};
 
 (async () => {
     await INCLUDE_FINISHED;
@@ -132,7 +152,7 @@ const origData = {acts:{},achi:{}};
         fetch(`https://${document.location.hostname}/acc/admin/achievements?${params}`, {method:"GET"}).then(async r => {
             if (r.ok) {
                 query_data.resp = await r.json();
-                renderResults();
+                renderSearchResults();
             } else {
                 alert(`error (${r.status}): ${await r.text()}`);
             }
@@ -142,10 +162,50 @@ const origData = {acts:{},achi:{}};
     }
 
     /**
-     * @param {number} item
+     * @param {number|string} item if string, must be of the form {type}.{op}.{id}
      */
-    function renderDetails(item) {}
-    function renderResults() {
+    function renderDetails(item) {
+        /**@type {ActionLike|AchiDef} */
+        const data = typeof item === "number" ? query_data.resp.list[item] : (()=>{
+            const i = item.indexOf(".");
+            const t = item[i+1]; // operation type
+            const n = item.slice(i+3); // name/key
+            const d = item.slice(0,i); // domain (acts, achi)
+            if (t === "c" || t === "u") return writeData[d].create[n];
+            if (t === "d") return origData[d][n];
+            return undefined;
+        })();
+        if (!data) {
+            // the specified item does not exist
+            activePanel.hidden = true;
+            activePanel = ERROR_DETAILS;
+            ERROR_DETAILS.hidden = false;
+            document.getElementById("det-err-type").textContent = "Invalid Details Target";
+            document.getElementById("det-err-info").replaceChildren(`The requested detail's identifier (${item}) did not resolve to an acceptable object.`,make("br"),(()=>{
+                if (typeof item==="number")return `Search results length is ${query_data.resp.list.length}.`;
+                const i = item.indexOf(".");
+                const d = item.slice(0,i);
+                const t = item[i+1];
+                const n = item.slice(i+3);
+                if (!["c","u","d"].includes(t))return `Invalid operation type (${t}).`;
+                if (!(d in writeData))return `Invalid domain (${d}).`;
+                if (t==="d")return `Orig data includes key (${n in origData[d]}).`;
+                return `Write data includes key (${n in writeData[d][t==='c'?"create":"update"]})`;
+            })());
+            return;
+        }
+        activePanel.hidden = true;
+        if (typeof data.id === "string") {
+            if (data.id[0] === "+") {
+                /**@type {Action} */
+                const info = data;
+                activePanel = ACTION_DETAILS;
+                ACTION_DETAILS.hidden = false;
+                ACTION_DETAILS.querySelector("#det-act-id").value = info.id;
+            }
+        }
+    }
+    function renderSearchResults() {
         const children = [];
         switch (query_data.kind) {
             case "achi": {
@@ -178,4 +238,68 @@ const origData = {acts:{},achi:{}};
         SEARCH_NAME.value = query_data.search;
         SEARCH_RESULTS.replaceChildren(...children);
     }
+    function renderStagedChanges() {
+        /**@type {HTMLDivElement[]} */
+        const cards = [];
+        /**
+         * adds the card to the cards list
+         * @param {"create"|"update"|"delete"} operation
+         * @param {"achi"|"acts"} type
+         * @param {string} id
+         * @param {string?} details
+         * @returns {void}
+         */
+        const createCard = (operation, type, id, details) => {
+            const cont = make("div", {"classList":["sr-item"],"onclick":()=>{renderDetails(`${type}.${operation[0]}.${id}`)}});
+            const opchar = {"create":"C","update":"U","delete":"D"}[operation];
+            cont.appendChild(make("span", {"classList":["sr-type"],"textContent":`(${opchar})`}));
+            let name;
+            switch (type) {
+                case "achi": {
+                    name = make("span", {"children":[
+                        make("span", {"classList":["sr-type"],"textContent":"Achievement"}),
+                        " ",
+                        make("span", {"textContent":id})
+                    ]});
+                    break;
+                }
+                case "acts": {
+                    name = make("span", {"children":[
+                        make("span", {"classList":["sr-type"],"textContent":id[0]==="+"?"Action":"Action Group"}),
+                        " ",
+                        make("span", {"textContent":id.slice(1)})
+                    ]});
+                    break;
+                }
+            }
+            cont.appendChild(name);
+            if (details) {
+                cont.append(details);
+            }
+            cards.push(cont);
+        };
+        /**@type {["create","update","delete"]} */
+        const ops = ["create","update","delete"];
+        for (const operation of ops) {
+            if (operation === "delete") {
+                for (const change of writeData.acts[operation].sort()) {
+                    createCard(operation,"acts",change,null);
+                }
+                for (const change of writeData.achi[operation].sort()) {
+                    createCard(operation,"achi",change,null);
+                }
+            } else {
+                for (const change of Object.keys(writeData.acts[operation]).sort()) {
+                    createCard(operation,"acts",change.id,null);
+                }
+                for (const change of Object.keys(writeData.achi[operation]).sort()) {
+                    createCard(operation,"achi",change.name,null);
+                }
+            }
+        }
+        STAGED_LIST.replaceChildren(...cards);
+    }
+    _ACHIEVEMENTS_DEBUG_DO = (thing) => {
+        return eval(thing);
+    };
 })();

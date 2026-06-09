@@ -29,9 +29,18 @@
                 </div>
             </div>
             <div id="center-pane">
-                <div id="action-details" hidden></div>
+                <div id="action-details" hidden>
+                    <h2>Action</h2>
+                    <label for="det-act-id">Action ID: </label>
+                    <input type="text" id="det-act-id" disabled>
+                </div>
                 <div id="agroup-details" hidden></div>
                 <div id="achieve-details" hidden></div>
+                <div id="error-details" hidden>
+                    <h2>Error: <span id="det-err-type">type unset</span></h2>
+                    <p id="det-err-info"></p>
+                </div>
+                <div id="blank-details"></div>
             </div>
             <div id="right-pane">
                 <h3>Staged Changes</h3>

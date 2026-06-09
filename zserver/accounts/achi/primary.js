@@ -366,6 +366,7 @@ async function deleteAchievement(achiid, updatemem) {
  * @template T
  * @template U
  * @typedef {{create:T[],update:T[],delete:U[]}} BulkChange
+ * @typedef {{create:Record<string,T>,update:Record<string,T>,delete:U[]}} BulkChangeR
  */
 /**
  * @typedef {{created:number,updated:number,deleted:number}} BulkChangeResult
