@@ -257,7 +257,7 @@ function fieldToNumber(f) {
         const f = numberToField(p||0);
         const r = document.createElement("tr");
         for (let i = 0; i < 32; i ++) {
-            const c = make("input",{"type":"check"});
+            const c = make("input",{"type":"checkbox"});
             c.checked = f[i];
             r.appendChild(make("td",{"children":[c]}));
         }
