@@ -68,8 +68,12 @@ span.sr-type {
     font-weight: bold;
 }
 
+div#action-details > fieldset {
+    min-inline-size: unset;
+}
 
 #det-act-tperms-outer {
+    display: block;
     overflow-x: scroll;
 }
 
