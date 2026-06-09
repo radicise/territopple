@@ -9,6 +9,7 @@ class TTVariablePanel extends HTMLElement {
         if (!this.getAttribute("default")) {
             this.hidden = true;
         }
+        this.id = this.pid+"-pp-panel";
     }
     /**
      * @returns {string}
