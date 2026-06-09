@@ -29,8 +29,8 @@
                 </div>
             </div>
             <div id="center-pane">
-                <x-polypanel>
-                    <x-pp-panel id="action">
+                <x-polypanel id="item-details">
+                    <x-pp-panel pid="action">
                         <h2>Action</h2>
                         <label for="det-act-id">Action ID: +</label>
                         <input type="text" id="det-act-id" disabled>
@@ -58,12 +58,12 @@
                             </x-pp-panel>
                         </x-polypanel>
                     </x-pp-panel>
-                    <x-pp-panel id="agroup">
+                    <x-pp-panel pid="agroup">
                         <h2>Action Group</h2>
                         <label for="det-act-id">Group ID: -</label>
                         <input type="text" id="det-grp-id" disabled>
                     </x-pp-panel>
-                    <x-pp-panel id="achieve"></x-pp-panel>
+                    <x-pp-panel pid="achieve"></x-pp-panel>
                     <x-pp-panel pid="error">
                         <h2>Error: <span id="det-err-type">type unset</span></h2>
                         <p id="det-err-info"></p>
