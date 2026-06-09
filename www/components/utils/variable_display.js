@@ -63,7 +63,7 @@ class TTVariablePanelGroup extends HTMLElement {
         this.#active_panel.hidden = true;
         this.#active_panel = [...this.children].find(v => v.pid === pid) ?? this.#active_panel;
         this.#active_panel.hidden = false;
-        this.#bound_select.value = pid;
+        if (this.#bound_select) this.#bound_select.value = pid;
     }
     get querySelector() {
         return this.#active_panel.querySelector.bind(this.#active_panel);
