@@ -80,6 +80,11 @@ x-pp-panel#action-pp-panel > fieldset {
     border: 2px solid gray;
     th, td {
         border: 1px solid gray;
+        padding: 0px 2px;
+        > span {
+            display: flex;
+            flex-direction: row;
+        }
     }
 }
 

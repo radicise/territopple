@@ -266,7 +266,7 @@ function fieldToNumber(f) {
         for (let i = 0; i < 32; i ++) {
             const c = make("input",{"type":"checkbox"});
             c.checked = f[i];
-            r.appendChild(make("td",{"children":[c]}));
+            r.appendChild(make("td",{"children":[make("span",{"children":[c]})]}));
         }
         return r;
     }
