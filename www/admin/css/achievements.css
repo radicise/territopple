@@ -79,6 +79,12 @@ x-pp-panel#action-pp-panel > fieldset {
 
 #det-act-tperms {
     overflow-y: scroll;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 2px solid gray;
+    th, td {
+        border: 1px solid gray;
+    }
 }
 
 x-polypanel {
