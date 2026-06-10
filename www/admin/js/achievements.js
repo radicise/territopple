@@ -231,9 +231,11 @@ function fieldToNumber(f) {
                 // ACTION_DETAILS.hidden = false;
                 DETAILS_PANE.switchPanel("action");
                 const $ = DETAILS_PANE.querySelector;
+                $("#det-act-tperms-set").disabled = true;
                 $("#det-act-id").value = info.id.slice(1);
                 /**@type {HTMLTableSectionElement} */
                 const permslist = $("#det-act-tperms");
+                permslist.replaceChildren();
                 for (const pset of info.perm) {
                     permslist.appendChild(createTriggerPerms(pset));
                 }
@@ -266,10 +268,11 @@ function fieldToNumber(f) {
         for (let i = 0; i < 32; i ++) {
             const c = make("input",{"type":"checkbox"});
             c.checked = f[i];
+            c.bit = i;
             r.appendChild(make("td",{"children":[make("span",{"children":[c]})]}));
         }
         r.appendChild(make("td",{"children":[make("span",{"children":[
-            make("input",{"type":"button","value":"-","onclick":()=>{console.log("click");}})
+            make("input",{"type":"button","value":"-","onclick":()=>{r.parentElement.removeChild(r);}})
         ]})]}));
         return r;
     }

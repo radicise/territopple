@@ -30,12 +30,18 @@
             </div>
             <div id="center-pane">
                 <x-polypanel id="item-details">
+                    <x-pp-panel shared>
+                        <x-pp-shared name="change-actions" definition>
+                            <input type="button" value="Edit">
+                        </x-pp-shared>
+                    </x-pp-panel>
                     <x-pp-panel pid="action">
                         <h2>Action</h2>
                         <label for="det-act-id">Action ID: +</label>
                         <input type="text" id="det-act-id" disabled>
+                        <x-pp-shared name="change-actions"></x-pp-shared>
                         <br>
-                        <fieldset>
+                        <fieldset id="det-act-tperms-set">
                             <legend>Trigger Permissions</legend>
                             <table id="det-act-tperms-outer">
                                 <thead>
@@ -68,7 +74,7 @@
                         <h2>Error: <span id="det-err-type">type unset</span></h2>
                         <p id="det-err-info"></p>
                     </x-pp-panel>
-                    <x-pp-panel pid="blank" default="1"></x-pp-panel>
+                    <x-pp-panel pid="blank" default></x-pp-panel>
                 </x-polypanel>
             </div>
             <div id="right-pane">
