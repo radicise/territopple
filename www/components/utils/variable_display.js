@@ -47,6 +47,12 @@ class TTSharedPanelComponent extends HTMLElement {
             });
         }
     }
+    /**
+     * @returns {string}
+     */
+    get name() {
+        return this.getAttribute("name");
+    }
 }
 customElements.define("x-pp-shared", TTSharedPanelComponent);
 
