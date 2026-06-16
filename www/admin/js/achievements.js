@@ -77,6 +77,32 @@ const BLANK_DETAILS = document.getElementById("blank-details");
 /**@type {TTVariablePanelGroup} */
 const DETAILS_PANE = document.getElementById("item-details");
 
+/**
+ * edit button for item details
+ * @type {HTMLInputElement}
+ */
+const IDCA_EDIT = document.getElementById("idca-edit");
+/**
+ * delete button for item details
+ * @type {HTMLInputElement}
+ */
+const IDCA_DELETE = document.getElementById("idca-delete");
+/**
+ * name/id input for creating items
+ * @type {HTMLInputElement}
+ */
+const SEARCHC_NAME = document.getElementById("search-create-name");
+/**
+ * type for creating items
+ * @type {HTMLSelectElement}
+ */
+const SEARCHC_TYPE = document.getElementById("search-create-type");
+/**
+ * create button for items
+ * @type {HTMLInputElement}
+ */
+const SEARCHC_BUTTON = document.getElementById("search-create");
+
 
 /**@type {{resp:{count:number,list:object[]},kind:"acts"|"achi",page:number,search:string}} */
 const query_data = {
@@ -91,7 +117,10 @@ const query_data = {
 /**
  * @template T
  * @template U
- * @typedef {import("../../../zserver/accounts/achi/primary.js").BulkChange<T,U>} BulkChange
+ * @typedef {import("../../../zserver/accounts/achi/primary.js").BulkChange<T,U>} BulkChange */
+/**
+ * @template T
+ * @template U
  * @typedef {import("../../../zserver/accounts/achi/primary.js").BulkChangeR<T,U>} BulkChangeR */
 /**@typedef {import("../../../zserver/accounts/achi/types.js").Action} Action */
 /**@typedef {import("../../../zserver/accounts/achi/types.js").ActionGroup} ActionGroup */
@@ -134,6 +163,19 @@ function fieldToNumber(f) {
     return n;
 }
 
+/**
+ * @enum {number}
+ */
+const ActState = {
+    VIEW: 0,
+    CREATE: 1,
+    UPDATE: 2,
+};
+
+/**@type {ActState} */
+let action_state = ActState.VIEW;
+let curr_detail_id = null;
+
 (async () => {
     await INCLUDE_FINISHED;
     await new Promise(r => {
@@ -165,6 +207,34 @@ function fieldToNumber(f) {
         if (search_request_lock) return;
         query_data.page = PAGE_INPUT.valueAsNumber;
         doSearch();
+    };
+
+    SEARCHC_BUTTON.onclick = () => {
+        if (SEARCHC_NAME.value.length === 0) return;
+        switch (SEARCHC_TYPE.value) {
+            case "acts": {
+                const id = '+'+SEARCHC_NAME.value;
+                writeData.acts.create[id] = {id,perm:[],data:[0,0]};
+                renderDetails(`acts.c.${id}`);
+                break;
+            }
+            case "agrp": {
+                const id = '-'+SEARCHC_NAME.value;
+                writeData.acts.create[id] = {id,acts:[]};
+                renderDetails(`acts.c.${id}`);
+                break;
+            }
+            case "achi": {
+                const id = Number(SEARCHC_NAME.value);
+                if (!Number.isInteger(id)) return;
+                writeData.achi.create[id] = {id,name:"",display:{comb:0,fmts:[],values:{}},granting:{acts:"",prereqs:{comb:0,sub:[]},init:null},evo:[],population:0n};
+                renderDetails(`achi.c.${id}`);
+                break;
+            }
+        }
+    };
+    SEARCHC_NAME.oninput = () => {
+        SEARCHC_BUTTON.disabled = SEARCHC_NAME.value.length === 0;
     };
 
 

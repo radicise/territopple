@@ -19,6 +19,16 @@
                     <span id="search-holder">
                         <input type="text" id="search-name" placeholder=".*">
                         <input type="button" value="Search" id="search-go">
+                    </span><br>
+                    <span id="search-create-holder">
+                        <label for="search-create-name">Name/Id: </label>
+                        <input type="text" id="search-create-name">
+                        <select id="search-create-type">
+                            <option value="acts" selected>Action</option>
+                            <option value="agrp">Action Group</option>
+                            <option value="achi">Achievement</option>
+                        </select>
+                        <input type="button" value="Create" id="search-create" disabled>
                     </span>
                 </div>
                 <div id="search-results"></div>
@@ -32,7 +42,8 @@
                 <x-polypanel id="item-details">
                     <x-pp-panel shared>
                         <x-pp-shared name="change-actions" definition>
-                            <input type="button" value="Edit">
+                            <input type="button" value="Edit" id="idca-edit">
+                            <input type="button" value="Delete" id="idca-delete">
                         </x-pp-shared>
                     </x-pp-panel>
                     <x-pp-panel pid="action">
