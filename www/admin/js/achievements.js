@@ -88,6 +88,16 @@ const IDCA_EDIT = document.getElementById("idca-edit");
  */
 const IDCA_DELETE = document.getElementById("idca-delete");
 /**
+ * cancel button for staged changes under review
+ * @type {HTMLInputElement}
+ */
+const IDCA_CANCEL = document.getElementById("idca-cancel");
+/**
+ * button to save changes to staged list
+ * @type {HTMLInputElement}
+ */
+const IDCA_STAGE = document.getElementById("idca-stage");
+/**
  * name/id input for creating items
  * @type {HTMLInputElement}
  */
@@ -126,10 +136,12 @@ const query_data = {
 /**@typedef {import("../../../zserver/accounts/achi/types.js").ActionGroup} ActionGroup */
 /**@typedef {import("../../../zserver/accounts/achi/types.js").ActionLike} ActionLike */
 /**@typedef {import("../../../zserver/accounts/achi/types.js").AchiDef} AchiDef */
-/**@type {{acts:BulkChangeR<ActionLike,string>,achi:BulkChangeR<AchiDef,number>}} */
-const writeData = {acts:{create:{},update:{},delete:[]},achi:{create:{},update:{},delete:[]}};
+/**@type {{acts:BulkChangeR<ActionLike,string>&{delete:Set<string>},achi:BulkChangeR<AchiDef,number>&{delete:Set<number>}}} */
+const writeData = {acts:{create:{},update:{},delete:new Set()},achi:{create:{},update:{},delete:new Set()}};
 /**@type {{acts:Record<string,ActionLike>,achi:Record<number,AchiDef>}} */
 const origData = {acts:{},achi:{}};
+/**@type {{acts:Set<string>,achi:Set<number>}} */
+const stagedIds = {acts:new Set(),achi:new Set()};
 
 // let activePanel = BLANK_DETAILS;
 
@@ -175,6 +187,10 @@ const ActState = {
 /**@type {ActState} */
 let action_state = ActState.VIEW;
 let curr_detail_id = null;
+/**@type {ActionLike|AchiDef} */
+let curr_detail_data = null;
+/**@type {"view"|"modify"|"review"|"review-mod"} */
+let curr_detail_mode = "view";
 
 (async () => {
     await INCLUDE_FINISHED;
@@ -191,6 +207,7 @@ let curr_detail_id = null;
     const ownrec = await (await fetch(`https://${document.location.hostname}/acc/admin/info?id=${ownid}`, {method:"GET"})).json();
     /**@type {number} */
     const ownprivs = (await (await fetch(`https://${document.location.hostname}/acc/admin/privs`, {method:"GET"})).json()).privs;
+    DETAILS_PANE.getSharedComponent("change-actions").setDefault("input", (e)=>{e.hidden=false;});
 
 
     let search_request_lock = false;
@@ -215,26 +232,76 @@ let curr_detail_id = null;
             case "acts": {
                 const id = '+'+SEARCHC_NAME.value;
                 writeData.acts.create[id] = {id,perm:[],data:[0,0]};
-                renderDetails(`acts.c.${id}`);
+                renderDetails(`acts.c.${id}`, "modify");
                 break;
             }
             case "agrp": {
                 const id = '-'+SEARCHC_NAME.value;
                 writeData.acts.create[id] = {id,acts:[]};
-                renderDetails(`acts.c.${id}`);
+                renderDetails(`acts.c.${id}`, "modify");
                 break;
             }
             case "achi": {
                 const id = Number(SEARCHC_NAME.value);
                 if (!Number.isInteger(id)) return;
                 writeData.achi.create[id] = {id,name:"",display:{comb:0,fmts:[],values:{}},granting:{acts:"",prereqs:{comb:0,sub:[]},init:null},evo:[],population:0n};
-                renderDetails(`achi.c.${id}`);
+                renderDetails(`achi.c.${id}`, "modify");
                 break;
             }
         }
     };
     SEARCHC_NAME.oninput = () => {
         SEARCHC_BUTTON.disabled = SEARCHC_NAME.value.length === 0;
+    };
+
+    IDCA_DELETE.onclick = () => {
+        const type = typeof curr_detail_data.id === "string" ? "acts" : "achi";
+        origData[type][curr_detail_data.id] = curr_detail_data;
+        writeData[type].delete.add(curr_detail_data.id);
+        stagedIds[type].add(curr_detail_data.id);
+        renderDetails(undefined);
+    };
+    IDCA_EDIT.onclick = () => {
+        const type = typeof curr_detail_data.id === "string" ? "acts" : "achi";
+        if (typeof curr_detail_id === "number") {
+            writeData[type].update[curr_detail_data.id] = curr_detail_data;
+            renderDetails(`${type}.u.${curr_detail_data.id}`, "modify");
+        } else {
+            renderDetails(curr_detail_id, "modify");
+        }
+    };
+    IDCA_STAGE.onclick = () => {
+        const type = typeof curr_detail_data.id === "string" ? "acts" : "achi";
+        stagedIds[type].add(curr_detail_data.id);
+        const t = curr_detail_id[curr_detail_id.indexOf(".")+1];
+        const place = t === "c" ? "create" : "update";
+        const $ = DETAILS_PANE.querySelector;
+        if (type === "acts") {
+            if (curr_detail_data.id[0] === "+") {
+                /**@type {Action} */
+                const info = {id:curr_detail_data.id,perm:[],data:curr_detail_data.data};
+                $("#det-act-tperms").childNodes.forEach(v => {info.perm.push(readTriggerPerms(v));});
+                writeData[type][place][curr_detail_data.id] = info;
+                renderDetails(curr_detail_id, "review-mod");
+            } else {
+                // agrp
+            }
+        } else {
+            alert("TODO: staging achievements");
+        }
+    };
+    IDCA_CANCEL.onclick = () => {
+        const type = typeof curr_detail_data.id === "string" ? "acts" : "achi";
+        stagedIds[type].delete(curr_detail_data.id);
+        const t = curr_detail_id[curr_detail_id.indexOf(".")+1];
+        if (t === "c") {
+            delete writeData[type].create[curr_detail_data.id];
+        } else if (t === "u") {
+            delete writeData[type].update[curr_detail_data.id];
+        } else {
+            writeData[type].delete.delete(curr_detail_data.id);
+            delete origData[type][curr_detail_data.id];
+        }
     };
 
 
@@ -260,8 +327,22 @@ let curr_detail_id = null;
 
     /**
      * @param {number|string} item if string, must be of the form {type}.{op}.{id}
+     * @param {"view"|"modify"|"review"|"review-mod"} mode defaults to "view"
+     * @description
+     * mode:
+     * - view -- readonly, allows 'edit' and 'delete'
+     * - modify -- allows changes to be made, allows 'cancel' and 'stage'
+     * - review -- allows staged changes to be reviewed, allows 'cancel'
+     * - review-mod -- allows staged changes to be reviewed, allows 'cancel' and 'edit'
      */
-    function renderDetails(item) {
+    function renderDetails(item, mode) {
+        if (item === undefined) {
+            DETAILS_PANE.switchPanel("blank");
+            curr_detail_id = null;
+            curr_detail_data = null;
+            return;
+        }
+        mode = mode || "view";
         /**@type {ActionLike|AchiDef} */
         const data = typeof item === "number" ? query_data.resp.list[item] : (()=>{
             const i = item.indexOf(".");
@@ -290,7 +371,36 @@ let curr_detail_id = null;
                 if (t==="d")return `Orig data includes key (${n in origData[d]}).`;
                 return `Write data includes key (${n in writeData[d][t==='c'?"create":"update"]})`;
             })());
+            curr_detail_data = null;
+            curr_detail_id = null;
+            curr_detail_mode = "view";
             return;
+        }
+        curr_detail_id = item;
+        curr_detail_data = data;
+        curr_detail_mode = mode;
+        switch (mode) {
+            case "modify": {
+                IDCA_DELETE.hidden = true;
+                IDCA_EDIT.hidden = true;
+                break;
+            }
+            case "review": {
+                IDCA_DELETE.hidden = true;
+                IDCA_EDIT.hidden = true;
+                IDCA_STAGE.hidden = true;
+                break;
+            }
+            case "review-mod": {
+                IDCA_DELETE.hidden = true;
+                IDCA_STAGE.hidden = true;
+                break;
+            }
+            case "view": {
+                IDCA_CANCEL.hidden = true;
+                IDCA_STAGE.hidden = true;
+                break;
+            }
         }
         // activePanel.hidden = true;
         if (typeof data.id === "string") {
@@ -301,7 +411,7 @@ let curr_detail_id = null;
                 // ACTION_DETAILS.hidden = false;
                 DETAILS_PANE.switchPanel("action");
                 const $ = DETAILS_PANE.querySelector;
-                $("#det-act-tperms-set").disabled = true;
+                $("#det-act-tperms-set").disabled = mode !== "modify";
                 $("#det-act-id").value = info.id.slice(1);
                 /**@type {HTMLTableSectionElement} */
                 const permslist = $("#det-act-tperms");
@@ -346,13 +456,24 @@ let curr_detail_id = null;
         ]})]}));
         return r;
     }
+    /**
+     * @param {HTMLTableRowElement} p
+     * @returns {number}
+     */
+    function readTriggerPerms(p) {
+        const l = new Array(32).fill(false);
+        for (let i = 0; i < 32; i ++) {
+            l[i] = p.children[i].querySelector("input").checked;
+        }
+        return fieldToNumber(l);
+    }
     function renderSearchResults() {
         const children = [];
         switch (query_data.kind) {
             case "achi": {
                 for (let i = 0, l = query_data.resp.list.length; i < l; i ++) {
                     const res = query_data.resp.list[i];
-                    children.push(make("div", {"classList":["sr-item"],"onclick":()=>{renderDetails(i);},"children":[
+                    children.push(make("div", {"classList":["sr-item"],"onclick":()=>{if(curr_detail_mode!=="view")return;renderDetails(i);},"children":[
                         make("span", {"classList":["sr-type"],"textContent":"Achievement"}),
                         " ",
                         make("span", {"textContent":res.name})

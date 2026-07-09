@@ -174,6 +174,13 @@ class TTVariablePanelGroup extends HTMLElement {
     getShared() {
         return this.querySelectorAll("x-pp-panel[shared]")[0];
     }
+    /**
+     * @param {string} name
+     * @returns {TTSharedPanelComponent}
+     */
+    getSharedComponent(name) {
+        return this.getShared().querySelector(`x-pp-shared[name="${name}"]`);
+    }
 }
 customElements.define("x-polypanel", TTVariablePanelGroup);
 
