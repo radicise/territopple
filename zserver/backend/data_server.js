@@ -287,13 +287,14 @@ function generateRoomCode(sid) {
     let c = 0;
     const day = Math.floor(Date.now()/86400000)-20358;
     if (sid && sid !== "@@@@@") {
+        crypto.getRandomValues(codeArr);
         codeArr[settings.ROOM_CODE_LENGTH-1] = (day/1024)%32;
         codeArr[settings.ROOM_CODE_LENGTH-2] = (day/32)%32;
         codeArr[settings.ROOM_CODE_LENGTH-3] = day%32;
-        for (let i = 1; i < 4; i ++) {
+        for (let i = 1; i < 9; i ++) {
             code += codeChars[codeArr[settings.ROOM_CODE_LENGTH - i] % codeChars.length];
         }
-        code += sid;
+        code = code.slice(0, Math.max(code.length-sid.length,3)) + sid.slice(0,5);
         if (code in gameInfo) {
             throw new PerformanceError("room code generation (SID)");
         }
