@@ -246,7 +246,7 @@
                         //     primaryRadius = Math.abs(xrd) > Math.abs(yrd);
                         //     zooming = true;
                         //     zoomstart = s.valueAsNumber;
-                        } else if (((downPoint[0]-t.clientX)**2 + (downPoint[1]-t.clientY)**2) >= 50) {
+                        } else if (((downPoint[0]-t.clientX)**2 + (downPoint[1]-t.clientY)**2) >= 100) {
                             dragging = true;
                             wasDragging = true;
                             offsetPoint = [Number(c.style.getPropertyValue("--pan-x")),Number(c.style.getPropertyValue("--pan-y"))];
