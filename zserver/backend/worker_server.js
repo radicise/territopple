@@ -12,8 +12,6 @@ const { BotServer } = require("../interface/bots.js");
 const { AuthServer } = require("../interface/auth.js");
 const { DataServer } = require("../interface/data.js");
 
-process.title = "node";
-
 const LOGF = `logs/worker/${process.pid}.txt`;
 const ERRLOG = `logs/worker/error.txt`;
 ensureFile(ERRLOG);

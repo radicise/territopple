@@ -8,8 +8,6 @@ const { settings, validateJSONScheme, JSONScheme, InvariantViolationError, emit,
 const { PerformanceError } = require("./errors.js");
 const { DataServer } = require("../interface/data.js");
 
-process.title = "node";
-
 socks.setGlobals({}, emit, on, clear, tag_inuse);
 
 /**

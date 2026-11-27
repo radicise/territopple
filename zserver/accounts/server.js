@@ -24,8 +24,6 @@ const { processAdminFetch, adminDebugCommand } = require("./handlers/admin_fetch
 const { handlePFPRequest } = require("./colls/pfps.js");
 const { triggerManual, achiDebugCommand, executeHook } = require("./achi/primary.js");
 
-process.title = "node";
-
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid");
     ensureFile(PID_FILE);

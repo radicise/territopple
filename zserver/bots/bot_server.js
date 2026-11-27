@@ -8,8 +8,6 @@ const socks = require("../socks/handlers.js");
 const { settings, ensureFile, emit, on, clear } = require("../../defs.js");
 const { DBG, DIFF_LEVELS } = require("./common.js");
 
-process.title = "node";
-
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "bots.pid");
     ensureFile(PID_FILE);
