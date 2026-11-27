@@ -6,6 +6,8 @@ const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog,
 const mdb = require("mongodb");
 const { Permissions, check_permission } = require("../accounts/perms.js");
 
+process.title = "node";
+
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "puzs.pid");
     // console.log(PID_FILE);

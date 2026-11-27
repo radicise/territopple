@@ -7,6 +7,8 @@ const { codeChars, settings, validateJSONScheme, JSONScheme, ensureFile, addLog,
 const { PerformanceError } = require("./errors.js");
 const { TTBot } = require("../bots/bots.js");
 
+process.title = "node";
+
 fs.writeFileSync("www/portno.js", settings.APPEASEMENT ? `const game_port = ${settings.GAMEPORT};\n` : `const game_port = ${settings.WEBPORT};\n`);
 if (!fs.existsSync("replays")) {
     fs.mkdirSync("replays");
