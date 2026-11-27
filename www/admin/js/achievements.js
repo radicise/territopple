@@ -147,7 +147,7 @@ document.getElementById("nas-mt-sub").onclick = async () => {
     const accid = document.getElementById("nas-mt-accid").value;
     const hook = document.getElementById("nas-mt-hook").value;
     const data = document.getElementById("nas-mt-data").value;
-    const res = await fetch(`https://${document.location.hostname}/acc/admin/achi-hook-trigger`, {method:"POST",body:JSON.stringify({accid,hook,data:JSON.parse(data)})});
+    const res = await fetch(`https://${document.location.hostname}/acc/admin/achi-hook-trigger`, {method:"POST",body:JSON.stringify({accid,hook,data:JSON.parse(data)}),headers:[["content-type","application/json"]]});
     document.getElementById("nas-mt-result").textContent = `${res.status}: ${(await res.text()) || "No Response Text"}`;
 };
 
