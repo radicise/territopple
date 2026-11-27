@@ -22,7 +22,7 @@ const { ACC_CREAT_TIMEOUT, ACC_PWRST_TIMEOUT, ACC_MAX_NAME_LEN, EACCESS, EREJECT
 const { processPubFetch } = require("./handlers/pub_fetch.js");
 const { processAdminFetch, adminDebugCommand } = require("./handlers/admin_fetch.js");
 const { handlePFPRequest } = require("./colls/pfps.js");
-const { triggerManual, achiDebugCommand } = require("./achi/primary.js");
+const { triggerManual, achiDebugCommand, executeHook } = require("./achi/primary.js");
 
 {
     const PID_FILE = path.join(settings.DEVOPTS?.pid_dir??path.join(process.env.HOME, "serv-pids"), "auth.pid");
@@ -617,6 +617,50 @@ const internal_server = http.createServer(async (req, res) => {
     // const notimpl = (op)=>{log(IREJECT, `${op} not implemented`);};
     // log(IACCESS, `${req.method} - ${url}`);
     switch (url.pathname) {
+        case "/achi-hook": {
+            if (req.method !== "POST") {
+                res.writeHead(405).end();
+                return;
+            }
+            if (url.searchParams.get("id") === null) {
+                res.writeHead(400).end("NO ID");
+                return;
+            }
+            if (url.searchParams.get("id") === "%40guest") {
+                res.writeHead(200).end();
+                return;
+            }
+            const id = SessionManager.getAccountId(url.searchParams.get("id"));
+            if (id) {
+                try {
+                    const body = await new Promise((r, s) => {
+                        let d = "";
+                        req.on("data", (data) => {d += data});
+                        req.on("end", ()=>r(d));
+                        req.on("error", s);
+                    });
+                    const data = JSON.parse(body);
+                    if (!("hook" in data && "data" in data)) {
+                        res.writeHead(422).end();
+                        return;
+                    }
+                    /**@type {AccountRecord} */
+                    const rec = await collection.findOne({id});
+                    if (!rec) {
+                        res.writeHead(404).end("ID NOT FOUND");
+                        return;
+                    }
+                    await executeHook(rec, data.hook, data.data);
+                    res.writeHead(200).end();
+                } catch (E) {
+                    console.log(E);
+                    res.writeHead(500).end();
+                }
+            } else {
+                res.writeHead(404).end();
+            }
+            return;
+        }
         case "/achievement": {
             if (req.method !== "POST") {
                 res.writeHead(405).end();

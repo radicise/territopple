@@ -40,6 +40,19 @@ class AuthServer {
                 attatchListeners(req, resolve, (data) => Buffer.from(data, "base64url"));
             });
         }
+        /**
+         * @param {string} sessid
+         * @param {string} hook
+         * @param {object} data
+         * @returns {Promise<InterfaceReturn<void>>}
+         */
+        static triggerAchiHook(sessid, hook, data) {
+            return new Promise((resolve) => {
+                const req = http.request(`http://localhost:${settings.AUTHINTERNALPORT}/achi-hook?id=${sessid}`, {method:"POST"});
+                req.end(JSON.stringify({hook,data}));
+                attatchListeners(req, resolve);
+            });
+        }
     }
 }
 

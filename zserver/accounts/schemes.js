@@ -106,6 +106,12 @@ const adminAchieve = {
     "action": "string",
     "discrim": "number"
 };
+/**@type {JSONScheme} */
+const adminAHookTrigger = {
+    "accid": "string",
+    "hook": "string",
+    "data": "any"
+};
 
 exports.accCreationScheme = accCreationScheme;
 exports.accLoginScheme = accLoginScheme;
@@ -126,3 +132,4 @@ exports.adminPGrpCreate = adminPGrpCreate;
 exports.adminPGrpUpdate = adminPGrpUpdate;
 exports.adminPGrpAssign = adminPGrpAssign;
 exports.adminAchieve = adminAchieve;
+exports.adminAHookTrigger = adminAHookTrigger;

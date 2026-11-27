@@ -1,5 +1,4 @@
 const mdb = require("mongodb");
-const { Achievement } = require("./achi/types");
 
 /**
  * @typedef AppealRejectionRecord
@@ -55,7 +54,7 @@ const { Achievement } = require("./achi/types");
  * devtst:boolean?,
  * next_refid:number,
  * pfp:string?,
- * achieve:Record<string,Achievement>
+ * achieve:Record<number,object>
  * }}
  */
 
@@ -66,6 +65,13 @@ const { Achievement } = require("./achi/types");
 /**
  * @typedef PFPRecord
  * @type {{_id:mdb.ObjectId,data:mdb.Binary,type:string,refcount:number,src:string,hash:mdb.Binary}}
+ */
+
+/**
+ * @typedef AchiHookData
+ * @type {object}
+ * @prop {AccountRecord} account
+ * @prop {{type:string,data:any}} trigger
  */
 
 /**
@@ -101,3 +107,4 @@ exports.PrivGroupRecord = this.PrivGroupRecord;
 exports.PFPRecord = this.PFPRecord;
 exports.FlagF1 = FlagF1;
 exports.checkFlag = checkFlag;
+exports.AchiHookData = this.AchiHookData;

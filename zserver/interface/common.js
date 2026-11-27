@@ -8,7 +8,7 @@
 /**
  * @template T
  * @param {import("http").ClientRequest} req
- * @param {(value:InterfaceReturn<T>)} resolve
+ * @param {(value:InterfaceReturn<T>)=>void} resolve
  * @param {(data:string)=>T} endcb
  */
 function attatchListeners(req, resolve, endcb) {

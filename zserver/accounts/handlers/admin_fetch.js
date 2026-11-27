@@ -8,7 +8,7 @@ const { validateJSONScheme, settings } = require("../../../defs.js");
 const schemes = require("../schemes.js");
 const auth = require("../auth.js");
 const { handlePGroupRequest } = require("../colls/privgroups.js");
-const { triggerManual, getRequiredPermissions, getAchievements, getActions, bulkAchiWrite } = require("../achi/primary.js");
+const { triggerManual, getRequiredPermissions, getAchievements, getActions, bulkAchiWrite, executeHook } = require("../achi/primary.js");
 
 /**@typedef {{acc:string,refid:number,cancel?:boolean,value?:number,expires?:number,notes?:string,appeal?:{accept:boolean,notes?:string,value?:number}}} AdminSancManData */
 
@@ -215,6 +215,30 @@ async function processAdminFetch(req, res, url, log) {
         }
         case "POST":{
             switch (stripped) {
+                case "/achi-hook-trigger": {
+                    if (!check_permission(adminperms, Permissions.MANAGE_ACHIEVEMENTS)) {
+                        res.writeHead(403, {"content-type":"text/plain"}).end("insufficient permissions");
+                        return;
+                    }
+                    const data = JSON.parse(body);
+                    if (!validateJSONScheme(data, schemes.adminAHookTrigger)) {
+                        res.writeHead(400,{"content-type":"text/plain"}).end("misformed");
+                        return;
+                    }
+                    try {
+                        const rec = await getAccountRecord(data.accid);
+                        if (rec === null) {
+                            res.writeHead(404, {"content-type":"text/plain"}).end("account not found");
+                            return;
+                        }
+                        await executeHook(rec, data.hook, data.data);
+                        res.writeHead(200).end();
+                    } catch (E) {
+                        console.log(E);
+                        res.writeHead(500, {"content-type":"text/plain"}).end("internal error");
+                    }
+                    return;
+                }
                 case "/achi-source": {
                     if (!check_permission(adminperms, Permissions.MANAGE_ACHIEVEMENTS)) {
                         res.writeHead(403, {"content-type":"text/plain"}).end("insufficient permissions");

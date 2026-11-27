@@ -2,12 +2,56 @@
  * @file
  * primary achievement logic
  */
+const fs = require("fs");
+const path = require("path");
 const { clone } = require("../../../defs.js");
 const { acts_data, mdb, achi_data, client } = require("../db.js");
 const { AccountRecord } = require("../types.js");
 const { executeAchiCode } = require("./lang.js");
 const ty = require("./types.js");
+const { AchiHookMod } = require("./types.js");
 const { AsyncLocalStorage } = require("async_hooks");
+
+
+/**@type {AchiHookMod[]} */
+const HOOKS = [];
+
+fs.readdirSync(path.join(__dirname, "mods")).forEach(v => {
+    if (v.endsWith(".js")) {
+        const MOD = require(path.join(__dirname, "mods", v));
+        HOOKS.push(MOD.mod);
+    }
+});
+
+
+/**
+ * @param {AccountRecord} acc
+ * @param {string} hook
+ * @param {object} data
+ */
+async function executeHook(acc, hook, data) {
+    const updates = {"$set":{},"$inc":{}};
+    HOOKS.forEach(v => {
+        v.handler(hook, acc, data).forEach(u => {
+            for (const [key, val] of Object.entries(u.fields)) {
+                const FID = `${v.modId}.${u.id}.${key}`;
+                switch (val.op) {
+                    case "set": {
+                        updates["$set"][FID] = val.value;
+                        break;
+                    }
+                    case "+": {
+                        updates["$inc"][FID] = val.value;
+                        break;
+                    }
+                }
+            }
+        });
+    });
+    await achi_data.updateOne({_id:acc._id}, updates, {"upsert":true});
+}
+
+exports.executeHook = executeHook;
 
 
 class MutexError extends Error {

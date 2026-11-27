@@ -1,0 +1,29 @@
+This file documents achievement hooks and their usage.
+
+A mandatory hook must be acted upon by an achievement module.
+
+init: mandatory hook, initializes achievement data
+
+scan: domain - all hooks under this domain are triggered for every account in the database
+    .periodic: this hook is triggered periodically
+
+match: domain - all hooks under this domain are triggered by actions relating to matches
+    NOTE: this domain is only triggered when a match is played
+    .create: this hook is triggered by creating a match
+        {
+            ruleset<UNKNOWN>: the rules of the match
+        }
+    .enter: this hook is triggered by entering a match
+        {
+            ruleset<UNKNOWN>: the rules of the match
+        }
+    .join: this hook is triggered by other players joining a match
+        {
+            accountId<string>: the account id of the player
+        }
+    .end: this hook is triggered by a match ending
+        {
+            winner<number>: the winning team
+            ruleset<UNKNOWN>: the rules of the match
+        }
+

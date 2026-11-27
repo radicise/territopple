@@ -12,13 +12,8 @@ Achievement Information:
 this data is stored in a seperate location and describes an achievement
 {
     id<Int32>: achievement id,
+    provider<string>: the module that provides this achievement,
     name<string>: internal achievement name,
-    granting<{
-        prereqs<Prerequisites>: prerequisite achievements,
-        acts<ActionId>: id of actions to complete to be awarded this achievement see "./action.txt",
-        init<any>: initial data
-    }>: information on what is required to achieve this achievement,
-    evo<Mutator[]>: how to mutate this data,
     display<Display>: how to display the achievement see "./display.txt",
     population<Int64>: how many accounts have this achievement
 }

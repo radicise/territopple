@@ -17,7 +17,7 @@ const collection = db.collection("basic-info");
 const priv_groups = db.collection("priv-groups");
 const pfp_data = db.collection("pfps");
 /**@type {mdb.Collection<DBAchiDef>} */
-const achi_data = db.collection("achi");
+const achi_data = db.collection("achis");
 /**@ type {mdb.Collection<import("./achi/types.js").DBAction} */
 /**@type {mdb.Collection<import("./achi/types.js").DBAction|import("./achi/types.js").DBActionGroup>} */
 const acts_data = db.collection("acts");

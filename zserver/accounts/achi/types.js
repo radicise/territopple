@@ -5,6 +5,44 @@
 
 const mdb = require("mongodb");
 
+const { AccountRecord } = require("../types.js");
+
+const HookClass = {
+    /**
+     * A periodically triggered hook
+     * @readonly
+     */
+    PERIODIC: 0,
+    /**
+     * A hook triggered during matches
+     * @readonly
+     */
+    MATCH: 1
+};
+
+Object.freeze(HookClass);
+
+/**
+ * @typedef AchiStateMod
+ * @type {{id:string,fields:Record<string,{op:"set"|"+",value:any}>}}
+ */
+/**
+ * @typedef AchiModDef
+ * @type {{id:string,fields:Record<string,string>,description:string}}
+ */
+/**
+ * @typedef AchiModFunc
+ * @type {(hook:string,acc:AccountRecord,data:object)=>AchiStateMod[]}
+ */
+/**
+ * @typedef AchiHookMod
+ * @type {{modId:string,description:string,achis:AchiModDef[],handler:AchiModFunc}}
+ */
+exports.AchiHookMod = this.AchiHookMod;
+exports.AchiStateMod = this.AchiStateMod;
+exports.AchiModFunc = this.AchiModFunc;
+exports.AchiModDef = this.AchiModDef;
+
 /**
  * @typedef DBActionGroup
  * @type {object}
