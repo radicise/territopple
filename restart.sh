@@ -1,4 +1,4 @@
 #!/bin/sh
-killall node -s SIGINT
+killall MainThread -s SIGINT
 ./start.sh
 
